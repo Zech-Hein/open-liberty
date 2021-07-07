@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.ietf.jgss.Oid;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -47,8 +46,8 @@ import componenttest.topology.impl.LibertyServerFactory;
  *
  */
 @RunWith(FATRunner.class)
-//@Mode(TestMode.FULL)
-@Mode(TestMode.QUARANTINE)
+@Mode(TestMode.FULL)
+//@Mode(TestMode.QUARANTINE)
 @MinimumJavaLevel(javaLevel = 8)
 public class S4U2ProxyTest extends CommonTest {
 
@@ -130,15 +129,24 @@ public class S4U2ProxyTest extends CommonTest {
 
         if (InitClass.isRndHostName) {
             Log.info(c, thisMethod, "Not running S4U2ProxyTest because randomized hostname is used.");
-            Assume.assumeTrue(false); //This disables this test class. None of the tests in the class will be run.
+            Log.info(c, thisMethod, "SIKE! WE RUNNIN!");
+            //Assume.assumeTrue(false); //This disables this test class. None of the tests in the class will be run.
         } else {
-            Log.info(c, thisMethod, "Starting the server and kerberos setup ...");
-            spnegoTokencommonSetUp("S4U2ProxyTest", "serverSpnego.xml", SPNEGOConstants.NO_APPS, SPNEGOConstants.NO_PROPS,
-                                   SPNEGOConstants.DONT_CREATE_SSL_CLIENT, SPNEGOConstants.DONT_CREATE_SPN_AND_KEYTAB,
-                                   SPNEGOConstants.DEFAULT_REALM, SPNEGOConstants.CREATE_SPNEGO_TOKEN, SPNEGOConstants.SET_AS_COMMON_TOKEN, SPNEGOConstants.USE_CANONICAL_NAME,
-                                   SPNEGOConstants.USE_COMMON_KEYTAB, SPNEGOConstants.DONT_START_SERVER,
-                                   tokenAPIServletName, tokenAPIServletRootContext, SPNEGOConstants.USE_USER1);
+            /*
+             * Log.info(c, thisMethod, "Starting the server and kerberos setup ...");
+             * spnegoTokencommonSetUp("S4U2ProxyTest", "serverSpnego.xml", SPNEGOConstants.NO_APPS, SPNEGOConstants.NO_PROPS,
+             * SPNEGOConstants.DONT_CREATE_SSL_CLIENT, SPNEGOConstants.DONT_CREATE_SPN_AND_KEYTAB,
+             * SPNEGOConstants.DEFAULT_REALM, SPNEGOConstants.CREATE_SPNEGO_TOKEN, SPNEGOConstants.SET_AS_COMMON_TOKEN, SPNEGOConstants.USE_CANONICAL_NAME,
+             * SPNEGOConstants.USE_COMMON_KEYTAB, SPNEGOConstants.DONT_START_SERVER,
+             * tokenAPIServletName, tokenAPIServletRootContext, SPNEGOConstants.USE_USER1);
+             */
         }
+        Log.info(c, thisMethod, "Starting the server and kerberos setup ...");
+        spnegoTokencommonSetUp("S4U2ProxyTest", "serverSpnego.xml", SPNEGOConstants.NO_APPS, SPNEGOConstants.NO_PROPS,
+                               SPNEGOConstants.DONT_CREATE_SSL_CLIENT, SPNEGOConstants.DONT_CREATE_SPN_AND_KEYTAB,
+                               SPNEGOConstants.DEFAULT_REALM, SPNEGOConstants.CREATE_SPNEGO_TOKEN, SPNEGOConstants.SET_AS_COMMON_TOKEN, SPNEGOConstants.USE_CANONICAL_NAME,
+                               SPNEGOConstants.USE_COMMON_KEYTAB, SPNEGOConstants.DONT_START_SERVER,
+                               tokenAPIServletName, tokenAPIServletRootContext, SPNEGOConstants.USE_USER1);
 
         FATSuite.transformApps(myServer, "basicauth.war", "SPNEGOTokenHelperFVT.ear");
     }
