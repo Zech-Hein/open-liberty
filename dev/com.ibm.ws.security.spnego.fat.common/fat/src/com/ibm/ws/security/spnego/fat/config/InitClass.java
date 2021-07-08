@@ -302,6 +302,7 @@ public class InitClass {
                 rdnString.append(chars.charAt(index));
             }
             rndHostName = rdnString.toString();
+            rndHostName = "rndhostname1";
             libertyHostMap.put(canonicalHostName, rndHostName);
             isRndHostName = true;
         }
