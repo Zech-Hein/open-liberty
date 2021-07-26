@@ -61,7 +61,6 @@ import componenttest.rules.repeater.RepeatTests;
 @RunWith(Suite.class)
 @SuiteClasses({
                 // Shared Servers
-                WCPushBuilderTest.class,
                 WCContextRootPrecedence.class,
                 // TFB:
                 // Locally, WCTrailersTest fails unless I add '-Dglobal.debug.java2.sec=false' to
@@ -69,9 +68,10 @@ import componenttest.rules.repeater.RepeatTests;
                 // And, when WCTrailersTest fails, it causes most of the tests to fail with errors.
                 // I'm still determining if this is purely a local problem.
                 //              WCPushBuilderSecurityTest.class,
-                WCServletContainerInitializerFilterServletNameMappingTest.class,
                 WCApplicationMBeanStatusTest.class,
                 // @Server Annotations
+                WCPushBuilderTest.class,
+                WCServletContainerInitializerFilterServletNameMappingTest.class,
                 WCServletClarificationTest.class,
                 WCAddJspFileTest.class,
                 WCTrailersTest.class,
