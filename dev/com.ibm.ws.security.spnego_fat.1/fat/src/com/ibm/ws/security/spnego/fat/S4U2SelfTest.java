@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.ietf.jgss.Oid;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -106,17 +105,25 @@ public class S4U2SelfTest extends CommonTest {
     public static void setUp() throws Exception {
         String thisMethod = "setUp";
 
-        if (InitClass.isRndHostName) {
-            Log.info(c, thisMethod, "Not running S4U2SelfTest because randomized hostname is used.");
-            Assume.assumeTrue(false); //This disables this test class. None of the tests in the class will be run.
-        } else {
-            Log.info(c, thisMethod, "Starting the server and kerberos setup ...");
-            spnegoTokencommonSetUp("S4U2SelfTest", "serverSpnego.xml", SPNEGOConstants.NO_APPS, SPNEGOConstants.NO_PROPS,
-                                   SPNEGOConstants.DONT_CREATE_SSL_CLIENT, SPNEGOConstants.DONT_CREATE_SPN_AND_KEYTAB,
-                                   SPNEGOConstants.DEFAULT_REALM, SPNEGOConstants.CREATE_SPNEGO_TOKEN, SPNEGOConstants.SET_AS_COMMON_TOKEN, SPNEGOConstants.USE_CANONICAL_NAME,
-                                   SPNEGOConstants.USE_COMMON_KEYTAB, SPNEGOConstants.DONT_START_SERVER,
-                                   tokenAPIServletName, tokenAPIServletRootContext, SPNEGOConstants.USE_USER1);
-        }
+        Log.info(c, thisMethod, "Starting the server and kerberos setup ...");
+        spnegoTokencommonSetUp("S4U2SelfTest", "serverSpnego.xml", SPNEGOConstants.NO_APPS, SPNEGOConstants.NO_PROPS,
+                               SPNEGOConstants.DONT_CREATE_SSL_CLIENT, SPNEGOConstants.DONT_CREATE_SPN_AND_KEYTAB,
+                               SPNEGOConstants.DEFAULT_REALM, SPNEGOConstants.CREATE_SPNEGO_TOKEN, SPNEGOConstants.SET_AS_COMMON_TOKEN, SPNEGOConstants.USE_CANONICAL_NAME,
+                               SPNEGOConstants.USE_COMMON_KEYTAB, SPNEGOConstants.DONT_START_SERVER,
+                               tokenAPIServletName, tokenAPIServletRootContext, SPNEGOConstants.USE_USER1);
+        /*
+         * if (InitClass.isRndHostName) {
+         * Log.info(c, thisMethod, "Not running S4U2SelfTest because randomized hostname is used.");
+         * Assume.assumeTrue(false); //This disables this test class. None of the tests in the class will be run.
+         * } else {
+         * Log.info(c, thisMethod, "Starting the server and kerberos setup ...");
+         * spnegoTokencommonSetUp("S4U2SelfTest", "serverSpnego.xml", SPNEGOConstants.NO_APPS, SPNEGOConstants.NO_PROPS,
+         * SPNEGOConstants.DONT_CREATE_SSL_CLIENT, SPNEGOConstants.DONT_CREATE_SPN_AND_KEYTAB,
+         * SPNEGOConstants.DEFAULT_REALM, SPNEGOConstants.CREATE_SPNEGO_TOKEN, SPNEGOConstants.SET_AS_COMMON_TOKEN, SPNEGOConstants.USE_CANONICAL_NAME,
+         * SPNEGOConstants.USE_COMMON_KEYTAB, SPNEGOConstants.DONT_START_SERVER,
+         * tokenAPIServletName, tokenAPIServletRootContext, SPNEGOConstants.USE_USER1);
+         * }
+         */
     }
 
     @Before

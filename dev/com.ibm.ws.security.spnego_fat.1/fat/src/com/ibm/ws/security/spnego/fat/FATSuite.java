@@ -113,6 +113,8 @@ public class FATSuite extends InitClass {
                 RUN_TESTS = false;
             }
             Log.info(c, thisMethod, "The JDK vendor used is " + javaInfo.vendor() + " and version: " + javaInfo.majorVersion());
+            Log.info(c, thisMethod, "RUN_TESTS=true");
+            RUN_TESTS = true;
             return RUN_TESTS;
         };
 
