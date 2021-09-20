@@ -232,7 +232,10 @@ public class InitClass {
             if (tmpHostLowerCase.contains("ebc")) {
                 canonicalHostName = createRandomStringHostNameForEbc(canonicalHostName);
             } else {
-                canonicalHostName = createRandomStringHostName(canonicalHostName);
+                //canonicalHostName = createRandomStringHostName(canonicalHostName);
+                String rndhostname1 = "rndhostname1";
+                libertyHostMap.put(canonicalHostName, rndhostname1);
+                canonicalHostName = rndhostname1;
             }
         }
 

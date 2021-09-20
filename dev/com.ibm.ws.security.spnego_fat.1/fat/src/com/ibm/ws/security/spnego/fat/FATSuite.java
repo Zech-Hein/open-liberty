@@ -29,7 +29,6 @@ import com.ibm.ws.security.spnego.fat.config.SPNEGOConstants;
 
 import componenttest.custom.junit.runner.AlwaysPassesTest;
 import componenttest.rules.repeater.JakartaEE9Action;
-import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.JavaInfo;
 import componenttest.topology.impl.JavaInfo.Vendor;
 import componenttest.topology.impl.LibertyServer;
@@ -45,8 +44,8 @@ import componenttest.topology.impl.LibertyServerFactory;
 public class FATSuite extends InitClass {
     private static final Class<?> c = FATSuite.class;
 
-    @ClassRule
-    public static RepeatTests repeat = RepeatTests.withoutModification().andWith(new JakartaEE9Action());
+    //@ClassRule
+    //public static RepeatTests repeat = RepeatTests.withoutModification().andWith(new JakartaEE9Action());
 
     /**
      * Rule to setup users, SPNs etc on the KDC.
