@@ -226,6 +226,11 @@ public class Krb5Helper {
                               final int credInitLifetime,
                               final int credAcceptLifetime, int contextLifetime, Oid mechOid) throws Exception, GSSException {
         String thisMethod = "createToken";
+
+        Log.info(thisClass, thisMethod, "userName: " + userName);
+        Log.info(thisClass, thisMethod, "spn: " + spn);
+        Log.info(thisClass, thisMethod, "credentialDelegate: " + credentialDelegate);
+
         byte[] spnegoToken = new byte[0];
         GSSContext clientContext = null;
         try {
