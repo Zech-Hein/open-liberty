@@ -284,9 +284,12 @@ public class Krb5Util {
                 Tr.debug(tc, "gssClientCredential has not been saved in the subject, GSSException: " + e.getMessage());
             }
         }
-
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.debug(tc, "zech >>> addGSSDelegCredToSubject clientCred: " + clientCred);
+        }
         try {
-            if (clientCred == null && SpnegoHelperProxy.isS4U2proxyEnabled()) {
+            if (SpnegoHelperProxy.isS4U2proxyEnabled()) {
+                //if (clientCred == null && SpnegoHelperProxy.isS4U2proxyEnabled()) {
                 String delegateServiceSpn = context.getTargName().toString();
                 clientCred = SpnegoHelperProxy.getDelegateGSSCredUsingS4U2proxy(userPrincipal, context, delegateServiceSpn);
             }
