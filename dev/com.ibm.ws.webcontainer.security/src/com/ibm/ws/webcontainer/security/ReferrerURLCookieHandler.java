@@ -291,9 +291,12 @@ public class ReferrerURLCookieHandler extends URLHandler {
                     if (referrerURL != null && currentURL != null) {
                         String referrerHost = referrerURL.getHost();
                         String currentReqHost = currentURL.getHost();
+                        int referrerPort = referrerURL.getPort();
+                        int currentReqPort = currentURL.getPort();
                         if (referrerHost != null && currentReqHost != null
                             && (referrerHost.equalsIgnoreCase(currentReqHost) || isReferrerHostMatchDomainNameList(referrerHost, domainList))) {
-                            _isValid = true;
+                            if (currentReqPort == referrerPort)
+                                _isValid = true;
                         }
                     }
                 } catch (MalformedURLException me) {
