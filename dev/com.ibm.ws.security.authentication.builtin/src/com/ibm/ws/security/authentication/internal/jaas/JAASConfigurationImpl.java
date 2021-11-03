@@ -52,7 +52,8 @@ public class JAASConfigurationImpl implements JAASConfiguration {
                                                                                                           JaasLoginConfigConstants.SYSTEM_DEFAULT,
                                                                                                           JaasLoginConfigConstants.SYSTEM_DESERIALIZE_CONTEXT, //TODO: Revisit after security context support is more stable. Do we really need to add all the login modules to this config?
                                                                                                           JaasLoginConfigConstants.SYSTEM_RMI_INBOUND,
-                                                                                                          JaasLoginConfigConstants.APPLICATION_WSLOGIN }));
+                                                                                                          JaasLoginConfigConstants.APPLICATION_WSLOGIN,
+                                                                                                          JaasLoginConfigConstants.APPLICATION_WSKRB5LOGIN }));
     public static final Class<WSLoginModuleImpl> WSLOGIN_MODULE_IMPL_CLASS = WSLoginModuleImpl.class;
     private ConcurrentServiceReferenceMap<String, JAASLoginContextEntry> jaasLoginContextEntries;
 
