@@ -22,4 +22,5 @@ public class JaasLoginConfigConstants {
     public static final String SYSTEM_DESERIALIZE_CONTEXT = "system.DESERIALIZE_CONTEXT";
     public static final String SYSTEM_RMI_INBOUND = "system.RMI_INBOUND";
     public static final String JAASClient = "JAASClient";
+    public static final String APPLICATION_WSKRB5LOGIN = "WSKrb5Login";
 }
