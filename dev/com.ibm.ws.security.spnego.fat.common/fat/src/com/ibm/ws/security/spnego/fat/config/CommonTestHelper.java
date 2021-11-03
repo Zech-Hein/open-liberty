@@ -273,7 +273,8 @@ public class CommonTestHelper {
         }
 
         Log.info(thisClass, thisMethod, "Starting server: " + server.getServerName());
-        server.startServer();
+        //server.startServer();
+        server.startServerAndValidate(false, false, false);
 
         waitForMessages(waitForMessages, true);
     }

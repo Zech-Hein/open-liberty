@@ -223,9 +223,9 @@ public class ApacheKDCCommonTest {
         String krbName = username;
         if (realm != null) {
             krbName = username + "@" + realm;
-            subject = krb5Helper.kerberosLogin(myServer, username, password, null, realm, kdcHostName, jaasLoginContextEntry);
+            subject = krb5Helper.kerberosLogin(myServer, username, password, null, realm, kdcHostName, "WSKrb5");
         } else {
-            subject = krb5Helper.kerberosLogin(myServer, username, password, configFile, null, null, null);
+            subject = krb5Helper.kerberosLogin(myServer, username, password, configFile, null, null, "WSKrb5");
         }
 
         return krb5Helper.createToken(subject, krbName, targetSpn, includeClientGSSCredentialInSubject, mechOid);

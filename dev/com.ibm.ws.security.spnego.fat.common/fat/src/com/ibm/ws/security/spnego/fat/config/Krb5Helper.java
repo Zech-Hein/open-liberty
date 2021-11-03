@@ -153,7 +153,7 @@ public class Krb5Helper {
             System.setProperty("java.security.krb5.kdc", (kdcHostName == null) ? InitClass.KDC_HOSTNAME : kdcHostName);
         }
 
-        System.setProperty("java.security.auth.login.config", jaasLoginConfig);
+        //System.setProperty("java.security.auth.login.config", jaasLoginConfig);
 
         if (jaasLoginContextEntry != null)
             loginContextEntry = jaasLoginContextEntry;
