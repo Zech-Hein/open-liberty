@@ -13,6 +13,8 @@ package web.common;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
@@ -24,11 +26,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ibm.websphere.security.auth.ValidationFailedException;
 import com.ibm.websphere.security.auth.WSSubject;
 import com.ibm.websphere.security.cred.WSCredential;
 import com.ibm.ws.security.authentication.utility.SubjectHelper;
 import com.ibm.wsspi.security.token.AttributeNameConstants;
 import com.ibm.wsspi.security.token.SingleSignonToken;
+import com.ibm.wsspi.security.token.ValidationResult;
 
 /**
  * Base servlet which all of our test servlets extend.
@@ -158,6 +162,26 @@ public abstract class BaseServlet extends HttpServlet {
             for (int i = 0; i < cookies.length; i++) {
                 writeLine(sb, "cookie: " + cookies[i].getName() + " value: "
                               + cookies[i].getValue());
+
+                byte[] tb = Base64.getDecoder().decode(cookies[i].getValue());
+                writeLine(sb, "zech >>> cookie: " + tb);
+
+                writeLine(sb, "SSO cookie bytes: " + new String(tb, StandardCharsets.UTF_8));
+
+                ValidationResult result = null;
+                try {
+                    result = com.ibm.wsspi.security.token.WSSecurityPropagationHelper.validateToken(tb);
+                } catch (ValidationFailedException e) {
+                    writeLine(sb, "cookie validateToken ValidationFailedException: " + e.getMessage());
+                    e.printStackTrace();
+                }
+
+                if (result != null) {
+                    writeLine(sb, "cookie ValidateTokenAPI Result: " + result.toString());
+                    writeLine(sb, "cookie ValidateTokenAPI result.getUserFromUniqueId(): " + result.getUserFromUniqueId());
+                } else {
+                    writeLine(sb, "cookie ValidateTokenAPI Result: is null");
+                }
             }
         }
         writeLine(sb, "getRequestURL: " + req.getRequestURL().toString());
@@ -199,6 +223,19 @@ public abstract class BaseServlet extends HttpServlet {
                         if (attrs != null && attrs.length > 0) {
                             customCacheKey = attrs[0];
                         }
+                    }
+                    writeLine(sb, "zech >>> ssoToken: " + ssoToken.getBytes());
+                    byte[] tb = ssoToken.getBytes();
+
+                    writeLine(sb, "SSO cookie bytes: " + new String(tb, StandardCharsets.UTF_8));
+
+                    ValidationResult result = com.ibm.wsspi.security.token.WSSecurityPropagationHelper.validateToken(tb);
+
+                    if (result != null) {
+                        writeLine(sb, "ValidateTokenAPI Result: " + result.toString());
+                        writeLine(sb, "ValidateTokenAPI result.getUserFromUniqueId(): " + result.getUserFromUniqueId());
+                    } else {
+                        writeLine(sb, "ValidateTokenAPI Result: is null");
                     }
                 }
             }

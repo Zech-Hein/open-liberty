@@ -271,9 +271,14 @@ public class S4U2ProxyTest extends CommonTest {
     private void testSpnegoS4U2ProxyAPITest(Oid mechOid) {
 
         // using TARGET_SERVER in url for server so as not to use localHost
+
+        TARGET_SERVER = "odbz21.fyre.ibm.com";
+
         String urlBase = "http://" + TARGET_SERVER + ":" + myServer.getHttpDefaultPort() + servletURL;
         String urlS4u2Proxy = urlBase + parametersList.get(key_parmsFromSubjectS4U2Proxy2);
         //       String urlNonDelegation = urlBase + parmsFromCallerSubjectNonDelegation;
+
+        urlS4u2Proxy = "http://odbz21.fyre.ibm.com:9087/servlets30api/secureSimple";
 
         Log.info(c, name.getMethodName(), "Accessing servlet with URL of " + urlS4u2Proxy);
         int expectedStatusCode = 200;

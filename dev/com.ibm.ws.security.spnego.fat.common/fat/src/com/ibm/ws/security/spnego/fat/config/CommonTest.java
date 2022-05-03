@@ -92,9 +92,9 @@ public class CommonTest {
      * setAsCommonSpnegoToken is false, user1 will always be the user selected.
      *
      * @param setAsCommonSpnegoToken - Boolean indicating whether the newly created token should be set as the common
-     *                                   SPNEGO token for all future tests and test classes.
+     *            SPNEGO token for all future tests and test classes.
      *
-     * @param selectUser1            - disables the randomUser and instead creates a token using user1
+     * @param selectUser1 - disables the randomUser and instead creates a token using user1
      * @throws Exception
      */
     public static void createNewSpnegoToken(boolean setAsCommonSpnegoToken, boolean selectUser1) throws Exception {
@@ -210,7 +210,7 @@ public class CommonTest {
      * apps will be validated as ready, and no additional bootstrap properties will be set.
      *
      * @param testServerName
-     * @param startServer    - Boolean indicating whether the server should be started once setup is complete
+     * @param startServer - Boolean indicating whether the server should be started once setup is complete
      * @throws Exception
      */
     public static void commonSetUp(String testServerName, boolean startServer) throws Exception {
@@ -222,11 +222,11 @@ public class CommonTest {
      * token will be created; the common SPN, keytab file, and SPNEGO token will be used.
      *
      * @param testServerName
-     * @param serverXml      - Server config file within the server's configs/ directory to use. If null, a server.xml file
-     *                           is expected to be present in the server's root directory.
-     * @param checkApps      - List of apps to be validated as ready upon server start
-     * @param testProps      - Map of bootstrap property names and values to be set so they can be used in server
-     *                           configurations
+     * @param serverXml - Server config file within the server's configs/ directory to use. If null, a server.xml file
+     *            is expected to be present in the server's root directory.
+     * @param checkApps - List of apps to be validated as ready upon server start
+     * @param testProps - Map of bootstrap property names and values to be set so they can be used in server
+     *            configurations
      * @throws Exception
      */
     public static void commonSetUp(String testServerName, String serverXml, List<String> checkApps, Map<String, String> testProps) throws Exception {
@@ -240,12 +240,12 @@ public class CommonTest {
      * and SPNEGO token will be used.
      *
      * @param testServerName
-     * @param serverXml      - Server config file within the server's configs/ directory to use. If null, a server.xml file
-     *                           is expected to be present in the server's root directory.
-     * @param checkApps      - List of apps to be validated as ready upon server start
-     * @param testProps      - Map of bootstrap property names and values to be set so they can be used in server
-     *                           configurations
-     * @param startServer    - Boolean indicating whether the server should be started once setup is complete
+     * @param serverXml - Server config file within the server's configs/ directory to use. If null, a server.xml file
+     *            is expected to be present in the server's root directory.
+     * @param checkApps - List of apps to be validated as ready upon server start
+     * @param testProps - Map of bootstrap property names and values to be set so they can be used in server
+     *            configurations
+     * @param startServer - Boolean indicating whether the server should be started once setup is complete
      * @throws Exception
      */
     public static void commonSetUp(String testServerName, String serverXml, List<String> checkApps, Map<String, String> testProps, boolean startServer) throws Exception {
@@ -259,21 +259,21 @@ public class CommonTest {
      * should be created, and whether the specified server should be started.
      *
      * @param testServerName
-     * @param serverXml            - Server config file within the server's configs/ directory to use. If null, a server.xml file
-     *                                 is expected to be present in the server's root directory.
-     * @param checkApps            - List of apps to be validated as ready upon server start
-     * @param testProps            - Map of bootstrap property names and values to be set so they can be used in server
-     *                                 configurations
+     * @param serverXml - Server config file within the server's configs/ directory to use. If null, a server.xml file
+     *            is expected to be present in the server's root directory.
+     * @param checkApps - List of apps to be validated as ready upon server start
+     * @param testProps - Map of bootstrap property names and values to be set so they can be used in server
+     *            configurations
      * @param createSslClient
      * @param createSpnAndKeytab
-     * @param spnRealm             - Realm to use for the SPN added to the keytab. If null, no realm will be appended to the SPN.
+     * @param spnRealm - Realm to use for the SPN added to the keytab. If null, no realm will be appended to the SPN.
      * @param createSpnegoToken
      * @param setCommonSpnegoToken - Boolean indicating whether the new SPNEGO token (if one is created) should be set
-     *                                 as the new common SPNEGO token for all future tests and test classes
+     *            as the new common SPNEGO token for all future tests and test classes
      * @param useCanonicalHostName
-     * @param copyCommonKeytab     - Boolean indicating whether the keytab file created during initial setup should be
-     *                                 copied into this server's respective Kerberos resources directory
-     * @param startServer          - Boolean indicating whether the server should be started once setup is complete
+     * @param copyCommonKeytab - Boolean indicating whether the keytab file created during initial setup should be
+     *            copied into this server's respective Kerberos resources directory
+     * @param startServer - Boolean indicating whether the server should be started once setup is complete
      * @throws Exception
      */
     public static void commonSetUp(String testServerName, String serverXml, List<String> checkApps, Map<String, String> testProps,
@@ -338,9 +338,11 @@ public class CommonTest {
             Log.info(c, thisMethod, "Using the canonical host name in the target server SPN");
             TARGET_SERVER = fullyQualifiedDomainName;
         } else {
-            Log.info(c, thisMethod, "Using the short host name in the target server SPN");
+            //Log.info(c, thisMethod, "Using the short host name in the target server SPN");
 //            String shortHostName = getKdcHelper().getShortHostName(fullyQualifiedDomainName, true);
-            TARGET_SERVER = InitClass.serverShortHostName;
+
+            TARGET_SERVER = "odbz21.fyre.ibm.com"; //= InitClass.serverShortHostName;
+            Log.info(c, thisMethod, "zech >>> target server: " + TARGET_SERVER);
 
         }
 
@@ -407,24 +409,24 @@ public class CommonTest {
      * should be created, and whether the specified server should be started.
      *
      * @param testServerName
-     * @param serverXml            - Server config file within the server's configs/ directory to use. If null, a server.xml file
-     *                                 is expected to be present in the server's root directory.
-     * @param checkApps            - List of apps to be validated as ready upon server start
-     * @param testProps            - Map of bootstrap property names and values to be set so they can be used in server
-     *                                 configurations
+     * @param serverXml - Server config file within the server's configs/ directory to use. If null, a server.xml file
+     *            is expected to be present in the server's root directory.
+     * @param checkApps - List of apps to be validated as ready upon server start
+     * @param testProps - Map of bootstrap property names and values to be set so they can be used in server
+     *            configurations
      * @param createSslClient
      * @param createSpnAndKeytab
-     * @param spnRealm             - Realm to use for the SPN added to the keytab. If null, no realm will be appended to the SPN.
+     * @param spnRealm - Realm to use for the SPN added to the keytab. If null, no realm will be appended to the SPN.
      * @param createSpnegoToken
      * @param setCommonSpnegoToken - Boolean indicating whether the new SPNEGO token (if one is created) should be set
-     *                                 as the new common SPNEGO token for all future tests and test classes
+     *            as the new common SPNEGO token for all future tests and test classes
      * @param useCanonicalHostName
-     * @param copyCommonKeytab     - Boolean indicating whether the keytab file created during initial setup should be
-     *                                 copied into this server's respective Kerberos resources directory
-     * @param startServer          - Boolean indicating whether the server should be started once setup is complete
-     * @param servletName          - name of servlet (other than SimpleServlet) to be invoked
-     * @param rootContext          - the root context of servlet to be invoked
-     * @param useUser1             - use only user1 when creating spnego token.
+     * @param copyCommonKeytab - Boolean indicating whether the keytab file created during initial setup should be
+     *            copied into this server's respective Kerberos resources directory
+     * @param startServer - Boolean indicating whether the server should be started once setup is complete
+     * @param servletName - name of servlet (other than SimpleServlet) to be invoked
+     * @param rootContext - the root context of servlet to be invoked
+     * @param useUser1 - use only user1 when creating spnego token.
      * @throws Exception
      */
     public static void spnegoTokencommonSetUp(String testServerName, String serverXml, List<String> checkApps, Map<String, String> testProps,
@@ -796,7 +798,7 @@ public class CommonTest {
      *
      * @param headers
      * @param ignoreErrorContent - If true, the response received is expected to be null. Otherwise, the response
-     *                               received is verified as unsuccessful and checked for the absence of GSS credentials.
+     *            received is verified as unsuccessful and checked for the absence of GSS credentials.
      * @return
      */
     public String unsuccessfulSpnegoServletCall(Map<String, String> headers, boolean ignoreErrorContent) {
@@ -808,7 +810,7 @@ public class CommonTest {
      *
      * @param headers
      * @param ignoreErrorContent - If true, the response received is expected to be null. Otherwise, the response
-     *                               received is verified as unsuccessful and checked for the absence of GSS credentials.
+     *            received is verified as unsuccessful and checked for the absence of GSS credentials.
      * @param expectedStatusCode
      * @return
      */
@@ -927,8 +929,8 @@ public class CommonTest {
     /**
      * Get a list of KDC services from Consul.
      *
-     * @param count   The number of services requested. If unable to get unique 'count' instances,
-     *                    the returned List will contain duplicate entries.
+     * @param count The number of services requested. If unable to get unique 'count' instances,
+     *            the returned List will contain duplicate entries.
      * @param service The service to return.
      * @return A list of services returned. This list may return duplicates if unable to return enough
      *         unique service instances.

@@ -12,6 +12,7 @@ package com.ibm.ws.security.spnego.fat;
 
 import static org.junit.Assert.fail;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,14 +30,15 @@ import com.ibm.ws.security.spnego.fat.config.Krb5Helper;
 import com.ibm.ws.security.spnego.fat.config.SPNEGOConstants;
 import com.ibm.ws.webcontainer.security.test.servlets.BasicAuthClient;
 import com.ibm.ws.webcontainer.security.test.servlets.ServletClientImpl;
+import com.ibm.wsspi.security.token.ValidationResult;
 
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
 
 @RunWith(FATRunner.class)
-//@Mode(TestMode.FULL)
-@Mode(TestMode.QUARANTINE)
+@Mode(TestMode.FULL)
+//@Mode(TestMode.QUARANTINE)
 public class InvokeAfterSSOTest extends CommonTest {
 
     private static final Class<?> c = InvokeAfterSSOTest.class;
@@ -116,17 +118,35 @@ public class InvokeAfterSSOTest extends CommonTest {
             Log.info(c, name.getMethodName(), "Accessing first servlet in order to obtain SSO cookie");
             String ssoCookie = getAndAssertSSOCookieForUser(InitClass.Z_USER, InitClass.Z_USER_PWD, SPNEGOConstants.IS_EMPLOYEE, SPNEGOConstants.IS_NOT_MANAGER);
 
+            BasicAuthClient ssoClient = new BasicAuthClient(myServer, BasicAuthClient.DEFAULT_REALM, SSO_SERVLET_NAME, BasicAuthClient.DEFAULT_CONTEXT_ROOT);
+            String response = ssoClient.accessProtectedServletWithAuthorizedCookie(SSO_SERVLET, ssoCookie);
+            ssoClient.verifyResponse(response, InitClass.Z_USER, SPNEGOConstants.IS_EMPLOYEE, SPNEGOConstants.IS_NOT_MANAGER);
+
+            //getAndAssertSSOCookieForUser(InitClass.Z_USER, InitClass.Z_USER_PWD, SPNEGOConstants.IS_EMPLOYEE, SPNEGOConstants.IS_NOT_MANAGER);
+
+            byte[] tb = ssoCookie.getBytes();
+
+            Log.info(c, name.getMethodName(), "SSO cookie bytes: " + new String(tb, StandardCharsets.UTF_8));
+
+            ValidationResult result = com.ibm.wsspi.security.token.WSSecurityPropagationHelper.validateToken(tb);
+
+            if (result != null)
+                Log.info(c, name.getMethodName(), "ValidateTokenAPI Result: " + result.toString());
+            else
+                Log.info(c, name.getMethodName(), "ValidateTokenAPI Result: is null");
+
             // Add the SSO cookie as a header, in addition to the SPNEGO token, and submit the request
             Map<String, String> headers = getCommonHeadersWithSSOCookie(ssoCookie);
 
             Log.info(c, name.getMethodName(), "Accessing SPNEGO servlet using valid SSO cookie and valid SPNEGO token headers");
-            String response = successfulSpnegoServletCall(headers, FATSuite.COMMON_TOKEN_USER,
-                                                          FATSuite.COMMON_TOKEN_USER_IS_EMPLOYEE, FATSuite.COMMON_TOKEN_USER_IS_MANAGER);
+            response = successfulSpnegoServletCall(headers, FATSuite.COMMON_TOKEN_USER,
+                                                   FATSuite.COMMON_TOKEN_USER_IS_EMPLOYEE, FATSuite.COMMON_TOKEN_USER_IS_MANAGER);
 
             expectation.responseContainsSSOCookie(response, SSO_COOKIE_NAME, ssoCookie);
 
         } catch (Exception ex) {
-            String message = CommonTest.maskHostnameAndPassword(ex.getMessage());
+            String message = ex.getMessage(); //CommonTest.maskHostnameAndPassword(ex.getMessage());
+            ex.printStackTrace();
             Log.info(c, name.getMethodName(), "Unexpected exception: " + message);
             fail("Exception was thrown: " + message);
         }

@@ -443,6 +443,8 @@ public class CommonTestHelper {
                               Krb5Helper krb5Helper, boolean includeClientGSSCredentialInSubject, Oid mechOid) throws Exception {
         return createToken(username, password, targetServer, realm, kdcHostName, krb5ConfPath, krb5Helper, includeClientGSSCredentialInSubject,
                            Krb5Helper.SPNEGO_MECH_OID, null);
+        //createToken(InitClass.FIRST_USER_KRB5_FQN, InitClass.FIRST_USER_KRB5_FQN_PWD, TARGET_SERVER, null, null,
+        //            SPNEGOConstants.SERVER_KRB5_CONFIG_FILE, krb5Helper, false, mechOid);
     }
 
     /**
@@ -463,6 +465,8 @@ public class CommonTestHelper {
      */
     public String createToken(String username, String password, String targetServer, String realm, String kdcHostName, String krb5ConfPath,
                               Krb5Helper krb5Helper, boolean includeClientGSSCredentialInSubject, Oid mechOid, String jaasLoginContextEntry) throws Exception {
+        //createToken(InitClass.FIRST_USER_KRB5_FQN, InitClass.FIRST_USER_KRB5_FQN_PWD, TARGET_SERVER, null, null,
+        //SPNEGOConstants.SERVER_KRB5_CONFIG_FILE, krb5Helper, false, mechOid);
         String method = "createToken";
         String targetSpn = "HTTP/" + targetServer;
         Log.info(thisClass, method, "Target SPN: " + targetSpn);
