@@ -119,9 +119,9 @@ public class InitClass {
 
             KDCP_VAR = getKDCHostnameMask(KDC_HOSTNAME);
 
-            if (!KDC_REALM.contains("FYRE11")) {
-                throw new Exception("not using fyre11");
-            }
+            //if (!KDC_REALM.contains("FYRE11")) {
+            //    throw new Exception("not using fyre11");
+            //}
 
             //obtaining kdcs and kdcs_r information
             services = CommonTest.getKDCServices(1, SPNEGOConstants.KDC2_HOST_FROM_CONSUL);
