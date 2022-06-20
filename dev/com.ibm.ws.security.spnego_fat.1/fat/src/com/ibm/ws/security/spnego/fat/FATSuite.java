@@ -29,7 +29,6 @@ import com.ibm.ws.security.spnego.fat.config.SPNEGOConstants;
 
 import componenttest.custom.junit.runner.AlwaysPassesTest;
 import componenttest.rules.repeater.JakartaEE9Action;
-import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.JavaInfo;
 import componenttest.topology.impl.JavaInfo.Vendor;
 import componenttest.topology.impl.LibertyServer;
@@ -40,13 +39,14 @@ import componenttest.topology.impl.LibertyServerFactory;
                 AlwaysPassesTest.class,
                 //DynamicSpnegoConfigTest.class,
                 S4U2SelfTest.class,
-                S4U2ProxyTest.class
+                S4U2ProxyTest.class,
+                IncludeCustomCacheKeyTest.class
 })
 public class FATSuite extends InitClass {
     private static final Class<?> c = FATSuite.class;
 
-    @ClassRule
-    public static RepeatTests repeat = RepeatTests.withoutModification().andWith(new JakartaEE9Action());
+    //@ClassRule
+    //public static RepeatTests repeat = RepeatTests.withoutModification().andWith(new JakartaEE9Action());
 
     /**
      * Rule to setup users, SPNs etc on the KDC.
@@ -90,6 +90,10 @@ public class FATSuite extends InitClass {
             // The keytab file needs to be copied into the /tmp folder so we can include it in the other servers
             CommonTest.getMyServer().copyFileToTempDir(SPNEGOConstants.KRB_RESOURCE_LOCATION.substring(1) + SPNEGOConstants.KRB5_KEYTAB_FILE, SPNEGOConstants.KRB5_KEYTAB_FILE);
             KEYTAB_FILE_LOCATION = "tmp/" + SPNEGOConstants.KRB5_KEYTAB_FILE;
+
+            // The config file needs to be copied into the /tmp folder so we can include it in the other servers
+            //CommonTest.getMyServer().copyFileToTempDir(SPNEGOConstants.KRB_RESOURCE_LOCATION.substring(1) + SPNEGOConstants.KRB5_CONF_FILE, SPNEGOConstants.KRB5_CONF_FILE);
+            //KEYTAB_FILE_LOCATION = "tmp/" + SPNEGOConstants.KRB5_KEYTAB_FILE;
 
             Log.info(c, thisMethod, "Common setup is complete");
         }

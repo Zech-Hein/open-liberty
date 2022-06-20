@@ -26,8 +26,8 @@ import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
 
 @RunWith(FATRunner.class)
-//@Mode(TestMode.FULL)
-@Mode(TestMode.QUARANTINE)
+@Mode(TestMode.FULL)
+//@Mode(TestMode.QUARANTINE)
 @SkipForRepeat(SkipForRepeat.EE9_FEATURES)
 public class IncludeCustomCacheKeyTest extends CommonTest {
 
@@ -81,6 +81,8 @@ public class IncludeCustomCacheKeyTest extends CommonTest {
 
     @Test
     public void testIncludeCustomCacheKeyTrue() {
+        String thisMethod = "testIncludeCustomCacheKeyTrue";
+        Log.info(c, thisMethod, "zech >>> running test");
         try {
             testHelper.reconfigureServer("includeCustomCacheKey_true.xml", name.getMethodName(), SPNEGOConstants.RESTART_SERVER);
 
