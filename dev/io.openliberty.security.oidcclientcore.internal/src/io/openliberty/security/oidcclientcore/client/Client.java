@@ -18,6 +18,7 @@ import com.ibm.ws.webcontainer.security.ProviderAuthenticationResult;
 import io.openliberty.security.oidcclientcore.authentication.AbstractFlow;
 import io.openliberty.security.oidcclientcore.authentication.Flow;
 import io.openliberty.security.oidcclientcore.exceptions.AuthenticationResponseException;
+import io.openliberty.security.oidcclientcore.token.TokenConstants;
 
 public class Client {
 
@@ -35,6 +36,36 @@ public class Client {
     public ProviderAuthenticationResult continueFlow(HttpServletRequest request, HttpServletResponse response) throws AuthenticationResponseException {
         Flow flow = AbstractFlow.getInstance(oidcClientConfig);
         return flow.continueFlow(request, response);
+    }
+
+    public void processExpiredToken(HttpServletRequest request) {
+
+        if (oidcClientConfig.isTokenAutoRefresh()) {
+            //try to refresh
+            //TODO check only will have one token type below on a request?
+            String accessTokenString = request.getParameter(TokenConstants.ACCESS_TOKEN);
+            String idTokenString = request.getParameter(TokenConstants.ID_TOKEN);
+            String refreshTokenString = request.getParameter(TokenConstants.REFRESH_TOKEN);
+
+            //OpenID Connect provider refreshToken endpoint (token endpoint) has to be called with the following parameters:
+
+            //The ClientId value as taken from OpenIdAuthenticationMechanismDefinition.clientId
+            oidcClientConfig.getClientId();
+
+            //The ClientSecret value as taken from OpenIdAuthenticationMechanismDefinition.clientId
+            oidcClientConfig.getClientSecret();
+
+            //The grant_type value set to the constant refresh_token
+
+            //the refresh_token value set to the previously stored value from the refresh_token field of the Token Response
+
+            String grantType = TokenConstants.REFRESH_TOKEN;
+
+            //TODO if refresh token is not successful
+        } else {
+            logout();
+        }
+
     }
 
     public void logout() {
