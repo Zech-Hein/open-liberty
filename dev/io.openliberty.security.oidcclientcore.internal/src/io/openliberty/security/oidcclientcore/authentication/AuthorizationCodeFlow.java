@@ -10,26 +10,60 @@
  *******************************************************************************/
 package io.openliberty.security.oidcclientcore.authentication;
 
+import java.util.Hashtable;
+
+import javax.security.auth.Subject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
+
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.ws.webcontainer.security.AuthResult;
 import com.ibm.ws.webcontainer.security.ProviderAuthenticationResult;
+import com.ibm.wsspi.ssl.SSLSupport;
 
 import io.openliberty.security.oidcclientcore.client.OidcClientConfig;
 import io.openliberty.security.oidcclientcore.exceptions.AuthenticationResponseException;
 import io.openliberty.security.oidcclientcore.exceptions.TokenRequestException;
 import io.openliberty.security.oidcclientcore.token.JakartaOidcTokenRequest;
+import io.openliberty.security.oidcclientcore.token.TokenResponse;
 
+@Component(service = AuthorizationCodeFlow.class, immediate = true, configurationPolicy = ConfigurationPolicy.IGNORE)
 public class AuthorizationCodeFlow extends AbstractFlow {
 
     public static final TraceComponent tc = Tr.register(AuthorizationCodeFlow.class);
 
-    private final OidcClientConfig oidcClientConfig;
+    public static final String AUTH_RESULT_CUSTOM_PROP_TOKEN_RESPONSE = "TOKEN_RESPONSE";
+
+    private static final String KEY_SSL_SUPPORT = "sslSupport";
+    private static volatile SSLSupport sslSupport;
+
+    private OidcClientConfig oidcClientConfig;
+
+    /**
+     * Do not use; needed for this to be a valid @Component object.
+     */
+    @Deprecated
+    public AuthorizationCodeFlow() {
+        // Only for OSGi initialization
+    }
 
     public AuthorizationCodeFlow(OidcClientConfig oidcClientConfig) {
         this.oidcClientConfig = oidcClientConfig;
+    }
+
+    @Reference(name = KEY_SSL_SUPPORT, policy = ReferencePolicy.DYNAMIC)
+    protected void setSslSupport(SSLSupport sslSupportSvc) {
+        sslSupport = sslSupportSvc;
+    }
+
+    protected void unsetSslSupport(SSLSupport sslSupportSvc) {
+        sslSupport = null;
     }
 
     @Override
@@ -52,6 +86,13 @@ public class AuthorizationCodeFlow extends AbstractFlow {
 
         JakartaOidcTokenRequest tokenRequest = new JakartaOidcTokenRequest(oidcClientConfig, request);
         return tokenRequest.sendRequest();
+    }
+
+    ProviderAuthenticationResult createAuthenticationResultFromTokenResponse(TokenResponse tokenEndpointResponse) {
+        Hashtable<String, Object> customProperties = new Hashtable<>();
+        customProperties.put(AUTH_RESULT_CUSTOM_PROP_TOKEN_RESPONSE, tokenEndpointResponse);
+
+        return new ProviderAuthenticationResult(AuthResult.SUCCESS, HttpServletResponse.SC_OK, null, new Subject(), customProperties, null);
     }
 
 }

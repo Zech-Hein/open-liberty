@@ -55,4 +55,9 @@ public class SessionBasedStorage implements Storage {
         session.removeAttribute(name);
     }
 
+    @Override
+    public void remove(String name) {
+        // TODO
+    }
+
 }

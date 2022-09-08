@@ -27,7 +27,6 @@ import com.ibm.ws.webcontainer.security.ProviderAuthenticationResult;
 
 import io.openliberty.security.jakartasec.JakartaSec30Constants;
 import io.openliberty.security.jakartasec.TestOpenIdAuthenticationMechanismDefinition;
-import io.openliberty.security.oidcclientcore.authentication.AuthorizationCodeFlow;
 import io.openliberty.security.oidcclientcore.client.Client;
 import io.openliberty.security.oidcclientcore.exceptions.AuthenticationResponseException;
 import io.openliberty.security.oidcclientcore.exceptions.TokenRequestException;
