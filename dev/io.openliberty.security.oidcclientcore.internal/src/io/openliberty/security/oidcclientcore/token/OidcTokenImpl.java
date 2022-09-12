@@ -19,11 +19,11 @@ import org.jose4j.jwt.JwtClaims;
  * hides IdToken interface from common code
  */
 public class OidcTokenImpl extends OidcTokenImplBase implements IdToken {
-    public OidcTokenImpl(JwtClaims jwtClaims, String access_token, String refresh_token, String client_id, String tokenTypeNoSpace) {
-        super(jwtClaims, access_token, refresh_token, client_id, tokenTypeNoSpace);
+    public OidcTokenImpl(JwtClaims jwtClaims, String access_token, String refresh_token, String client_id, String tokenTypeNoSpace, long expiresIn) {
+        super(jwtClaims, access_token, refresh_token, client_id, tokenTypeNoSpace, expiresIn);
     }
 
     public OidcTokenImpl(OidcTokenImplBase token) {
-        super(token.getJwtClaims(), token.getAccessToken(), token.getRefreshToken(), token.getClientId(), token.getTokenTypeNoSpace());
+        super(token.getJwtClaims(), token.getAccessToken(), token.getRefreshToken(), token.getClientId(), token.getTokenTypeNoSpace(), token.expiresIn);
     }
 }

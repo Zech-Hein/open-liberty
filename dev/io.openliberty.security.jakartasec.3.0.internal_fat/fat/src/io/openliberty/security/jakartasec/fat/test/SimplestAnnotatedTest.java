@@ -29,7 +29,6 @@ import com.ibm.ws.security.fat.common.validation.TestValidationUtils;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
-import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.topology.impl.LibertyServer;
 
 /**
@@ -54,8 +53,8 @@ public class SimplestAnnotatedTest extends CommonSecurityFat {
     public static void setUp() throws Exception {
         ShrinkHelper.defaultDropinApp(rpServer, APP_NAME + ".war", "oidc.servlets");
 
-        transformAppsInDefaultDirs(opServer, "dropins", JakartaEE10Action.ID);
-        transformAppsInDefaultDirs(rpServer, "dropins", JakartaEE10Action.ID);
+        transformAppsInDefaultDirs(opServer, "dropins");
+        transformAppsInDefaultDirs(rpServer, "dropins");
 
         serverTracker.addServer(opServer);
         serverTracker.addServer(rpServer);

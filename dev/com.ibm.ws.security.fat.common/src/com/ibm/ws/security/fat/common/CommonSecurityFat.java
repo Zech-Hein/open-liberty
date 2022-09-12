@@ -190,7 +190,7 @@ public class CommonSecurityFat {
         Log.info(thisClass, methodName, "");
     }
 
-    private static void transformAppsInDefaultDirs(LibertyServer server, String appDirName) {
+    public static void transformAppsInDefaultDirs(LibertyServer server, String appDirName) {
 
         Machine machine = server.getMachine();
 

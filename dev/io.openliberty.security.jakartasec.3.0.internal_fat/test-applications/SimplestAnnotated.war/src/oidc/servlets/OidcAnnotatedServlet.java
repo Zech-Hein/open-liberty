@@ -30,10 +30,12 @@ import jakarta.servlet.http.HttpServletResponse;
 //redirectURI = "https://localhost:8940/oidcclient/redirect/client_1",
 @WebServlet("/OidcAnnotatedServlet")
 @OpenIdAuthenticationMechanismDefinition(
+                                         tokenAutoRefresh = true,
                                          providerURI = "https://localhost:8920/oidc/endpoint/OP1",
                                          clientId = "client_1",
                                          clientSecret = "mySharedKeyNowHasToBeLongerStrongerAndMoreSecureAndForHS512EvenLongerToBeStronger",
                                          redirectURI = "https://localhost:8940/SimplestAnnotated/Callback",
+                                         useSession = false,
                                          providerMetadata = @OpenIdProviderMetadata(
                                                                                     authorizationEndpoint = "https://localhost:8920/oidc/endpoint/OP1/authorize",
                                                                                     tokenEndpoint = "https://localhost:8920/oidc/endpoint/OP1/token"))

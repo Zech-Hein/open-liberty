@@ -54,6 +54,11 @@ public class JakartaOidcTokenRequest extends EndpointRequest {
         return createAuthenticationResultFromTokenResponse(tokenEndpointResponse);
     }
 
+    public ProviderAuthenticationResult sendTokenRefreshRequest(String refreshToken) throws TokenRequestException {
+        TokenResponse tokenEndpointResponse = sendTokenRequestForRefresh(refreshToken);
+        return createAuthenticationResultFromTokenResponse(tokenEndpointResponse);
+    }
+
     @FFDCIgnore(OidcDiscoveryException.class)
     TokenResponse sendTokenRequest() throws TokenRequestException {
         String tokenEndpoint = null;
@@ -69,6 +74,41 @@ public class JakartaOidcTokenRequest extends EndpointRequest {
         }
         String authzCode = request.getParameter(TokenConstants.CODE);
         return sendTokenRequestForCode(tokenEndpoint, authzCode);
+    }
+
+    @FFDCIgnore(OidcDiscoveryException.class)
+    TokenResponse sendTokenRequestForRefresh(String refreshToken) throws TokenRequestException {
+        String tokenEndpoint = null;
+        try {
+            tokenEndpoint = getTokenEndpoint();
+        } catch (OidcDiscoveryException e) {
+            throw new TokenRequestException(oidcClientConfig.getClientId(), e.getMessage());
+        }
+        if (tokenEndpoint == null || tokenEndpoint.isEmpty()) {
+            String clientId = oidcClientConfig.getClientId();
+            String message = Tr.formatMessage(tc, "TOKEN_ENDPOINT_MISSING", clientId);
+            throw new TokenRequestException(clientId, message);
+        }
+        // TODO remove: not needed for refresh
+        // String authzCode = request.getParameter(TokenConstants.CODE);
+
+        String clientId = oidcClientConfig.getClientId();
+        String clientSecret = null;
+        ProtectedString clientSecretProtectedString = oidcClientConfig.getClientSecret();
+        if (clientSecretProtectedString != null) {
+            clientSecret = new String(clientSecretProtectedString.getChars());
+        }
+
+        Builder tokenRequestBuilder = createTokenRequestorBuilder(tokenEndpoint, clientId, clientSecret, null);
+        tokenRequestBuilder.sslSocketFactory(getSSLSocketFactory());
+        tokenRequestBuilder.grantType(TokenConstants.REFRESH_TOKEN);
+        tokenRequestBuilder.refreshToken(refreshToken);
+        TokenRequestor tokenRequestor = tokenRequestBuilder.build();
+        try {
+            return tokenRequestor.requestTokens();
+        } catch (Exception e) {
+            throw new TokenRequestException(clientId, e.toString(), e);
+        }
     }
 
     String getTokenEndpoint() throws OidcDiscoveryException {

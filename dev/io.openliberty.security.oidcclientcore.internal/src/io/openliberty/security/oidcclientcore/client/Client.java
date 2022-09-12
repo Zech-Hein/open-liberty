@@ -54,11 +54,12 @@ public class Client {
         //JwtClaims claims = new JwtClaims(); //TODO Will need OpenIdClaims: openIdCont.getClaims()
         //OidcTokenImpl token = new OidcTokenImpl(claims, openIdCont.getAccessToken().toString(), openIdCont.getRefreshToken().get().getToken(), oidcClientConfig.getClientId(), openIdCont.getTokenType());
         //TokenRefresher tokenRefresher = new TokenRefresher(request, response, oidcClientConfig, token); //TODO update param
-        TokenRefresher tokenRefresher = new TokenRefresher();
+        TokenRefresher tokenRefresher = new TokenRefresher(request, response, oidcClientConfig);
         if (tokenRefresher.isTokenExpired()) {
 
             if (oidcClientConfig.isTokenAutoRefresh()) {
-                boolean refreshSucceded = true;//= tokenRefresher.refreshToken();
+
+                boolean refreshSucceded = tokenRefresher.refreshToken(); // = true;
                 // When the call is not successful, or when there is no previously stored refresh_token field of the Token Response, a logout should be initiated.
                 if (!refreshSucceded || tokenRefresher.checkPreviousRefreshValue()) {
                     logout();
@@ -66,12 +67,16 @@ public class Client {
 
             } else {
                 LogoutConfig logoutConfig = oidcClientConfig.getLogoutConfig();
-                if ((tokenRefresher.isAccessTokenExpired() && logoutConfig.isAccessTokenExpiry()) ||
-                    (tokenRefresher.isIdentityTokenExpired() && logoutConfig.isIdentityTokenExpiry())) {
-                    logout();
-                }
+                //if ((tokenRefresher.isAccessTokenExpired() && logoutConfig.isAccessTokenExpiry()) ||
+                //    (tokenRefresher.isIdTokenExpired() && logoutConfig.isIdentityTokenExpiry())) {
+                //    logout();
+                // }
+                logout();
             }
             // The token expiration is ignored when none of the above conditions hold
+        } else {
+            System.out.println("ZECH >>> Tokens are not expired but we are refreshing anyways to test...");
+            tokenRefresher.refreshToken();
         }
     }
 

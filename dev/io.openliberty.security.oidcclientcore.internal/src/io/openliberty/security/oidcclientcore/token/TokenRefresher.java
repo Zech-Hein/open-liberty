@@ -16,13 +16,17 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.consumer.JwtConsumer;
+import org.jose4j.jwt.consumer.JwtConsumerBuilder;
+import org.jose4j.jwt.consumer.JwtContext;
+
+import com.ibm.websphere.ras.ProtectedString;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-//import com.ibm.websphere.security.openidconnect.token.IdToken; //TODO remove if not needed
-//import com.ibm.ws.security.openidconnect.client.jose4j.OidcTokenImpl;
 
 import io.openliberty.security.oidcclientcore.client.OidcClientConfig;
-import io.openliberty.security.oidcclientcore.client.OidcProviderMetadata;
+import io.openliberty.security.oidcclientcore.exceptions.TokenRequestException;
 import io.openliberty.security.oidcclientcore.token.TokenRequestor.Builder;
 
 public class TokenRefresher {
@@ -36,17 +40,29 @@ public class TokenRefresher {
     private OidcClientConfig oidcClientConfig = null;
     //private final OpenIdContext openIdContext = null; //TODO remove if not needed
 
-    private final String accessToken = null;
+    //private final String accessToken = null;
     private OidcTokenImpl oidcTokenImpl = null;
-    private String refreshToken = null;
+    //private String refreshToken = null;
 
     private Boolean accessTokenExpired = null;
     private Boolean idTokenExpired = null;
+
+    //TODO remove harcoded values
+    private static String accessToken = "qOuZdH6Anmxclul5d71AXoDbFVmRG2dPnHn9moaw";
+    private static final String tokenType = "bearer";
+    private static final Long expiresIn = 3599L;
+    private static final String scope = "openid profile";
+    private static String refreshToken = "QGCYpfziPZY2saAagbsf5jxbMucqcF3743euknBxzkUlof7uSv";
+    private static String idToken = "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vaGFybW9uaWM6ODAxMS9vYXV0aDIvZW5kcG9pbnQvT0F1dGhDb25maWdTYW1wbGUvdG9rZW4iLCJpYXQiOjEzODczODM5NTMsInN1YiI6InRlc3R1c2VyIiwiZXhwIjoxMzg3Mzg3NTUzLCJhdWQiOiJjbGllbnQwMSJ9.ottD3eYa6qrnItRpL_Q9UaKumAyo14LnlvwnyF3Kojk";
 
     //TODO remove
     //For compile sake
     public TokenRefresher() {
         this(null, null, null, null);
+    }
+
+    public TokenRefresher(HttpServletRequest req, HttpServletResponse resp, OidcClientConfig clientConfig) {
+        this(req, resp, clientConfig, null);
     }
 
     public TokenRefresher(HttpServletRequest req, HttpServletResponse resp, OidcClientConfig clientConfig, OidcTokenImpl oidcToken) {
@@ -55,12 +71,26 @@ public class TokenRefresher {
         oidcClientConfig = clientConfig;
         //openIdContext = openIdCont;
         oidcTokenImpl = oidcToken;
-        refreshToken = oidcTokenImpl.getRefreshToken();
+
+        //TODO uncomment refreshToken = oidcTokenImpl.getRefreshToken();
 
         //openIdContext.getExpiresIn(); // AccessToken expires_in
         //openIdContext.getIdentityToken().isExpired(); or call method like OidcClientCache.isIdTokenValid(IdToken idToken, long cushionMilliseconds);
         //use existing IdToken(oidcTokenImpl) class
         //idToken = //TODO openIdContext.getIdentityToken() IdentityToken != IdToken interfaces
+        String sysIdToken = System.getProperty(TokenConstants.ID_TOKEN);
+        System.out.println("ZECH >>>> system IdToken: " + sysIdToken);
+        String sysAccessToken = System.getProperty(TokenConstants.ACCESS_TOKEN);
+        System.out.println("ZECH >>>> system AccessToken: " + sysAccessToken);
+        String sysRefreshToken = System.getProperty(TokenConstants.REFRESH_TOKEN);
+        System.out.println("ZECH >>>> system RefreshToken: " + sysRefreshToken);
+
+        if (sysIdToken != null)
+            idToken = sysIdToken;
+        if (sysAccessToken != null)
+            accessToken = sysAccessToken;
+        if (sysRefreshToken != null)
+            refreshToken = sysRefreshToken;
     }
 
     public boolean isTokenExpired() {
@@ -97,7 +127,8 @@ public class TokenRefresher {
          */
         //long lExpiresIn = 0l;
         //TODO refactor later
-        long lExpiresIn = oidcTokenImpl.expiresIn;
+        //long lExpiresIn = oidcTokenImpl.expiresIn;
+        long lExpiresIn = expiresIn; //TODO remove hardcode
         try {
 
             //lExpiresIn = Long.parseLong(strExpiresIn) * 1000; //cushionMilliseconds change from seconds to milliseconds
@@ -109,7 +140,9 @@ public class TokenRefresher {
             }
         }
         //TODO refactor later
-        Long storeTimeMilliseconds = oidcTokenImpl.getIssuedAtTimeSeconds() * 1000; //(Long) getOAuthAttribute(subject, CREDENTIAL_STORING_TIME_MILLISECONDS);
+        //TODO remove hardcode oidcTokenImpl.getIssuedAtTimeSeconds();
+        long iat = 1516239022; //Expired January
+        Long storeTimeMilliseconds = iat * 1000; //(Long) getOAuthAttribute(subject, CREDENTIAL_STORING_TIME_MILLISECONDS);
 
         Date date = new Date();
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
@@ -124,7 +157,14 @@ public class TokenRefresher {
 
     //TODO: remove cushionMilliseconds? was used in OidcClientCache.java
     private boolean isIdTokenValid(long cushionMilliseconds) {
-        long expSeconds = oidcTokenImpl.getExpirationTimeSeconds(); //IdToken.getExpirationTimeSeconds();
+        long expSeconds = 0;
+
+        try {
+            expSeconds = getIdTokenExpiration(idToken);
+        } catch (Exception e) {
+            Tr.debug(tc, "isIdTokenValid EXCEPTION: \n" + e.toString());
+        }
+        //TODO remove harcode //oidcTokenImpl.getExpirationTimeSeconds(); //IdToken.getExpirationTimeSeconds();
         //long atIssue = idToken.getIssuedAtTimeSeconds();
         Date date = new Date();
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
@@ -136,29 +176,75 @@ public class TokenRefresher {
         return false;
     }
 
+    //TODO remove (for temporary use)
+    private long getIdTokenExpiration(String idToken) throws Exception {
+        JwtContext jwtcontext = null;
+        try {
+            jwtcontext = parseJwtWithoutValidation(idToken);
+
+        } catch (Exception e) {
+            String error = e.getMessage() != null ? e.getMessage() : "not a valid id token";
+            throw new Exception(this.oidcClientConfig.getClientId() + error);
+        }
+
+        JwtClaims jwtClaims = null;
+        if (jwtcontext != null && jwtcontext.getJwtClaims() != null) {
+            jwtClaims = jwtcontext.getJwtClaims();
+            // must have claims - iat and exp
+        }
+        return jwtClaims.getExpirationTime().getValue();
+    }
+
+    //Just parse without validation for now
+    //TODO remove (for temporary use)
+    public static JwtContext parseJwtWithoutValidation(String jwtString) throws Exception {
+        JwtConsumer firstPassJwtConsumer = new JwtConsumerBuilder().setSkipAllValidators().setDisableRequireSignature().setSkipSignatureVerification().build();
+
+        return firstPassJwtConsumer.process(jwtString);
+    }
+
     public boolean checkPreviousRefreshValue() {
         return false;
     }
 
-    public boolean refreshToken(OidcProviderMetadata oidcProviderMetadata) {
-        //TODO
+    public boolean refreshToken() {
+        JakartaOidcTokenRequest tokenRequest = new JakartaOidcTokenRequest(oidcClientConfig, request);
+        try {
+            tokenRequest.sendTokenRefreshRequest(refreshToken);
+        } catch (TokenRequestException e) {
+            // TODO Auto-generated catch block
+            // Do you need FFDC here? Remember FFDC instrumentation and @FFDCIgnore
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    //TODO: remove
+    public boolean oldRefreshToken() {
+
         // In the case a refresh of the token is needed,
         // the OpenID Connect provider refreshToken endpoint (token endpoint) has to be called with the following parameters
 
         //The ClientId value as taken from OpenIdAuthenticationMechanismDefinition.clientId
-        //oidcClientConfig.getClientId();
+        // oidcClientConfig.getClientId();
         //The ClientSecret value as taken from OpenIdAuthenticationMechanismDefinition.clientId
-        //oidcClientConfig.getClientSecret();
+        // oidcClientConfig.getClientSecret();
         //The grant_type value set to the constant refresh_token
-        //String grantType = TokenConstants.REFRESH_TOKEN;
+        // String grantType = TokenConstants.REFRESH_TOKEN;
 
         //TODO remove hardcodes
-        String tokenEndpoint = "";
+        String tokenEndpoint = oidcClientConfig.getProviderMetadata().getTokenEndpoint();
         String redirectUrl = "";
         String authzCode = "";
 
+        String clientSecret = null;
+        ProtectedString clientSecretProtectedString = oidcClientConfig.getClientSecret();
+        if (clientSecretProtectedString != null) {
+            clientSecret = new String(clientSecretProtectedString.getChars());
+        }
+
         //Builder tokenRequestBuilder = new TokenRequestor.Builder(oidcProviderMetadata.getTokenEndpoint(), oidcClientConfig.getClientId(), oidcClientConfig.getClientSecret(), redirectUrl, authzCode);
-        Builder tokenRequestBuilder = new TokenRequestor.Builder(tokenEndpoint, oidcClientConfig.getClientId(), oidcClientConfig.getClientSecret().toString(), redirectUrl, authzCode);
+        Builder tokenRequestBuilder = new TokenRequestor.Builder(tokenEndpoint, oidcClientConfig.getClientId(), clientSecret, redirectUrl, authzCode);
         //tokenRequestBuilder.sslSocketFactory(sslSocketFactory);
         tokenRequestBuilder.grantType(TokenConstants.REFRESH_TOKEN);
         //tokenRequestBuilder.isHostnameVerification(oidcClientConfig.isHostNameVerificationEnabled());
@@ -168,8 +254,17 @@ public class TokenRefresher {
         //tokenRequestBuilder.useSystemPropertiesForHttpClientConnections(oidcClientConfig.getUseSystemPropertiesForHttpClientConnections());
         TokenRequestor tokenRequestor = tokenRequestBuilder.build();
 
-        TokenResponse tokenResponse = null;//tokenRequestor.requestTokens();
-        Map<String, String> tokens = tokenResponse.asMap();
+        TokenResponse tokenResponse = null;
+        Map<String, String> tokens = null;
+
+        try {
+            tokenResponse = tokenRequestor.requestTokens();
+            tokens = tokenResponse.asMap();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            // Do you need FFDC here? Remember FFDC instrumentation and @FFDCIgnore
+            e.printStackTrace();
+        }
 
         //oidcClientRequest.setTokenType(ClientConstants.TYPE_ID_TOKEN);
 
@@ -177,7 +272,6 @@ public class TokenRefresher {
         //ProviderAuthenticationResult oidcResult = jose4jUtil.createResultWithJose4J(responseState, tokens, clientConfig, oidcClientRequest);
 
         //the refresh_token value set to the previously stored value from the refresh_token field of the Token Response
-        // 3 posibilities: 1. Subject, 2. Session, 3. Cookie
 
         //When the call is successful and a new Access Token is received, the same logic is applied as described above;
         //Validate tokens
