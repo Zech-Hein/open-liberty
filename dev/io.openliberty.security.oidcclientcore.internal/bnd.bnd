@@ -55,7 +55,9 @@ Export-Package: \
 	com.ibm.websphere.org.osgi.core;version=latest,\
 	com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
 	com.ibm.ws.ssl;version=latest,\
-	com.ibm.ws.org.jose4j;version=latest
+	com.ibm.ws.org.jose4j;version=latest,\
+	io.openliberty.jakarta.authentication.3.0,\
+	jakarta.security.enterprise-api
 
 -testpath: \
 	../build.sharedResources/lib/junit/old/junit.jar;version=file,\

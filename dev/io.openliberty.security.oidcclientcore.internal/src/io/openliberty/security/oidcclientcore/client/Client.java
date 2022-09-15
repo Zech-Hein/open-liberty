@@ -13,6 +13,7 @@ package io.openliberty.security.oidcclientcore.client;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ibm.ws.webcontainer.security.AuthResult;
 import com.ibm.ws.webcontainer.security.ProviderAuthenticationResult;
 
 import io.openliberty.security.oidcclientcore.authentication.AbstractFlow;
@@ -48,7 +49,7 @@ public class Client {
         return false;
     }
 
-    public void processExpiredToken(HttpServletRequest request, HttpServletResponse response) {
+    public ProviderAuthenticationResult processExpiredToken(HttpServletRequest request, HttpServletResponse response) {
         //TODO update
         //OidcTokenImpl(JwtClaims jwtClaims, String access_token, String refresh_token, String client_id, String tokenTypeNoSpace)
         //JwtClaims claims = new JwtClaims(); //TODO Will need OpenIdClaims: openIdCont.getClaims()
@@ -58,12 +59,13 @@ public class Client {
         if (tokenRefresher.isTokenExpired()) {
 
             if (oidcClientConfig.isTokenAutoRefresh()) {
+                ProviderAuthenticationResult providerAuthResult = tokenRefresher.refreshToken();
 
-                boolean refreshSucceded = tokenRefresher.refreshToken(); // = true;
                 // When the call is not successful, or when there is no previously stored refresh_token field of the Token Response, a logout should be initiated.
-                if (!refreshSucceded || tokenRefresher.checkPreviousRefreshValue()) {
-                    logout();
+                if (!AuthResult.SUCCESS.equals(providerAuthResult.getStatus()) || tokenRefresher.checkPreviousRefreshValue()) {
+                    return logout();
                 }
+                return providerAuthResult;
 
             } else {
                 LogoutConfig logoutConfig = oidcClientConfig.getLogoutConfig();
@@ -71,17 +73,18 @@ public class Client {
                 //    (tokenRefresher.isIdTokenExpired() && logoutConfig.isIdentityTokenExpiry())) {
                 //    logout();
                 // }
-                logout();
+                return logout();
             }
             // The token expiration is ignored when none of the above conditions hold
         } else {
             System.out.println("ZECH >>> Tokens are not expired but we are refreshing anyways to test...");
-            tokenRefresher.refreshToken();
+            return tokenRefresher.refreshToken();
         }
     }
 
-    public void logout() {
+    public ProviderAuthenticationResult logout() {
         // TODO
+        return null;
     }
 
 }

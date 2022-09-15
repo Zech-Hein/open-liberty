@@ -24,6 +24,8 @@ import org.jose4j.jwt.consumer.JwtContext;
 import com.ibm.websphere.ras.ProtectedString;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.ws.webcontainer.security.AuthResult;
+import com.ibm.ws.webcontainer.security.ProviderAuthenticationResult;
 
 import io.openliberty.security.oidcclientcore.client.OidcClientConfig;
 import io.openliberty.security.oidcclientcore.exceptions.TokenRequestException;
@@ -207,16 +209,17 @@ public class TokenRefresher {
         return false;
     }
 
-    public boolean refreshToken() {
+    public ProviderAuthenticationResult refreshToken() {
         JakartaOidcTokenRequest tokenRequest = new JakartaOidcTokenRequest(oidcClientConfig, request);
         try {
-            tokenRequest.sendTokenRefreshRequest(refreshToken);
+            ProviderAuthenticationResult authResult = tokenRequest.sendTokenRefreshRequest(refreshToken);
+            return authResult;
         } catch (TokenRequestException e) {
             // TODO Auto-generated catch block
             // Do you need FFDC here? Remember FFDC instrumentation and @FFDCIgnore
             e.printStackTrace();
         }
-        return true;
+        return new ProviderAuthenticationResult(AuthResult.FAILURE, HttpServletResponse.SC_UNAUTHORIZED);
     }
 
     //TODO: remove
