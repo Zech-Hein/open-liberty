@@ -124,7 +124,8 @@ public class OidcHttpAuthenticationMechanism implements HttpAuthenticationMechan
         // The authentication mechanism must check on each request for which there is an authenticated user
         // if the Access Token or the Identity Token has expired.
         // TODO
-        status = processExpiredTokenResult(client.processExpiredToken(request, response), httpMessageContext);
+        if (AuthenticationStatus.NOT_DONE.equals(status))
+            status = processExpiredTokenResult(client.processExpiredToken(request, response), httpMessageContext);
 
         return status;
     }

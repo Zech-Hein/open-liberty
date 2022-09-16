@@ -38,6 +38,7 @@ import jakarta.servlet.http.HttpServletResponse;
                                          useSession = false,
                                          providerMetadata = @OpenIdProviderMetadata(
                                                                                     authorizationEndpoint = "https://localhost:8920/oidc/endpoint/OP1/authorize",
+                                                                                    endSessionEndpoint = "https://localhost:8920/oidc/endpoint/OP1/logout",
                                                                                     tokenEndpoint = "https://localhost:8920/oidc/endpoint/OP1/token"))
 @DeclareRoles("all")
 @ServletSecurity(@HttpConstraint(rolesAllowed = "all"))

@@ -10,6 +10,7 @@
  *******************************************************************************/
 package io.openliberty.security.oidcclientcore.client;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -20,6 +21,7 @@ import io.openliberty.security.oidcclientcore.authentication.AbstractFlow;
 import io.openliberty.security.oidcclientcore.authentication.Flow;
 import io.openliberty.security.oidcclientcore.exceptions.AuthenticationResponseException;
 import io.openliberty.security.oidcclientcore.exceptions.TokenRequestException;
+import io.openliberty.security.oidcclientcore.logout.LogoutHandler;
 import io.openliberty.security.oidcclientcore.token.TokenRefresher;
 import io.openliberty.security.oidcclientcore.token.TokenResponse;
 import io.openliberty.security.oidcclientcore.token.TokenResponseValidator;
@@ -56,34 +58,50 @@ public class Client {
         //OidcTokenImpl token = new OidcTokenImpl(claims, openIdCont.getAccessToken().toString(), openIdCont.getRefreshToken().get().getToken(), oidcClientConfig.getClientId(), openIdCont.getTokenType());
         //TokenRefresher tokenRefresher = new TokenRefresher(request, response, oidcClientConfig, token); //TODO update param
         TokenRefresher tokenRefresher = new TokenRefresher(request, response, oidcClientConfig);
+        LogoutConfig logoutConfig = oidcClientConfig.getLogoutConfig();
+        // force logout
+        //return logout(request, response, logoutConfig);
+
         if (tokenRefresher.isTokenExpired()) {
 
+            //forcing logout
             if (oidcClientConfig.isTokenAutoRefresh()) {
                 ProviderAuthenticationResult providerAuthResult = tokenRefresher.refreshToken();
 
                 // When the call is not successful, or when there is no previously stored refresh_token field of the Token Response, a logout should be initiated.
                 if (!AuthResult.SUCCESS.equals(providerAuthResult.getStatus()) || tokenRefresher.checkPreviousRefreshValue()) {
-                    return logout();
+                    return logout(request, response, logoutConfig);
                 }
                 return providerAuthResult;
 
             } else {
-                LogoutConfig logoutConfig = oidcClientConfig.getLogoutConfig();
+                //LogoutConfig logoutConfig = oidcClientConfig.getLogoutConfig();
                 //if ((tokenRefresher.isAccessTokenExpired() && logoutConfig.isAccessTokenExpiry()) ||
-                //    (tokenRefresher.isIdTokenExpired() && logoutConfig.isIdentityTokenExpiry())) {
-                //    logout();
+                // (tokenRefresher.isIdTokenExpired() && logoutConfig.isIdentityTokenExpiry())) {
+                // logout();
                 // }
-                return logout();
+                return logout(request, response, logoutConfig);
             }
             // The token expiration is ignored when none of the above conditions hold
         } else {
             System.out.println("ZECH >>> Tokens are not expired but we are refreshing anyways to test...");
             return tokenRefresher.refreshToken();
         }
+
     }
 
-    public ProviderAuthenticationResult logout() {
-        // TODO
+    public ProviderAuthenticationResult logout(HttpServletRequest request, HttpServletResponse response,
+                                               LogoutConfig logoutConfig) {
+        LogoutHandler logoutHandler;
+        try {
+            logoutHandler = new LogoutHandler(request, response, oidcClientConfig, logoutConfig);
+            return logoutHandler.logout();
+        } catch (ServletException e) {
+            // TODO Auto-generated catch block
+            // Do you need FFDC here? Remember FFDC instrumentation and @FFDCIgnore
+            e.printStackTrace();
+        }
+        //TODO
         return null;
     }
 
