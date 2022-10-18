@@ -737,7 +737,14 @@ public class JaspiServiceImpl implements JaspiService, WebAuthenticator {
         } else if (AuthStatus.SEND_FAILURE == status) {
             pretty = "SEND_FAILURE";
             String detail = "Returning response from JASPIC Authenticated with status: " + pretty + ", map to AuthResult.RETURN";
-            authResult = new AuthenticationResult(AuthResult.RETURN, detail);
+            int responseStatus = getResponseStatus(jaspiRequest.getHttpServletResponse());
+            if (responseStatus == 401) {
+                String realm = (String) jaspiRequest.getMessageInfo().getMap().get(AttributeNameConstants.WSCREDENTIAL_REALM);
+                authResult = new AuthenticationResult(AuthResult.SEND_401, realm != null ? realm : (String) null);
+                pretty = "SEND_401";
+            } else {
+                authResult = new AuthenticationResult(AuthResult.RETURN, detail);
+            }
             if (tc.isDebugEnabled())
                 Tr.debug(tc, detail);
         } else {
