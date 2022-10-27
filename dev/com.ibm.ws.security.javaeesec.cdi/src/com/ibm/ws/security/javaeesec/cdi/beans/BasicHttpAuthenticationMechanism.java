@@ -10,7 +10,6 @@
  *******************************************************************************/
 package com.ibm.ws.security.javaeesec.cdi.beans;
 
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 
@@ -36,8 +35,6 @@ import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.security.javaeesec.JavaEESecConstants;
 import com.ibm.ws.security.javaeesec.properties.ModulePropertiesProvider;
-import com.ibm.ws.webcontainer.security.util.WebConfigUtils;
-import com.ibm.ws.webcontainer.security.WebAppSecurityConfig;
 import com.ibm.wsspi.security.token.AttributeNameConstants;
 
 @Default

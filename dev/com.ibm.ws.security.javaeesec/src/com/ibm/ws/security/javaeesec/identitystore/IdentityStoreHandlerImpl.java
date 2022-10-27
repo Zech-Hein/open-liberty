@@ -23,7 +23,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.CDI;
+import javax.security.enterprise.credential.BasicAuthenticationCredential;
 import javax.security.enterprise.credential.Credential;
+import javax.security.enterprise.credential.UsernamePasswordCredential;
 import javax.security.enterprise.identitystore.CredentialValidationResult;
 import javax.security.enterprise.identitystore.IdentityStore;
 import javax.security.enterprise.identitystore.IdentityStoreHandler;
@@ -44,7 +46,8 @@ public class IdentityStoreHandlerImpl implements IdentityStoreHandler {
 //    private final TreeSet<IdentityStore> identityStores = new TreeSet<IdentityStore>(priorityComparator);
     private final ConcurrentHashMap<String, Set<IdentityStore>> identityStoreMap = new ConcurrentHashMap<String, Set<IdentityStore>>();
 
-    public IdentityStoreHandlerImpl() {}
+    public IdentityStoreHandlerImpl() {
+    }
 
     /*
      * (non-Javadoc)
@@ -77,6 +80,27 @@ public class IdentityStoreHandlerImpl implements IdentityStoreHandler {
                     } else if (result.getStatus() == CredentialValidationResult.Status.INVALID) {
                         if (firstInvalid == null) {
                             firstInvalid = result;
+                        }
+                    } else {
+                        // result.getStatus() equals CredentialValidationResult.Status.NOT_VALIDATED
+                        // This could happen if the IdentityStore only handles UsernamePasswordCredential and we use BasicAuthenticationCredential
+                        // BasicAuthenticationCredential  extends UsernamePasswordCredential
+                        if (credential instanceof BasicAuthenticationCredential) {
+                            UsernamePasswordCredential userPassCredential = new UsernamePasswordCredential(((BasicAuthenticationCredential) credential).getCaller(), ((BasicAuthenticationCredential) credential).getPassword());
+                            result = is.validate(userPassCredential);
+                            if (tc.isDebugEnabled()) {
+                                Tr.debug(tc, "Fallback validation status : " + result.getStatus() + ", identityStore : " + is);
+                            }
+                            if (result.getStatus() == CredentialValidationResult.Status.VALID) {
+                                if (is.validationTypes().contains(IdentityStore.ValidationType.PROVIDE_GROUPS)) {
+                                    supportGroups = true;
+                                }
+                                break;
+                            } else if (result.getStatus() == CredentialValidationResult.Status.INVALID) {
+                                if (firstInvalid == null) {
+                                    firstInvalid = result;
+                                }
+                            }
                         }
                     }
                 }
