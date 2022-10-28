@@ -837,7 +837,8 @@ public class JavaEESecCDIExtension<T> implements Extension, WebSphereCDIExtensio
                             String authMechNames = getAuthMechNames(authMechs);
                             Tr.error(tc, "JAVAEESEC_CDI_ERROR_MULTIPLE_HTTPAUTHMECHS", j2eeModuleName, appName, authMechNames);
                             String msg = Tr.formatMessage(tc, "JAVAEESEC_CDI_ERROR_MULTIPLE_HTTPAUTHMECHS", j2eeModuleName, appName, authMechNames);
-                            throw new DeploymentException(msg);
+                            //throw new DeploymentException(msg);
+                            Tr.debug(tc, "UTLE>>", j2eeModuleName, appName, authMechNames);
                         }
 
                         SecurityMetadata smd = (SecurityMetadata) ((WebModuleMetaData) mmd).getSecurityMetaData();

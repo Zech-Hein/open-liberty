@@ -163,6 +163,8 @@ public class ModulePropertiesUtils {
                                     if (tc.isDebugEnabled()) {
                                         Tr.debug(tc, "Number of HAM implementation class is more than one : " + implClassList.size() + ", Module Name : " + getJ2EEModuleName()
                                                      + ", Application Name : " + getJ2EEApplicationName());
+                                        Tr.debug(tc, "UTLE>>> Impl HAM 1" + implClassList.get(0));
+                                        Tr.debug(tc, "UTLE>>> Impl HAM 2" + implClassList.get(1));
                                     }
                                 }
                             } else {
