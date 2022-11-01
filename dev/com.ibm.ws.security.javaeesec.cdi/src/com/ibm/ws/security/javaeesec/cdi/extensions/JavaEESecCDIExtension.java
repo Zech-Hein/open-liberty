@@ -30,7 +30,6 @@ import java.util.Set;
 
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Any;
-//import javax.enterprise.inject.Alternative;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.Bean;
@@ -428,6 +427,10 @@ public class JavaEESecCDIExtension<T> implements Extension, WebSphereCDIExtensio
     @Override
     public void addAuthMech(String applicationName, Class<?> annotatedClass, Class<?> implClass, Properties props) {
         httpAuthenticationMechanismsTracker.addAuthMech(applicationName, annotatedClass, implClass, props);
+    }
+
+    public void addAuthMech(String applicationName, Class<?> implClass, Properties props) {
+        httpAuthenticationMechanismsTracker.addAuthMech(applicationName, implClass, implClass, props);
     }
 
     /**
