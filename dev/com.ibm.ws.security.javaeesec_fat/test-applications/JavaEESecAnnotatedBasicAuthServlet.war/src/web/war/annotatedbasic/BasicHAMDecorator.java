@@ -23,6 +23,16 @@ import javax.security.enterprise.authentication.mechanism.http.HttpMessageContex
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/*
+ * This class is an HttpAuthenticationMechanism(HAM) but because it is annotated as a @Decorator it is used to decorate or enhance another HAM.
+ * In this application the servlet is annotated with @BasicAuthenticationMechanismDefinition(realmName = "JavaEESec Basic Realm").
+ * So Liberty's built-in BasicAuthenticationMechanism HAM will be used as the HAM for the app. It will be injected as the delegateHAM in this decorator.
+ *
+ * Using this decorator HAM allows for the HAM behavior to be modified for this application without having to modify the original HAM.
+ *
+ * In this case, the HAM behavior is modified (decorated) by adding a "BasicHAMDecorator" header to the response with a value "I have been decorated!"
+ *
+ */
 @Decorator
 @Priority(100)
 public class BasicHAMDecorator implements HttpAuthenticationMechanism {
@@ -31,13 +41,13 @@ public class BasicHAMDecorator implements HttpAuthenticationMechanism {
 
     @Inject
     @Delegate
-    private HttpAuthenticationMechanism delagateHAM;
+    private HttpAuthenticationMechanism delegateHAM;
 
     @Override
     public AuthenticationStatus validateRequest(HttpServletRequest request, HttpServletResponse response, HttpMessageContext httpMessageContext) throws AuthenticationException {
         HttpMessageContext httpContextWrapper = new BasicHAMMessageContextWrapper(response, httpMessageContext);
         response.addHeader("BasicHAMDecorator", "I have been decorated!");
-        return delagateHAM.validateRequest(request, response, httpContextWrapper);
+        return delegateHAM.validateRequest(request, response, httpContextWrapper);
     }
 
 }
