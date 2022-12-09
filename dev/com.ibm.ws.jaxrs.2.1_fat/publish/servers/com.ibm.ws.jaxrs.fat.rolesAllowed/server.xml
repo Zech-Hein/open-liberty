@@ -6,13 +6,13 @@
     </featureManager>
 	
 	<application type="war" id="RolesAllowed" name="RolesAllowed" location="${server.config.dir}/apps/RolesAllowed.war">
-		<application-bnd id="application-bnd1">
+		<!--<application-bnd id="application-bnd1">
 			<security-role name="User">
 	      		<special-subject type="EVERYONE"/>
 			</security-role>
 			<security-role name="Admin">
 			</security-role>
-		</application-bnd>
+		</application-bnd>-->
 	</application>
 	
 	<basicRegistry id="basic" realm="WebRealm">

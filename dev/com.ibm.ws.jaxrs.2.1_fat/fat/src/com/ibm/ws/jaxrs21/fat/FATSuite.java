@@ -22,7 +22,7 @@ import componenttest.rules.repeater.RepeatTests;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-                AlwaysPassesTest.class,
+                //AlwaysPassesTest.class,
                 CxfReservedTypeAndCTypeTest.class,
                 JAXRS21SecurityAnnotationsTest.class,
                 JAXRS21SecurityAnnotationsTestRolesAsGroups.class,
@@ -32,7 +32,7 @@ import componenttest.rules.repeater.RepeatTests;
                 UriInfoTest.class
 })
 public class FATSuite {
-    @ClassRule
+    //@ClassRule
     public static RepeatTests r = RepeatTests.withoutModification()
         .andWith(new JakartaEE9Action())
         .andWith(new JakartaEE10Action());

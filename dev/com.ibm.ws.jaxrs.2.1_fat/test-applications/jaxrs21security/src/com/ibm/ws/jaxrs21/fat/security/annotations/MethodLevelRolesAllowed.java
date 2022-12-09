@@ -24,8 +24,8 @@ public class MethodLevelRolesAllowed {
 
     @GET
     @Produces(value = "text/plain")
-    @RolesAllowed(value = { "Role2appbnd", "Role2" })
+    @RolesAllowed("**")
     public String getMessage() {
-        return "remotely accessible only to users in Role2";
+        return "remotely accessible only to users in **";
     }
 }

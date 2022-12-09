@@ -83,14 +83,14 @@ public class SecurityAnnotationsParentTestServlet extends FATServlet {
         ClientBuilder cb = ClientBuilder.newBuilder();
         cb.connectTimeout(120000, TimeUnit.MILLISECONDS);
         cb.readTimeout(120000, TimeUnit.MILLISECONDS);
-        cb.register(new BasicAuthFilter(userRoleFromAppBnd ? "user2a" : "user2", "user2pwd"));
+        cb.register(new BasicAuthFilter(userRoleFromAppBnd ? "user1" : "user1", "user1pwd"));
         Client c = cb.build();
         WebTarget t = c.target(url);
         CompletableFuture<Response> completableFuture = t.request().accept("text/plain").rx().get().toCompletableFuture();
         try {
             Response response = completableFuture.get();
             assertEquals(200, response.getStatus());
-            assertEquals("remotely accessible only to users in Role2", response.readEntity(String.class));
+            assertEquals("remotely accessible only to users in **", response.readEntity(String.class));
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {

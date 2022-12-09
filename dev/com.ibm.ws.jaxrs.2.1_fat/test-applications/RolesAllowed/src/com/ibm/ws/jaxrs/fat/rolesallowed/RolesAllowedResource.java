@@ -13,9 +13,10 @@ package com.ibm.ws.jaxrs.fat.rolesallowed;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-@RolesAllowed({"User", "Admin"})
+//@RolesAllowed("**")
 @Path("RolesAllowedResource")
 public class RolesAllowedResource {
 
@@ -25,7 +26,8 @@ public class RolesAllowedResource {
     }
 
     @GET
-    @RolesAllowed("Admin")
+    @RolesAllowed("**")
+    @Produces(value = "text/plain")
     @Path("admin")
     public Response admin() {
         return Response.ok().build();

@@ -30,18 +30,6 @@
       </application>
     
     <application type="war" id="jaxrs21securityNoWebXml" name="jaxrs21securityNoWebXml" location="${server.config.dir}/apps/jaxrs21securityNoWebXml.war">
-    <application-bnd id="application-bnd1">
-        <security-role name="Role1appbnd">
-            <user name="user1a" />
-        </security-role>
-        <security-role name="Role2appbnd">
-            <user name="user2a" />
-        </security-role>
-        <security-role name="AuthenticationRole">
-            <user name="user1" />
-            <user name="user2" />
-        </security-role>
-      </application-bnd>
       </application>
 
   	<httpEndpoint id="defaultHttpEndpoint"

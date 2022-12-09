@@ -38,13 +38,13 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
     /**
      * tests DenyAll at class level
      */
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testClassLevelDenyAll_withWebXml() throws Exception {
         testClassLevelDenyAll(SECANNO_BASE_TEST_URI);
     }
 
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testClassLevelDenyAll_noWebXml() throws Exception {
         testClassLevelDenyAll(SECANNO_NOWEBXML_BASE_TEST_URI);
@@ -80,13 +80,13 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
     /**
      * tests DenyAll at method level
      */
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testMethodLevelDenyAll_withWebXml() throws Exception {
         testMethodLevelDenyAll(SECANNO_BASE_TEST_URI);
     }
 
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testMethodLevelDenyAll_noWebXml() throws Exception {
         testMethodLevelDenyAll(SECANNO_NOWEBXML_BASE_TEST_URI);
@@ -122,12 +122,12 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
     /**
      * tests PermitAll at class level
      */
-    @Test
+    //@Test
     public void testClassLevelPermitAll_withWebXml() throws Exception {
         testClassLevelPermitAll(SECANNO_BASE_TEST_URI);
     }
 
-    @Test
+    //@Test
     public void testClassLevelPermitAll_noWebXml() throws Exception {
         testClassLevelPermitAll(SECANNO_NOWEBXML_BASE_TEST_URI);
     }
@@ -163,12 +163,12 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
     /**
      * tests PermitAll at method level
      */
-    @Test
+    //@Test
     public void testMethodLevelPermitAll_withWebXml() throws Exception {
         testMethodLevelPermitAll(SECANNO_BASE_TEST_URI);
     }
 
-    @Test
+    //@Test
     public void testMethodLevelPermitAll_noWebXml() throws Exception {
         testMethodLevelPermitAll(SECANNO_NOWEBXML_BASE_TEST_URI);
     }
@@ -204,12 +204,12 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
     /**
      * tests case of no security annotations
      */
-    @Test
+    //@Test
     public void testNoSecAnnotations_withWebXml() throws Exception {
         testNoSecAnnotations(SECANNO_BASE_TEST_URI);
     }
 
-    @Test
+    //@Test
     public void testNoSecAnnotations_noWebXml() throws Exception {
         testNoSecAnnotations(SECANNO_NOWEBXML_BASE_TEST_URI);
     }
@@ -245,13 +245,13 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
     /**
      * tests RolesAllowed at class level -- user in role defined in application-bnd element
      */
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testClassLevelRolesAllowedUserInRole_withWebXml() throws Exception {
         testClassLevelRolesAllowedUserInRole(SECANNO_BASE_TEST_URI, true);
     }
 
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testClassLevelRolesAllowedUserInRole_noWebXml() throws Exception {
         testClassLevelRolesAllowedUserInRole(SECANNO_NOWEBXML_BASE_TEST_URI, true);
@@ -273,13 +273,13 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
     /**
      * tests RolesAllowed at the class level -- user not in role
      */
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testClassLevelRolesAllowedUserNotInRole_withWebXml() throws Exception {
         testClassLevelRolesAllowedUserNotInRole(SECANNO_BASE_TEST_URI);
     }
 
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testClassLevelRolesAllowedUserNotInRole_noWebXml() throws Exception {
         testClassLevelRolesAllowedUserNotInRole(SECANNO_NOWEBXML_BASE_TEST_URI);
@@ -316,7 +316,7 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
     /**
      * tests RolesAllowed at method level -- user in role defined in application-bnd element
      */
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testMethodLevelRolesAllowedUserInRole_withWebXml() throws Exception {
         testMethodLevelRolesAllowedUserInRole(SECANNO_BASE_TEST_URI, true);
@@ -328,7 +328,7 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
         testMethodLevelRolesAllowedUserInRole(SECANNO_NOWEBXML_BASE_TEST_URI, true);
     }
 
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testMethodLevelRolesAllowedUserInRoleMultipleRequests_noWebXml() throws Exception {
         testMethodLevelRolesAllowedUserInRoleMultipleRequests(SECANNO_NOWEBXML_BASE_TEST_URI, true);
@@ -337,13 +337,13 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
     /**
      * tests RolesAllowed at the method level -- user not in role
      */
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testMethodLevelRolesAllowedUserNotInRole_withWebXml() throws Exception {
         testMethodLevelRolesAllowedUserNotInRole(SECANNO_BASE_TEST_URI);
     }
 
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testMethodLevelRolesAllowedUserNotInRole_noWebXml() throws Exception {
         testMethodLevelRolesAllowedUserNotInRole(SECANNO_NOWEBXML_BASE_TEST_URI);
@@ -380,13 +380,13 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
     /**
      * tests All security annotations used simultaneously at the class level
      */
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testClassAllAnnotations_withWebXml() throws Exception {
         testClassAllAnnotations(SECANNO_BASE_TEST_URI);
     }
 
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testClassAllAnnotations_noWebXml() throws Exception {
         testClassAllAnnotations(SECANNO_NOWEBXML_BASE_TEST_URI);
@@ -422,13 +422,13 @@ public class SecurityAnnotationsTestServlet extends SecurityAnnotationsParentTes
     /**
      * tests All security annotations used simultaneously at the method level
      */
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testMethodAllAnnotations_withWebXml() throws Exception {
         testMethodAllAnnotations(SECANNO_BASE_TEST_URI);
     }
 
-    @Test
+    //@Test
     @AllowedFFDC("com.ibm.ws.security.registry.RegistryException")
     public void testMethodAllAnnotations_noWebXml() throws Exception {
         testMethodAllAnnotations(SECANNO_NOWEBXML_BASE_TEST_URI);

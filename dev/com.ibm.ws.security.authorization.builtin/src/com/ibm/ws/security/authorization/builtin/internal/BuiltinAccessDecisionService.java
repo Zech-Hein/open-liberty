@@ -51,8 +51,7 @@ public class BuiltinAccessDecisionService implements AccessDecisionService {
         }
     }
 
-    private boolean isEEVersionAtLeast7()
-    {
+    private boolean isEEVersionAtLeast7() {
         if ((eeVersion.compareTo(JavaEEVersion.VERSION_7_0) >= 0) ||
             (eeVersion.compareTo(JavaEEVersion.VERSION_8_0) >= 0)) {
             return true;
@@ -73,7 +72,7 @@ public class BuiltinAccessDecisionService implements AccessDecisionService {
          * New for Servlet 3.1 "**" means all authenticated users. The subject
          * is checked prior to isGranted() being called. So return true if the
          * subject is not null and if "**" is a required role.
-         * 
+         *
          * If "_starstar_" is passed in that means a user had defined a role called
          * "**". We need to convert "_starstar_" back to "**" before the check
          * against assignedRoles.
@@ -86,13 +85,17 @@ public class BuiltinAccessDecisionService implements AccessDecisionService {
             Iterator<String> iter = requiredRoles.iterator();
             while (iter.hasNext()) {
                 String r = iter.next();
+                System.out.println("assigned role: " + r);
                 if (r.equals(STARSTAR_ROLE))
                     r = "**";
                 if (assignedRoles.contains(r)) {
                     return true;
                 }
             }
+        } else {
+            System.out.println("assigned roles is null");
         }
+
         return false;
     }
 
