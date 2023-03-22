@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,6 +15,7 @@ package com.ibm.ws.artifact.zip.cache.internal;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.function.Function;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
@@ -589,6 +592,13 @@ ZipFile [Path]
     private long zipLength;
     private long zipLastModified;
 
+    private static final Function<File, long[]> lengthAndModifiedAction = new Function<File, long[]>() {
+        @Override
+        public long[] apply(File target) {
+            return new long[] {target.length(), target.lastModified()};
+        }
+    };
+
     /**
      * Re-acquire the ZIP file.
      * 
@@ -611,8 +621,9 @@ ZipFile [Path]
         String methodName = "reacquireZipFile";
 
         File rawZipFile = new File(path);
-        long newZipLength = FileUtils.fileLength(rawZipFile);
-        long newZipLastModified = FileUtils.fileLastModified(rawZipFile);
+        long[] lengthAndModified = FileUtils.fileAction(rawZipFile, lengthAndModifiedAction);
+        long newZipLength = lengthAndModified[0];
+        long newZipLastModified = lengthAndModified[1];
 
         boolean zipFileChanged = false;
 
@@ -729,8 +740,9 @@ ZipFile [Path]
 
         if ( useZipLength == UNKNOWN_ZIP_LENGTH ) {
             File rawZipFile = new File(path);
-            useZipLength = FileUtils.fileLength(rawZipFile);
-            useZipLastModified = FileUtils.fileLastModified(rawZipFile);
+            long[] lengthAndModified = FileUtils.fileAction(rawZipFile, lengthAndModifiedAction);
+            useZipLength = lengthAndModified[0];
+            useZipLastModified = lengthAndModified[1];
         }
 
         zipLength = useZipLength;

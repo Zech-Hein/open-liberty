@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2016 IBM Corporation and others.
+ * Copyright (c) 2010, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -111,6 +113,7 @@ public final class BootstrapConstants {
 
     public static final String LOC_PROPERTY_SRVCFG_DIR = "server.config.dir";
     public static final String LOC_PROPERTY_SRVOUT_DIR = "server.output.dir";
+    public static final String LOC_PROPERTY_SRVLOGS_DIR = "server.logs.dir";
 
     public static final String LOC_PROPERTY_CLIENTCFG_DIR = "client.config.dir";
     public static final String LOC_PROPERTY_CLIENTOUT_DIR = "client.output.dir";
@@ -260,8 +263,11 @@ public final class BootstrapConstants {
     /** OSGi property to request clean, boolean value **/
     public static final String OSGI_CLEAN = "osgi.clean";
 
-    /** The number of milliseconds to wait for the server process to start */
+    /** The number of seconds to wait for the server process to start */
     public static final String SERVER_START_WAIT_TIME = "server.start.wait.time";
+
+    /** The DEFAULT number of seconds to wait for the server process to stop */
+    public static final String SERVER_STOP_WAIT_TIME_DEFAULT = "30";
 
     /** The key for the SSL client command-line option "--autoAcceptSigner" **/
     public static final String AUTO_ACCEPT_SIGNER = "autoAcceptSignerCertificate";
@@ -276,4 +282,6 @@ public final class BootstrapConstants {
     public static final String ENV_VARIABLE_SOURCE_DIRS = "VARIABLE_SOURCE_DIRS";
 
     public static final String LOC_PROPERTY_VARIABLE_SOURCE_DIRS = "wlp.var.src.dirs";
+
+    public static final String RESTORE_ENABLED = "RESTORE_ENABLED";
 }

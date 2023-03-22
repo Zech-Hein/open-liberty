@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -331,7 +333,9 @@ public class RingBufferTest {
             @Override
             public void run() {
                 try {
+                    System.out.println("Thread waiting to acquired event from Ring Buffer");
                     buffer.get(seqNum);
+                    System.out.println("Thread ACQUIRED event from Ring Buffer");
                 } catch (InterruptedException t) {
                     //Check to see if we're swallowing an interruption
                     t.printStackTrace();
@@ -358,7 +362,7 @@ public class RingBufferTest {
         long waitTimeInMilliSecs = 4000;
         long timeElapsedInMilliSecs = 0;
 
-        System.out.println("Waiting for thread to enter either blocked or waiting state...");
+        System.out.println("Waiting for thread to enter either blocked or waiting state... Current state " + thread.getState());
         while (!(thread.getState() == Thread.State.WAITING || thread.getState() == Thread.State.BLOCKED)
                && timeElapsedInMilliSecs < threadWaitTimeOutInMilliSecs) {
             try {
@@ -369,7 +373,7 @@ public class RingBufferTest {
             timeElapsedInMilliSecs += waitTimeInMilliSecs;
             System.out.println("Thread id : " + thread.getId() + ", wait time (ms) : " + timeElapsedInMilliSecs + ", state : " + thread.getState());
         }
-        assertTrue(message, thread.getState() == Thread.State.WAITING || thread.getState() == Thread.State.BLOCKED);
+        assertTrue(message + ". state: " + thread.getState(), thread.getState() == Thread.State.WAITING || thread.getState() == Thread.State.BLOCKED);
     }
 
     public void assertNotBlocked(String message, Thread thread) {
@@ -378,26 +382,30 @@ public class RingBufferTest {
         long waitTimeInMilliSecs = 1000;
         long timeElapsedInMilliSecs = 0;
 
-        System.out.println("Waiting for thread to enter either runnable or terminated state...");
-        while (!(thread.getState() == Thread.State.RUNNABLE || thread.getState() == Thread.State.TERMINATED)
+        System.out.println("Waiting for thread to enter either runnable or terminated state... Current state " + thread.getState());
+        while (!(retrievePrintThreadState(thread) == Thread.State.RUNNABLE || retrievePrintThreadState(thread) == Thread.State.TERMINATED)
                && timeElapsedInMilliSecs < threadWaitTimeOutInMilliSecs) {
+            System.out.println("ASNB begin - Thread id : " + thread.getId() + ", wait time (ms) : " + timeElapsedInMilliSecs + ", state : " + thread.getState());
             try {
+                System.out.println("ASNB sleep - Thread id : " + thread.getId() + ", wait time (ms) : " + timeElapsedInMilliSecs + ", state : " + thread.getState());
                 Thread.sleep(waitTimeInMilliSecs);
-            } catch (InterruptedException e) {
-                //Check to see if we are swallowing an interruption.
+            } catch (Exception e) {
+                System.out.println("ASNB exception - Thread id : " + thread.getId() + ", wait time (ms) : " + timeElapsedInMilliSecs + ", state : " + thread.getState());
+                //Check to see if we are swallowing any exception.
                 e.printStackTrace();
             }
+            System.out.println("ASNB main - Thread id : " + thread.getId() + ", wait time (ms) : " + timeElapsedInMilliSecs + ", state : " + thread.getState());
             timeElapsedInMilliSecs += waitTimeInMilliSecs;
-            System.out.println("Thread id : " + thread.getId() + ", wait time (ms) : " + timeElapsedInMilliSecs + ", state : " + thread.getState());
+            System.out.println("ASNB end - Thread id : " + thread.getId() + ", wait time (ms) : " + timeElapsedInMilliSecs + ", state : " + thread.getState());
         }
-        assertTrue(message, thread.getState() == Thread.State.RUNNABLE || thread.getState() == Thread.State.TERMINATED);
+        assertTrue(message + ". state: " + thread.getState(), thread.getState() == Thread.State.RUNNABLE || thread.getState() == Thread.State.TERMINATED);
+    }
 
-        /*
-         * For tests that passed (i.e. unblocked) after the original 10 seconds.
-         * We want it to fail so that we can record/see how long it took for
-         * problematic systems.
-         */
-        assertTrue("This test took longer than 10 seconds to \"pass\". It took " + timeElapsedInMilliSecs + " instead.", timeElapsedInMilliSecs <= 10000);
+    private static Thread.State retrievePrintThreadState(Thread thread) {
+        Thread.State state = thread.getState();
+        System.out.println("While checking - state is : " + state);
+        return state;
+
     }
 
     //Utility methods

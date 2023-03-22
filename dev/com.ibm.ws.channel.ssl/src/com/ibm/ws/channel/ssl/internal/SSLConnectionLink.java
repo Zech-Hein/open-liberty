@@ -1,12 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2020 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *
+ * 092122   loriad      287316          Add local and remote host:port to handshake error message
  *******************************************************************************/
 package com.ibm.ws.channel.ssl.internal;
 
@@ -46,6 +50,8 @@ import com.ibm.wsspi.tcpchannel.TCPReadCompletedCallback;
 import com.ibm.wsspi.tcpchannel.TCPReadRequestContext;
 import com.ibm.wsspi.tcpchannel.TCPRequestContext;
 import com.ibm.wsspi.tcpchannel.TCPWriteRequestContext;
+
+import io.openliberty.wsoc.ssl.SSLContextEnabledAddress;
 
 /**
  * Main Connection Link and TCPConnectionContext interface.
@@ -606,7 +612,6 @@ public class SSLConnectionLink extends OutboundProtocolLink implements Connectio
                 }
                 return;
             }
-
         } catch (IOException ioe) {
             // no FFDC required
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
@@ -614,7 +619,7 @@ public class SSLConnectionLink extends OutboundProtocolLink implements Connectio
             }
             errorOccurred = true;
             // Handle the handshake error.
-            getChannel().getHandshakeErrorTracker().noteHandshakeError(ioe);
+            getChannel().getHandshakeErrorTracker().noteHandshakeError(ioe, getRemoteAddress(), getRemotePort(), getLocalAddress(), getLocalPort());
             close(inVC, ioe);
         } catch (ReadOnlyBufferException robe) {
             FFDCFilter.processException(robe, getClass().getName(), "359", this);
@@ -1019,14 +1024,25 @@ public class SSLConnectionLink extends OutboundProtocolLink implements Connectio
 
         // First check if the sslContext and sslEngine have already been set (discrimination case)
         if (sslContext == null || getSSLEngine() == null) {
-            // Create a new SSL context based on the current properties in the ssl config.
-            this.sslContext = getChannel().getSSLContextForOutboundLink(this, getVirtualConnection(), address);
+
             // Discrimination has not happened yet. Create new SSL engine.
             // PK46069 - use engine that allows session id re-use
-            this.sslEngine = SSLUtils.getOutboundSSLEngine(sslContext, getLinkConfig(),
-                                                           targetAddress.getRemoteAddress().getHostName(),
-                                                           targetAddress.getRemoteAddress().getPort(),
-                                                           this);
+
+            // For WebSocket-2.1's SSLContext
+            if(address instanceof SSLContextEnabledAddress && ((SSLContextEnabledAddress) address).getSSLContext() != null ){
+
+                initalizeSSLforWebsocket21(((SSLContextEnabledAddress) address).getSSLContext());
+;
+            } else {
+                // Create a new SSL context based on the current properties in the ssl config.
+                this.sslContext = getChannel().getSSLContextForOutboundLink(this, getVirtualConnection(), address);
+
+                this.sslEngine = SSLUtils.getOutboundSSLEngine(sslContext, getLinkConfig(),
+                targetAddress.getRemoteAddress().getHostName(),
+                targetAddress.getRemoteAddress().getPort(),
+                this);
+            }
+
         }
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "SSL engine hc=" + getSSLEngine().hashCode() + " associated with vc=" + getVCHash());
@@ -1036,6 +1052,21 @@ public class SSLConnectionLink extends OutboundProtocolLink implements Connectio
         readyOutbound(getVirtualConnection(), false);
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
             Tr.exit(tc, "connect");
+        }
+    }
+
+    private void initalizeSSLforWebsocket21(SSLContext sslContext) throws SSLException{
+
+        this.sslContext = sslContext;
+        this.sslEngine = sslContext.createSSLEngine(this.targetAddress.getRemoteAddress().getHostName(), this.targetAddress.getRemoteAddress().getPort());
+        
+        // custom SSLContext can only be passed in via a websocket client, hence true
+        sslEngine.setUseClientMode(true);
+
+        this.sslEngine.beginHandshake();
+
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.debug(tc, "initalizeSSLforWebsocket21: Using passed in sslContext: " + this.sslContext);
         }
     }
 

@@ -1,9 +1,11 @@
 #*******************************************************************************
 # Copyright (c) 2017, 2019 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -24,16 +26,19 @@ IBM-Default-Config: OSGI-INF/wlp/defaultInstances.xml
 Export-Package: \
   com.ibm.ws.classloading;provide:=true, \
   com.ibm.ws.classloading.java2sec;provide:=true, \
-  com.ibm.ws.classloading.serializable,\
+  com.ibm.ws.classloading.serializable, \
+  com.ibm.ws.library.spi;provide:=true, \
   com.ibm.wsspi.classloading;provide:=true, \
   com.ibm.wsspi.library;provide:=true
 
 Import-Package: \
   !com.ibm.ws.classloading.java2sec, \
+  org.eclipse.osgi.internal.loader, \
   ${defaultPackageImport}
 
 Include-Resource: \
-    OSGI-INF=resources/OSGI-INF
+    OSGI-INF=resources/OSGI-INF, \
+    com/ibm/ws/classloading/internal/forbidden.properties=resources/com/ibm/ws/classloading/internal/forbidden.properties
 
 # catch any packages not explicitly exported and make sure they are private
 Private-Package: \
@@ -92,6 +97,7 @@ instrument.classesExcludes: com/ibm/ws/classloading/internal/resources/*.class
 	com.ibm.websphere.org.osgi.core,\
 	com.ibm.websphere.org.osgi.service.cm,\
 	com.ibm.websphere.org.osgi.service.component,\
-	com.ibm.wsspi.org.osgi.service.component.annotations, \
+	com.ibm.wsspi.org.osgi.service.component.annotations,\
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
-	com.ibm.ws.classloading.configuration
+	com.ibm.ws.classloading.configuration,\
+	org.eclipse.osgi;version=latest

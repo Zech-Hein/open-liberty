@@ -1,23 +1,25 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.classloading.internal.util;
 
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-import com.ibm.ws.ffdc.FFDCFilter;
 import com.ibm.ws.kernel.service.util.JavaInfo;
 
 public class FeatureSuggestion {
@@ -30,7 +32,7 @@ public class FeatureSuggestion {
     private static final String FEAUTRE_JAXWS = "jaxws-2.2";
     
     private static final Map<String, String> pkgToFeature = new HashMap<>();
-    private static final Set<String> suggestedFeatures = new HashSet<>();
+    private static final Set<String> suggestedFeatures = Collections.newSetFromMap(new ConcurrentHashMap<>());
     
     static {
         // Packages from java.activation
@@ -94,19 +96,26 @@ public class FeatureSuggestion {
         pkgToFeature.put("javax.xml.ws.wsaddressing", FEAUTRE_JAXWS);
     }
     
-    public static ClassNotFoundException getExceptionWithSuggestion(ClassNotFoundException original) {
-        String suggestedFeature = getFeatureSuggestion(original.getMessage());
+    public static ClassNotFoundException getExceptionWithSuggestion(ClassNotFoundException original, String className, boolean returnNull) {
+        String failingClassName = original == null ? className : original.getMessage();
+        String suggestedFeature = getFeatureSuggestion(failingClassName);
         if (suggestedFeature == null)
             return original;
 
-        String warnMsg = Tr.formatMessage(tc, "cls.classloader.suggested.feature", original.getMessage(), suggestedFeature);
-        ClassNotFoundException toThrow = new ClassNotFoundException(warnMsg, original);
         if (!suggestedFeatures.contains(suggestedFeature)) {
             suggestedFeatures.add(suggestedFeature);
             // TODO: Temporarily disable the FFDC and downgrade to INFO message
-            Tr.info(tc, warnMsg);
+            Tr.info(tc, "cls.classloader.suggested.feature", failingClassName, suggestedFeature);
             //FFDCFilter.processException(toThrow, "com.ibm.ws.classloading.internal.util.FeatureSuggestion", "106");
         }
+
+        // If the call is just going to return null, do not new up the exception
+        if (returnNull) {
+            return null;
+        }
+        String warnMsg = Tr.formatMessage(tc, "cls.classloader.suggested.feature", failingClassName, suggestedFeature);
+        ClassNotFoundException toThrow = original == null ? new ClassNotFoundException(warnMsg) : 
+            new ClassNotFoundException(warnMsg, original);
         return toThrow;
     }
 

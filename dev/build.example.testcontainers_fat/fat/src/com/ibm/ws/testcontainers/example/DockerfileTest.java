@@ -1,14 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.testcontainers.example;
+
+import static componenttest.custom.junit.runner.Mode.TestMode.FULL;
 
 import java.time.Duration;
 
@@ -25,16 +29,18 @@ import componenttest.annotation.Server;
 import componenttest.annotation.TestServlet;
 import componenttest.containers.SimpleLogConsumer;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.custom.junit.runner.Mode;
 import componenttest.topology.impl.LibertyServer;
 import web.generic.ContainersTestServlet;
 
 /**
  * Example test class showing how to setup a testcontainer that uses a custom dockerfile.
  */
+@Mode(FULL)
 @RunWith(FATRunner.class)
 public class DockerfileTest {
 
-    public static final String APP_NAME = "containerApp";
+    public static final String APP_NAME = "app";
 
     @Server("build.example.testcontainers")
     @TestServlet(servlet = ContainersTestServlet.class, contextRoot = APP_NAME)
@@ -75,7 +81,7 @@ public class DockerfileTest {
      * You will notice that everything else is configured the same as in the regular ContainersTest test class.
      */
     @ClassRule
-    public static GenericContainer<?> container = new GenericContainer<>("kyleaure/postgres-test-table:2.0")
+    public static GenericContainer<?> container = new GenericContainer<>("kyleaure/postgres-test-table:3.0")
                     .withExposedPorts(POSTGRE_PORT)
                     .withEnv("POSTGRES_DB", POSTGRES_DB)
                     .withEnv("POSTGRES_USER", POSTGRES_USER)
@@ -93,7 +99,7 @@ public class DockerfileTest {
         //Execute a command within container after it has started
         container.execInContainer("echo \"This is executed after container has started\"");
 
-        server.addEnvVar("PS_URL", "jdbc:postgresql://" + container.getContainerIpAddress() //
+        server.addEnvVar("PS_URL", "jdbc:postgresql://" + container.getHost() //
                                    + ":" + container.getMappedPort(POSTGRE_PORT)
                                    + "/" + POSTGRES_DB);
         server.addEnvVar("PS_USER", POSTGRES_USER);

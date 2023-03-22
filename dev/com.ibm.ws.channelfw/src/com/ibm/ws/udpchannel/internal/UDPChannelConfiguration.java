@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2003, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,6 +22,8 @@ import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.channelfw.internal.ChannelFrameworkConstants;
 import com.ibm.wsspi.channelfw.exception.ChannelException;
 import com.ibm.wsspi.udpchannel.UDPConfigConstants;
+
+import io.openliberty.accesslists.AccessListKeysFacade;
 
 /**
  * @author mjohnson
@@ -62,7 +66,8 @@ public class UDPChannelConfiguration {
                     key.startsWith("component.") ||
                     key.startsWith("config.") ||
                     key.startsWith("objectClass") ||
-                    key.startsWith("parentPid")) {
+                    key.startsWith("parentPid") ||
+                    key.startsWith("osgi.ds.")) {
                     // skip osgi standard properties
                     continue;
                 }
@@ -357,6 +362,42 @@ public class UDPChannelConfiguration {
      */
     protected String[] getAddressIncludeList() {
         return this.addressIncludeList;
+    }
+
+    /**
+     * A method that can be used to pull out an access list
+     * from a UDPChannelConfiguration
+     *
+     * @return an object that can provide the access lists
+     */
+    public AccessListKeysFacade accessListKeys() {
+        return new AccessListKeysProvider(this);
+    }
+
+    /**
+     * This class is used to protect consumers of the access list keys from having
+     * visibility of this class, it collects together the methods required by the
+     * common access lists code without that code having to know about this consuming
+     * type.
+     */
+    public class AccessListKeysProvider implements AccessListKeysFacade {
+
+        UDPChannelConfiguration delegate;
+
+        AccessListKeysProvider(UDPChannelConfiguration config) {
+            delegate = config;
+        }
+
+        @Override
+        public String[] getAddressExcludeList() {
+            return delegate.getAddressExcludeList();
+        }
+
+        @Override
+        public String[] getAddressIncludeList() {
+            return delegate.getAddressIncludeList();
+        }
+
     }
 
 }

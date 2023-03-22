@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,7 +30,6 @@ import org.apache.cxf.ws.policy.EffectivePolicyImpl;
 import org.apache.cxf.ws.policy.EndpointPolicyImpl;
 import org.apache.cxf.ws.policy.PolicyBuilder;
 import org.apache.cxf.ws.policy.PolicyEngine;
-import org.apache.cxf.ws.policy.PolicyEngineImpl;
 import org.apache.cxf.ws.policy.PolicyOutInterceptor;
 import org.apache.neethi.Assertion;
 import org.apache.neethi.Policy;
@@ -37,7 +38,6 @@ import org.w3c.dom.Element;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.jaxws.wsat.Constants;
-import com.ibm.ws.wsat.cxf.utils.WSATCXFUtils;
 
 /**
  *
@@ -110,7 +110,7 @@ public class WSATPolicyOverrideInterceptor extends AbstractPhaseInterceptor<Mess
 
         EndpointPolicyImpl endpi = new EndpointPolicyImpl(p);
         EffectivePolicyImpl effectivePolicy = new EffectivePolicyImpl();
-        WSATCXFUtils.initializeEffectivePolicy(effectivePolicy, endpi, (PolicyEngineImpl) pe, false, msg);
+        effectivePolicy.initialise(endpi, pe, false, msg);
 
         Collection<Assertion> assertions = new ArrayList<Assertion>();
         assertions.addAll(effectivePolicy.getChosenAlternative());

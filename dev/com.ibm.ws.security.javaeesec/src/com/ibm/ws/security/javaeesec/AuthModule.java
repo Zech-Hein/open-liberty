@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -82,8 +84,8 @@ public class AuthModule implements ServerAuthModule {
         try {
             HttpAuthenticationMechanism authMech = getModulePropertiesUtils().getHttpAuthenticationMechanism();
             HttpMessageContext httpMessageContext = createHttpMessageContext(messageInfo, clientSubject);
-            AuthenticationStatus authenticationStatus = authMech.validateRequest((HttpServletRequest) messageInfo.getRequestMessage(),
-                                                                                 (HttpServletResponse) messageInfo.getResponseMessage(),
+            AuthenticationStatus authenticationStatus = authMech.validateRequest(httpMessageContext.getRequest(),
+                                                                                 httpMessageContext.getResponse(),
                                                                                  httpMessageContext);
             status = translateValidateRequestStatus(authenticationStatus);
             registerSession(httpMessageContext);
@@ -105,8 +107,8 @@ public class AuthModule implements ServerAuthModule {
         try {
             HttpAuthenticationMechanism authMech = getModulePropertiesUtils().getHttpAuthenticationMechanism();
             HttpMessageContext httpMessageContext = createHttpMessageContext(messageInfo, null);
-            AuthenticationStatus authenticationStatus = authMech.secureResponse((HttpServletRequest) messageInfo.getRequestMessage(),
-                                                                                (HttpServletResponse) messageInfo.getResponseMessage(),
+            AuthenticationStatus authenticationStatus = authMech.secureResponse(httpMessageContext.getRequest(),
+                                                                                httpMessageContext.getResponse(),
                                                                                 httpMessageContext);
             status = translateSecureResponseStatus(authenticationStatus);
         } catch (AuthenticationException e) {
@@ -123,7 +125,7 @@ public class AuthModule implements ServerAuthModule {
     public void cleanSubject(MessageInfo messageInfo, Subject subject) throws AuthException {
         HttpAuthenticationMechanism authMech = getModulePropertiesUtils().getHttpAuthenticationMechanism();
         HttpMessageContext httpMessageContext = createHttpMessageContext(messageInfo, null);
-        authMech.cleanSubject((HttpServletRequest) messageInfo.getRequestMessage(), (HttpServletResponse) messageInfo.getResponseMessage(), httpMessageContext);
+        authMech.cleanSubject(httpMessageContext.getRequest(), httpMessageContext.getResponse(), httpMessageContext);
     }
 
     protected HttpMessageContext createHttpMessageContext(MessageInfo messageInfo, Subject clientSubject) {

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2021 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -165,13 +167,17 @@ public class FailoverTimersTest extends FATServletClient {
             if (serverA.isStarted())
                 serverA.stopServer("CWWKC1503W",
                                    "DSRA0302E", // can happen if timer tries to run while the server stops
-                                   "DSRA0304E" // can happen if timer tries to run while the server stops
+                                   "DSRA0304E", // can happen if timer tries to run while the server stops
+                                   "DSRA0230E", // Attempt to perform operation XAResource.end is not allowed because transaction state is TRANSACTION_FAIL
+                                   "J2CA0027E" // Attempt to perform operation XAResource.end is not allowed because transaction state is TRANSACTION_FAIL
                 );
         } finally {
             if (serverB.isStarted())
                 serverB.stopServer("CWWKC1503W",
                                    "DSRA0302E", // can happen if timer tries to run while the server stops
-                                   "DSRA0304E" // can happen if timer tries to run while the server stops
+                                   "DSRA0304E", // can happen if timer tries to run while the server stops
+                                   "DSRA0230E", // Attempt to perform operation XAResource.end is not allowed because transaction state is TRANSACTION_FAIL
+                                   "J2CA0027E" // Attempt to perform operation XAResource.end is not allowed because transaction state is TRANSACTION_FAIL
                 );
         }
     }
@@ -324,6 +330,7 @@ public class FailoverTimersTest extends FATServletClient {
             newConfig.getApplications().removeBy("location", "failoverTimersApp.war");
             serverOnWhichToStopApp.setMarkToEndOfLog();
             serverOnWhichToStopApp.updateServerConfiguration(newConfig);
+            serverOnWhichToStopApp.waitForStringInTraceUsingMark("CWWKC1556W"); // CWWKC1556W: Execution of tasks from application failoverTimersApp is deferred until the application and modules that scheduled the tasks are available.
             try {
                 String nameOfServerForFailover = serverOnWhichToStopApp == serverA ? SERVER_B_NAME : SERVER_A_NAME;
                 LibertyServer serverForFailover = serverOnWhichToStopApp == serverA ? serverB : serverA;
@@ -392,7 +399,9 @@ public class FailoverTimersTest extends FATServletClient {
         LibertyServer serverToStop = SERVER_A_NAME.equals(serverName) ? serverA : serverB;
         serverToStop.stopServer("CWWKC1503W",
                                 "DSRA0302E", // can happen if timer tries to run while the server stops
-                                "DSRA0304E" // can happen if timer tries to run while the server stops
+                                "DSRA0304E", // can happen if timer tries to run while the server stops
+                                "DSRA0230E", // Attempt to perform operation XAResource.end is not allowed because transaction state is TRANSACTION_FAIL
+                                "J2CA0027E" // Attempt to perform operation XAResource.end is not allowed because transaction state is TRANSACTION_FAIL
         );
 
         String nameOfServerForFailover = serverToStop == serverA ? SERVER_B_NAME : SERVER_A_NAME;
@@ -403,7 +412,9 @@ public class FailoverTimersTest extends FATServletClient {
 
         serverForFailover.stopServer("CWWKC1503W",
                                      "DSRA0302E", // can happen if timer tries to run while the server stops
-                                     "DSRA0304E" // can happen if timer tries to run while the server stops
+                                     "DSRA0304E", // can happen if timer tries to run while the server stops
+                                     "DSRA0230E", // Attempt to perform operation XAResource.end is not allowed because transaction state is TRANSACTION_FAIL
+                                     "J2CA0027E" // Attempt to perform operation XAResource.end is not allowed because transaction state is TRANSACTION_FAIL
         );
     }
 }

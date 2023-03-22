@@ -1,14 +1,22 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.tx.jta.ut.util;
+
+import java.net.ConnectException;
+import java.sql.SQLException;
+import java.sql.SQLNonTransientException;
+import java.util.HashSet;
+import java.util.StringTokenizer;
 
 import javax.naming.InitialContext;
 import javax.servlet.http.HttpServletRequest;
@@ -27,10 +35,16 @@ public class TxTestUtils {
     /**  */
     private static final long serialVersionUID = 1L;
 
+    // This is an environment variable which should take the form 1,2,6
+    // That would make connections 1,2 & 6 fail.
+	public static final String CONNECTION_MANAGER_FAILS = "CONNECTION_MANAGER_FAILS";
+
     /**
      * Message written to servlet to indicate that is has been successfully invoked.
      */
     public static final String SUCCESS_MESSAGE = "COMPLETED SUCCESSFULLY";
+
+	private static int connectCount;
 
     public static String printStatus(int status) {
         switch (status) {
@@ -77,4 +91,26 @@ public class TxTestUtils {
             }
         });
     }
+
+	public static void scupperConnection() throws SQLException {
+
+        String fails = System.getenv(CONNECTION_MANAGER_FAILS);
+        System.out.println("SIMHADB: getDriverConnection: " + CONNECTION_MANAGER_FAILS + "=" + fails);
+
+        HashSet<Integer> failSet = new HashSet<Integer>();
+        if (fails != null) {
+            StringTokenizer st = new StringTokenizer(fails, ",");
+            while (st.hasMoreTokens()) {
+                failSet.add(Integer.parseInt(st.nextToken()));
+            }
+        }
+
+        connectCount++;
+        System.out.println("SIMHADB: getDriverConnection: connectCount=" + connectCount);
+
+        if (failSet.contains(connectCount)) {
+            System.out.println("SIMHADB: getDriverConnection: scuppering now");
+            throw new SQLNonTransientException(new ConnectException("Scuppering connection attempt number " + connectCount));
+        }
+	}
 }

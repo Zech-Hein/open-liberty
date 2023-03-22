@@ -1,10 +1,12 @@
 /*******************************************************************************
-* Copyright (c) 2017 IBM Corporation and others.
+* Copyright (c) 2017, 2022 IBM Corporation and others.
 *
 * All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Eclipse Public License v1.0
+* are made available under the terms of the Eclipse Public License 2.0
 * which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v10.html
+* http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
 *
 *******************************************************************************
 * Copyright 2010-2013 Coda Hale and Yammer, Inc.
@@ -167,11 +169,6 @@ abstract class Striped64 extends Number {
     static final ThreadHashCode threadHashCode = new ThreadHashCode();
 
     /**
-     * Number of CPUS, to place bound on table size
-     */
-    static final int NCPU = CpuInfo.getAvailableProcessors();
-
-    /**
      * Table of cells. When non-null, size is a power of 2.
      */
     transient volatile Cell[] cells;
@@ -190,7 +187,8 @@ abstract class Striped64 extends Number {
     /**
      * Package-private default constructor
      */
-    Striped64() {}
+    Striped64() {
+    }
 
     /**
      * CASes the base field.
@@ -211,7 +209,7 @@ abstract class Striped64 extends Number {
      * function for most uses, but the virtualized form is needed within retryUpdate.
      *
      * @param currentValue the current value (of either base or a cell)
-     * @param newValue the argument from a user update call
+     * @param newValue     the argument from a user update call
      * @return result of the update function
      */
     abstract long fn(long currentValue, long newValue);
@@ -221,8 +219,8 @@ abstract class Striped64 extends Number {
      * contention. See above for explanation. This method suffers the usual non-modularity problems
      * of optimistic retry code, relying on rechecked sets of reads.
      *
-     * @param x the value
-     * @param hc the hash code holder
+     * @param x              the value
+     * @param hc             the hash code holder
      * @param wasUncontended false if CAS failed before call
      */
     final void retryUpdate(long x, HashCode hc, boolean wasUncontended) {
@@ -261,7 +259,7 @@ abstract class Striped64 extends Number {
                     wasUncontended = true; // Continue after rehash
                 else if (a.cas(v = a.value, fn(v, x)))
                     break;
-                else if (n >= NCPU || cells != as)
+                else if (n >= CpuInfo.getAvailableProcessors().get() || cells != as)
                     collide = false; // At max size or stale
                 else if (!collide)
                     collide = true;

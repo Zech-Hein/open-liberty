@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2017 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -136,25 +138,32 @@ public class ThreadContextClassLoader extends UnifiedClassLoader implements Keye
     @Override
     @FFDCIgnore(ClassNotFoundException.class)
     @Trivial
-    protected Class<?> findClass(String className) throws ClassNotFoundException {
+    protected Class<?> findClass(String className, boolean returnNull) throws ClassNotFoundException {
+        ClassNotFoundException cnfe = null;
+        Class<?> c = null;
         try {
-            return super.findClass(className);
+            c =  super.findClass(className, returnNull);
         } catch (ClassNotFoundException x) {
-            // Special case to find and load META-INF/services provider classes
-            MetaInfServicesProvider metaInfServices = clSvc.metaInfServicesRefs.getService(className);
-            Class<?> c = metaInfServices == null ? null : metaInfServices.getProviderImplClass();
-            if (c != null)
-                return c;
-            throw x;
+            cnfe = x;
         }
+
+        // Special case to find and load META-INF/services provider classes
+        if (c == null) {
+            MetaInfServicesProvider metaInfServices = clSvc.metaInfServicesRefs.getService(className);
+            c = metaInfServices == null ? null : metaInfServices.getProviderImplClass();
+        }
+        if (c != null || returnNull) {
+            return c;
+        }
+        throw cnfe;
     }
 
     /*********************************************************************************/
     /** Override classloading related methods so this class shows up in stacktraces **/
     /*********************************************************************************/
     @Override
-    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        return super.loadClass(name, resolve);
+    protected Class<?> loadClass(String name, boolean resolve, boolean onlySearchSelf, boolean returnNull) throws ClassNotFoundException {
+        return super.loadClass(name, resolve, onlySearchSelf, returnNull);
     }
 
     @Override

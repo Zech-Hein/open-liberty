@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2020, 2021 IBM Corporation and others.
+# Copyright (c) 2020, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -28,6 +30,7 @@ Import-Package: \
   com.ibm.websphere.pmi;version="[1.1,2)", \
   com.ibm.wsspi.pmi.factory;version="[1.1,2)", \
   com.ibm.wsspi.pmi.stat;version="[1.1,2)", \
+  io.grpc;version="[1.43.2,11)", \
   *
 	
 Export-Package: \
@@ -52,7 +55,7 @@ instrument.disabled: true
     com.google.guava:failureaccess;version=1.0.1,\
     com.google.guava:guava;version=30.1, \
     com.google.j2objc:j2objc-annotations;version=1.1, \
-    com.google.protobuf:protobuf-java;version=3.13.0, \
+    com.google.protobuf:protobuf-java;version=3.19.6, \
     org.checkerframework:checker-compat-qual;version=2.5.2,\
     io.openliberty.grpc.1.0.internal.common;version=latest,\
     io.openliberty.grpc.1.0.internal;version=latest,\

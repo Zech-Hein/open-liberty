@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -794,7 +796,7 @@ public class BaseDestinationHandler
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
             SibTr.entry(tc, "deleteMsgsWithNoReferences");
 
-        if (null != _pubSubRealization) //doing a sanity check with checking for not null
+        if (null != _pubSubRealization) //checking for not null
             _pubSubRealization.deleteMsgsWithNoReferences();
 
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
@@ -1181,7 +1183,7 @@ public class BaseDestinationHandler
         }
         else
         {
-            // sanity check
+            // check
             // log error
             SIErrorException e =
                             new SIErrorException(
@@ -3784,7 +3786,7 @@ public class BaseDestinationHandler
             SibTr.entry(tc, "announceMPStopping");
 
         if (isPubSub()) {
-            if (null != _pubSubRealization) { //doing a sanity check with checking for not null
+            if (null != _pubSubRealization) { //checking for not null
                 //signal to _pubSubRealization to gracefully exit from deleteMsgsWithNoReferences()
                 _pubSubRealization.stopDeletingMsgsWihoutReferencesTask(true);
             }

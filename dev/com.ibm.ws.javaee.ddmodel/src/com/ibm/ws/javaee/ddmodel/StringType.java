@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,6 +33,21 @@ public class StringType extends AnySimpleType {
                 stringList.add(st.getValue());
             }
             return stringList;
+        }
+
+        public String[] getArray() {
+            int size = list.size();
+            String[] stringArray = new String[size];
+            for ( int elNo = 0; elNo < size; elNo++ ) {
+                stringArray[elNo] = list.get(elNo).getLexicalValue();
+            }
+            return stringArray;
+        }
+
+        public static final String[] EMPTY_ARRAY = new String[] {};
+
+        public static String[] getEmptyArray() {
+            return EMPTY_ARRAY;
         }
     }
 

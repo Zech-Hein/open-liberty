@@ -37,6 +37,7 @@ IBM-API-Package: \
 -features=com.ibm.websphere.appserver.mpConfig-2.0, \
   com.ibm.wsspi.appserver.webBundle-1.0, \
   com.ibm.websphere.appserver.servlet-4.0, \
+  io.openliberty.servlet.internal-4.0, \
   com.ibm.websphere.appserver.jaxrs-2.1, \
   io.openliberty.mpCompatible-4.0, \
   com.ibm.websphere.appserver.org.eclipse.microprofile.openapi-2.0
@@ -44,6 +45,7 @@ IBM-API-Package: \
     io.openliberty.io.smallrye.openapi.core, \
     io.openliberty.io.smallrye.openapi.jaxrs, \
     io.openliberty.microprofile.openapi.2.0.internal, \
+    io.openliberty.microprofile.openapi.2.0.internal.services, \
     com.ibm.ws.microprofile.openapi.ui, \
     io.openliberty.microprofile.openapi.internal.common,\
     io.openliberty.com.fasterxml.jackson, \
@@ -51,3 +53,4 @@ IBM-API-Package: \
 kind=ga
 edition=core
 WLP-Activation-Type: parallel
+WLP-InstantOn-Enabled: true

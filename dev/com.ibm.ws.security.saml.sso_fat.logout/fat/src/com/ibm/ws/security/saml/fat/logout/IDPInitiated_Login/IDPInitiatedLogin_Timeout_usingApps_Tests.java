@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -65,10 +67,10 @@ public class IDPInitiatedLogin_Timeout_usingApps_Tests extends TimeoutTests {
         ShibbolethHelpers.ShibbolethServerVars[] shibUpdateVars = { shibbolethHelpers.new ShibbolethServerVars("conf", "idp.properties", varMap) };
 
         // the config filenames are the same for server 1 and 2, but their content is just a little different (and they live in different sub-directories)
-        serverMasterConfig = "server_SPLogoutFalse" + cookieInfo.getCookieFileExtension() + "_multiApp.xml";
+        serverMainConfig = "server_SPLogoutFalse" + cookieInfo.getCookieFileExtension() + "_multiApp.xml";
         serverOtherConfig = "server_SPLogoutTrue" + cookieInfo.getCookieFileExtension() + "_multiApp.xml";
 
-        startSPWithIDPServer("com.ibm.ws.security.saml.sso_fat.logout", serverMasterConfig, SAMLConstants.SAML_SERVER_TYPE, extraMsgs, extraApps, true, null, null, shibUpdateVars);
+        startSPWithIDPServer("com.ibm.ws.security.saml.sso_fat.logout", serverMainConfig, SAMLConstants.SAML_SERVER_TYPE, extraMsgs, extraApps, true, null, null, shibUpdateVars);
 
         // update the context root to allow use of unique apps instead of just unique servlets
         testSettings = updateContextRoot(testSettings);
@@ -85,7 +87,7 @@ public class IDPInitiatedLogin_Timeout_usingApps_Tests extends TimeoutTests {
     @Test
     public void IDPInitiatedLogin_Timeout_usingApps_Tests_ibmSecurityLogout_spLogoutFalse_IDPSessionTimeout() throws Exception {
 
-        testSAMLServer.reconfigServer(serverMasterConfig, _testName, null, SAMLConstants.JUNIT_REPORTING);
+        testSAMLServer.reconfigServer(serverMainConfig, _testName, null, SAMLConstants.JUNIT_REPORTING);
         test_logoutAfterIDPSessionExpires(SAMLConstants.IDP_INITIATED, SAMLConstants.IBMSECURITYLOGOUT_INITIATED, LogoutStaysInSPOnly, null);
 
     }
@@ -93,7 +95,7 @@ public class IDPInitiatedLogin_Timeout_usingApps_Tests extends TimeoutTests {
     @Test
     public void IDPInitiatedLogin_Timeout_usingApps_Tests_ibmSecurityLogout_spLogoutFalse_SPSessionTimeout() throws Exception {
 
-        testSAMLServer.reconfigServer(serverMasterConfig, _testName, null, SAMLConstants.JUNIT_REPORTING);
+        testSAMLServer.reconfigServer(serverMainConfig, _testName, null, SAMLConstants.JUNIT_REPORTING);
         test_logoutAfterSAMLTokenExpires(SAMLConstants.IDP_INITIATED, SAMLConstants.IBMSECURITYLOGOUT_INITIATED, LogoutStaysInSPOnly, null);
 
     }

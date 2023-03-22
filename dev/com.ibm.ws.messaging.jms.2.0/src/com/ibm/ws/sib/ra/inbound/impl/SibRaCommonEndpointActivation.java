@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -72,7 +74,7 @@ import com.ibm.wsspi.sib.core.trm.SibTrmConstants;
  * This class is used to connect an MDB to messaging engine(s) dependant upon the destination type, locality
  * of the ME and user specified target preferences
  */
-public abstract class SibRaCommonEndpointActivation extends SibRaEndpointActivation
+abstract class SibRaCommonEndpointActivation extends SibRaEndpointActivation
 {
     /**
      * The component to use for trace.

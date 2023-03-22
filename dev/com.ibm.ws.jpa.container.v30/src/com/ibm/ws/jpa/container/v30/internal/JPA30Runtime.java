@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,9 +17,9 @@ import static com.ibm.ws.jpa.management.JPAConstants.JPA_TRACE_GROUP;
 
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.SynchronizationType;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.SynchronizationType;
 
 import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Component;

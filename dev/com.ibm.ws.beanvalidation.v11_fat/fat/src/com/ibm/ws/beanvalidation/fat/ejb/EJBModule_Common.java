@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
+import com.ibm.ws.beanvalidation.fat.basic.BasicValidation_Common;
 
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -37,7 +41,7 @@ public abstract class EJBModule_Common extends FATServletClient {
         JavaArchive jar = ShrinkHelper.buildJavaArchive("EJBModule1EJB.jar", "beanvalidation.ejbmodule.*");
         JavaArchive jar2 = ShrinkHelper.buildJavaArchive("EJBModule2EJB.jar", "beanvalidation.ejbmodule2.ejb");
 
-        if (JakartaEE9Action.isActive()) {
+        if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
             jar.move("/META-INF/constraints-house_EE9.xml", "/META-INF/constraints-house.xml");
             jar2.move("/META-INF/constraints-house_EE9.xml", "/META-INF/constraints-house.xml");
         }
@@ -62,7 +66,7 @@ public abstract class EJBModule_Common extends FATServletClient {
 
     protected void run(String war, String servlet) throws Exception {
         String originalTestName = testName.getMethodName();
-        originalTestName = originalTestName.replace("_EE9_FEATURES", "");
+        originalTestName = BasicValidation_Common.removeEETag(originalTestName);
         String servletTest = originalTestName.substring(0, originalTestName.length() - 2);
         run(war, servlet, servletTest);
     }
@@ -72,7 +76,7 @@ public abstract class EJBModule_Common extends FATServletClient {
      * being the war, the servlet and test method in the web application.
      */
     protected void run(String war, String servlet, String testMethod) throws Exception {
-        testMethod = testMethod.replace("_EE9_FEATURES", "");
+        testMethod = BasicValidation_Common.removeEETag(testMethod);
         FATServletClient.runTest(getServer(), war + "/" + servlet, testMethod);
     }
 

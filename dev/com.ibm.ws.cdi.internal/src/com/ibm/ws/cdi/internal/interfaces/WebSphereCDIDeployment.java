@@ -1,20 +1,22 @@
 /*******************************************************************************
  * Copyright (c) 2015, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.cdi.internal.interfaces;
 
+import java.net.URL;
 import java.util.Collection;
 import java.util.Set;
 
 import javax.enterprise.inject.spi.CDI;
-import javax.enterprise.inject.spi.Extension;
 
 import org.jboss.weld.bootstrap.WeldBootstrap;
 import org.jboss.weld.bootstrap.spi.CDI11Deployment;
@@ -70,6 +72,18 @@ public interface WebSphereCDIDeployment extends CDI11Deployment {
 
     /**
      * <p>
+     * The same as <code>CDI11Deployment.getBeanDeploymentArchive(Class<?> beanClass)</code> except that this method returns
+     * a {@link WebSphereBeanDeploymentArchive}
+     * </p>
+     *
+     * @param clazz the class
+     * @return the {@link WebSphereBeanDeploymentArchive} containing the bean class or null if no such {@link WebSphereBeanDeploymentArchive} exists
+     */
+    @Override
+    public WebSphereBeanDeploymentArchive getBeanDeploymentArchive(Class<?> beanClass);
+
+    /**
+     * <p>
      * Similar to <code>getBeanDeploymentArchive(Class<?> beanClass)</code>, this method returns
      * the {@link WebSphereBeanDeploymentArchive} containing the given class.
      * The difference is that the getBeanDeploymentArchive method will only return the BDA if
@@ -84,7 +98,7 @@ public interface WebSphereCDIDeployment extends CDI11Deployment {
     public WebSphereBeanDeploymentArchive getBeanDeploymentArchiveFromClass(Class<?> clazz);
 
     /**
-     * Get all BDAs relating only to this application. i.e. not Shared Libs or internal Runtime Extensions
+     * Get all BDAs which belong to this application. i.e. not internal Runtime Extensions
      *
      * @return all application BDAs
      */
@@ -174,5 +188,12 @@ public interface WebSphereCDIDeployment extends CDI11Deployment {
      * @return the CDI instance for the current container
      */
     public CDI<Object> getCDI();
+
+    /**
+     * Get the Resource URLs of any non-empty unversioned beans.xml files (CDI 1.0) in this deployment
+     *
+     * @return a collection of resource URLs for any non-empty unversioned beans.xml files
+     */
+    public Collection<URL> getUnversionedBeansXmlURLs();
 
 }

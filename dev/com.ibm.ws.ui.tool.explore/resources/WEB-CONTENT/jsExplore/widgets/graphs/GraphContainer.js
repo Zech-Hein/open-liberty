@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -242,6 +244,12 @@ define([
             // already existed so make sure it is expanded
             showHideDialog.show();
           }
+
+          // instead of making this call someewhere else and calling once only, the handling of high contrast mode
+          // black on white theme is called every time the edit graph button is clicked so as to make expand/collapse
+          // button more resposnsive to the contrast mode change.
+          this.__handleHighContrastBackgroundColor();
+
           return showHideDialog;
         },
 
@@ -279,7 +287,30 @@ define([
               cancelButton.resetEditPanes();
             }
           }
-        }
+        },
+
+        /**
+         * Add a class to indicate that it is high contrast black on white theme.
+         * This is to change the background color of the expand/collase graph dialog button
+         * which has a white arrow png.
+         */
+        __handleHighContrastBackgroundColor: function() {
+          if (document.body.classList.contains('dj_a11y')) {
+            // determine whether it is black on white
+            const testDiv = document.createElement('div');
+            testDiv.style.color = 'rgb(50, 50, 50)';
+            document.body.appendChild(testDiv);
+            var color = document.defaultView ? document.defaultView.getComputedStyle(testDiv, null).color : testDiv.currentStyle.color;
+            color = color.replace(/ /g, '');
+            if (color === 'rgb(0,0,0)') {
+              document.body.classList.add("a11y_blackOnWhite");
+            } else {
+              document.body.classList.remove("a11y_blackOnWhite");
+            }
+          } else {
+            document.body.classList.remove("a11y_blackOnWhite");
+          }
+        },
     });
 
     return GraphContainer;

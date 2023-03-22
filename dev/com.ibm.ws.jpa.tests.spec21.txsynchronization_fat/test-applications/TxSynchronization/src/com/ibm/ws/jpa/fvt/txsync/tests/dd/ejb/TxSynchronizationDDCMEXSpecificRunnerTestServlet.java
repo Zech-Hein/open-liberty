@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,13 +18,13 @@ import javax.servlet.annotation.WebServlet;
 
 import org.junit.Test;
 
-import com.ibm.ws.testtooling.vehicle.web.EJBTestVehicleServlet;
+import com.ibm.ws.testtooling.vehicle.web.EJBDBTestVehicleServlet;
 
 import componenttest.annotation.ExpectedFFDC;
 
 @SuppressWarnings("serial")
 @WebServlet(urlPatterns = "/TxSynchronizationDDCMEXSpecificRunnerTestServlet")
-public class TxSynchronizationDDCMEXSpecificRunnerTestServlet extends EJBTestVehicleServlet {
+public class TxSynchronizationDDCMEXSpecificRunnerTestServlet extends EJBDBTestVehicleServlet {
     @PostConstruct
     private void initFAT() {
         testClassName = "com.ibm.ws.jpa.fvt.txsync.testlogic.cm.CMEXAndBMTSpecificTxSynchronizationTestLogic";

@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2001, 2021 IBM Corporation and others.
+# Copyright (c) 2001, 2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -95,7 +97,8 @@ ERROR_RESOLVING_DB_IMPLICIT_TRANSACTIONS.useraction=Zbierz pliki dziennika FFDC 
 #Do not translate: Datasource
 IMPLICIT_TRANSACTION_FOUND=DSRA0095I: Znaleziono transakcj\u0119 bazy danych, kt\u00f3ra nie jest \u015bledzona przez produkt Liberty. Nast\u0119puje pr\u00f3ba wycofania zmian przed przyst\u0105pieniem do czyszczenia po\u0142\u0105czenia. Ten komunikat jest rejestrowany jednokrotnie dla ka\u017cdego \u017ar\u00f3d\u0142a danych. Kolejne transakcje niejawne s\u0105 rozstrzygane automatycznie.
 IMPLICIT_TRANSACTION_FOUND.explanation=Baza danych rozpocz\u0119\u0142a wykonywanie transakcji za pomoc\u0105 tego po\u0142\u0105czenia. Serwer aplikacji wycofuje zmiany transakcji przed zwr\u00f3ceniem po\u0142\u0105czenia do puli.
-IMPLICIT_TRANSACTION_FOUND.useraction=Sprawd\u017a kod aplikacji, aby okre\u015bli\u0107, co mog\u0142o spowodowa\u0107 t\u0119 transakcj\u0119 niejawn\u0105. Kod aplikacji mo\u017ce jawnie zapobiega\u0107 dalszym transakcjom niejawnym, mo\u017cna tak\u017ce skonfigurowa\u0107 jawne dzia\u0142anie dla \u017ar\u00f3d\u0142a danych. 
+IMPLICIT_TRANSACTION_FOUND.useraction=Sprawd\u017a kod aplikacji, aby okre\u015bli\u0107, co mog\u0142o spowodowa\u0107 t\u0119 transakcj\u0119 niejawn\u0105. Kod aplikacji mo\u017ce jawnie zapobiega\u0107 dalszym transakcjom niejawnym, mo\u017cna tak\u017ce skonfigurowa\u0107 jawne dzia\u0142anie dla \u017ar\u00f3d\u0142a danych.
+
 # 0096-0101 deleted
 # 0110 deleted
 # 0174 deleted
@@ -212,7 +215,7 @@ DSRA4003.driver.null.useraction=Zaktualizuj konfiguracj\u0119 w taki spos\u00f3b
 
 # {0} SQL command
 # {1} data source JNDI name or config display id 
-DSRA4004.onconnect.sql=DSRA4004E: Nie mo\u017cna wykona\u0107 komendy SQL onConnect \"{0}\" dla po\u0142\u0105czenia uzyskanego ze \u017ar\u00f3d\u0142a danych {1}. Wi\u0119cej informacji zawiera wyj\u0105tek przyczyny.
+DSRA4004.onconnect.sql=DSRA4004E: Nie mo\u017cna wykona\u0107 komendy SQL onConnect "{0}" dla po\u0142\u0105czenia uzyskanego ze \u017ar\u00f3d\u0142a danych {1}. Wi\u0119cej informacji zawiera wyj\u0105tek przyczyny.
 DSRA4004.onconnect.sql.explanation=Wyst\u0105pi\u0142 b\u0142\u0105d podczas pr\u00f3by wykonania podanej komendy SQL.
 DSRA4004.onconnect.sql.useraction=Przejrzyj komunikat wyj\u0105tku, aby znale\u017a\u0107 przyczyn\u0119 b\u0142\u0119du.
 
@@ -296,6 +299,16 @@ META_DATA_EXCEPTION.useraction=Sprawd\u017a, czy metadane s\u0105 w\u0142\u0105c
 # 7019 deleted
 # 7020 reserved for other NLS file
 # 7021-7042 deleted
+
+# Do not translate: java.util.Logging
+ORACLE_TRACE_PARSE_WARNING=DSRA7043W: Dla w\u0142a\u015bciwo\u015bci systemowej {0} zosta\u0142a u\u017cyta warto\u015b\u0107 domy\u015blna, poniewa\u017c wyst\u0105pi\u0142 nast\u0119puj\u0105cy b\u0142\u0105d analizowania: {1}
+ORACLE_TRACE_PARSE_WARNING.explanation=\u0141a\u0144cuchy w\u0142a\u015bciwo\u015bci systemowych dla bazy danych Oracle s\u0105 analizowane i przekazywane do biblioteki java.util.logging. Je\u015bli warto\u015b\u0107 w\u0142a\u015bciwo\u015bci nie mo\u017ce zosta\u0107 przeanalizowana, zamiast niej zostanie u\u017cyta warto\u015b\u0107 domy\u015blna.
+ORACLE_TRACE_PARSE_WARNING.useraction=Sprawd\u017a b\u0142\u0105d analizowania i zmodyfikuj w\u0142a\u015bciwo\u015b\u0107 systemow\u0105. Poprawne w\u0142a\u015bciwo\u015bci rejestrowania s\u0105 udokumentowane w pakiecie java.util.logging.
+
+ORACLE_TRACE_ENABLE_INFO=DSRA7044I: \u015aledzenie sterownika JDBC Oracle zosta\u0142o w\u0142\u0105czone przez w\u0142a\u015bciwo\u015b\u0107 systemow\u0105 {0}. Przynajmniej jedna z w\u0142a\u015bciwo\u015bci systemowych [{1}], kt\u00f3re s\u0105 wymagane do oddzielenia plik\u00f3w dziennika Oracle, nie s\u0105 dost\u0119pne.
+ORACLE_TRACE_ENABLE_INFO.explanation=Sterownik debugowania JDBC Oracle do \u015bledzenia u\u017cywa pakietu java.util.logging. Dzienniki debugowania sterownika JDBC Oracle s\u0105 domy\u015blnie zintegrowane z dziennikami Liberty. Aby skonfigurowa\u0107 separacj\u0119 \u015bledzenia debugowania JDBC Oracle, wszystkie w\u0142a\u015bciwo\u015bci w tym komunikacie musz\u0105 by\u0107 skonfigurowane jako w\u0142a\u015bciwo\u015bci systemowe.
+ORACLE_TRACE_ENABLE_INFO.useraction=Aby skonfigurowa\u0107 oddzielne pliki dziennika JDBC Oracle, sprawd\u017a w\u0142a\u015bciwo\u015bci systemu i dodaj brakuj\u0105ce w\u0142a\u015bciwo\u015bci. W przeciwnym razie mo\u017cesz zignorowa\u0107 ten komunikat.
+
 # 7600-7606 deleted
 
 # ----------------------------------------------------------------------------
@@ -336,16 +349,20 @@ PROP_SET_ERROR.useraction=Sprawd\u017a, czy okre\u015blona warto\u015b\u0107 jes
 8066E_IDENTIFY_EXCEPTION_INVALID_TARGET=DSRA8066E: The ''{0}'' invalid value was specified for the ''as'' attribute on the identifyException element. Zalecane warto\u015bci to: {1}
 8066E_IDENTIFY_EXCEPTION_INVALID_TARGET.explanation=Podano niepoprawn\u0105 warto\u015b\u0107 elementu konfiguracji identifyException.
 8066E_IDENTIFY_EXCEPTION_INVALID_TARGET.useraction=Zmie\u0144 konfiguracj\u0119, okre\u015blaj\u0105c jedn\u0105 z zalecanych warto\u015bci.
+
 # Do not translate: errorCode, sqlState, identifyException
 8067E_IDENTIFY_EXCEPTION_ERRCODE_SQLSTATE=DSRA8067E: W elemencie identifyException musi by\u0107 okre\u015blony co najmniej jeden z atrybut\u00f3w 'errorCode' lub 'sqlState'.
 8067E_IDENTIFY_EXCEPTION_ERRCODE_SQLSTATE.explanation=Musi by\u0107 okre\u015blony jeden z atrybut\u00f3w errorCode lub sqlState.
 8067E_IDENTIFY_EXCEPTION_ERRCODE_SQLSTATE.useraction=Zmodyfikuj konfiguracj\u0119, podaj\u0105c co najmniej jeden z atrybut\u00f3w errorCode lub sqlState w elemencie identifyException.
-8068_EXC_REPLACE_CONFLICT=DSRA8068E: Obiekt DataSource {0} nie mo\u017ce okre\u015bla\u0107 zar\u00f3wno atrybutu sqlState, jak i atrybutu errorCode w tym samym elemencie identifyException, gdy atrybut replaceExceptions jest ustawiony na "true".
+
+8068_EXC_REPLACE_CONFLICT=DSRA8068E: Obiekt DataSource {0} nie mo\u017ce okre\u015bla\u0107 zar\u00f3wno atrybutu sqlState, jak i atrybutu errorCode w tym samym elemencie identifyException, gdy atrybut replaceExceptions jest ustawiony na ''true''.
 8068_EXC_REPLACE_CONFLICT.explanation=Przy zast\u0119powaniu wyj\u0105tk\u00f3w mo\u017cna je identyfikowa\u0107 przez stan SQL albo przez kod b\u0142\u0119du, ale nie przez oba te atrybuty.
 8068_EXC_REPLACE_CONFLICT.useraction=Okre\u015bl osobne elementy konfiguracji identifyException dla atrybut\u00f3w sqlState i errorCode.
+
 8069_HELPER_INIT_ERR=DSRA8069E: Obiekt DataSource {0} nie mo\u017ce zainicjowa\u0107 implementacji DataStoreHelper {1} z powodu b\u0142\u0119du: {2}
 8069_HELPER_INIT_ERR.explanation=Skonfigurowana klasa DataStoreHelper by\u0142a niedost\u0119pna, nie mia\u0142a konstruktora publicznego z jednym parametrem java.util.Properties lub zg\u0142osi\u0142a b\u0142\u0105d po wywo\u0142aniu.
 8069_HELPER_INIT_ERR.useraction=Sprawd\u017a po\u0142\u0105czony wyj\u0105tek, aby ustali\u0107 przyczyn\u0119.
+
 # {0}        Type of Connection: XAConnection or PooledConnection.
 JAVAX_CONN_ERR=DSRA8100E: Nie mo\u017cna uzyska\u0107 po\u0142\u0105czenia typu {0} z klasy DataSource.
 JAVAX_CONN_ERR.explanation=Wi\u0119cej informacji zawiera wyj\u0105tek linkedException.
@@ -518,6 +535,7 @@ OP_NOT_SHAREABLE.useraction=Nie wywo\u0142uj metod setTypeMap, setReadOnly lub s
 OP_NOT_VALID_IN_GT=DSRA9350E: Operacja {0} nie jest dozwolona podczas transakcji globalnej.
 OP_NOT_VALID_IN_GT.explanation=Serwer aplikacji nie zezwala na wywo\u0142ywanie metod commit, rollback, setSavepoint ani releaseSavepoint na po\u0142\u0105czeniu Connection, gdy transakcja globalna jest aktywna.
 OP_NOT_VALID_IN_GT.useraction=Nie wywo\u0142uj metod commit, rollback, setSavepoint ani releaseSavepoint na po\u0142\u0105czeniu connection w ramach transakcji globalnej. Je\u015bli u\u017cywane jest nietransakcyjne \u017ar\u00f3d\u0142o danych (na przyk\u0142ad non-jta-data-source dla interfejsu API Java Persistence), skonfiguruj element non-jta-data-source w pliku persistence.xml i ustaw atrybut dataSource 'transactional' w pliku server.xml na warto\u015b\u0107 'false'.
+
 # {0}        String representing the current ManagedConnection transaction state.
 # Do not translate: Connection.
 INVALID_TRAN_STATE=DSRA9360E: Nie mo\u017cna wykona\u0107 \u017c\u0105danej operacji w nast\u0119puj\u0105cym stanie transakcji: {0}.

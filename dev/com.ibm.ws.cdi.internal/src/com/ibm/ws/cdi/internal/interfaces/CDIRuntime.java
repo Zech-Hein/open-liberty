@@ -1,15 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.cdi.internal.interfaces;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -188,4 +191,31 @@ public interface CDIRuntime extends CDIService {
      * @return
      */
     public WebSphereCDIDeployment getCurrentDeployment();
+
+    /**
+     * @return a BeansXmlParser instance
+     */
+    public BeansXmlParser getBeansXmlParser();
+
+    /**
+     * @return all registered ExtensionArchiveProviders
+     */
+    public Collection<ExtensionArchiveProvider> getExtensionArchiveProviders();
+
+    /**
+     * @return the BuildCompatibleExtensionFinder, or {@code null} if there is not one
+     */
+    public BuildCompatibleExtensionFinder getBuildCompatibleExtensionFinder();
+
+    /**
+     * @return the CDIContainerEventManager, or {@code null} if there is not one
+     */
+    public CDIContainerEventManager getCDIContainerEventManager();
+
+    /**
+     * Get the WeldDevelopmentMode service if it exists and it is enabled
+     *
+     * @return the WeldDevelopmentMode, or {@code null} if does not exist or it is not enabled
+     */
+    public WeldDevelopmentMode getWeldDevelopmentMode();
 }

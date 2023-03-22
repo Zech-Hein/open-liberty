@@ -2,9 +2,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -219,13 +221,13 @@ public class MPJwt11MPConfigTests extends MPJwtMPConfigTests {
     }
 
     /**
-     * Copy the master wars (one for META-INF and one for WEB-INF testing) and create new wars that contain updated
+     * Copy the primary wars (one for META-INF and one for WEB-INF testing) and create new wars that contain updated
      * microprofile-config.properties files.
      * This method creates many wars that will be used later to test both good and bad values within the
      * microprofile-config.properties files.
      *
      * @param theServer - the resource server
-     * @param mpConfigSettings- a master/default set of mp-config settings (the wars will be created with specific good or bad values)
+     * @param mpConfigSettings- a primary/default set of mp-config settings (the wars will be created with specific good or bad values)
      * @throws Exception
      */
     public static void deployRSServerMPConfigInAppApps(LibertyServer server, MP11ConfigSettings mpConfigSettings) throws Exception {

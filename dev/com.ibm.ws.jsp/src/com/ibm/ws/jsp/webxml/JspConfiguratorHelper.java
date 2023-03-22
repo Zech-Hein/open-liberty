@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2004 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,6 +34,8 @@ import com.ibm.ws.jsp.JspOptions;
 import com.ibm.ws.jsp.configuration.JspConfigPropertyGroup;
 import com.ibm.ws.jsp.configuration.JspXmlExtConfig;
 import com.ibm.ws.jsp.runtime.metadata.JspComponentMetaData;
+import com.ibm.ws.jsp.webcontainerext.JSPExtensionFactory;
+import com.ibm.ws.jsp.configuration.JspConfigPropertyGroupImpl;
 import com.ibm.wsspi.adaptable.module.UnableToAdaptException;
 import com.ibm.wsspi.webcontainer.metadata.WebModuleMetaData;
 
@@ -75,7 +79,8 @@ public class JspConfiguratorHelper implements ServletConfiguratorHelper, JspXmlE
                 if (jspPropertyGroups == null) {
                     jspPropertyGroups = new ArrayList<JspConfigPropertyGroup>();
                 }
-                jspPropertyGroups.add(new JspConfigPropertyGroup(propertyGroup));
+
+                jspPropertyGroups.add(new JspConfigPropertyGroupImpl(propertyGroup));
             }
         }
     }
@@ -96,7 +101,8 @@ public class JspConfiguratorHelper implements ServletConfiguratorHelper, JspXmlE
                 if (jspPropertyGroups == null) {
                     jspPropertyGroups = new ArrayList<JspConfigPropertyGroup>();
                 }
-                jspPropertyGroups.add(new JspConfigPropertyGroup(propertyGroup));
+
+                jspPropertyGroups.add(new JspConfigPropertyGroupImpl(propertyGroup));
             }
         }
     }

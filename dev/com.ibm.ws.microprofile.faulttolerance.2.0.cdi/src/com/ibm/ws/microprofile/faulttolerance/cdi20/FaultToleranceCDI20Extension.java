@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,7 +14,9 @@ package com.ibm.ws.microprofile.faulttolerance.cdi20;
 
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
+import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.BeforeBeanDiscovery;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 
@@ -26,6 +30,11 @@ import com.ibm.ws.microprofile.faulttolerance.cdi.FaultToleranceInterceptor;
  */
 @Component(service = WebSphereCDIExtension.class, immediate = true)
 public class FaultToleranceCDI20Extension implements WebSphereCDIExtension, Extension {
+
+    public void addAsyncRequestContextController(@Observes BeforeBeanDiscovery bbd, BeanManager bm) {
+        AnnotatedType<AsyncRequestContextControllerImpl> annotatedType = bm.createAnnotatedType(AsyncRequestContextControllerImpl.class);
+        bbd.addAnnotatedType(annotatedType, AsyncRequestContextControllerImpl.class.getName());
+    }
 
     public void removeInterceptorType(@Observes ProcessAnnotatedType<FaultToleranceInterceptor> event) {
         // Veto the type, so that CDI doesn't discover that it's a bean

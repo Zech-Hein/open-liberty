@@ -1,47 +1,76 @@
 /*******************************************************************************
  * Copyright (c) 2019, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
 configurations {
+  hibernateJPA22
+  openjpaJPA22
   jpaFatTools
 }
 
 dependencies {
   jpaFatTools project(':com.ibm.ws.jpa_testframework')
-  requiredLibs project(":com.ibm.ws.jpa.tests.spec10.query")
+  requiredLibs project(":com.ibm.ws.jpa.tests.spec10.query_fat.common")
+
+  hibernateJPA22 'org.hibernate:hibernate-core:5.5.8.Final'
+  hibernateJPA22 'org.jboss.logging:jboss-logging:3.4.2.Final'
+  hibernateJPA22 'org.javassist:javassist:3.27.0-GA'
+  hibernateJPA22 'antlr:antlr:2.7.7'
+  hibernateJPA22 'org.jboss:jandex:2.2.3.Final'
+  hibernateJPA22 'com.fasterxml:classmate:1.5.1'
+  hibernateJPA22 'org.hibernate.common:hibernate-commons-annotations:5.1.2.Final'
+  hibernateJPA22 'net.bytebuddy:byte-buddy:1.11.12'
+
+  openjpaJPA22   'org.apache.openjpa:openjpa:3.2.1'
+  openjpaJPA22   'net.sourceforge.serp:serp:1.15.1'
+  openjpaJPA22   'org.apache.commons:commons-pool2:2.11.1'
+  openjpaJPA22   'org.apache.xbean:xbean-asm9-shaded:4.20'
 }
 
 task addJPAFATTools (type: Copy) {
   mustRunAfter jar
   from configurations.jpaFatTools
-  include "**/com.ibm.ws.jpa_testframework*.jar"
+  include "**/com.ibm.ws.jpa_testframework.jar"
   into new File(autoFvtDir, 'lib')
-  rename 'com.ibm.ws.jpa_testframework-(.*).jar', 'com.ibm.ws.jpa_testframework.jar'
+}
+
+task addHibernate_JPA22(type: Copy) {
+  shouldRunAfter jar
+  from configurations.hibernateJPA22
+  into new File(autoFvtDir, 'publish/shared/resources/jpa_query_fat_jpa22_hibernate')
+}
+
+task addOpenJPA_JPA22(type: Copy) {
+  shouldRunAfter jar
+  from configurations.openjpaJPA22
+  into new File(autoFvtDir, 'publish/shared/resources/jpa_query_fat_jpa22_openjpa')
 }
 
 task copyFAT {
-    dependsOn ':com.ibm.ws.jpa.tests.spec10.query:build'
+    dependsOn ':com.ibm.ws.jpa.tests.spec10.query_fat.common:build'
     copy {
-      from project(':com.ibm.ws.jpa.tests.spec10.query').file('fat/src/com/ibm/ws/jpa/tests/spec10/query/tests')
+      from project(':com.ibm.ws.jpa.tests.spec10.query_fat.common').file('fat/src/com/ibm/ws/jpa/tests/spec10/query/tests')
       into new File('fat/src/com/ibm/ws/jpa/tests/spec10/query/tests')
     }
 }
 
 task copyCommonFiles {
-  dependsOn ':com.ibm.ws.jpa.tests.spec10.query:build'
+  dependsOn ':com.ibm.ws.jpa.tests.spec10.query_fat.common:build'
   doLast {
     /*
      * Copy test application resources.
      */
     copy {
-      from project(':com.ibm.ws.jpa.tests.spec10.query').file('test-applications')
+      from project(':com.ibm.ws.jpa.tests.spec10.query_fat.common').file('test-applications')
       into new File('test-applications')
     }
     
@@ -49,7 +78,7 @@ task copyCommonFiles {
      * Copy common publish files.
      */
     copy {
-      from project(':com.ibm.ws.jpa.tests.spec10.query').file('publish')
+      from project(':com.ibm.ws.jpa.tests.spec10.query_fat.common').file('publish')
       into new File('publish')
     }
   }
@@ -57,6 +86,8 @@ task copyCommonFiles {
 
 addRequiredLibraries {
   dependsOn copyJdbcDrivers
+  dependsOn addHibernate_JPA22
+  dependsOn addOpenJPA_JPA22
   dependsOn addJakartaTransformer
   dependsOn addJPAFATTools
   dependsOn copyFAT
@@ -76,8 +107,8 @@ clean.doLast {
   if (file('build').exists()) {
     file('build').deleteDir()
   }
-  if (file('publish').exists()) {
-    file('publish').deleteDir()
+  if (file('publish/servers').exists()) {
+    file('publish/servers').deleteDir()
   }
   if (file('fat/src/com/ibm/ws/jpa/tests/spec10/query/tests').exists()) {
     file('fat/src/com/ibm/ws/jpa/tests/spec10/query/tests').deleteDir()

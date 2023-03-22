@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,7 +14,12 @@ package com.ibm.ws.security.openidconnect.server.plugins;
 
 import java.util.Arrays;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.ibm.ws.security.oauth20.util.GsonStrategies;
 import com.ibm.ws.security.openidconnect.token.JsonTokenUtil;
+
+import io.openliberty.security.common.serialization.Beta;
 
 /**
  * OIDC Discovery Service Bean
@@ -23,6 +30,9 @@ import com.ibm.ws.security.openidconnect.token.JsonTokenUtil;
  * Note that several properties have been commented out because they are currently not being utilized.
  */
 public abstract class OIDCAbstractDiscoveryModel {
+
+    public static final Gson GSON = new GsonBuilder().addSerializationExclusionStrategy(GsonStrategies.BETA_STRATEGY).create();
+
     private String issuer;
     private String authorization_endpoint;
     private String token_endpoint;
@@ -52,6 +62,10 @@ public abstract class OIDCAbstractDiscoveryModel {
     private String users_token_mgmt_endpoint;
     private String client_mgmt_endpoint;
     private String[] code_challenge_methods_supported;
+    @Beta
+    private final boolean backchannel_logout_supported = true;
+    @Beta
+    private final boolean backchannel_logout_session_supported = true;
 
     /**
      * OIDC Properties not utilized in implementation
@@ -486,6 +500,7 @@ public abstract class OIDCAbstractDiscoveryModel {
     }
 
     public String toJSONString() {
-        return JsonTokenUtil.toJsonFromObj(this);
+        return JsonTokenUtil.toJsonFromObj(GSON, this);
     }
+
 }

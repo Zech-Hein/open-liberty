@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -36,6 +38,7 @@ import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.utils.HttpUtils;
 import componenttest.topology.impl.LibertyServer;
 
+import com.ibm.websphere.simplicity.OperatingSystem;
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.config.ServerConfiguration;
 
@@ -142,7 +145,10 @@ public class FATReaperMultipleIntrospectionTest{
     public void tearDown() throws Exception{
         String methodName = "tearDown";
         if(server.isStarted()){
-            server.stopServer();
+            if ( server.getMachine().getOperatingSystem() == OperatingSystem.WINDOWS)
+                server.stopServer(false);
+            else
+                server.stopServer();
         }
 
         //remove the apps on the server
@@ -214,6 +220,8 @@ public class FATReaperMultipleIntrospectionTest{
             }
         }
 
+        firstDump.close();
+        
         logInfo(methodName, "Exiting: " + methodName);
     }
     

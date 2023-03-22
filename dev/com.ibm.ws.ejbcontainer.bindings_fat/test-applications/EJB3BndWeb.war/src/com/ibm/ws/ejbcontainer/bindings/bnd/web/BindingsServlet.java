@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2007, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,6 @@ import static org.junit.Assert.fail;
 import javax.annotation.PostConstruct;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.rmi.PortableRemoteObject;
 import javax.servlet.annotation.WebServlet;
 
 import org.junit.Test;
@@ -202,8 +203,7 @@ public class BindingsServlet extends FATServlet {
         RemoteTargetOneHome rtoh1 = null;
 
         try {
-            Object lookup = ctx.lookup("ejb/RemoteTargetOneHome");
-            rtoh1 = (RemoteTargetOneHome) PortableRemoteObject.narrow(lookup, RemoteTargetOneHome.class);
+            rtoh1 = (RemoteTargetOneHome) ctx.lookup("ejb/RemoteTargetOneHome");
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("1 ---> Check RemoteTargetOneHome lookup failed");
@@ -437,8 +437,7 @@ public class BindingsServlet extends FATServlet {
         SubRemoteHome srh = null;
 
         try {
-            Object lookup = ctx.lookup("ejb/SubRemoteHome");
-            srh = (SubRemoteHome) PortableRemoteObject.narrow(lookup, SubRemoteHome.class);
+            srh = (SubRemoteHome) ctx.lookup("ejb/SubRemoteHome");
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("1 ---> Check SubRemoteHome lookup failed");
@@ -482,8 +481,7 @@ public class BindingsServlet extends FATServlet {
         SupRemoteHome srh = null;
 
         try {
-            Object lookup = ctx.lookup("ejb/SupRemoteHome");
-            srh = (SupRemoteHome) PortableRemoteObject.narrow(lookup, SupRemoteHome.class);
+            srh = (SupRemoteHome) ctx.lookup("ejb/SupRemoteHome");
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("1 ---> Check SupRemoteHome lookup failed");

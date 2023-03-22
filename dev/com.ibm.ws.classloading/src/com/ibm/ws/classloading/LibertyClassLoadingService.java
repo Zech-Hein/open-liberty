@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,22 +24,24 @@ import com.ibm.wsspi.library.Library;
 /**
  * This interface constrains the {@link ClassLoadingService} to use the {@link LibertyClassLoader}.
  */
-public interface LibertyClassLoadingService extends ClassLoadingService {
+public interface LibertyClassLoadingService<CL extends ClassLoader & LibertyClassLoader> extends ClassLoadingService {
     @Override
-    LibertyClassLoader createTopLevelClassLoader(List<Container> classPath, GatewayConfiguration gwConfig, ClassLoaderConfiguration config);
+    CL createTopLevelClassLoader(List<Container> classPath, GatewayConfiguration gwConfig, ClassLoaderConfiguration config);
 
     @Override
-    LibertyClassLoader createBundleAddOnClassLoader(List<File> classPath, ClassLoader gwClassLoader, ClassLoaderConfiguration config);
+    CL createBundleAddOnClassLoader(List<File> classPath, ClassLoader gwClassLoader, ClassLoaderConfiguration config);
 
     @Override
-    LibertyClassLoader createChildClassLoader(List<Container> classpath, ClassLoaderConfiguration config);
+    CL createChildClassLoader(List<Container> classpath, ClassLoaderConfiguration config);
 
     @Override
-    LibertyClassLoader getShadowClassLoader(ClassLoader loader);
+    CL getShadowClassLoader(ClassLoader loader);
 
     @Override
-    LibertyClassLoader getSharedLibraryClassLoader(Library lib);
+    CL getSharedLibraryClassLoader(Library lib);
+
+    CL getSharedLibrarySpiClassLoader(Library lib, String ownerId);
 
     @Override
-    LibertyClassLoader createThreadContextClassLoader(ClassLoader applicationClassLoader);
+    CL createThreadContextClassLoader(ClassLoader applicationClassLoader);
 }

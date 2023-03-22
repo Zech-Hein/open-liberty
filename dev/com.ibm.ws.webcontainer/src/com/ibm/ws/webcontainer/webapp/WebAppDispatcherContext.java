@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2018 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,7 +28,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpUtils;
 
 import com.ibm.ejs.ras.TraceNLS;
 import com.ibm.websphere.servlet.error.ServletErrorReport;
@@ -774,7 +775,8 @@ public abstract class WebAppDispatcherContext implements Cloneable, IWebAppDispa
                 // not relative to webapp context root, but relative to the presently
                 // invoked URL
 
-                String requestString = HttpUtils.getRequestURL((HttpServletRequest) request).toString();
+                //Servlet 6.0 Update to remove HttpUtils
+                String requestString = ((HttpServletRequest) request).getRequestURL().toString();
                 String pathInfo = request.getPathInfo();
                 // start PI22830
                 if(!webAppRootURI.equals("/") && request.getRequestURI().equals(webAppRootURI)){
@@ -1155,31 +1157,13 @@ public abstract class WebAppDispatcherContext implements Cloneable, IWebAppDispa
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINEST)){
             logger.entering (CLASS_NAME, "hasSlashStarMapping");
         }
-        WebAppConfiguration webAppConfig = null;		
         WebApp webApp = this._webApp;
-
-        if (webApp != null) {
-            webAppConfig = webApp.getConfiguration();			
-        }		
-        if (webAppConfig != null) {
-            Map<String,List<String>> mappings = webAppConfig.getServletMappings();
-            if (mappings != null) {
-                for (List<String> list : mappings.values()) {
-                    for (String urlPattern : list) {
-                        if (urlPattern != null && ("/*").equals(urlPattern)) {
-                            if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINEST)){
-                                logger.exiting (CLASS_NAME, "hasSlashStarMapping: true");
-                            }
-                            return true;
-                        }
-                    }				
-                }												
-            }
-        }
+           
+        boolean hasSlashStarMapping = webApp == null ? false : webApp.hasSlashStarMapping();
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINEST)){
-            logger.exiting (CLASS_NAME, "hasSlashStarMapping");
+          logger.exiting (CLASS_NAME, "hasSlashStarMapping: " + hasSlashStarMapping);
         }
-        return false;
+        return hasSlashStarMapping;
     }
 
     public void setPossibleSlashStarMapping(boolean isPossible) {

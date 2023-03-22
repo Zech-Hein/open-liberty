@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017,2021 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -35,6 +37,7 @@ import org.junit.runner.RunWith;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -619,7 +622,8 @@ public class ConfigRESTHandlerTest extends FATServletClient {
         JsonObject j = new HttpsRequest(server, "/ibm/api/config/dataSource/WrongDefaultAuth?" +
                                                 "id=WrongDefaultAuth&jndiName=jdbc/wrongdefaultauth&beginTranForVendorAPIs=true&" +
                                                 "commitOrRollbackOnCleanup=rollback&invalidProperty=The+property's+value.&" +
-                                                "queryTimeout=130&statementCacheSize=15&validationTimeout=20").run(JsonObject.class);
+                                                "queryTimeout=130&statementCacheSize=15&validationTimeout=20")
+                        .run(JsonObject.class);
         String err = "unexpected response: " + j;
         assertEquals(err, "dataSource", j.getString("configElementName"));
         assertEquals(err, "WrongDefaultAuth", j.getString("uid"));
@@ -691,7 +695,7 @@ public class ConfigRESTHandlerTest extends FATServletClient {
         List<String> features = new ArrayList<String>();
         for (int i = 0; i < length; i++)
             features.add(ja.getString(i).toLowerCase());
-        if (JakartaEE9Action.isActive()) {
+        if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
             assertTrue(err, features.contains("componenttest-2.0"));
         } else {
             assertTrue(err, features.contains("componenttest-1.0"));

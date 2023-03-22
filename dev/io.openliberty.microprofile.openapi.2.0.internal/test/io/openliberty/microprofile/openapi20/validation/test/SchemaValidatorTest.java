@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,10 +24,10 @@ import org.eclipse.microprofile.openapi.models.media.Schema.SchemaType;
 import org.junit.Assert;
 import org.junit.Test;
 
+import io.openliberty.microprofile.openapi20.internal.utils.OpenAPIModelWalker.Context;
+import io.openliberty.microprofile.openapi20.internal.validation.SchemaValidator;
 import io.openliberty.microprofile.openapi20.test.utils.TestValidationContextHelper;
 import io.openliberty.microprofile.openapi20.test.utils.TestValidationHelper;
-import io.openliberty.microprofile.openapi20.utils.OpenAPIModelWalker.Context;
-import io.openliberty.microprofile.openapi20.validation.SchemaValidator;
 import io.smallrye.openapi.api.models.OpenAPIImpl;
 import io.smallrye.openapi.api.models.media.SchemaImpl;
 
@@ -47,11 +49,11 @@ public class SchemaValidatorTest {
 
         schema.setType(SchemaType.OBJECT);
 
-        List<String> required = new ArrayList<String>();
+        List<String> required = new ArrayList<>();
         required.addAll(Arrays.asList("message", "code"));
         schema.setRequired(required);
 
-        Map<String, Schema> properties = new HashMap<String, Schema>();
+        Map<String, Schema> properties = new HashMap<>();
         SchemaImpl messageSchema = new SchemaImpl();
         messageSchema.setType(SchemaType.STRING);
         SchemaImpl codeSchema = new SchemaImpl();
@@ -120,7 +122,7 @@ public class SchemaValidatorTest {
         validator.validate(vh, context, null, schema);
         Assert.assertEquals(1, vh.getEventsSize());
         Assert.assertTrue(vh.getResult().getEvents().get(0).message.contains("The Schema Object must have the \"multipleOf\" property set to a number strictly greater than zero"));
-        
+
         vh = new TestValidationHelper();
 
         schema = new SchemaImpl();
@@ -155,8 +157,8 @@ public class SchemaValidatorTest {
 
         SchemaImpl schema = new SchemaImpl();
         schema.setType(SchemaType.STRING);
-        schema.setMinLength(new Integer(-2));
-        schema.setMaxLength(new Integer(-1));
+        schema.setMinLength(-2);
+        schema.setMaxLength(-1);
 
         validator.validate(vh, context, null, schema);
         Assert.assertEquals(2, vh.getEventsSize());
@@ -172,8 +174,8 @@ public class SchemaValidatorTest {
 
         SchemaImpl schema = new SchemaImpl();
         schema.setType(SchemaType.OBJECT);
-        schema.setMinLength(new Integer(3));
-        schema.setMaxLength(new Integer(900));
+        schema.setMinLength(3);
+        schema.setMaxLength(900);
 
         validator.validate(vh, context, null, schema);
         Assert.assertEquals(2, vh.getEventsSize());
@@ -205,8 +207,8 @@ public class SchemaValidatorTest {
         SchemaImpl schema = new SchemaImpl();
         schema.setType(SchemaType.ARRAY);
         schema.setItems(new SchemaImpl());
-        schema.setMinItems(new Integer(-2));
-        schema.setMaxItems(new Integer(-1));
+        schema.setMinItems(-2);
+        schema.setMaxItems(-1);
 
         validator.validate(vh, context, null, schema);
         Assert.assertEquals(2, vh.getEventsSize());
@@ -222,8 +224,8 @@ public class SchemaValidatorTest {
 
         SchemaImpl schema = new SchemaImpl();
         schema.setType(SchemaType.OBJECT);
-        schema.setMinProperties(new Integer(-2));
-        schema.setMaxProperties(new Integer(-1));
+        schema.setMinProperties(-2);
+        schema.setMaxProperties(-1);
 
         validator.validate(vh, context, null, schema);
         Assert.assertEquals(2, vh.getEventsSize());
@@ -239,8 +241,8 @@ public class SchemaValidatorTest {
 
         SchemaImpl schema = new SchemaImpl();
         schema.setType(SchemaType.NUMBER);
-        schema.setMinProperties(new Integer(1));
-        schema.setMaxProperties(new Integer(53));
+        schema.setMinProperties(1);
+        schema.setMaxProperties(53);
 
         validator.validate(vh, context, null, schema);
         Assert.assertEquals(2, vh.getEventsSize());

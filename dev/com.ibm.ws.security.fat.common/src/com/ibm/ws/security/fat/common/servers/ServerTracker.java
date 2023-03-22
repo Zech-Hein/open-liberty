@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -63,6 +65,8 @@ public class ServerTracker {
         server.addIgnoredErrors(Arrays.asList(MessageConstants.CWWKO0227E_EXECUTOR_SERVICE_MISSING));
         // ignore potential timing issue with SSL port restart - if the port was ready when tests need it, that's good enough
         server.addIgnoredErrors(Arrays.asList(MessageConstants.SSL_NOT_RESTARTED_PROPERLY));
+        // ignore ssl message - runtime retries and can proceed (sometimes) when it can't tests will fail when they don't get the correct response
+        server.addIgnoredErrors(Arrays.asList(MessageConstants.CWWKO0801E_UNABLE_TO_INIT_SSL));
 
     }
 

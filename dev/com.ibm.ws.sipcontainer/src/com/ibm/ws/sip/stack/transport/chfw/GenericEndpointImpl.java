@@ -1,15 +1,21 @@
 /*******************************************************************************
  * Copyright (c) 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.sip.stack.transport.chfw;
 
+import java.net.InetAddress;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -471,7 +477,21 @@ public class GenericEndpointImpl {
 			topicHost = "ALL";
 		}
 		else{
-			topicHost = topicHost.replace(".", "_");
+			try {
+				InetAddress ipAddress = InetAddress.getByName(topicHost);
+				if (ipAddress instanceof Inet6Address) {
+					// Remove colon from ipv6 address before constructing topicString
+					topicHost = topicHost.replace(":", "_");
+				} 
+				else if (ipAddress instanceof Inet4Address) {
+					// Remove dots from ipv4 address before constructing topicString
+					topicHost = topicHost.replace(".", "_");
+				}
+			} catch (UnknownHostException e) {
+				if (c_logger.isTraceDebugEnabled()){
+					c_logger.traceDebug("Error: GenericEndpointImpl applyNewConfiguration: " + e);}	
+			}
+
 		}
 		topicString = GenericServiceConstants.TOPIC_PFX
 				+ topicHost + "/" + id + "/" + cid;

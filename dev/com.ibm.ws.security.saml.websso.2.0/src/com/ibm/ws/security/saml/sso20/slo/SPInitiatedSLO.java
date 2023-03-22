@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,8 @@
 package com.ibm.ws.security.saml.sso20.slo;
 
 import java.io.UnsupportedEncodingException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.List;
 
 import javax.security.auth.Subject;
@@ -365,8 +369,14 @@ public class SPInitiatedSLO {
 //        } catch (ServletException e1) {
 //            //throw new SamlException(e1); //TODO
 //        }
-        resp.setStatus(javax.servlet.http.HttpServletResponse.SC_OK);
-
+        //@AV999-092821 
+        if(req.getAttribute("OIDC_END_SESSION_REDIRECT") != null) {
+            resp.setStatus(javax.servlet.http.HttpServletResponse.SC_ACCEPTED);
+        } else {
+            resp.setStatus(javax.servlet.http.HttpServletResponse.SC_OK);
+        
+        }
+        
         ForwardRequestInfo requestInfo = new ForwardRequestInfo(idpUrl);
         requestInfo.setFragmentCookieId(cachingRequestInfo.getFragmentCookieId());
         requestInfo.setParameter("RelayState", new String[] { relayState });
@@ -406,7 +416,7 @@ public class SPInitiatedSLO {
 
             signature.setSigningCredential(signingCredential);
             signableMessage.setSignature(signature);
-            final ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
+            ClassLoader originalClassLoader = null, cl = null;
             try {
                 Marshaller marshaller = XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(signableMessage);//v3
                 if (marshaller == null) {
@@ -415,14 +425,55 @@ public class SPInitiatedSLO {
                                     null, new Object[] {});
                 }
                 marshaller.marshall(signableMessage);
-                Thread.currentThread().setContextClassLoader(SignerProvider.class.getClassLoader());
+                if (privileged()) {
+                    originalClassLoader = getTCCLPrivAction();
+                    cl = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+                        @Override
+                        public ClassLoader run() {
+                            return SignerProvider.class.getClassLoader();
+                        }
+                    });
+                    setTCCLPrivAction(cl);                   
+                } else {
+                    originalClassLoader = Thread.currentThread().getContextClassLoader();
+                    cl = SignerProvider.class.getClassLoader();
+                    Thread.currentThread().setContextClassLoader(cl);
+                }              
                 Signer.signObject(signature);
             } catch (Exception e) {
                 throw new SamlException(e, true); // Let SamlException handles opensaml Exception
             } finally {
-                Thread.currentThread().setContextClassLoader(originalClassLoader); 
+                if (privileged()) {
+                    setTCCLPrivAction(originalClassLoader);
+                } else {
+                    Thread.currentThread().setContextClassLoader(originalClassLoader);
+                }
             }
         }
+    }
+    
+    boolean privileged() {
+        return (System.getSecurityManager() != null);
+    }
+    
+    ClassLoader getTCCLPrivAction() {      
+        ClassLoader cl = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+            @Override
+            public ClassLoader run() {
+                return Thread.currentThread().getContextClassLoader();
+            }
+        });
+        return cl;
+    }
+    
+    void setTCCLPrivAction(ClassLoader cl) {
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            @Override
+            public Void run() {
+                Thread.currentThread().setContextClassLoader(cl);
+                return null;
+            }
+        });
     }
 
     String getLogoutRequestString(LogoutRequest logoutRequest) throws SamlException {

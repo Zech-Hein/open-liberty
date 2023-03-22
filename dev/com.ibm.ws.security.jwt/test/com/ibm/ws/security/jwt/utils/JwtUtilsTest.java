@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -67,7 +69,7 @@ public class JwtUtilsTest {
         String jsonString1 = "{ \"schemas\":[\"urn:scim:schemas:core:2.0:User\"],\"userName\":\"janedoe\", " +
                 "\"externalId\":\"janedoe\", " +
                 "\"name\":{ \"formatted\":\"Ms. Jane J Doe \", \"familyName\":\"Doe\", \"givenName\":\"Jane\" }, " +
-                "\"password\":\"asdf\", " +
+                "\"password\":null, " +
                 "\"phoneNumbers\":[ { \"value\": \"555-555-8377\", \"type\":\"work\" }, { \"value\": \"555-555-8378\", \"type\":\"fax\" } ], " +
                 "\"emails\":[ { \"value\": \"jdoe@rabitmail.com\", \"type\":\"personal\" }, { \"value\": \"jdoe@turtlemail.com\", \"type\":\"work\" } ]," + 
                 "\"addresses\": [ { \"type\": \"work\", \"streetAddress\": \"100 Universal City Plaza\", \"locality\": \"Hollywood\", " +
@@ -91,7 +93,11 @@ public class JwtUtilsTest {
             String givenName = (String) map2.get("givenName");
             Assert.assertEquals("The expected family name is Doe", "Doe", familyName);
             Assert.assertEquals("The expected given name is Jane","Jane", givenName);
-            
+
+            Assert.assertTrue("Map did not contain \"password\" entry.", map.containsKey("password"));
+            Object passwordValue = map.get("password");
+            Assert.assertNull("Value in map for \"password\" was not null as expected, but was [" + passwordValue + "].", passwordValue);
+
             Object list = map.get("schemas");
             if (list instanceof List) {
                 List list2 = (List) list;

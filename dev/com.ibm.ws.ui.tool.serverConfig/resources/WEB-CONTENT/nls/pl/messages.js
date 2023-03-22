@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ var editorMessages = {
 "ADD_CHILD": "Dodaj element potomny",
 "REMOVE": "Usuń",
 "TEST" : "Testuj",
-"TEST_CONNECTION": "Testuj połączenie",
+"TEST_CONNECTION": "Test połączenia",
+"TEST_CONNECTION_DESCRIPTION": "Przetestuj połączenie",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "Zapisz zmiany w celu przetestowania połączenia",
 "DESCRIPTION": "Opis",
 "PREVIOUS": "Poprzedni",
 "NEXT": "Następny",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "Okno dialogowe usuwania elementu",
 "VALIDATE_DATASOURCE_DIALOG": "Okno dialogowe sprawdzania poprawności połączenia ze źródłem danych",
 "VALIDATE_DATASOURCE": "Testowanie połączenia ze źródłem danych",
+"VALIDATE_CONNECTION_DIALOG":"Okno dialogowe sprawdzania poprawności połączenia",
+"DEFAULT_AUTHENTICATION_ALIAS":"Uwierzytelnianie domyślne",
+"SPECIFY_AUTHENTICATION_ALIAS":"Określ alias uwierzytelniania",
+"LOGIN_CONFIG":"Konfiguracja logowania",
+"LOGIN_CONFIG_ID":"Identyfikator konfiguracji logowania",
+"ADD_LOGIN_CONFIG_PROPERTY":"Dodaj właściwość konfiguracji logowania",
+"KEY":"Klucz",
+"CHOOSE_AN_OPTION":"Wybierz opcję",
 "ENUMERATION_SELECTION_DIALOG": "Okno dialogowe wyboru wyliczenia",
 "SAVE_BEFORE_CLOSING_DIALOG": "Okno dialogowe zapisywania przed zamknięciem",
 "ERROR_SAVING_FILE_DIALOG": "Okno dialogowe błędu podczas zapisywania pliku",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "Alias uwierzytelniania (opcjonalny)",
 "AUTH_ALIAS": "Alias uwierzytelniania",
 "CONTAINER_AUTHENTICATION": "Uwierzytelnianie kontenera",
+"RESOURCE_REFERENCE": "Odwołanie do zasobu",
 "NO_RESOURCE_REFERENCE": "Brak odwołania do zasobu",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "Przetestuj połączenie, korzystając z odwołania do zasobu, który uwierzytelnia się, używając uwierzytelniania aplikacji.",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "Przetestuj połączenie, korzystając z odwołania do zasobu, który uwierzytelnia się, używając uwierzytelniania kontenera.",
+"RESOURCE_REFERENCE_IN_USE": "Uwierzytelnianie kontenera dla wyszukiwań bezpośrednich jest włączone. Test połączenia korzysta ze skonfigurowanych domyślnych danych uwierzytelniania kontenera.",
+"NO_RESOURCE_REFERENCE_IN_USE": "Przetestuj połączenie bez używania odwołania do zasobu.",
 "APPLICATION_AUTHENTICATION": "Uwierzytelnianie aplikacji",
 "CUSTOM_LOGIN_MODULE": "Niestandardowy moduł logowania (opcjonalny)",
 "LOGIN_PROPERTIES": "Właściwości uwierzytelniania (opcjonalne)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "Wybierz składnik, aby wyświetlić jego opis.",
 "SUPPORT_MESSAGE" : "Konfiguracje serwerów nie są dostępne dla serwerów Node.js i serwerów w kontenerze Docker udostępnianych za pomocą kontrolera kolektywu.",
 "NO_ROLE_MESSAGE": "Użytkownik nie pełni roli, która ma uprawnienia do wprowadzania zmian w konfiguracji. Pliki są dostępne w trybie tylko do odczytu.",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "WYMAGANE DZIAŁANIA DLA CZŁONKÓW KOLEKTYWU:",
 "RUN_UPDATE_HOST" : "Uruchom komendę collective updateHost lub collective registerHost z parametrem --hostWritePath zawierającym ścieżkę, do której użytkownik rpcUser ma uprawnienia.  Należy także podać poprawne referencje hosta.",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "Utwórz powiązanie ze zmienną JAVA w katalogu /usr/bin. Na przykład: /usr/bin/java -> [ścieżka_do_środowiska_JAVA]",
 "JAVA_ON_PATH" : "Dodaj zmienną JAVA do zmiennej środowiskowej PATH.  W systemie Linux zmienna PATH powinna zostać wyeksportowana w pliku .bashrc.", 
 "MORE_INFORMATION" : "Więcej informacji na ten temat zawierają następujące sekcje: "
-
 };

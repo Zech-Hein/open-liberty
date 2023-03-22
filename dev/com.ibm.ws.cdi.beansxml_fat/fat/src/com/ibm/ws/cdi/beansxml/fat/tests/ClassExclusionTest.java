@@ -1,17 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.cdi.beansxml.fat.tests;
-
-import static componenttest.rules.repeater.EERepeatTests.EEVersion.EE7_FULL;
-import static componenttest.rules.repeater.EERepeatTests.EEVersion.EE9;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
@@ -25,6 +24,7 @@ import org.junit.runner.RunWith;
 import com.ibm.websphere.simplicity.CDIArchiveHelper;
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
+import com.ibm.websphere.simplicity.beansxml.BeansAsset.DiscoveryMode;
 import com.ibm.ws.cdi.beansxml.fat.apps.classexclusion.ClassExclusionTestServlet;
 import com.ibm.ws.cdi.beansxml.fat.apps.classexclusion.excludedpackage.ExcludedPackageBean;
 import com.ibm.ws.cdi.beansxml.fat.apps.classexclusion.excludedpackagetree.subpackage.ExcludedPackageTreeBean;
@@ -43,7 +43,7 @@ import componenttest.annotation.TestServlets;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
-import componenttest.rules.repeater.EERepeatTests;
+import componenttest.rules.repeater.EERepeatActions;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -63,7 +63,7 @@ public class ClassExclusionTest extends FATServletClient {
     public static final String VETO_ALTERNATIVE_APP_NAME = "TestVetoedAlternative";
 
     @ClassRule
-    public static RepeatTests r = EERepeatTests.with(SERVER_NAME, EE9, EE7_FULL); //not bothering to repeat with EE8 ... the EE9 version is mostly a transformed version of the EE8 code
+    public static RepeatTests r = EERepeatActions.repeat(SERVER_NAME, EERepeatActions.EE9, EERepeatActions.EE10, EERepeatActions.EE7); //not bothering to repeat with EE8 ... the EE9 version is mostly a transformed version of the EE8 code
 
     @Server(SERVER_NAME)
     @TestServlets({
@@ -97,7 +97,7 @@ public class ClassExclusionTest extends FATServletClient {
         WebArchive testVetoedAlternativeWar = ShrinkWrap.create(WebArchive.class, "TestVetoedAlternative.war");
         testVetoedAlternativeWar.setManifest(VetoedAlternativeTestServlet.class.getPackage(), "MANIFEST.MF");
         testVetoedAlternativeWar.addClass(VetoedAlternativeTestServlet.class);
-        CDIArchiveHelper.addEmptyBeansXML(testVetoedAlternativeWar);
+        CDIArchiveHelper.addBeansXML(testVetoedAlternativeWar, DiscoveryMode.ALL);
 
         EnterpriseArchive testVetoedAlternativeEar = ShrinkWrap.create(EnterpriseArchive.class, "TestVetoedAlternative.ear");
         testVetoedAlternativeEar.setApplicationXML(VetoedAlternativeTestServlet.class.getPackage(), "application.xml");

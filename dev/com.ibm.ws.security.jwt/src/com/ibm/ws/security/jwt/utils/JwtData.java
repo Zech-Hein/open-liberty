@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -59,8 +61,6 @@ public class JwtData {
     String signatureAlgorithm = null;
     JwtTokenException noKeyException = null;
 
-    private final KeyAlgorithmChecker keyAlgChecker = new KeyAlgorithmChecker();
-
     public JwtData(BuilderImpl jwtBuilder, JwtConfig jwtConfig, String tokenType) throws JwtTokenException {
         builder = jwtBuilder;
         this.jwtConfig = jwtConfig;
@@ -95,7 +95,8 @@ public class JwtData {
      * Handle the signingKey here to get the same error messages
      */
     @FFDCIgnore(Exception.class)
-    // protected void initSigningKey(BuilderImpl jwtBuilder, JwtConfig jwtConfig)
+    // protected void initSigningKey(BuilderImpl jwtBuilder, JwtConfig
+    // jwtConfig)
     // throws JwtTokenException {
     protected void initSigningKey(JwtDataConfig config) throws JwtTokenException {
         String keyType = Constants.SIGNING_KEY_X509;
@@ -103,33 +104,42 @@ public class JwtData {
             if (isJwkSignatureAlgorithmType(config)) {
                 initSigningKeyUsingJwk(config);
             } else {
-                if (keyAlgChecker.isHSAlgorithm(signatureAlgorithm)) {
+                if (KeyAlgorithmChecker.isHSAlgorithm(signatureAlgorithm)) {
                     initSigningKeyUsingHSAlgorithm(config);
                 } else if (isSignatureAlgorithmUsingKeyStore()) {
                     initSigningKeyUsingKeyStore(config, keyType);
                 }
             }
         } catch (Exception e) {
-            Object[] objs = new Object[] { signatureAlgorithm, jwtDataConfig.isJwkEnabled, e.getLocalizedMessage() }; // let JWTTokenException handle the exception
+            Object[] objs = new Object[] { signatureAlgorithm, jwtDataConfig.isJwkEnabled, e.getLocalizedMessage() }; // let
+                                                                                                                      // JWTTokenException
+                                                                                                                      // handle
+                                                                                                                      // the
+                                                                                                                      // exception
             JwtTokenException jte = JwtTokenException.newInstance(false, "JWT_NO_SIGNING_KEY_WITH_ERROR", objs);
             jte.initCause(e);
             throw jte;
         }
         if (_signingKey == null && !signatureAlgorithm.equals(SIGNATURE_ALG_NONE)) {
-            Object[] objs = new Object[] { signatureAlgorithm, jwtDataConfig.isJwkEnabled, "" }; // let JWTTokenException handle the exception
+            Object[] objs = new Object[] { signatureAlgorithm, jwtDataConfig.isJwkEnabled, "" }; // let
+                                                                                                 // JWTTokenException
+                                                                                                 // handle
+                                                                                                 // the
+                                                                                                 // exception
             throw JwtTokenException.newInstance(true, "JWT_NO_SIGNING_KEY_WITH_ERROR", objs);
         }
     }
 
     boolean isJwkSignatureAlgorithmType(JwtDataConfig config) {
         // RSxxx or ESxxx signature algorithms
-        return config.isJwkEnabled && (keyAlgChecker.isRSAlgorithm(config.signatureAlgorithm)
-                || keyAlgChecker.isESAlgorithm(config.signatureAlgorithm));
+        return config.isJwkEnabled && (KeyAlgorithmChecker.isRSAlgorithm(config.signatureAlgorithm)
+                || KeyAlgorithmChecker.isESAlgorithm(config.signatureAlgorithm));
     }
 
     boolean isSignatureAlgorithmUsingKeyStore() {
         // RSxxx or ESxxx signature algorithms
-        return (keyAlgChecker.isRSAlgorithm(signatureAlgorithm) || keyAlgChecker.isESAlgorithm(signatureAlgorithm));
+        return (KeyAlgorithmChecker.isRSAlgorithm(signatureAlgorithm)
+                || KeyAlgorithmChecker.isESAlgorithm(signatureAlgorithm));
     }
 
     void initSigningKeyUsingJwk(JwtDataConfig config) {
@@ -163,7 +173,8 @@ public class JwtData {
         }
     }
 
-    void initSigningKeyUsingKeyStore(JwtDataConfig config, String keyType) throws KeyStoreException, CertificateException, InvalidTokenException {
+    void initSigningKeyUsingKeyStore(JwtDataConfig config, String keyType)
+            throws KeyStoreException, CertificateException, InvalidTokenException {
         _signingKey = config.signingKey;
         if (tc.isDebugEnabled()) {
             Tr.debug(tc, "Signing key type is " + keyType);
@@ -183,7 +194,7 @@ public class JwtData {
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "RSAPrivateKey: " + (_signingKey instanceof RSAPrivateKey));
         }
-        if (!keyAlgChecker.isPrivateKeyValidType(_signingKey, signatureAlgorithm)) {
+        if (!KeyAlgorithmChecker.isPrivateKeyValidType(_signingKey, signatureAlgorithm)) {
             // error handling
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "clear _signingKey and _keyId");

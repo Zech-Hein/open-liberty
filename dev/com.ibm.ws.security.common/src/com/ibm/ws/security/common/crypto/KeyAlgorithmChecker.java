@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -28,16 +30,26 @@ public class KeyAlgorithmChecker {
 
     private static final TraceComponent tc = Tr.register(KeyAlgorithmChecker.class);
 
+    private static final Pattern HSA_PATTERN = Pattern.compile("HS[0-9]{3,}");
+    private static final Pattern RSA_PATTERN = Pattern.compile("RS[0-9]{3,}");
+    private static final Pattern ESA_PATTERN = Pattern.compile("ES[0-9]{3,}");
+    private static final Pattern ALG_PATTERN = Pattern.compile("[RHEP]S([0-9]{3,})", Pattern.CASE_INSENSITIVE);
+
     public static int UNKNOWN_HASH_SIZE = 0;
 
-    public boolean isHSAlgorithm(String alg) {
+    private KeyAlgorithmChecker() {
+        // no one should new up an instance of this class.
+    }
+
+    public static boolean isHSAlgorithm(String alg) {
         if (alg == null) {
             return false;
         }
-        return alg.matches("HS[0-9]{3,}");
+        Matcher m = HSA_PATTERN.matcher(alg);
+        return m.matches();
     }
 
-    public boolean isPublicKeyValidType(Key key, String supportedSigAlg) {
+    public static boolean isPublicKeyValidType(Key key, String supportedSigAlg) {
         if (key == null || supportedSigAlg == null) {
             // Rely on caller to do the appropriate checks if the key or algorithm is null
             return true;
@@ -53,34 +65,36 @@ public class KeyAlgorithmChecker {
         return false;
     }
 
-    public boolean isRSAlgorithm(String alg) {
+    public static boolean isRSAlgorithm(String alg) {
         if (alg == null) {
             return false;
         }
-        return alg.matches("RS[0-9]{3,}");
+        Matcher m = RSA_PATTERN.matcher(alg);
+        return m.matches();
     }
 
-    public boolean isValidRSAPublicKey(Key key) {
+    public static boolean isValidRSAPublicKey(Key key) {
         String keyAlgorithm = key.getAlgorithm();
         // TODO - any way to check hash bit size?
         return (keyAlgorithm.equals("RSA") && key instanceof RSAPublicKey);
     }
 
-    public boolean isESAlgorithm(String alg) {
+    public static boolean isESAlgorithm(String alg) {
         if (alg == null) {
             return false;
         }
-        return alg.matches("ES[0-9]{3,}");
+        Matcher m = ESA_PATTERN.matcher(alg);
+        return m.matches();
     }
 
-    public boolean isValidECPublicKey(String supportedSigAlg, Key key) {
+    public static boolean isValidECPublicKey(String supportedSigAlg, Key key) {
         if (!("EC".equals(key.getAlgorithm()) && key instanceof ECPublicKey)) {
             return false;
         }
         return isValidECKeyParameters(supportedSigAlg, (ECPublicKey) key);
     }
 
-    boolean isValidECKeyParameters(String supportedSigAlg, ECKey key) {
+    static boolean isValidECKeyParameters(String supportedSigAlg, ECKey key) {
         ECParameterSpec params = key.getParams();
         int fieldSize = params.getCurve().getField().getFieldSize();
         if (tc.isDebugEnabled()) {
@@ -98,14 +112,12 @@ public class KeyAlgorithmChecker {
      * Extracts the hash size from algorithm strings such as RS256, HS384, or ES512.
      */
     @FFDCIgnore(Exception.class)
-    public int getHashSizeFromAlgorithm(String algorithm) {
+    public static int getHashSizeFromAlgorithm(String algorithm) {
         int hashSize = UNKNOWN_HASH_SIZE;
-        String algRegex = "[RHEP]S([0-9]{3,})";
-        Pattern algPattern = Pattern.compile(algRegex, Pattern.CASE_INSENSITIVE);
-        Matcher algMatcher = algPattern.matcher(algorithm);
+        Matcher algMatcher = ALG_PATTERN.matcher(algorithm);
         if (!algMatcher.matches()) {
             if (tc.isDebugEnabled()) {
-                Tr.debug(tc, "Algorithm [" + algorithm + "] did not match expected regex " + algRegex);
+                Tr.debug(tc, "Algorithm [" + algorithm + "] did not match expected regex " + ALG_PATTERN.toString());
             }
             return hashSize;
         }
@@ -121,7 +133,7 @@ public class KeyAlgorithmChecker {
         return hashSize;
     }
 
-    public boolean isPrivateKeyValidType(Key key, String supportedSigAlg) {
+    public static boolean isPrivateKeyValidType(Key key, String supportedSigAlg) {
         if (key == null || supportedSigAlg == null) {
             // Rely on caller to do the appropriate checks if the key or algorithm is null
             return true;
@@ -137,13 +149,13 @@ public class KeyAlgorithmChecker {
         return false;
     }
 
-    public boolean isValidRSAPrivateKey(Key key) {
+    public static boolean isValidRSAPrivateKey(Key key) {
         String keyAlgorithm = key.getAlgorithm();
         // TODO - any way to check hash bit size?
         return (keyAlgorithm.equals("RSA") && key instanceof RSAPrivateKey);
     }
 
-    public boolean isValidECPrivateKey(String supportedSigAlg, Key key) {
+    public static boolean isValidECPrivateKey(String supportedSigAlg, Key key) {
         if (!("EC".equals(key.getAlgorithm()) && key instanceof ECPrivateKey)) {
             return false;
         }

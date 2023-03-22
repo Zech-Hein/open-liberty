@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2013, 2018 IBM Corporation and others.
+# Copyright (c) 2013, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -16,6 +18,7 @@
 #NLS_ENCODING=UNICODE
 # -------------------------------------------------------------------------------------------------
 # Message prefix block: CWWKS1700 - CWWKS1750
+# AND:  CWWKS1520 - CWWKS1599
 # BEWARE: Due to code refactoring, some of these messages are also used in the openidconnect.client bundle. Check there too before using or
 # altering any of these messages.
 
@@ -69,19 +72,19 @@ OIDC_CLIENT_INVALID_HTTP_RESPONSE.useraction=Projd\u011bte si akce pro tuto chyb
 
 #used_by_client_project, present in clients.common bundle. IF YOU CHANGE THIS YOU MUST DUPLICATE THE CHANGE IN BOTH BUNDLES.
 OAUTH_REQUEST_ACCESS_DENIED=CWWKS1710E: Po\u017eadavek na p\u0159ipojen\u00ed OpenID byl u\u017eivatelem odm\u00edtnut, nebo do\u0161lo k jin\u00e9 chyb\u011b, jej\u00edm\u017e v\u00fdsledkem bylo zam\u00edtnut\u00ed po\u017eadavku.
-OAUTH_REQUEST_ACCESS_DENIED.explanation=U\u017eivatel bu\u010f zam\u00edtl po\u017eadavek na p\u0159ipojen\u00ed OpenID stornov\u00e1n\u00edm po\u017eadavku na formul\u00e1\u0159i souhlasu s oborem platnosti, nebo do\u0161lo k n\u011bjak\u00e9 jin\u00e9 chyb\u011b, kter\u00e1 zam\u00edtla p\u0159\u00edstup po\u017eadavku na p\u0159ipojen\u00ed OpenID.
+OAUTH_REQUEST_ACCESS_DENIED.explanation=U\u017eivatel bu\u010f zam\u00edtl po\u017eadavek na p\u0159ipojen\u00ed OpenID stornov\u00e1n\u00edm po\u017eadavku na formul\u00e1\u0159i se souhlasem, nebo do\u0161lo k n\u011bjak\u00e9 jin\u00e9 chyb\u011b, kter\u00e1 zam\u00edtla p\u0159\u00edstup po\u017eadavku na p\u0159ipojen\u00ed OpenID.
 OAUTH_REQUEST_ACCESS_DENIED.useraction=U\u017eivatel mus\u00ed povolit poskytovateli p\u0159ipojen\u00ed OpenID sd\u00edlet obory platnosti, kter\u00e9 klient vy\u017eaduje, aby byl po\u017eadavek na p\u0159ipojen\u00ed OpenID \u00fasp\u011b\u0161n\u00fd. Pokud u\u017eivatel tento po\u017eadavek schv\u00e1lil, zkontrolujte protokoly na poskytovateli OP, zda tam nejsou dal\u0161\u00ed chyby.
 
 #1711 is used by client bundle, don't use here.
 
 #
 #used by clients project
-OIDC_CLIENT_IDTOKEN_REQUEST_FAILURE=CWWKS1712E: Klient pro p\u0159ipojen\u00ed OpenID Connect [{0}] neobdr\u017eel token ID od poskytovatele p\u0159ipojen\u00ed OpenID Connect [{1}].
+OIDC_CLIENT_IDTOKEN_REQUEST_FAILURE=CWWKS1712E: Klient pro p\u0159ipojen\u00ed OpenID [{0}] neobdr\u017eel token ID od poskytovatele p\u0159ipojen\u00ed OpenID [{1}].
 OIDC_CLIENT_IDTOKEN_REQUEST_FAILURE.explanation=Klientu pro p\u0159ipojen\u00ed OpenID (z\u00e1visl\u00e9 stran\u011b nebo RP) se nezda\u0159ilo z\u00edskat token ID od poskytovatele p\u0159ipojen\u00ed OpenID (OP). Mo\u017en\u00e1 nebyl OP v dob\u011b po\u017eadavku dostupn\u00fd, po\u017eadavek nebyl sm\u011brov\u00e1n na platn\u00fd koncov\u00fd bod, nebo do\u0161lo k neshod\u011b konfigurac\u00ed OP a RP. 
 OIDC_CLIENT_IDTOKEN_REQUEST_FAILURE.useraction=Zkontrolujte konfiguraci serveru a ujist\u011bte se, \u017ee nakonfigurovan\u00e1 adresa URL koncov\u00e9ho bodu tokenu je platnou adresou URL a \u017ee ukazuje na koncov\u00fd bod tokenu aktivn\u00edho poskytovatele p\u0159ipojen\u00ed OpenID. Projd\u011bte si tak\u00e9 akce pro chyby zobrazen\u00e9 p\u0159ed touto zpr\u00e1vou.
 
 # used by clients
-OIDC_CLIENT_REQUEST_MISSING_OPENID_SCOPE=CWWKS1713E: Po\u017eadavek klienta pro p\u0159ipojen\u00ed OpenID Connect [{0}] vy\u017eaduje rozsah obor\u016f [openid], ale sada rozsah\u016f obor\u016f [{1}] uveden\u00e1 v konfiguraci klienta pro p\u0159ipojen\u00ed OpenID Connect nem\u00e1 uveden\u00fd obor rozsah\u016f.
+OIDC_CLIENT_REQUEST_MISSING_OPENID_SCOPE=CWWKS1713E: Po\u017eadavek klienta pro p\u0159ipojen\u00ed OpenID [{0}] vy\u017eaduje rozsah obor\u016f [openid], ale sada rozsah\u016f obor\u016f [{1}] uveden\u00e1 v konfiguraci klienta pro p\u0159ipojen\u00ed OpenID nem\u00e1 uveden\u00fd obor rozsah\u016f.
 OIDC_CLIENT_REQUEST_MISSING_OPENID_SCOPE.explanation=Po\u017eadavek klienta pro p\u0159ipojen\u00ed OpenID vy\u017eaduje, aby byl nastaven rozsah obor\u016f [openid], a pokud v konfiguraci klienta pro p\u0159ipojen\u00ed OpenID tento obor rozsah\u016f chyb\u00ed, po\u017eadavek se nezda\u0159\u00ed.
 OIDC_CLIENT_REQUEST_MISSING_OPENID_SCOPE.useraction=Ujist\u011bte se, \u017ee m\u00e1te po\u017eadovan\u00fd obor rozsah\u016f [openid] uveden v konfiguraci klienta pro p\u0159ipojen\u00ed OpenID.
 
@@ -104,12 +107,12 @@ PROPAGATION_TOKEN_MISSING_USERID.useraction=Prove\u010fte jednu z n\u00e1sleduj\
 # PROPAGATION_TOKEN_USERINFO_ISS_ERROR.useraction=Verify that the OpenID Connect client configuration has the issuerIdentifier that matches the "iss" claim in the UserInfo.
 
 #unused but present in both bundles. IF YOU CHANGE THIS YOU MUST DUPLICATE THE CHANGE IN BOTH BUNDLES.
-PROPAGATION_TOKEN_VALIDATION_MISMATCH=CWWKS1729E: Serveru prost\u0159edk\u016f se nezda\u0159il po\u017eadavek na ov\u011b\u0159en\u00ed, nebo\u0165 metoda ov\u011b\u0159en\u00ed [{0}] nen\u00ed vhodn\u00e1 pro adresu URL koncov\u00e9ho bodu ov\u011b\u0159en\u00ed platnosti [{1}].
+PROPAGATION_TOKEN_VALIDATION_MISMATCH=CWWKS1729E: Serveru prost\u0159edk\u016f se nezda\u0159ila \u017e\u00e1dost o ov\u011b\u0159en\u00ed, nebo\u0165 metoda ov\u011b\u0159en\u00ed [{0}] nen\u00ed vhodn\u00e1 pro adresu URL koncov\u00e9ho bodu ov\u011b\u0159en\u00ed platnosti [{1}].
 PROPAGATION_TOKEN_VALIDATION_MISMATCH.explanation=Atribut validationEndpointUrl ur\u010den\u00fd v konfiguraci klienta OpenID Connect nen\u00ed vhodn\u00fdm koncov\u00fdm bodem pro ur\u010denou metodu validationMethod.
 PROPAGATION_TOKEN_VALIDATION_MISMATCH.useraction=Aktualizuje konfiguraci klienta OpenID Connect zm\u011bnou metody validationMethod nebo validationEndpointUrl.
  
 #used_by_client_project and clients projects. IF YOU CHANGE THIS YOU MUST DUPLICATE THE CHANGE IN BOTH BUNDLES.
-PROPAGATION_TOKEN_INCORRECT_CLAIM_TYPE=CWWKS1730E: Serveru prost\u0159edk\u016f se nezda\u0159ila \u017e\u00e1dost o ov\u011b\u0159en\u00ed, proto\u017ee datov\u00fd typ n\u00e1roku [{0}] v p\u0159\u00edstupov\u00e9m prvku p\u0159idru\u017een\u00fd k atributu konfigurace [{1}] nen\u00ed platn\u00fd. 
+PROPAGATION_TOKEN_INCORRECT_CLAIM_TYPE=CWWKS1730E: Serveru prost\u0159edk\u016f se nezda\u0159ila \u017e\u00e1dost o ov\u011b\u0159en\u00ed, proto\u017ee datov\u00fd typ n\u00e1roku [{0}] v p\u0159\u00edstupov\u00e9m tokenu p\u0159idru\u017een\u00fd k atributu konfigurace [{1}] nen\u00ed platn\u00fd. 
 PROPAGATION_TOKEN_INCORRECT_CLAIM_TYPE.explanation=Poskytnut\u00fd p\u0159\u00edstupov\u00fd token m\u00e1 neplatn\u00fd datov\u00fd typ n\u00e1roku a b\u011bhov\u00fd modul nem\u016f\u017ee pokra\u010dovat ve zpracov\u00e1n\u00ed ov\u011b\u0159en\u00ed.
 PROPAGATION_TOKEN_INCORRECT_CLAIM_TYPE.useraction=Ov\u011b\u0159te, \u017ee konfigurace klienta pro p\u0159ipojen\u00ed OpenID uv\u00e1d\u00ed pro atribut spr\u00e1vn\u00fd n\u00e1zev n\u00e1roku.
 
@@ -208,3 +211,104 @@ USERINFO_INVALID.explanation=Je vy\u017eadov\u00e1na shoda d\u00edl\u010d\u00edh
 USERINFO_INVALID.useraction=Ujist\u011bte se, \u017ee poskytovatel OpenID Connect generuje platn\u00e1 data s informacemi o u\u017eivateli.
 
 # STOP HERE, OIDC COMMON HAS RESERVED 1751 - 1799 
+
+# 0=OIDC client config ID, 1=Error/exception message
+OIDC_CLIENT_ERROR_EXTRACTING_JWT_CLAIMS_FROM_WEB_RESPONSE=CWWKS1533E: Klient {0} OpenID Connect nem\u016f\u017ee extrahovat n\u00e1roky JWT (JSON Web Token) z webov\u00e9 odezvy. {1}
+OIDC_CLIENT_ERROR_EXTRACTING_JWT_CLAIMS_FROM_WEB_RESPONSE.explanation=Webov\u00e1 odezva mus\u00ed b\u00fdt JWT bu\u010f ve form\u00e1tu JSON Web Encryption (JWE), nebo ve form\u00e1tu JSON Web Signature (JWS). Odezva m\u016f\u017ee b\u00fdt chybn\u00e1, nebo klient OpenID Connect rozpoznal dal\u0161\u00ed chybu p\u0159i zpracov\u00e1n\u00ed odezvy.
+OIDC_CLIENT_ERROR_EXTRACTING_JWT_CLAIMS_FROM_WEB_RESPONSE.useraction=Dal\u0161\u00ed informace viz chyba ve zpr\u00e1v\u011b. Ov\u011b\u0159te, \u017ee je odezva ve form\u00e1tu JWT.
+
+OIDC_CLIENT_NULL_AUTH_ENDPOINT=CWWKS1534E: Klient OpenID Connect [{0}] vy\u017eaduje adresu URL koncov\u00e9ho bodu autorizace, ale nen\u00ed nastavena.
+OIDC_CLIENT_NULL_AUTH_ENDPOINT.explanation=Adresa URL koncov\u00e9ho bodu autorizace mus\u00ed b\u00fdt nastavena k z\u00edsk\u00e1n\u00ed autoriza\u010dn\u00edho k\u00f3du nebo po\u017eadovan\u00fdch token\u016f.
+OIDC_CLIENT_NULL_AUTH_ENDPOINT.useraction=Nastavte atribut authorizationEndpointUrl v konfiguraci klienta OpenID Connect na adresu URL koncov\u00e9ho bodu autorizace poskytovatele OpenID Connect. Voliteln\u011b nastavte atribut discoveryEndpointUrl v konfiguraci klienta OpenID Connect na adresu URL koncov\u00e9ho bodu zji\u0161\u0165ov\u00e1n\u00ed poskytovatele OpenID Connect.
+
+OIDC_CLIENT_NULL_TOKEN_ENDPOINT=CWWKS1535E: Klient OpenID Connect [{0}] vy\u017eaduje adresu URL koncov\u00e9ho bodu tokenu, ale nen\u00ed nastavena.
+OIDC_CLIENT_NULL_TOKEN_ENDPOINT.explanation=Adresa URL koncov\u00e9ho bodu tokenu mus\u00ed b\u00fdt nastavena k z\u00edsk\u00e1n\u00ed po\u017eadovan\u00fdch token\u016f.
+OIDC_CLIENT_NULL_TOKEN_ENDPOINT.useraction=Nastavte atribut tokenEndpointUrl v konfiguraci klienta OpenID Connect na adresu URL koncov\u00e9ho bodu tokenu poskytovatele OpenID Connect. Voliteln\u011b nastavte atribut discoveryEndpointUrl v konfiguraci klienta OpenID Connect na adresu URL koncov\u00e9ho bodu zji\u0161\u0165ov\u00e1n\u00ed poskytovatele OpenID Connect.
+
+# Do not translate "keyManagementKeyAlias"
+# 0=OIDC client config ID
+OIDC_CLIENT_JWS_REQUIRED_BUT_TOKEN_NOT_JWS=CWWKS1536E: Token nen\u00ed ve form\u00e1tu JSON Web Signature (JWS), proto\u017ee neobsahuje t\u0159i \u010d\u00e1sti, ale klient [{0}] OpenID Connect p\u0159ij\u00edm\u00e1 pouze tokeny, kter\u00e9 jsou ve form\u00e1tu JWS.
+OIDC_CLIENT_JWS_REQUIRED_BUT_TOKEN_NOT_JWS.explanation=Token m\u016f\u017ee b\u00fdt chybn\u00fd nebo m\u016f\u017ee b\u00fdt ve form\u00e1tu JSON Web Encryption (JWE). Tokeny mus\u00ed b\u00fdt ve form\u00e1tu JWS, pokud nen\u00ed nakonfigurov\u00e1n atribut keyManagementKeyAlias.
+OIDC_CLIENT_JWS_REQUIRED_BUT_TOKEN_NOT_JWS.useraction=Chcete-li p\u0159ijmout tokeny JWE, nakonfigurujte atribut keyManagementKeyAlias v konfiguraci klienta OpenID Connect. Jinak se ujist\u011bte, \u017ee do tohoto prost\u0159edku jsou odes\u00edl\u00e1ny pouze tokeny JWS.
+
+# 0=OIDC client config ID
+OIDC_CLIENT_JWE_REQUIRED_BUT_TOKEN_NOT_JWE=CWWKS1537E: Token nen\u00ed ve form\u00e1tu JSON Web Encryption (JWE), proto\u017ee neobsahuje p\u011bt \u010d\u00e1st\u00ed, ale klient [{0}] OpenID Connect p\u0159ij\u00edm\u00e1 pouze tokeny, kter\u00e9 jsou ve form\u00e1tu JWE.
+OIDC_CLIENT_JWE_REQUIRED_BUT_TOKEN_NOT_JWE.explanation=Token m\u016f\u017ee b\u00fdt chybn\u00fd nebo m\u016f\u017ee b\u00fdt ve form\u00e1tu JSON Web Signature (JWS). Tokeny mus\u00ed b\u00fdt ve form\u00e1tu JWE, pokud je nakonfigurov\u00e1n atribut keyManagementKeyAlias.
+OIDC_CLIENT_JWE_REQUIRED_BUT_TOKEN_NOT_JWE.useraction=Chcete-li p\u0159ijmout tokeny JWE nam\u00edsto token\u016f JWE, odeberte atribut keyManagementKeyAlias v konfiguraci klienta OpenID Connect. Jinak se ujist\u011bte, \u017ee do tohoto prost\u0159edku jsou odes\u00edl\u00e1ny pouze tokeny JWE.
+
+# 0=String extracted from UserInfo endpoint response, 1=Exception message
+USERINFO_CLAIMS_FORMAT_NOT_VALID=CWWKS1538E: Data extrahovan\u00e1 z odpov\u011bdi z koncov\u00e9ho bodu UserInfo nejsou ve form\u00e1tu JSON. Extrahovan\u00e1 data jsou [{0}]. Chyba je [{1}].
+USERINFO_CLAIMS_FORMAT_NOT_VALID.explanation=Koncov\u00fd bod UserInfo by m\u011bl vr\u00e1tit n\u00e1roky jako \u010dleny objektu JSON nebo JSON Web Token (JWT). Form\u00e1t odezvy nemus\u00ed b\u00fdt platn\u00fd, nebo se odezva nemus\u00ed shodovat s form\u00e1tem, kter\u00fd je ur\u010den z\u00e1hlav\u00edm typu obsahu.
+USERINFO_CLAIMS_FORMAT_NOT_VALID.useraction=Zkontrolujte form\u00e1t odpov\u011bdi koncov\u00e9ho bodu UserInfo a ujist\u011bte se, \u017ee je ve form\u00e1tu JSON nebo JWT.
+
+# 0=Remote server response string
+JWT_RESPONSE_STRING_NOT_IN_JWT_FORMAT=CWWKS1539E: O\u010dek\u00e1v\u00e1 se, \u017ee bude webov\u00e1 odezva [{0}] JSON Web Token (JWT), ale odpov\u011b\u010f nen\u00ed ve form\u00e1tu JSON Web Signature (JWS) nebo JSON Web Encryption (JWE).
+JWT_RESPONSE_STRING_NOT_IN_JWT_FORMAT.explanation=Z\u00e1hlav\u00ed typu obsahu ve webov\u00e9 odpov\u011bdi ozna\u010duje, \u017ee odpov\u011b\u010f obsahuje JWT, ale t\u011blo odpov\u011bdi nen\u00ed v platn\u00e9m form\u00e1tu JWT.
+JWT_RESPONSE_STRING_NOT_IN_JWT_FORMAT.useraction=Ujist\u011bte se, \u017ee je webov\u00e1 odpov\u011b\u010f ve form\u00e1tu, kter\u00fd je o\u010dek\u00e1v\u00e1n klientem pro p\u0159ipojen\u00ed OpenID.
+
+# Do not translate "Content-Type"
+# 0=OpenID Connect client config ID, 1=Error message
+ERROR_GETTING_USERINFO_OR_EXTRACTING_CLAIMS=CWWKS1540E: Klient pro p\u0159ipojen\u00ed OpenID {0} nem\u016f\u017ee na\u010d\u00edst informace o p\u0159\u00edstupov\u00e9m tokenu z koncov\u00e9ho bodu UserInfo: {1}
+ERROR_GETTING_USERINFO_OR_EXTRACTING_CLAIMS.explanation=Odpov\u011b\u010f z koncov\u00e9ho bodu UserInfo nemus\u00ed b\u00fdt ve form\u00e1tu, kter\u00fd se o\u010dek\u00e1v\u00e1. Klient pro p\u0159ipojen\u00ed OpenID mohl narazit na chybu p\u0159i odes\u00edl\u00e1n\u00ed po\u017eadavku UserInfo.
+ERROR_GETTING_USERINFO_OR_EXTRACTING_CLAIMS.useraction=Dal\u0161\u00ed informace naleznete v chybov\u00e9 zpr\u00e1v\u011b. Ov\u011b\u0159te, \u017ee se obsah odpov\u011bdi UserInfo shoduje se z\u00e1hlav\u00edm typu obsahu HTTP.
+
+BACKCHANNEL_LOGOUT_REQUEST_FAILED=CWWKS1541E: Po\u017eadavek na odhl\u00e1\u0161en\u00ed zadn\u00edho kan\u00e1lu odeslan\u00fd na [{0}] zjistil chybu. {1}
+BACKCHANNEL_LOGOUT_REQUEST_FAILED.explanation=Po\u017eadavek nepou\u017e\u00edv\u00e1 metodu HTTP POST, po\u017eadavku chyb\u00ed token odhl\u00e1\u0161en\u00ed nebo token odhl\u00e1\u0161en\u00ed nelze ov\u011b\u0159it nebo se po\u017eadavek odhl\u00e1\u0161en\u00ed neprovedl \u00fasp\u011b\u0161n\u011b.
+BACKCHANNEL_LOGOUT_REQUEST_FAILED.useraction=Ov\u011b\u0159te, zda je metoda HTTP POST pou\u017eita k odesl\u00e1n\u00ed po\u017eadavku na odhl\u00e1\u0161en\u00ed zadn\u00edho kan\u00e1lu. Jinak si prohl\u00e9dn\u011bte u\u017eivatelskou akci pro chybu, kter\u00e1 je zahrnuta v t\u00e9to zpr\u00e1v\u011b.
+
+BACKCHANNEL_LOGOUT_REQUEST_MISSING_PARAMETER=CWWKS1542E: Po\u017eadavek na odhl\u00e1\u0161en\u00ed zadn\u00edho kan\u00e1lu nen\u00ed platn\u00fd, proto\u017ee parametr logout_token chyb\u00ed nebo je pr\u00e1zdn\u00fd.
+BACKCHANNEL_LOGOUT_REQUEST_MISSING_PARAMETER.explanation=Po\u017eadavek na odhl\u00e1\u0161en\u00ed zadn\u00edho kan\u00e1lu mus\u00ed obsahovat parametr logout_token, jeho\u017e hodnota je platn\u00fdm tokenem odhl\u00e1\u0161en\u00ed.
+BACKCHANNEL_LOGOUT_REQUEST_MISSING_PARAMETER.useraction=Aktualizujte po\u017eadavek, aby zahrnoval token odhl\u00e1\u0161en\u00ed.
+
+BACKCHANNEL_LOGOUT_TOKEN_ERROR=CWWKS1543E: Token odhl\u00e1\u0161en\u00ed v po\u017eadavku na odhl\u00e1\u0161en\u00ed zadn\u00edho kan\u00e1lu nelze ov\u011b\u0159it: {0}
+BACKCHANNEL_LOGOUT_TOKEN_ERROR.explanation=Token odhl\u00e1\u0161en\u00ed m\u016f\u017ee b\u00fdt chybn\u00fd, token m\u016f\u017ee b\u00fdt v neo\u010dek\u00e1van\u00e9m form\u00e1tu nebo do\u0161lo k dal\u0161\u00ed chyb\u011b p\u0159i ov\u011b\u0159ov\u00e1n\u00ed podpisu nebo po\u017eadavk\u016f tokenu.
+BACKCHANNEL_LOGOUT_TOKEN_ERROR.useraction=Prohl\u00e9dn\u011bte si u\u017eivatelskou akci pro chybu, kter\u00e1 je zahrnuta v t\u00e9to zpr\u00e1v\u011b.
+
+BACKCHANNEL_LOGOUT_REQUEST_NO_MATCHING_CONFIG=CWWKS1544E: Po\u017eadavek na odhl\u00e1\u0161en\u00ed zadn\u00edho kan\u00e1lu nen\u00ed platn\u00fd, proto\u017ee neexistuje \u017e\u00e1dn\u00fd klient OpenID Connect, kter\u00fd by odpov\u00eddal po\u017eadavku.
+BACKCHANNEL_LOGOUT_REQUEST_NO_MATCHING_CONFIG.explanation=Funkce OpenID Connect o\u010dek\u00e1v\u00e1, \u017ee identifik\u00e1tor URI po\u017eadavku na zadn\u00ed kan\u00e1l bude obsahovat ID klienta OpenID Connect, aby ur\u010dil, kter\u00fd klient se m\u00e1 odhl\u00e1sit.
+BACKCHANNEL_LOGOUT_REQUEST_NO_MATCHING_CONFIG.useraction=Ov\u011b\u0159te, \u017ee identifik\u00e1tor URI po\u017eadavku obsahuje ID klienta OpenID Connect, kter\u00e9 m\u00e1 b\u00fdt pou\u017eito pro odhl\u00e1\u0161en\u00ed u\u017eivatele.
+
+LOGOUT_TOKEN_MISSING_CLAIMS=CWWKS1545E: Token odhl\u00e1\u0161en\u00ed je neplatn\u00fd, proto\u017ee chyb\u00ed alespo\u0148 jeden po\u017eadovan\u00fd n\u00e1rok: {0}
+LOGOUT_TOKEN_MISSING_CLAIMS.explanation=Token odhl\u00e1\u0161en\u00ed mus\u00ed obsahovat n\u00e1roky, kter\u00e9 jsou uvedeny ve zpr\u00e1v\u011b.
+LOGOUT_TOKEN_MISSING_CLAIMS.useraction=Ujist\u011bte se, \u017ee poskytovatel OpenID Connect obsahuje chyb\u011bj\u00edc\u00ed n\u00e1roky v tokenu odhl\u00e1\u0161en\u00ed.
+
+# Do not translate "sub" or "sid"
+LOGOUT_TOKEN_MISSING_SUB_AND_SID=CWWKS1546E: Token odhl\u00e1\u0161en\u00ed je neplatn\u00fd, proto\u017ee neobsahuje n\u00e1rok "sub" nebo "sid". Token mus\u00ed m\u00edt alespo\u0148 jeden z t\u011bchto n\u00e1rok\u016f.
+LOGOUT_TOKEN_MISSING_SUB_AND_SID.explanation=N\u00e1roky "sub" a "sid" ozna\u010duj\u00ed u\u017eivatele a relaci, kter\u00e1 je p\u0159idru\u017eena k tokenu. Alespo\u0148 jeden z t\u011bchto n\u00e1rok\u016f mus\u00ed b\u00fdt p\u0159\u00edtomen, aby bylo mo\u017en\u00e9 ur\u010dit u\u017eivatele nebo relaci pro odhl\u00e1\u0161en\u00ed.
+LOGOUT_TOKEN_MISSING_SUB_AND_SID.useraction=Ujist\u011bte se, \u017ee poskytovatel OpenID Connect obsahuje chyb\u011bj\u00edc\u00ed n\u00e1roky v tokenu odhl\u00e1\u0161en\u00ed.
+
+# Do not translate "events"
+LOGOUT_TOKEN_EVENTS_CLAIM_WRONG_TYPE=CWWKS1547E: Token odhl\u00e1\u0161en\u00ed je neplatn\u00fd, proto\u017ee n\u00e1rok "events" nen\u00ed objektem JSON: {0}
+LOGOUT_TOKEN_EVENTS_CLAIM_WRONG_TYPE.explanation=N\u00e1rok "events" v tokenu odhl\u00e1\u0161en\u00ed mus\u00ed b\u00fdt objekt JSON.
+LOGOUT_TOKEN_EVENTS_CLAIM_WRONG_TYPE.useraction=Ujist\u011bte se, \u017ee poskytovatel OpenID Connect pou\u017e\u00edv\u00e1 spr\u00e1vn\u00fd datov\u00fd typ n\u00e1roku "events".
+
+# Do not translate "events"
+LOGOUT_TOKEN_EVENTS_CLAIM_MISSING_EXPECTED_MEMBER=CWWKS1548E: Token odhl\u00e1\u0161en\u00ed je neplatn\u00fd, proto\u017ee n\u00e1rok "events" neobsahuje \u010dlena "{0}". Hodnota n\u00e1roku "events" je {1}.
+LOGOUT_TOKEN_EVENTS_CLAIM_MISSING_EXPECTED_MEMBER.explanation=N\u00e1rok "events" mus\u00ed b\u00fdt objekt JSON, kter\u00fd obsahuje \u010dlena s n\u00e1zvem, kter\u00fd je uveden ve zpr\u00e1v\u011b.
+LOGOUT_TOKEN_EVENTS_CLAIM_MISSING_EXPECTED_MEMBER.useraction=Ujist\u011bte se, \u017ee n\u00e1rok "events" obsahuje po\u017eadovan\u00e9ho \u010dlena.
+
+LOGOUT_TOKEN_CONTAINS_NONCE_CLAIM=CWWKS1549E: Token odhl\u00e1\u0161en\u00ed je neplatn\u00fd, proto\u017ee obsahuje n\u00e1rok "nonce".
+LOGOUT_TOKEN_CONTAINS_NONCE_CLAIM.explanation=Token odhl\u00e1\u0161en\u00ed nesm\u00ed obsahovat n\u00e1rok "nonce", tak\u017ee token nem\u016f\u017ee b\u00fdt pou\u017eit v r\u00e1mci fale\u0161n\u00e9 odezvy ov\u011b\u0159en\u00ed nam\u00edsto identifika\u010dn\u00edho tokenu.
+LOGOUT_TOKEN_CONTAINS_NONCE_CLAIM.useraction=Ujist\u011bte se, \u017ee token odhl\u00e1\u0161en\u00ed neobsahuje n\u00e1rok "nonce".
+
+LOGOUT_TOKEN_EVENTS_MEMBER_VALUE_NOT_JSON=CWWKS1550E: Hodnota \u010dlena "{0}" v n\u00e1roku "events" nen\u00ed objektem JSON.
+LOGOUT_TOKEN_EVENTS_MEMBER_VALUE_NOT_JSON.explanation=Odpov\u00eddaj\u00edc\u00ed hodnota \u010dlena mus\u00ed b\u00fdt objektem JSON. O\u010dek\u00e1van\u00e1 hodnota je "{}", pr\u00e1zdn\u00fd objekt JSON.
+LOGOUT_TOKEN_EVENTS_MEMBER_VALUE_NOT_JSON.useraction=Ujist\u011bte se, \u017ee n\u00e1rok "events" v tokenu odhl\u00e1\u0161en\u00ed je spr\u00e1vn\u011b naform\u00e1tov\u00e1n.
+
+# Do not translate jti
+LOGOUT_TOKEN_DUP_JTI=CWWKS1551E: Jin\u00fd token odhl\u00e1\u0161en\u00ed se stejn\u00fdm n\u00e1rokem [{0}] "jti" byl ji\u017e klientem pro p\u0159ipojen\u00ed OpenID [{1}] p\u0159ijat.
+LOGOUT_TOKEN_DUP_JTI.explanation=N\u00e1rok "jti" jednozna\u010dn\u011b identifikuje token odhl\u00e1\u0161en\u00ed. Jin\u00fd token odhl\u00e1\u0161en\u00ed s t\u00edmto "jti" byl pou\u017eit, tak\u017ee token nelze znovu pou\u017e\u00edt.
+LOGOUT_TOKEN_DUP_JTI.useraction=Ujist\u011bte se, \u017ee token odhl\u00e1\u0161en\u00ed obsahuje jedine\u010dnou hodnotu "jti" a \u017ee tokeny odhl\u00e1\u0161en\u00ed se nepou\u017e\u00edvaj\u00ed v\u00edcekr\u00e1t.
+
+# Do not translate "iss", "sub", or "sid"
+# 0=OpenID Connect client config ID, 1="iss" claim value, 2="sub" claim value, 3="sid" claim value
+NO_RECENT_SESSIONS_WITH_CLAIMS=CWWKS1552E: Klient [{0}] protokolu OpenID Connect nem\u016f\u017ee naj\u00edt \u017e\u00e1dn\u00e9 ned\u00e1vn\u00e9 relace, kter\u00e9 odpov\u00eddaj\u00ed n\u00e1roku [{1}] "iss", n\u00e1roku [{2}] "sub" a n\u00e1roku [{3}] "sid".
+NO_RECENT_SESSIONS_WITH_CLAIMS.explanation=Klient protokolu OpenID Connect nem\u00e1 ned\u00e1vnou relaci k poskytovateli protokolu OpenID Connect, kter\u00e1 odpov\u00edd\u00e1 v\u0161em n\u00e1rok\u016fm uveden\u00fdm ve zpr\u00e1v\u011b. N\u00e1roky, kter\u00e9 jsou uvedeny ve zpr\u00e1v\u011b, mus\u00ed m\u00edt hodnoty v tokenu odhl\u00e1\u0161en\u00ed, kter\u00e9 odpov\u00eddaj\u00ed stejn\u00fdm n\u00e1rok\u016fm tokenu ID, kter\u00fd byl ned\u00e1vno p\u0159ijat.
+NO_RECENT_SESSIONS_WITH_CLAIMS.useraction=Ujist\u011bte se, \u017ee n\u00e1roky uveden\u00e9 ve zpr\u00e1v\u011b odpov\u00eddaj\u00ed tokenu ID, kter\u00fd byl ned\u00e1vno z\u00edsk\u00e1n od poskytovatele protokolu OpenID Connect.
+
+ERROR_SENDING_AUTHORIZATION_REQUEST=CWWKS1553E: Klient protokolu OpenID Connect {0} zjistil chybu p\u0159i odes\u00edl\u00e1n\u00ed po\u017eadavku na autorizaci poskytovateli protokolu OpenID Connect. {1}
+ERROR_SENDING_AUTHORIZATION_REQUEST.explanation=Konfigurace klienta protokolu OpenID Connect m\u016f\u017ee postr\u00e1dat informace, nebo klient zjistil chybu p\u0159i komunikaci s poskytovatelem protokolu OpenID Connect.
+ERROR_SENDING_AUTHORIZATION_REQUEST.useraction=Dal\u0161\u00ed informace viz chyba ve zpr\u00e1v\u011b.
+
+# STOP HERE, OIDC SERVER HAS RESERVED 1600 - 1649
+

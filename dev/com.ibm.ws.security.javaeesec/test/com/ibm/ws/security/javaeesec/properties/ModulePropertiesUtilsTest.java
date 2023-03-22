@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -29,6 +31,7 @@ import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.CDI;
+import javax.enterprise.util.AnnotationLiteral;
 import javax.security.enterprise.authentication.mechanism.http.HttpAuthenticationMechanism;
 
 import org.jmock.Expectations;
@@ -324,6 +327,12 @@ public class ModulePropertiesUtilsTest {
         list.add(String.class);
         list.add(String.class);
         withComponentMetaDataModuleName(MODULENAME).withComponentMetaDataAppName(APPLNAME).withModulePropertiesProvider(false, false).withAuthMechClassList(list);
+        mockery.checking(new Expectations() {
+            {
+                exactly(2).of(bm).getBeans(with(any(Type.class)), with(any(AnnotationLiteral.class)));
+                oneOf(bm2).getBeans(with(any(Type.class)), with(any(AnnotationLiteral.class)));
+            }
+        });
         mpu.setComponentMetaData(cmd);
         mpu.clearModuleTable();
         assertNull("null should be returned.", mpu.getHttpAuthenticationMechanism());

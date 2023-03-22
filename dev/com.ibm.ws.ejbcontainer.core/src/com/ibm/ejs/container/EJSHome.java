@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1998, 2021 IBM Corporation and others.
+ * Copyright (c) 1998, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -48,6 +50,7 @@ import com.ibm.ejs.container.activator.ActivationStrategy;
 import com.ibm.ejs.container.lock.LockManager;
 import com.ibm.ejs.container.lock.LockStrategy;
 import com.ibm.ejs.container.util.ExceptionUtil;
+import com.ibm.ejs.csi.EJBApplicationMetaData;
 import com.ibm.ejs.util.Util;
 import com.ibm.websphere.cpi.Finder;
 import com.ibm.websphere.cpi.Persister;
@@ -523,22 +526,44 @@ public abstract class EJSHome implements PoolDiscardStrategy, HomeInternal, Sess
                                                     pmiBean,
                                                     this);
 
-            if (beanMetaData.ivInitialPoolSize != 0) {
+            // For server checkpoint, preload stateless bean pools during application start
+            EJBApplicationMetaData ejbAMD = beanMetaData._moduleMetaData.getEJBApplicationMetaData();
+            if (statelessSessionHome &&
+                beanMetaData.ivInitialPoolSize == 0 &&
+                beanMetaData.minPoolSize > 0 &&
+                !ejbAMD.isStarted() &&
+                container.getEJBRuntime().isCheckpointApplications()) {
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-                    Tr.debug(tc, "Pre-loading BeanPool with " + beanMetaData.ivInitialPoolSize);
+                    Tr.debug(tc, "Enabling BeanPool Pre-Load for Checkpoint : " + beanMetaData.j2eeName + ", size = " + beanMetaData.minPoolSize);
+                beanMetaData.ivInitialPoolSize = beanMetaData.minPoolSize;
+            }
 
-                // d648522 - Pre-load the bean pool on a separate thread to avoid
-                // wrapper locking issues during deferred initialization.
-                container.getEJBRuntime().getScheduledExecutorService().schedule(new Runnable() {
+            if (beanMetaData.ivInitialPoolSize != 0) {
+                // Preload the bean pool on a separate thread to avoid wrapper locking issues during deferred initialization.
+                Runnable preloadBeanPool = new Runnable() {
                     @Override
                     public void run() {
-                        // d664917.1 - We already have a reference to the
-                        // EJSHome, but we call through HomeRecord to ensure
-                        // the deferred init thread has finished before we
-                        // begin preloading.
+                        // We already have a reference to the EJSHome, but we call through HomeRecord to ensure
+                        // the deferred initialization thread has finished before we begin preloading.
                         homeRecord.getHomeAndInitialize().preLoadBeanPool();
                     }
-                }, 0, TimeUnit.MILLISECONDS); // F73234
+                };
+
+                if (ejbAMD.isStarted()) {
+                    // Deferred initialization - schedule the bean pool to be preloaded immediately, but
+                    // on a separate thread to avoid wrapper locking issues during deferred initialization.
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                        Tr.debug(tc, "Pre-loading BeanPool with " + beanMetaData.ivInitialPoolSize);
+                    container.getEJBRuntime().getScheduledExecutorService().schedule(preloadBeanPool, 0, TimeUnit.MILLISECONDS);
+                } else {
+                    // Initialize on start - schedule the bean pool to be preloaded at the end of application
+                    // start, after all beans in the application have been identified and all the startup
+                    // beans have been initialized. Also preload the bean pool on a separate thread to avoid
+                    // wrapper locking issues.
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                        Tr.debug(tc, "Defer Pre-loading BeanPool with " + beanMetaData.ivInitialPoolSize);
+                    ejbAMD.addPreloadBeanPool(preloadBeanPool);
+                }
             }
         }
 
@@ -562,7 +587,7 @@ public abstract class EJSHome implements PoolDiscardStrategy, HomeInternal, Sess
     private void preLoadBeanPool() {
         final boolean isTraceOn = TraceComponent.isAnyTracingEnabled();
         if (isTraceOn && tc.isEntryEnabled())
-            Tr.debug(tc, "preLoadBeanPool: " + j2eeName);
+            Tr.entry(tc, "preLoadBeanPool: " + j2eeName);
 
         synchronized (beanPool) {
             Object oldClassLoader = ThreadContextAccessor.UNCHANGED;
@@ -630,7 +655,7 @@ public abstract class EJSHome implements PoolDiscardStrategy, HomeInternal, Sess
 
             enabled = false;
 
-            if (pmiBean != null) {
+            if (pmiBean != null && container.pmiFactory != null) {
                 container.pmiFactory.removePmiModule(pmiBean); // d146239.14
             }
         }
@@ -1514,6 +1539,29 @@ public abstract class EJSHome implements PoolDiscardStrategy, HomeInternal, Sess
             Tr.exit(tc,
                     "createRemoteBusinessObject returning: " + Util.identity(result)); // d367572.7
 
+        return result;
+    }
+
+    /**
+     * Method to create a remote home reference object. Once the client
+     * reference (stub) is found, it is then passed through the EJSWrapperCommon
+     * to perform a narrow.
+     *
+     */
+    public Object createRemoteHomeObject() throws RemoteException, CreateException {
+        EJSWrapperCommon wc = getWrapper();
+        final boolean isTraceOn = TraceComponent.isAnyTracingEnabled();
+        if (isTraceOn && tc.isEntryEnabled())
+            Tr.entry(tc, "createRemoteHomeObject: " + wc);
+
+        Object result;
+
+        Object stub = getContainer().getEJBRuntime().getRemoteReference(wc.getRemoteWrapper());
+        result = wc.getRemoteHomeObject(stub, getBeanMetaData().homeInterfaceClass);
+
+        if (isTraceOn && tc.isEntryEnabled())
+            Tr.exit(tc,
+                    "createRemoteHomeObject returning: " + Util.identity(result));
         return result;
     }
 
@@ -2625,7 +2673,7 @@ public abstract class EJSHome implements PoolDiscardStrategy, HomeInternal, Sess
         final boolean isTraceOn = TraceComponent.isAnyTracingEnabled(); // d532639.2
 
         if (isTraceOn && tc.isEntryEnabled())
-            Tr.entry(tc, "remove", handle);
+            Tr.entry(tc, "remove(handle): " + Util.identity(handle));
 
         EJBObject ejb = handle.getEJBObject();
         ejb.remove();
@@ -2650,7 +2698,7 @@ public abstract class EJSHome implements PoolDiscardStrategy, HomeInternal, Sess
         final boolean isTraceOn = TraceComponent.isAnyTracingEnabled(); // d532639.2
 
         if (isTraceOn && tc.isEntryEnabled())
-            Tr.entry(tc, "remove(pk) : " + primaryKey);
+            Tr.entry(tc, "remove(pk): " + Util.identity(primaryKey));
 
         homeEnabled();
 
@@ -3071,7 +3119,7 @@ public abstract class EJSHome implements PoolDiscardStrategy, HomeInternal, Sess
             // p116577 - end of change.
 
             if (isTraceOn && tc.isEntryEnabled())
-                Tr.exit(tc, "getHomeHandle", ehh);
+                Tr.exit(tc, "getHomeHandle: " + ehh);
             return ehh;
         } finally {
             if (cmdAccessor != null)
@@ -3279,7 +3327,7 @@ public abstract class EJSHome implements PoolDiscardStrategy, HomeInternal, Sess
         return homeRecord;
     }
 
-    private final ReentrantLock createSingletonLock = new ReentrantLock();
+    private transient final ReentrantLock createSingletonLock = new ReentrantLock();
 
     /**
      * Create the Singleton bean instance if it doesn't

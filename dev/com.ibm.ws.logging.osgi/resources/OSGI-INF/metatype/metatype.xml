@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2011, 2021 IBM Corporation and others.
+    Copyright (c) 2011, 2022 IBM Corporation and others.
     All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
+    are made available under the terms of the Eclipse Public License 2.0
     which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    http://www.eclipse.org/legal/epl-2.0/
+    
+    SPDX-License-Identifier: EPL-2.0
    
     Contributors:
         IBM Corporation - initial API and implementation
@@ -16,7 +18,7 @@
     <OCD name="%logging.properties" description="%logging.properties.desc" 
          id="com.ibm.ws.logging" ibm:alias="logging" ibm:supportExtensions="true">
     
-      	<AD name="%max.file.size" description="%max.file.size.desc" 
+        <AD name="%max.file.size" description="%max.file.size.desc" 
             ibm:variable="com.ibm.ws.logging.max.file.size"
             id="maxFileSize" required="false" type="Integer" min="0" default="20" />
             
@@ -81,9 +83,13 @@
         </AD>
         
         <AD name="%isoDateFormat" description="%isoDateFormat.desc"
-        	ibm:variable="com.ibm.ws.logging.isoDateFormat"
+            ibm:variable="com.ibm.ws.logging.isoDateFormat"
             id="isoDateFormat" required="false" type="Boolean" default="false" />
-
+        
+        <AD name="%stackTraceSingleEntry" description="%stackTraceSingleEntry.desc"
+            ibm:variable="com.ibm.ws.logging.stackTraceSingleEntry"
+            id="stackTraceSingleEntry" required="false" type="Boolean" default="false"/>
+            
         <AD name="%console.level" description="%console.level.desc" 
             ibm:variable="com.ibm.ws.logging.console.log.level"
             id="consoleLogLevel" required="false" type="String" default="AUDIT">
@@ -99,6 +105,7 @@
             id="copySystemStreams" required="false" type="Boolean" default="true" />  
 
         <AD name="%filter.sensitive" description="%filter.sensitive.desc"
+            ibm:variable="com.ibm.ws.logging.suppress.sensitive.trace"
             id="suppressSensitiveTrace" required="false" type="Boolean" default="false" />
 
         <AD name="internal" description="internal use only"
@@ -113,15 +120,34 @@
         </AD>
         
         <AD name="%json.access.log.fields" description="%json.access.log.fields.desc"
-        	ibm:variable="com.ibm.ws.logging.json.access.log.fields"
-        	id="jsonAccessLogFields" required="false" type="String" default="default">
-        	<Option label="%json.access.log.fields.default" value="default"/>
-        	<Option label="%json.access.log.fields.logFormat" value="logFormat"/>
-         </AD>
+            ibm:variable="com.ibm.ws.logging.json.access.log.fields"
+            id="jsonAccessLogFields" required="false" type="String" default="default">
+            <Option label="%json.access.log.fields.default" value="default"/>
+            <Option label="%json.access.log.fields.logFormat" value="logFormat"/>
+        </AD>
          
         <AD name="%apps.write.json" description="%apps.write.json.desc" 
             ibm:variable="com.ibm.ws.logging.apps.write.json"
             id="appsWriteJson" required="false" type="Boolean" default="false">
+        </AD>
+
+        <AD name="%rollover.start.time" description="%rollover.start.time.desc" 
+            ibm:variable="com.ibm.ws.logging.rollover.start.time"
+            id="rolloverStartTime" required="false" type="String" default="">
+        </AD>
+
+        <AD name="%rollover.interval" description="%rollover.interval.desc" 
+            ibm:variable="com.ibm.ws.logging.rollover.interval"
+            id="rolloverInterval" required="false" type="String" ibm:type="duration(m)" default="-1">
+        </AD>
+
+        <AD name="%max.ffdc.age" description="%max.ffdc.age.desc" 
+            ibm:variable="com.ibm.ws.logging.max.ffdc.age"
+            id="maxFfdcAge" required="false" type="String" ibm:type="duration(m)" default="-1">
+        </AD>
+
+        <AD name="internal" description="internal use only" 
+            id="ffdcCleanupStartDelay" required="false" type="Integer" default="-1">
         </AD>
     </OCD>
   

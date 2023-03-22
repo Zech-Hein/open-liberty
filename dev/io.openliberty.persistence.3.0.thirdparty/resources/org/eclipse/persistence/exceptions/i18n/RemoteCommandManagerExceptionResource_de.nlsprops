@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -30,6 +32,7 @@
 22101=Der JNDI-Kontext konnte nicht abgerufen werden. Vergewissern Sie sich, dass die Eigenschaften ordnungsgem\u00e4\u00df definiert sind.
 
 22102=Die Verbindung konnte nicht im lokalen Benennungsservice mit dem Namen {0} \u00fcbergeben werden.
+
 22103=Lookup der fernen Verbindung unter dem Namen {0} mit der URL {1} nicht m\u00f6glich.
 
 22104=Lookup des Hostnamen nicht m\u00f6glich.
@@ -61,4 +64,6 @@
 22117=Der RemoteCommandManager der Sitzung wurde geschlossen oder er wurde bei der Verarbeitung der eingehenden Nachrichten noch nicht initialisiert.
 
 22118=Fehler beim Erstellen der JGroups-Verbindung mit der Konfigurationsdatei {0}
+
+22119=Fehler bei der Initialisierung von {0}. F\u00fcgen Sie "org.eclipse.persistence.corba.jar" zu Ihrem Klassenpfad hinzu.
 

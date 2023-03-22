@@ -1,23 +1,26 @@
 #*******************************************************************************
-# Copyright (c) 2017 IBM Corporation and others.
+# Copyright (c) 2017, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 bVersion=1.0
 
-Bundle-Name: Common JMS Files
-Bundle-SymbolicName: com.ibm.ws.messaging.jms.common
-Bundle-Description: Common bundle for jms1.1 and jms2.0; version=${bVersion}
-
 Include-Resource: \
-  OSGI-INF/metatype=resources/OSGI-INF/metatype,\
-  OSGI-INF/l10n=resources/OSGI-INF/l10n
+    OSGI-INF=resources/OSGI-INF
+#Include-Resource: \
+#  OSGI-INF/metatype=resources/OSGI-INF/metatype,\
+#  OSGI-INF/l10n=resources/OSGI-INF/l10n
 
 Export-Package: \
   com.ibm.ws.sib.exitpoint.systemcontext,\
@@ -35,16 +38,8 @@ Import-Package: \
   !com.ibm.ws.sib.api.jms.service, \
   ${defaultPackageImport}
 
-Service-Component: \
-  com.ibm.ws.messaging.jms;\
-    implementation:='com.ibm.ws.sib.api.jms.service.JmsServiceFacade';\
-    provide:='com.ibm.ws.jca.rar.ResourceAdapterBundleService';\
-    configuration-policy:='ignore';\
-    modified:='modified';\
-    commonServiceFacade='com.ibm.ws.sib.common.service.CommonServiceFacade';\
-    immediate:='true';\
-    optional:='commonServiceFacade';\
-    properties:="type=wasJms"
+-dsannotations: \
+     com.ibm.ws.sib.api.jms.service.JmsServiceFacade    
 
 instrument.disabled: true
 
@@ -53,6 +48,7 @@ instrument.disabled: true
 	com.ibm.websphere.appserver.spi.kernel.service;version=latest,\
 	com.ibm.websphere.org.osgi.core;version=latest,\
 	com.ibm.websphere.org.osgi.service.component;version=latest,\
+	com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
 	com.ibm.ws.classloading;version=latest,\
 	com.ibm.ws.logging.core;version=latest,\
 	com.ibm.ws.messaging.common;version=latest,\
@@ -61,4 +57,3 @@ instrument.disabled: true
 	com.ibm.websphere.javaee.connector.1.6;version=latest, \
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest
 
-jakartaeeMe: true

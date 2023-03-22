@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 1997, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -132,15 +134,15 @@ public class JSSEProviderFactory {
                 Tr.debug(tc, "Provider name [" + i + "]: " + providerList[i].getName());
 
             if (providerList[i].getName().equalsIgnoreCase(contextProvider)) {
-                if (contextProvider.equalsIgnoreCase(Constants.IBMJSSE2_NAME) && validateProvider(Constants.IBMJSSE2_NAME)) {
+                if (contextProvider.equalsIgnoreCase(Constants.IBMJSSE2_NAME)) {
                     cachedProvider = new IBMJSSEProvider();
                     providerCache.put(Constants.IBMJSSE2_NAME, cachedProvider);
                     providerCache.put(contextProvider, cachedProvider);
-                } else if (contextProvider.equalsIgnoreCase(Constants.IBMJSSE_NAME) && validateProvider(Constants.IBMJSSE_NAME)) {
+                } else if (contextProvider.equalsIgnoreCase(Constants.IBMJSSE_NAME)) {
                     cachedProvider = new IBMJSSEProvider();
                     providerCache.put(Constants.IBMJSSE_NAME, cachedProvider);
                     providerCache.put(contextProvider, cachedProvider);
-                } else if (contextProvider.equalsIgnoreCase(Constants.SUNJSSE_NAME) && validateProvider(Constants.SUNJSSE_NAME)) {
+                } else if (contextProvider.equalsIgnoreCase(Constants.SUNJSSE_NAME)) {
                     cachedProvider = new SunJSSEProvider();
                     providerCache.put(Constants.SUNJSSE_NAME, cachedProvider);
                     providerCache.put(contextProvider, cachedProvider);

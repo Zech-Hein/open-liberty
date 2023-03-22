@@ -1,36 +1,32 @@
 #*******************************************************************************
-# Copyright (c) 2017, 2021 IBM Corporation and others.
+# Copyright (c) 2017, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 bVersion=1.0
 
-Bundle-Name: WAS JSP 2.3
-Bundle-SymbolicName: com.ibm.ws.jsp.2.3
-Bundle-Description: WAS JSP 2.3, version ${bVersion}
 WLP-ServerName: IBM WebSphere Application Server
 WLP-ServerVersion: ${liberty.beta.version}
 
-jakartaeeMe: true
 
 -dsannotations: com.ibm.ws.jsp23.webcontainerext.JspVersionFactoryImpl, \
 com.ibm.ws.jsp23.webcontainerext.ws.PrepareJspHelper23Factory, \
 com.ibm.ws.jsp23.translator.visitor.validator.ElValidatorExtFactoryImpl, \
 com.ibm.ws.jsp23.translator.visitor.generator.GeneratorUtilsExtFactoryImpl
 
-Service-Component: \
-   com.ibm.ws.jsp.v23.dd; \
-      implementation:=com.ibm.ws.javaee.version.PagesVersion; \
-      provide:=com.ibm.ws.javaee.version.PagesVersion; \
-      properties:="version:String=2.3"
-
 Export-Package: \
+	com.ibm.ws.jsp.speclevel, \
 	com.ibm.ws.jsp23.webcontainerext;version="2.3", \
 	com.ibm.ws.jsp23.webcontainerext.ws;version="2.3", \
 	com.ibm.ws.jsp23.translator.visitor.validator;version="2.3", \
@@ -55,7 +51,7 @@ Import-Package: \
    javax.servlet.jsp.jstl*;version=1.2, \
    javax.servlet.jsp.resources;version=2.3, \
    javax.servlet.jsp.tagext;version=2.3, \
-   com.ibm.websphere.servlet.*;version=0, \
+   com.ibm.websphere.servlet.*;version=!, \
    com.ibm.wsspi.webcontainer.osgi.*;version=1.0, \
    com.ibm.wsspi.webcontainer, \
    com.ibm.wsspi.webcontainer.*, \
@@ -79,12 +75,12 @@ Import-Package: \
    org.apache.el.lang; version="3.0.0", \
    org.apache.el.parser; version="3.0.0", \
    org.apache.el.util; version="3.0.0", \
-   org.eclipse.jdt.core.compiler;version="3.10.2";usage="JSP", \
-   org.eclipse.jdt.internal.compiler;version="3.10.2";usage="JSP", \
-   org.eclipse.jdt.internal.compiler.classfmt;version="3.10.2";usage="JSP", \
-   org.eclipse.jdt.internal.compiler.env;version="3.10.2";usage="JSP", \
-   org.eclipse.jdt.internal.compiler.impl;version="3.10.2";usage="JSP", \
-   org.eclipse.jdt.internal.compiler.problem;version="3.10.2";usage="JSP", \
+   org.eclipse.jdt.core.compiler;usage="JSP", \
+   org.eclipse.jdt.internal.compiler;usage="JSP", \
+   org.eclipse.jdt.internal.compiler.classfmt;usage="JSP", \
+   org.eclipse.jdt.internal.compiler.env;usage="JSP", \
+   org.eclipse.jdt.internal.compiler.impl;usage="JSP", \
+   org.eclipse.jdt.internal.compiler.problem;usage="JSP", \
    sun.io;resolution:=optional, \
    *
    

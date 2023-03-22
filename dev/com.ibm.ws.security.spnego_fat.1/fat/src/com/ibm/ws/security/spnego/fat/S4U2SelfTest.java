@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,7 +36,6 @@ import com.ibm.ws.security.spnego.fat.config.SPNEGOConstants;
 import com.ibm.ws.webcontainer.security.test.servlets.BasicAuthClient;
 
 import componenttest.annotation.AllowedFFDC;
-import componenttest.annotation.MinimumJavaLevel;
 import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
@@ -172,7 +173,6 @@ public class S4U2SelfTest extends CommonTest {
      */
 
     @Test
-    @MinimumJavaLevel(javaLevel = 8)
     public void testS4U2SelfCommingInWithSpnegoToken() {
 
         System.setProperty("com.ibm.security.krb5.Krb5Debug", "all");
@@ -229,7 +229,6 @@ public class S4U2SelfTest extends CommonTest {
      *
      */
     @Test
-    @MinimumJavaLevel(javaLevel = 8)
     public void testS4U2SelfComingInWithSpnegoTokenAndDelegateFalse() {
         Log.info(c, name.getMethodName(), "Accessing servlet with SPNEGO token");
         testS4U2SelfAndDelegateFalse(Krb5Helper.SPNEGO_MECH_OID);
@@ -248,7 +247,6 @@ public class S4U2SelfTest extends CommonTest {
      *
      */
     @Test
-    @MinimumJavaLevel(javaLevel = 8)
     public void testS4U2SelfComingInWithKerberosTokenAndDelegateFalse() {
         Log.info(c, name.getMethodName(), "Accessing servlet with Kerberos token");
         testS4U2SelfAndDelegateFalse(Krb5Helper.KRB5_MECH_OID);
@@ -309,7 +307,6 @@ public class S4U2SelfTest extends CommonTest {
      */
 
     @Test
-    @MinimumJavaLevel(javaLevel = 8)
     public void testS4U2SelfWithUserIdPassword() {
 
         try {
@@ -351,7 +348,6 @@ public class S4U2SelfTest extends CommonTest {
      *
      */
     @Test
-    @MinimumJavaLevel(javaLevel = 8)
     public void testS4U2SelfWithUserIdPasswordTwice() throws Exception {
 
         List<String> startMsgs = new ArrayList<String>();
@@ -378,7 +374,6 @@ public class S4U2SelfTest extends CommonTest {
      *
      */
     @Test
-    @MinimumJavaLevel(javaLevel = 8)
     public void testConstrainedDelegationNoFeature() throws Exception {
 
         List<String> startMsgs = new ArrayList<String>();
@@ -406,7 +401,6 @@ public class S4U2SelfTest extends CommonTest {
      *
      */
     @Test
-    @MinimumJavaLevel(javaLevel = 8)
     public void testS4U2SelfElementNotEnabled() {
 
         try {
@@ -444,7 +438,6 @@ public class S4U2SelfTest extends CommonTest {
     //
     @AllowedFFDC({ "org.ietf.jgss.GSSException" })
     @Test
-    @MinimumJavaLevel(javaLevel = 8)
     public void testS4U2SelfWithUserIdPasswordSPNDoesNotAllowDelegation() throws Exception {
 
         KdcHelper testKdcHelper = new MsKdcHelper(myServer, InitClass.KDC_USER, InitClass.KDC_USER_PWD, InitClass.KDC_REALM);
@@ -483,7 +476,6 @@ public class S4U2SelfTest extends CommonTest {
     //
     @AllowedFFDC({ "org.ietf.jgss.GSSException" })
     @Test
-    @MinimumJavaLevel(javaLevel = 8)
     public void testS4U2SelfWithUserIdPasswordSPNDoesTustedAccountServiceAreFalse() throws Exception {
 
         KdcHelper testKdcHelper = new MsKdcHelper(myServer, InitClass.KDC_USER, InitClass.KDC_USER_PWD, InitClass.KDC_REALM);

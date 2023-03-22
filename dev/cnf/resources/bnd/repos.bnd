@@ -1,23 +1,25 @@
 #*******************************************************************************
-# Copyright (c) 2019 IBM Corporation and others.
+# Copyright (c) 2019, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 
 -connection-settings: \
-  ${if;${artifactory.download.token};server;-dummy}; \
-    id       = https://${artifactory.download.server}; \
-    username = ${artifactory.download.user}; \
-    password = ${artifactory.download.token}, \
-  ${if;${artifactory.upload.token};server;-dummy}; \
-    id       = https://${artifactory.upload.server}; \
-    username = ${artifactory.upload.user}; \
-    password = ${artifactory.upload.token}, \
+  ${if;${isempty;${def;artifactory.download.token}};-dummy;server}; \
+    id       = https://${def;artifactory.download.server}; \
+    username = ${def;artifactory.download.user}; \
+    password = ${def;artifactory.download.token}, \
+  ${if;${isempty;${def;artifactory.upload.token}};-dummy;server}; \
+    id       = https://${def;artifactory.upload.server}; \
+    username = ${def;artifactory.upload.user}; \
+    password = ${def;artifactory.upload.token}, \
   -bnd
 
 -plugin.1.Local: \
@@ -42,6 +44,13 @@ fetch.oss.source.repository: \
     releaseUrl        = https://repo.maven.apache.org/maven2/; \
     index             = ${build}/oss_source_dependencies.maven
 
+fetch.oss.ibm.source.repository: \
+  aQute.bnd.repository.maven.provider.MavenBndRepository; \
+    name              = RemoteIBMSource; \
+    local             = ~/.ibmdhe/repository; \
+    releaseUrl        = https://public.dhe.ibm.com/ibmdl/export/pub/software/olrepo/; \
+    index             = ${build}/oss_ibm_source_dependencies.maven
+
 fetch.oss.repository: \
   aQute.bnd.repository.maven.provider.MavenBndRepository; \
     name              = RemotePublic; \
@@ -53,22 +62,24 @@ fetch.oss.ibm.repository: \
   aQute.bnd.repository.maven.provider.MavenBndRepository; \
     name              = RemoteIBM; \
     local             = ~/.ibmdhe/repository; \
-    releaseUrl        = http://public.dhe.ibm.com/ibmdl/export/pub/software/olrepo/; \
+    releaseUrl        = https://public.dhe.ibm.com/ibmdl/export/pub/software/olrepo/; \
     index             = ${build}/oss_ibm.maven
 
 fetch.ibm.java.repository:
 
 push.ibm.repository:
 
--plugin.3.RemoteSource:  ${fetch.oss.source.repository}
+-plugin.3.RemoteIBMSource: ${fetch.oss.ibm.source.repository}
 
--plugin.4.RemotePublic:  ${fetch.oss.repository}
+-plugin.4.RemoteSource:  ${fetch.oss.source.repository}
 
--plugin.5.RemoteIBM:     ${fetch.oss.ibm.repository}
+-plugin.5.RemotePublic:  ${fetch.oss.repository}
 
--plugin.6.RemoteIBMJava: ${fetch.ibm.java.repository}
+-plugin.6.RemoteIBM:     ${fetch.oss.ibm.repository}
 
--plugin.7.RemotePublish: ${push.ibm.repository}
+-plugin.7.RemoteIBMJava: ${fetch.ibm.java.repository}
+
+-plugin.8.RemotePublish: ${push.ibm.repository}
 
 -releaserepo: Release
 -baselinerepo: Release

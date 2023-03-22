@@ -1,26 +1,34 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.security.common.structures;
 
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import com.ibm.websphere.ras.Tr;
+import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Sensitive;
+
+import io.openliberty.security.common.osgi.SecurityOSGiUtils;
 
 public abstract class CommonCache {
 
-    /**
-     * Maximum number of entries allowed in the cache.
-     */
-    protected int entryLimit = 50000;
+    private static final TraceComponent tc = Tr.register(CommonCache.class);
+
+    private final PrivilegedAction<ScheduledExecutorService> getScheduledExecutorServiceAction = new GetScheduledExecutorServiceAction();
 
     /**
      * Default cache timeout.
@@ -30,11 +38,9 @@ public abstract class CommonCache {
     /**
      * Scheduled executor to run the eviction task.
      */
-    private ScheduledThreadPoolExecutor evictionSchedule;
+    private ScheduledExecutorService evictionSchedule;
 
-    public int size() {
-        return this.entryLimit;
-    }
+    private ScheduledFuture<?> previousScheduledTask = null;
 
     public long getTimeoutInMilliseconds() {
         return timeoutInMilliSeconds;
@@ -48,12 +54,12 @@ public abstract class CommonCache {
     /**
      * Find and return the object associated with the specified key.
      */
-    abstract public Object get(@Sensitive String key);
+    abstract public Object get(@Sensitive Object key);
 
     /**
      * Insert the value into the Cache using the specified key.
      */
-    abstract public void put(@Sensitive String key, Object value);
+    abstract public void put(@Sensitive Object key, Object value);
 
     /**
      * Implementation of the eviction strategy.
@@ -62,11 +68,21 @@ public abstract class CommonCache {
         if (newTimeoutInMillis > 0) {
             this.timeoutInMilliSeconds = newTimeoutInMillis;
         }
-        if (evictionSchedule != null) {
-            evictionSchedule.shutdownNow();
+        if (previousScheduledTask != null) {
+            previousScheduledTask.cancel(true);
         }
-        evictionSchedule = new ScheduledThreadPoolExecutor(1);
-        evictionSchedule.scheduleWithFixedDelay(new EvictionTask(), timeoutInMilliSeconds, timeoutInMilliSeconds, TimeUnit.MILLISECONDS);
+        if (System.getSecurityManager() == null) {
+            evictionSchedule = getScheduledExecutorService();
+        } else {
+            evictionSchedule = AccessController.doPrivileged(getScheduledExecutorServiceAction);
+        }
+        if (evictionSchedule != null) {
+            previousScheduledTask = evictionSchedule.scheduleWithFixedDelay(new EvictionTask(), timeoutInMilliSeconds, timeoutInMilliSeconds, TimeUnit.MILLISECONDS);
+        } else {
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "Failed to obtain a ScheduledExecutorService");
+            }
+        }
     }
 
     /**
@@ -79,6 +95,17 @@ public abstract class CommonCache {
         public void run() {
             evictStaleEntries();
         }
-
     }
+
+    private ScheduledExecutorService getScheduledExecutorService() {
+        return SecurityOSGiUtils.getService(getClass(), ScheduledExecutorService.class);
+    }
+
+    private class GetScheduledExecutorServiceAction implements PrivilegedAction<ScheduledExecutorService> {
+        @Override
+        public ScheduledExecutorService run() {
+            return getScheduledExecutorService();
+        }
+    }
+
 }

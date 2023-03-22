@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2021 IBM Corporation and others.
+ * Copyright (c) 2011, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.ClassRule;
+import org.junit.ComparisonFailure;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.NoTestsRemainException;
@@ -70,6 +73,8 @@ public class FATRunner extends BlockJUnit4ClassRunner {
     // Used to reduce timeouts to a sensible level when FATs are running locally
     public static final boolean FAT_TEST_LOCALRUN = Boolean.getBoolean("fat.test.localrun") && !Boolean.parseBoolean(System.getenv("CI"));
 
+    public static final boolean ARM_ARCHITECTURE = System.getProperty("os.arch").equals("aarch64") || System.getProperty("os.arch").equals("arm");
+
     private static final int MAX_FFDC_LINES = 1000;
     private static final boolean DISABLE_FFDC_CHECKING = Boolean.getBoolean("disable.ffdc.checking");
 
@@ -82,7 +87,8 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                                                                       new TestNameFilter(),
                                                                       new FeatureFilter(),
                                                                       new SystemPropertyFilter(),
-                                                                      new JavaLevelFilter()
+                                                                      new JavaLevelFilter(),
+                                                                      new CheckpointSupportFilter()
     };
 
     private static EE9PackageReplacementHelper ee9Helper;
@@ -197,19 +203,51 @@ public class FATRunner extends BlockJUnit4ClassRunner {
 
                     superStatement.evaluate();
 
-                    // If we got to here without error, do a final check that
-                    // any FFDCs were expected
-                    Map<String, FFDCInfo> ffdcAfterTest = retrieveFFDCCounts();
-                    Map<String, FFDCInfo> unexpectedFFDCs = filterOutPreexistingFFDCs(ffdcBeforeTest, ffdcAfterTest);
+                    int retryCount = 5;
+                    int retryInterval = 120;
 
+                    Map<String, FFDCInfo> unexpectedFFDCs = null;
                     ArrayList<String> errors = new ArrayList<String>();
 
                     List<String> expectedFFDCs = getExpectedFFDCAnnotationFromTest(method);
-                    // check for expectedFFDCs
-                    for (String ffdcException : expectedFFDCs) {
-                        FFDCInfo info = unexpectedFFDCs.remove(ffdcException);
-                        if (info == null) {
-                            errors.add("An FFDC reporting " + ffdcException + " was expected but none was found.");
+                    /*
+                     * Encountering an occasional timing issue where the expectedFFDC isn't found in time and either fails
+                     * the test expecting the FFDC or it bleeds over into another test. Attempting to mitigate with a short
+                     * retry if we don't find the expectedFFDC defined by the test.
+                     */
+                    for (int i = 1; i <= retryCount; i++) {
+                        Log.info(c, "evaluate", "In loop to check look for expectedFFDC, round: " + i);
+                        // If we got to here without error, do a final check that
+                        // any FFDCs were expected
+                        errors.clear();
+                        Map<String, FFDCInfo> ffdcAfterTest = retrieveFFDCCounts();
+                        unexpectedFFDCs = filterOutPreexistingFFDCs(ffdcBeforeTest, ffdcAfterTest);
+
+                        // check for expectedFFDCs
+                        for (String ffdcException : expectedFFDCs) {
+                            FFDCInfo info = unexpectedFFDCs.remove(ffdcException);
+                            if (info == null) {
+                                errors.add("An FFDC reporting " + ffdcException + " was expected but none was found.");
+                            }
+                        }
+
+                        /*
+                         * If the expectedFFDCs list is populated (expectedFFDCs defined by the test), but the FFDCs weren't found by
+                         * retrieveFFDCCounts(), then the errors list will be populated with a message that the FFDC wasn't found. Due to
+                         * possible OS flush timing, the FFDC could be delayed in being written. If the expectedFFDC list is not empty (should
+                         * have found FFDCs) and the errors list is not empty (FFDCs are missing), then we'll sleep a bit and recheck for FFDCs.
+                         *
+                         * This sleep is arbitrary, if we continue to have problems, a longer sleep could be tried. Or a new solution and remove
+                         * this retry.
+                         */
+                        if (!expectedFFDCs.isEmpty() && !errors.isEmpty() && (i + 1 <= retryCount)) {
+                            Log.info(c, "evaluate",
+                                     "Try " + i + " did not find the expectedFFDCs but sometimes there's a timing/flush issue. Sleep for " + retryInterval
+                                                    + " milliseconds and retry. Longer sleep can be added if we're still not picking up the FFDC in time.");
+                            Thread.sleep(retryInterval);
+                            retryInterval = retryInterval * 10;
+                        } else {
+                            break;
                         }
                     }
 
@@ -279,7 +317,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
     private static Throwable newThrowableWithTimeStamp(Throwable orig) throws Throwable {
         // Create a new throwable that includes the current timestamp to help with the
         // investigation of test failures.  We want to create the same type of exception
-        // as the original in order to distinguish between a test failure (AssertionFailedError)
+        // as the original in order to distinguish between a test failure (AssertionError)
         // and an error (RuntimeException, IOException, etc.).
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss:SSS");
         String newMsg = sdf.format(new Date()) + " " + orig.getMessage();
@@ -291,7 +329,14 @@ public class FATRunner extends BlockJUnit4ClassRunner {
             newThrowable = ctor.newInstance(newMsg);
             newThrowable.setStackTrace(orig.getStackTrace());
         } catch (Throwable t) {
-            newThrowable = new Throwable(newMsg, orig);
+            //assertEquals can throw a ComparisonFailure instead of AssertionError with a ctor that requires three params
+            //This should still be a test failure, not an error.
+            if (orig instanceof ComparisonFailure) {
+                newThrowable = new AssertionError(newMsg);
+                newThrowable.setStackTrace(orig.getStackTrace());
+            } else {
+                newThrowable = new Throwable(newMsg, orig);
+            }
         }
         return newThrowable;
     }
@@ -472,13 +517,17 @@ public class FATRunner extends BlockJUnit4ClassRunner {
     private Map<String, FFDCInfo> retrieveFFDCCounts() {
         HashMap<String, FFDCInfo> ffdcPrimaryInfo = new LinkedHashMap<String, FFDCInfo>();
 
+        Log.finer(c, "retrieveFFDCCounts", "Entering");
+
         try {
             for (LibertyServer server : getRunningLibertyServers()) {
 
                 // If the server has the FFDC checking flag set to false, skip it.
                 if (server.getFFDCChecking() == false) {
-                    Log.info(c, "retrieveFFDCCounts", "FFDC log collection for server: " + server.getServerName() + " is skipped. FFDC Checking is disabled for this server.");
+                    Log.info(c, "retrieveFFDCCounts", "FFDC log collection for server: " + server + " is skipped. FFDC Checking is disabled for this server.");
                     continue;
+                } else {
+                    Log.info(c, "retrieveFFDCCounts", "FFDC log collection for server: " + server + " is NOT skipped. FFDC Checking is enabled for this server.");
                 }
 
                 int readAttempts = 0;
@@ -506,7 +555,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                                 }
                                 retry = false;
                             } else {
-                                Log.info(c, "retrieveFFDCCounts", "Read incomplete FFDC summary file, readAttempts = " + readAttempts);
+                                Log.finer(c, "retrieveFFDCCounts", "Read incomplete FFDC summary file, readAttempts = " + readAttempts);
                                 //returned null, file is truncated
                                 retry = true;
                                 //wait a bit and retry
@@ -517,23 +566,24 @@ public class FATRunner extends BlockJUnit4ClassRunner {
                         //ignore the exception as log directory doesn't exist and no FFDC log
                         retry = false;
                     } catch (Exception e) {
-                        Log.info(c, "retrieveFFDCCounts", "Exception parsing FFDC summary");
+                        Log.finer(c, "retrieveFFDCCounts", "Exception parsing FFDC summary");
                         Log.error(c, "retrieveFFDCCounts", e);
                         retry = false;
                     }
                 }
                 // Only bother logging if a failure was previously logged
                 if (readAttempts > 1 && !retry) {
-                    Log.info(c, "retrieveFFDCCounts", "Retry Successful");
+                    Log.finer(c, "retrieveFFDCCounts", "Retry Successful");
                 } else if (retry) {
                     //retry failed 5 times
-                    Log.info(c, "retrieveFFDCCounts", "Retry Unsuccessful");
+                    Log.finer(c, "retrieveFFDCCounts", "Retry Unsuccessful");
                 }
             }
         } catch (Exception e) {
             //Exception obtaining Liberty servers
             Log.error(c, "retrieveFFDCCounts", e);
         }
+        Log.finer(c, "retrieveFFDCCounts", "Exiting: " + ffdcPrimaryInfo.toString());
         return ffdcPrimaryInfo;
     }
 
@@ -632,7 +682,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
         for (ExpectedFFDC ffdc : ffdcs) {
             if (ffdc != null) {
                 String[] exceptionClasses = ffdc.value();
-                if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
+                if (RepeatTestFilter.isAnyRepeatActionActive(JakartaEE9Action.ID, JakartaEE10Action.ID)) {
                     String[] jakarta9ReplacementExceptionClasses = new String[exceptionClasses.length];
                     System.arraycopy(exceptionClasses, 0, jakarta9ReplacementExceptionClasses, 0, exceptionClasses.length);
                     int index = 0;
@@ -686,7 +736,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
         for (AllowedFFDC ffdc : ffdcs) {
             if (ffdc != null) {
                 String[] exceptionClasses = ffdc.value();
-                if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
+                if (RepeatTestFilter.isAnyRepeatActionActive(JakartaEE9Action.ID, JakartaEE10Action.ID)) {
                     String[] jakarta9ReplacementExceptionClasses = new String[exceptionClasses.length];
                     System.arraycopy(exceptionClasses, 0, jakarta9ReplacementExceptionClasses, 0, exceptionClasses.length);
                     int index = 0;

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2020 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,6 +24,7 @@ import javax.enterprise.concurrent.ManagedTask;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 
+import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.Transaction.UOWCurrent;
 import com.ibm.ws.tx.embeddable.EmbeddableWebSphereTransactionManager;
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
@@ -34,6 +37,7 @@ import com.ibm.wsspi.threadcontext.jca.JCAContextProvider;
 /**
  * Transaction context service provider.
  */
+@SuppressWarnings("deprecation")
 public class TransactionContextProviderImpl implements JCAContextProvider, ThreadContextProvider {
     // Constant for ManagedTask.TRANSACTION in whichever of Jakarta vs Java EE is NOT enabled
     private static final String OTHER_SPEC_TRANSACTION_CONSTANT;
@@ -83,6 +87,16 @@ public class TransactionContextProviderImpl implements JCAContextProvider, Threa
             if (value == null)
                 value = execProps.get(key = OTHER_SPEC_TRANSACTION_CONSTANT);
         }
+        if (value == null && threadContextConfig != null) {
+            // Concurrency 3.0+ application-defined context service configuration
+            value = (String) threadContextConfig.get("transaction");
+            if ("cleared".equals(value))
+                value = ManagedTask.SUSPEND;
+            else if ("propagated".equals(value))
+                value = "PROPAGATE";
+            else if ("unchanged".equals(value))
+                value = ManagedTask.USE_TRANSACTION_OF_EXECUTION_THREAD;
+        }
         if (value == null || ManagedTask.SUSPEND.equals(value))
             return new TransactionContextImpl(true);
         else if (ManagedTask.USE_TRANSACTION_OF_EXECUTION_THREAD.equals(value))
@@ -113,23 +127,25 @@ public class TransactionContextProviderImpl implements JCAContextProvider, Threa
         try {
             context = (TransactionContextImpl) in.readObject();
 
-            // Determine the value of the ManagedTask.TRANSACTION execution property, if present
-            String key, value;
-            if (info == null) {
-                key = null;
-                value = null;
-            } else { // prefer the enabled spec
-                value = info.getExecutionProperty(key = ManagedTask.TRANSACTION);
-                if (value == null)
-                    value = info.getExecutionProperty(key = OTHER_SPEC_TRANSACTION_CONSTANT);
-            }
+            if (context.suspendTranOfExecutionThread == null) {
+                // Determine the value of the ManagedTask.TRANSACTION execution property, if present
+                String key, value;
+                if (info == null) {
+                    key = null;
+                    value = null;
+                } else { // prefer the enabled spec
+                    value = info.getExecutionProperty(key = ManagedTask.TRANSACTION);
+                    if (value == null)
+                        value = info.getExecutionProperty(key = OTHER_SPEC_TRANSACTION_CONSTANT);
+                }
 
-            if (value == null || ManagedTask.SUSPEND.equals(value))
-                context.suspendTranOfExecutionThread = true;
-            else if (ManagedTask.USE_TRANSACTION_OF_EXECUTION_THREAD.equals(value))
-                context.suspendTranOfExecutionThread = false;
-            else
-                throw new IllegalArgumentException(key + '=' + value);
+                if (value == null || ManagedTask.SUSPEND.equals(value))
+                    context.suspendTranOfExecutionThread = true;
+                else if (ManagedTask.USE_TRANSACTION_OF_EXECUTION_THREAD.equals(value))
+                    context.suspendTranOfExecutionThread = false;
+                else
+                    throw new IllegalArgumentException(key + '=' + value);
+            }
         } finally {
             in.close();
         }
@@ -161,6 +177,7 @@ public class TransactionContextProviderImpl implements JCAContextProvider, Threa
      * @see com.ibm.wsspi.threadcontext.ThreadContextProvider#getPrerequisites()
      */
     @Override
+    @Trivial
     public List<ThreadContextProvider> getPrerequisites() {
         return null;
     }

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -80,12 +82,12 @@ public class UpgradeHandlerTestServlet extends HttpServlet {
 
         else if (testType.equals("test_SingleWriteLargeData1000000__UpgradeWL")) {
             TestHttpUpgradeHandler.setTestSet("test_SingleWriteLargeData1000000__UpgradeWL");
-            handler.setContentSize(req.getHeader("ContentSizeSent")); //send contentdataSize, received from the client for testWriteListnerUpgradeLargeData
+            handler.setContentSize(req.getHeader("ContentSizeSent")); //send contentdataSize, received from the client for testWriteListenerUpgradeLargeData
         }
 
         else if (testType.equals("test_LargeDataInChunks_UpgradeWL")) {
             TestHttpUpgradeHandler.setTestSet("test_LargeDataInChunks_UpgradeWL");
-            handler.setContentSize(req.getHeader("ContentSizeSent")); //send contentdataSize, received from the client for testWriteListnerUpgradeLargeData
+            handler.setContentSize(req.getHeader("ContentSizeSent")); //send contentdataSize, received from the client for testWriteListenerUpgradeLargeData
         }
 
         else if (testType.equals("test_Close_WebConnection_Container_UpgradeWL")) {

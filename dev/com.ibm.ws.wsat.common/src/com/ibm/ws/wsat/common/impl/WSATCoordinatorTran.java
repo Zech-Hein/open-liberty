@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -77,13 +79,6 @@ public class WSATCoordinatorTran extends WSATTransaction {
 
     public synchronized void removeParticipant(String partId) {
         participants.remove(partId);
-
-        // If this is a recovery transaction we will not be able to use the TranSyncRegistry
-        // to detect transaction end, so we need to use the fact that we have no participants
-        // left to trigger clean-up.  This is valid for recovery state only.
-        if (isRecovery() && participants.size() == 0) {
-            afterCompletion(0);
-        }
     }
 
     public synchronized WSATParticipant getParticipant(String partId) {

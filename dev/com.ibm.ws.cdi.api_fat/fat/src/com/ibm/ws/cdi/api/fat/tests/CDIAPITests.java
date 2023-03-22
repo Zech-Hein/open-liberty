@@ -1,17 +1,17 @@
 /*******************************************************************************
  * Copyright (c) 2015, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.cdi.api.fat.tests;
 
-import static componenttest.rules.repeater.EERepeatTests.EEVersion.EE7;
-import static componenttest.rules.repeater.EERepeatTests.EEVersion.EE9;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -32,6 +32,7 @@ import com.ibm.websphere.simplicity.CDIArchiveHelper;
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
 import com.ibm.websphere.simplicity.beansxml.BeansAsset;
+import com.ibm.websphere.simplicity.beansxml.BeansAsset.DiscoveryMode;
 import com.ibm.ws.cdi.api.fat.apps.alterablecontext.AlterableContextTestServlet;
 import com.ibm.ws.cdi.api.fat.apps.alterablecontext.extension.AlterableContextExtension;
 import com.ibm.ws.cdi.api.fat.apps.alterablecontext.extension.DirtySingleton;
@@ -40,6 +41,7 @@ import com.ibm.ws.cdi.api.fat.apps.current.CDICurrentTestServlet;
 import com.ibm.ws.cdi.api.fat.apps.current.SimpleBean;
 import com.ibm.ws.cdi.api.fat.apps.current.extension.CDICurrentTestBean;
 import com.ibm.ws.cdi.api.fat.apps.current.extension.MyDeploymentVerifier;
+import com.ibm.ws.cdi.api.fat.apps.current.sharedLib.SharedLibBean;
 import com.ibm.ws.cdi.api.fat.apps.injectInjectionPoint.InjectInjectionPointServlet;
 import com.ibm.ws.cdi.api.fat.apps.injectInjectionPointBeansXML.InjectInjectionPointBeansXMLServlet;
 import com.ibm.ws.cdi.api.fat.apps.injectInjectionPointParam.InjectInjectionPointAsParamServlet;
@@ -57,7 +59,7 @@ import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.custom.junit.runner.TestModeFilter;
-import componenttest.rules.repeater.EERepeatTests;
+import componenttest.rules.repeater.EERepeatActions;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -84,12 +86,14 @@ public class CDIAPITests extends FATServletClient {
     private static final String THIS_SHOULD_FAIL_SUFFIX = ".thisShouldFail)";
 
     @ClassRule
-    public static RepeatTests r = EERepeatTests.with(SERVER_NAME, EE9, EE7); //not bothering to repeat with EE8 ... the EE9 version is mostly a transformed version of the EE8 code
+    public static RepeatTests r = EERepeatActions.repeat(SERVER_NAME, EERepeatActions.EE9, EERepeatActions.EE10, EERepeatActions.EE7); //not bothering to repeat with EE8 ... the EE9 version is mostly a transformed version of the EE8 code
 
     @Server(SERVER_NAME)
     @TestServlets({
                     @TestServlet(servlet = AlterableContextTestServlet.class, contextRoot = ALTERABLE_CONTEXT_APP_NAME), //FULL
-                    @TestServlet(servlet = InjectInjectionPointAsParamServlet.class, contextRoot = INJECT_IP_AS_PARAM_APP_NAME) }) //FULL
+                    @TestServlet(servlet = InjectInjectionPointAsParamServlet.class, contextRoot = INJECT_IP_AS_PARAM_APP_NAME), //FULL
+                    @TestServlet(servlet = CDICurrentTestServlet.class, contextRoot = CDI_CURRENT_APP_NAME),
+    })
     public static LibertyServer server;
 
     @BeforeClass
@@ -104,7 +108,11 @@ public class CDIAPITests extends FATServletClient {
                                              .addClass(SimpleBean.class.getName())
                                              .addAsLibrary(cdiCurrentTest);
 
-        ShrinkHelper.exportDropinAppToServer(server, cdiCurrentWar, DeployOptions.SERVER_ONLY);
+        ShrinkHelper.exportAppToServer(server, cdiCurrentWar, DeployOptions.SERVER_ONLY);
+
+        JavaArchive cdiCurrentSharedLib = ShrinkWrap.create(JavaArchive.class, "cdiCurrentSharedLib.jar")
+                                                    .addPackage(SharedLibBean.class.getPackage());
+        ShrinkHelper.exportToServer(server, "", cdiCurrentSharedLib, DeployOptions.SERVER_ONLY);
 
         if (TestModeFilter.shouldRun(TestMode.FULL)) {
             JavaArchive alterableContextExtension = ShrinkWrap.create(JavaArchive.class, "alterableContextExtension.jar");
@@ -127,7 +135,7 @@ public class CDIAPITests extends FATServletClient {
 
             WebArchive injectInjectionPointAsParamWar = ShrinkWrap.create(WebArchive.class, INJECT_IP_AS_PARAM_APP_NAME + ".war")
                                                                   .addPackage(InjectInjectionPointAsParamServlet.class.getPackage());
-            CDIArchiveHelper.addEmptyBeansXML(injectInjectionPointAsParamWar);
+            CDIArchiveHelper.addBeansXML(injectInjectionPointAsParamWar, DiscoveryMode.ALL);
 
             ShrinkHelper.exportDropinAppToServer(server, injectInjectionPointAsParamWar, DeployOptions.SERVER_ONLY);
             ShrinkHelper.exportDropinAppToServer(server, appConversationFilter, DeployOptions.SERVER_ONLY);
@@ -153,12 +161,6 @@ public class CDIAPITests extends FATServletClient {
     }
 
     @Test
-    @Mode(TestMode.LITE)
-    public void testCDICurrentViaMES() throws Exception {
-        runTest(server, CDI_CURRENT_APP_NAME, "testCDICurrentViaMES");
-    }
-
-    @Test
     @Mode(TestMode.FULL)
     public void testConversationFilter() throws Exception {
         WebBrowser browser = WebBrowserFactory.getInstance().createWebBrowser((File) null);
@@ -181,7 +183,7 @@ public class CDIAPITests extends FATServletClient {
 
         WebArchive injectInjectionPointBeansXMLWar = ShrinkWrap.create(WebArchive.class, INJECT_IP_BEANS_XML_APP_NAME + ".war")
                                                                .addClass(InjectInjectionPointBeansXMLServlet.class);
-        CDIArchiveHelper.addEmptyBeansXML(injectInjectionPointBeansXMLWar);
+        CDIArchiveHelper.addBeansXML(injectInjectionPointBeansXMLWar, DiscoveryMode.ALL);
 
         ShrinkHelper.exportToServer(server, "dropins", injectInjectionPointBeansXMLWar, DeployOptions.SERVER_ONLY);
 
@@ -217,7 +219,7 @@ public class CDIAPITests extends FATServletClient {
         WebArchive injectInjectionPointXMLWar = ShrinkWrap.create(WebArchive.class, INJECT_IP_XML_APP_NAME + ".war")
                                                           .addClass(InjectInjectionPointXMLServlet.class)
                                                           .addAsWebInfResource(InjectInjectionPointXMLServlet.class.getPackage(), "web.xml", "web.xml");
-        CDIArchiveHelper.addEmptyBeansXML(injectInjectionPointXMLWar);
+        CDIArchiveHelper.addBeansXML(injectInjectionPointXMLWar, DiscoveryMode.ALL);
 
         ShrinkHelper.exportToServer(server, "dropins", injectInjectionPointXMLWar, DeployOptions.SERVER_ONLY);
 

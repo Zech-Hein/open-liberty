@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,7 +29,6 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
@@ -43,11 +44,12 @@ import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.log.Log;
-import com.ibm.ws.apacheds.EmbeddedApacheDS;
+import com.ibm.ws.com.unboundid.InMemoryLDAPServer;
 import com.ibm.ws.security.javaeesec.fat_helper.FATHelper;
 import com.ibm.ws.security.javaeesec.fat_helper.JavaEESecTestBase;
 import com.ibm.ws.security.javaeesec.fat_helper.WCApplicationHelper;
 import com.ibm.ws.security.javaeesec.identitystore.LdapIdentityStore;
+import com.unboundid.ldap.sdk.Entry;
 
 import componenttest.annotation.ExpectedFFDC;
 import componenttest.custom.junit.runner.FATRunner;
@@ -55,6 +57,7 @@ import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.impl.LibertyServerFactory;
+import componenttest.vulnerability.LeakedPasswordChecker;
 import web.war.annotatedbasic.deferred.LdapSettingsBean;
 
 /**
@@ -71,7 +74,7 @@ public class LdapIdentityStoreDeferredSettingsTest extends JavaEESecTestBase {
 //    private final LeakedPasswordChecker passwordChecker = new LeakedPasswordChecker(server);
     protected DefaultHttpClient httpclient;
 
-    private static EmbeddedApacheDS ldapServer = null;
+    private static InMemoryLDAPServer ldapServer = null;
 
     // LDAP Partitions
     private static final String LDAP_ROOT_PARTITION = "o=ibm,c=us";
@@ -86,6 +89,11 @@ public class LdapIdentityStoreDeferredSettingsTest extends JavaEESecTestBase {
     private static final String LDAP_USER3_PASSWORD = LDAP_USER3_UID + "pass";
     private static final String LDAP_USER4_UID = "ldapuser4";
     private static final String LDAP_USER4_PASSWORD = LDAP_USER4_UID + "pass";
+
+    //LDAP bind pass
+    private final String password = "ldapuser1pass";
+
+    private final LeakedPasswordChecker passwordChecker = new LeakedPasswordChecker(server);
 
     public LdapIdentityStoreDeferredSettingsTest() {
         super(myServer, logClass);
@@ -115,7 +123,7 @@ public class LdapIdentityStoreDeferredSettingsTest extends JavaEESecTestBase {
         } finally {
             if (ldapServer != null) {
                 try {
-                    ldapServer.stopService();
+                    ldapServer.shutDown();
                 } catch (Exception e) {
                     Log.error(logClass, "teardown", e, "LDAP server threw error while stopping. " + e.getMessage());
                 }
@@ -129,18 +137,16 @@ public class LdapIdentityStoreDeferredSettingsTest extends JavaEESecTestBase {
      * @throws Exception If there was an issue configuring the LDAP server.
      */
     private static void setupldapServer() throws Exception {
-        ldapServer = new EmbeddedApacheDS("HTTPAuthLDAP");
-        ldapServer.addPartition("test", LDAP_ROOT_PARTITION);
-        ldapServer.startServer(Integer.parseInt(System.getProperty("ldap.1.port")));
+        ldapServer = new InMemoryLDAPServer(false, Integer.getInteger("ldap.1.port", 10389), 0, false, LDAP_ROOT_PARTITION);
 
-        Entry entry = ldapServer.newEntry(LDAP_ROOT_PARTITION);
-        entry.add("objectclass", "organization");
-        entry.add("o", "ibm");
+        Entry entry = new Entry(LDAP_ROOT_PARTITION);
+        entry.addAttribute("objectclass", "organization");
+        entry.addAttribute("o", "ibm");
         ldapServer.add(entry);
 
-        entry = ldapServer.newEntry(LDAP_SUBTREE_PARTITION);
-        entry.add("objectclass", "organizationalunit");
-        entry.add("ou", "level2");
+        entry = new Entry(LDAP_SUBTREE_PARTITION);
+        entry.addAttribute("objectclass", "organizationalunit");
+        entry.addAttribute("ou", "level2");
         ldapServer.add(entry);
 
         /*
@@ -159,54 +165,58 @@ public class LdapIdentityStoreDeferredSettingsTest extends JavaEESecTestBase {
         final String LDAP_GROUP1_DN = "cn=ldapgroup1," + LDAP_ROOT_PARTITION;
         final String LDAP_GROUP2_DN = "cn=ldapgroup2," + LDAP_SUBTREE_PARTITION;
 
-        entry = ldapServer.newEntry(LDAP_USER1_DN);
-        entry.add("objectclass", "inetorgperson");
-        entry.add("uid", LDAP_USER1_UID);
-        entry.add("sn", LDAP_USER1_UID + "sn");
-        entry.add("cn", LDAP_USER1_UID + "cn");
-        entry.add("userPassword", LDAP_USER1_PASSWORD);
+        entry = new Entry(LDAP_USER1_DN);
+        entry.addAttribute("objectclass", "inetorgperson");
+        entry.addAttribute("objectclass", "person");
+        entry.addAttribute("uid", LDAP_USER1_UID);
+        entry.addAttribute("sn", LDAP_USER1_UID + "sn");
+        entry.addAttribute("cn", LDAP_USER1_UID + "cn");
+        entry.addAttribute("userPassword", LDAP_USER1_PASSWORD);
         ldapServer.add(entry);
 
-        entry = ldapServer.newEntry(LDAP_USER2_DN);
-        entry.add("objectclass", "inetorgperson");
-        entry.add("objectclass", "simulatedMicrosoftSecurityPrincipal");
-        entry.add("uid", LDAP_USER2_UID);
-        entry.add("samaccountname", LDAP_USER2_UID);
-        entry.add("sn", LDAP_USER2_UID + "sn");
-        entry.add("cn", LDAP_USER2_UID + "cn");
-        entry.add("memberOf", LDAP_GROUP1_DN);
-        entry.add("userPassword", LDAP_USER2_PASSWORD);
+        entry = new Entry(LDAP_USER2_DN);
+        entry.addAttribute("objectclass", "inetorgperson");
+        entry.addAttribute("objectclass", "person");
+        entry.addAttribute("objectclass", "simulatedMicrosoftSecurityPrincipal");
+        entry.addAttribute("uid", LDAP_USER2_UID);
+        entry.addAttribute("samaccountname", LDAP_USER2_UID);
+        entry.addAttribute("sn", LDAP_USER2_UID + "sn");
+        entry.addAttribute("cn", LDAP_USER2_UID + "cn");
+        entry.addAttribute("memberOf", LDAP_GROUP1_DN);
+        entry.addAttribute("userPassword", LDAP_USER2_PASSWORD);
         ldapServer.add(entry);
 
-        entry = ldapServer.newEntry(LDAP_USER3_DN);
-        entry.add("objectclass", "inetorgperson");
-        entry.add("uid", LDAP_USER3_UID);
-        entry.add("sn", LDAP_USER3_UID + "sn");
-        entry.add("cn", LDAP_USER3_UID + "cn");
-        entry.add("userPassword", LDAP_USER3_PASSWORD);
+        entry = new Entry(LDAP_USER3_DN);
+        entry.addAttribute("objectclass", "inetorgperson");
+        entry.addAttribute("objectclass", "person");
+        entry.addAttribute("uid", LDAP_USER3_UID);
+        entry.addAttribute("sn", LDAP_USER3_UID + "sn");
+        entry.addAttribute("cn", LDAP_USER3_UID + "cn");
+        entry.addAttribute("userPassword", LDAP_USER3_PASSWORD);
         ldapServer.add(entry);
 
-        entry = ldapServer.newEntry(LDAP_USER4_DN);
-        entry.add("objectclass", "inetorgperson");
-        entry.add("objectclass", "simulatedMicrosoftSecurityPrincipal");
-        entry.add("uid", LDAP_USER4_UID);
-        entry.add("samaccountname", LDAP_USER4_UID);
-        entry.add("sn", LDAP_USER4_UID + "sn");
-        entry.add("cn", LDAP_USER4_UID + "cn");
-        entry.add("memberOf", LDAP_GROUP2_DN);
-        entry.add("userPassword", LDAP_USER4_PASSWORD);
+        entry = new Entry(LDAP_USER4_DN);
+        entry.addAttribute("objectclass", "inetorgperson");
+        entry.addAttribute("objectclass", "person");
+        entry.addAttribute("objectclass", "simulatedMicrosoftSecurityPrincipal");
+        entry.addAttribute("uid", LDAP_USER4_UID);
+        entry.addAttribute("samaccountname", LDAP_USER4_UID);
+        entry.addAttribute("sn", LDAP_USER4_UID + "sn");
+        entry.addAttribute("cn", LDAP_USER4_UID + "cn");
+        entry.addAttribute("memberOf", LDAP_GROUP2_DN);
+        entry.addAttribute("userPassword", LDAP_USER4_PASSWORD);
         ldapServer.add(entry);
 
-        entry = ldapServer.newEntry("cn=ldapgroup1," + LDAP_ROOT_PARTITION);
-        entry.add("objectclass", "groupofnames");
-        entry.add("cn", "ldapgroup1");
-        entry.add("member", LDAP_USER2_DN);
+        entry = new Entry("cn=ldapgroup1," + LDAP_ROOT_PARTITION);
+        entry.addAttribute("objectclass", "groupofnames");
+        entry.addAttribute("cn", "ldapgroup1");
+        entry.addAttribute("member", LDAP_USER2_DN);
         ldapServer.add(entry);
 
-        entry = ldapServer.newEntry("cn=ldapgroup2," + LDAP_SUBTREE_PARTITION);
-        entry.add("objectclass", "groupofnames");
-        entry.add("cn", "ldapgroup2");
-        entry.add("member", LDAP_USER4_DN);
+        entry = new Entry("cn=ldapgroup2," + LDAP_SUBTREE_PARTITION);
+        entry.addAttribute("objectclass", "groupofnames");
+        entry.addAttribute("cn", "ldapgroup2");
+        entry.addAttribute("member", LDAP_USER4_DN);
         ldapServer.add(entry);
     }
 
@@ -313,6 +323,7 @@ public class LdapIdentityStoreDeferredSettingsTest extends JavaEESecTestBase {
 
         verifyAuthorization(SC_OK, SC_OK, SC_OK, SC_OK);
 
+        passwordChecker.checkForPasswordInAnyFormat(password);
         Log.info(logClass, getCurrentTestName(), "-----Exiting " + getCurrentTestName());
     }
 
@@ -339,6 +350,7 @@ public class LdapIdentityStoreDeferredSettingsTest extends JavaEESecTestBase {
 
         verifyAuthorization(SC_FORBIDDEN, SC_FORBIDDEN, SC_FORBIDDEN, SC_FORBIDDEN);
 
+        passwordChecker.checkForPasswordInAnyFormat(password);
         Log.info(logClass, getCurrentTestName(), "-----Exiting " + getCurrentTestName());
     }
 
@@ -365,6 +377,7 @@ public class LdapIdentityStoreDeferredSettingsTest extends JavaEESecTestBase {
 
         verifyAuthorization(SC_FORBIDDEN, SC_FORBIDDEN, SC_FORBIDDEN, SC_FORBIDDEN);
 
+        passwordChecker.checkForPasswordInAnyFormat(password);
         Log.info(logClass, getCurrentTestName(), "-----Exiting " + getCurrentTestName());
     }
 
@@ -972,7 +985,7 @@ public class LdapIdentityStoreDeferredSettingsTest extends JavaEESecTestBase {
         /*
          * Clear the override values of those attributes we had CWWKS1916W messages for above.
          *
-         * We will now fail with a javax.naming.NoPermissionException b/c we can't do an anonymous bind.
+         * We will now fail with a javax.naming.NoPermissionException b/c we can't do an anonymous op.
          */
         overrides.remove("callerBaseDn");
         overrides.remove("callerNameAttribute");

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2020 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,12 +18,14 @@ import java.util.Vector;
 import com.ibm.ejs.ras.TraceNLS;
 import com.ibm.websphere.messaging.mbean.MessagingEngineMBean;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.ws.messaging.lifecycle.SingletonsReady;
 import com.ibm.ws.messaging.security.RuntimeSecurityService;
 import com.ibm.ws.sib.admin.JsConstants;
 import com.ibm.ws.sib.admin.JsEngineComponent;
 import com.ibm.ws.sib.admin.JsMEConfig;
 import com.ibm.ws.sib.admin.JsMessagingEngine;
 import com.ibm.ws.sib.admin.LWMConfig;
+import com.ibm.ws.sib.msgstore.MessageStore;
 import com.ibm.ws.sib.msgstore.SeverePersistenceException;
 import com.ibm.ws.sib.processor.SIMPAdmin;
 import com.ibm.ws.sib.utils.ras.SibTr;
@@ -57,7 +61,7 @@ public class JsMessagingEngineImpl extends BaseMessagingEngineImpl implements Js
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.ws.sib.admin.JsEngineComponent#initialize(com.ibm.ws.sib.admin.JsMessagingEngine)
      */
     @Override
@@ -87,7 +91,7 @@ public class JsMessagingEngineImpl extends BaseMessagingEngineImpl implements Js
             }
             try
             {
-                _messageStore = JsMainAdminComponentImpl.messageStoreRef.getService();
+                _messageStore = SingletonsReady.requireService(MessageStore.class);
 
             } catch (Exception e1) {
                 // TODO Auto-generated catch block
@@ -101,9 +105,9 @@ public class JsMessagingEngineImpl extends BaseMessagingEngineImpl implements Js
 
         } // synchronized(stateChangeLock)
         try {
-            //Initialize the message store 
+            //Initialize the message store
             _messageStore.initialize(this);
-            //Initialize the message processor 
+            //Initialize the message processor
             _messageProcessor.initialize(this);
             setState(STATE_INITIALIZED);
         } catch (Exception e) {
@@ -128,7 +132,7 @@ public class JsMessagingEngineImpl extends BaseMessagingEngineImpl implements Js
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.ws.sib.admin.JsEngineComponent#start(int)
      */
     @Override
@@ -149,7 +153,7 @@ public class JsMessagingEngineImpl extends BaseMessagingEngineImpl implements Js
         } // synchronized (stateChangeLock)
 
         try {
-            //Start the message store 
+            //Start the message store
             _messageStore.start();
             //Start the message processor
             _messageProcessor.start(0);
@@ -189,7 +193,7 @@ public class JsMessagingEngineImpl extends BaseMessagingEngineImpl implements Js
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.ws.sib.admin.JsEngineComponent#stop(int)
      */
     @Override
@@ -220,7 +224,7 @@ public class JsMessagingEngineImpl extends BaseMessagingEngineImpl implements Js
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.ws.sib.admin.JsEngineComponent#destroy()
      */
     @Override
@@ -249,7 +253,7 @@ public class JsMessagingEngineImpl extends BaseMessagingEngineImpl implements Js
 
     /**
      * Move state of new component to current engine state
-     * 
+     *
      * @param JsEngineComponent
      * @throws Exception
      */
@@ -288,7 +292,7 @@ public class JsMessagingEngineImpl extends BaseMessagingEngineImpl implements Js
 
     /**
      * Destroy an engine component that is to be deleted
-     * 
+     *
      * @param JsEngineComponent
      */
     protected void destroyOldEngineComponent(ComponentList component) {
@@ -328,7 +332,7 @@ public class JsMessagingEngineImpl extends BaseMessagingEngineImpl implements Js
             // Build the message for the notification.
 
             String message = nls.getFormattedMessage("NOTIFY_MESSAGING_ENGINE_STARTING_SIAS0049", new Object[] { meName, meUuid }, null);
-            // log in trace file 
+            // log in trace file
         }
     }
 

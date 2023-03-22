@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,8 @@
 package com.ibm.ws.microprofile.metrics.monitor;
 
 import java.lang.management.ManagementFactory;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,7 +40,7 @@ public class MonitorMetrics {
 	protected Set<MetricID> metricIDs;
 
 	public MonitorMetrics(String objectName) {
-		this.mbs = ManagementFactory.getPlatformMBeanServer();
+	    this.mbs = AccessController.doPrivileged((PrivilegedAction<MBeanServer>) () -> ManagementFactory.getPlatformMBeanServer());
 		this.objectName = objectName;
 		this.metricIDs = new HashSet<MetricID>();
 		

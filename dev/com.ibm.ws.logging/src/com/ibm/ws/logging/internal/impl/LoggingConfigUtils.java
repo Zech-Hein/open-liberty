@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2021 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,12 +17,14 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import com.ibm.websphere.logging.WsLevel;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.logging.internal.impl.LoggingConstants.FFDCSummaryPolicy;
 import com.ibm.ws.logging.internal.impl.LoggingConstants.TraceFormat;
+import com.ibm.ws.logging.utils.MetatypeUtils;
 
 /**
  *
@@ -31,9 +35,9 @@ public class LoggingConfigUtils {
      * Find, create, and validate the log directory.
      *
      * @param newValue
-     *            New parameter value to parse/evaluate
+     *                         New parameter value to parse/evaluate
      * @param defaultValue
-     *            Starting/Previous log directory-- this value might *also* be null.
+     *                         Starting/Previous log directory-- this value might *also* be null.
      * @return defaultValue if the newValue is null or is was badly
      *         formatted, or the converted new value
      */
@@ -70,9 +74,9 @@ public class LoggingConfigUtils {
      * will be returned.
      *
      * @param newValue
-     *            New parameter value to parse/evaluate
+     *                         New parameter value to parse/evaluate
      * @param defaultValue
-     *            Starting/Previous value
+     *                         Starting/Previous value
      * @return defaultValue if the newValue is null or is was badly
      *         formatted, or the converted new value
      */
@@ -93,9 +97,9 @@ public class LoggingConfigUtils {
      * will be returned.
      *
      * @param newValue
-     *            New parameter value to parse/evaluate
+     *                         New parameter value to parse/evaluate
      * @param defaultValue
-     *            Starting/Previous value
+     *                         Starting/Previous value
      * @return defaultValue if the newValue is null or is was badly
      *         formatted, or the converted new value
      */
@@ -114,6 +118,50 @@ public class LoggingConfigUtils {
     }
 
     /**
+     * Read long value from properties: begin by preserving the old value. If
+     * the property is found, and the new value is an integer, the new value
+     * will be returned.
+     *
+     * @param newValue
+     *                         New parameter value to parse/evaluate
+     * @param defaultValue
+     *                         Starting/Previous value
+     * @return defaultValue if the newValue is null or is badly
+     *         formatted, else the converted new value
+     */
+    public static long getLongValue(Object newValue, long defaultValue) {
+        if (newValue != null) {
+            if (newValue instanceof String) {
+                try {
+                    return Long.parseLong((String) newValue);
+                } catch (NumberFormatException ex) {
+                }
+            } else if (newValue instanceof Long)
+                return (Long) newValue;
+        }
+
+        return defaultValue;
+    }
+
+    /**
+     * Get Strings of ibm:type="duration" and convert them into longs unit the specified time unit
+     */
+    public static long getLongDurationValue(Object newValue, long defaultValue, TimeUnit timeUnit) {
+        if (newValue != null) {
+            if (newValue instanceof String) {
+                try {
+                    if (!((String) newValue).isEmpty()) //only convert if string is not empty, if empty set to default
+                        return MetatypeUtils.evaluateDuration((String) newValue, timeUnit);
+                } catch (IllegalArgumentException ex) {
+                }
+            } else if (newValue instanceof Long)
+                return (Long) newValue;
+        }
+
+        return defaultValue;
+    }
+
+    /**
      * If the value is null, return the defaultValue.
      * Otherwise return the new value.
      */
@@ -125,7 +173,7 @@ public class LoggingConfigUtils {
     }
 
     /**
-     * @param newValue String representation of a log level.
+     * @param newValue     String representation of a log level.
      * @param defaultValue The default and/or current value.
      * @return The new log level, or the default value if the new value is null or
      *         outside of the accepted range.
@@ -157,7 +205,7 @@ public class LoggingConfigUtils {
      * Convert the property value to a TraceFormat type
      *
      * @param s
-     *            String value
+     *              String value
      * @return TraceFormat, BASIC is the default.
      */
     public static TraceFormat getFormatValue(Object newValue, TraceFormat defaultValue) {
@@ -187,7 +235,7 @@ public class LoggingConfigUtils {
     /**
      * Create a delegate instance of the specified (or default) delegate class.
      *
-     * @param delegate Specifically configured delegate class
+     * @param delegate             Specifically configured delegate class
      * @param defaultDelegateClass Default delegate class
      * @return constructed delegate instance
      */
@@ -213,15 +261,15 @@ public class LoggingConfigUtils {
      * IllegalArgumentException as appropriate.
      *
      * @param propertyKey
-     *            The name of the configuration property.
+     *                         The name of the configuration property.
      * @param obj
-     *            The object retrieved from the configuration property map/dictionary.
+     *                         The object retrieved from the configuration property map/dictionary.
      * @param defaultValue
-     *            The default value that should be applied if the object is null.
+     *                         The default value that should be applied if the object is null.
      *
      * @return Collection of strings parsed/retrieved from obj, or default value if obj is null
      * @throws IllegalArgumentException If value is not a String, String collection, or String array, or if an error
-     *             occurs while converting/casting the object to the return parameter type.
+     *                                      occurs while converting/casting the object to the return parameter type.
      */
     @SuppressWarnings("unchecked")
     @FFDCIgnore(Exception.class)
@@ -255,7 +303,7 @@ public class LoggingConfigUtils {
      */
     public static String getStringFromCollection(Collection<String> values) {
         StringBuilder builder = new StringBuilder();
-        if (values != null) {
+        if (values != null && !values.isEmpty()) {
             for (String value : values) {
                 builder.append(value).append(',');
             }

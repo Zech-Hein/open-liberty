@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+; * Copyright (c) 2021, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -24,9 +26,6 @@ import com.ibm.ws.wssecurity.fat.cxf.samltoken1.common.CxfSSLSAMLBasicTests;
 
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServerWrapper;
-import componenttest.annotation.SkipForRepeat;
-import static componenttest.annotation.SkipForRepeat.EE8_FEATURES;
-import static componenttest.annotation.SkipForRepeat.NO_MODIFICATION;
 
 /**
  * The testcases in this class were ported from tWAS' test SamlWebSSOTests.
@@ -44,13 +43,13 @@ import static componenttest.annotation.SkipForRepeat.NO_MODIFICATION;
  * 2.0 token in the HTTP POST request.
  */
 
-@SkipForRepeat({ NO_MODIFICATION, EE8_FEATURES })
 @LibertyServerWrapper
 @RunWith(FATRunner.class)
 public class CxfSSLSAMLBasic2ServerTests extends CxfSSLSAMLBasicTests {
 
     private static final Class<?> thisClass = CxfSSLSAMLBasic2ServerTests.class;
-
+    protected static String repeatAction = "";
+    
     @BeforeClass
     public static void setupBeforeTest() throws Exception {
 
@@ -101,7 +100,6 @@ public class CxfSSLSAMLBasic2ServerTests extends CxfSSLSAMLBasicTests {
         testSettings.setIdpUserPwd("security");
         testSettings.setSpTargetApp(testSAMLServer.getHttpsString() + "/samlcxfclient/CxfSamlSvcClient");
         testSettings.setSamlTokenValidationData(testSettings.getIdpUserName(), testSettings.getSamlTokenValidationData().getIssuer(), testSettings.getSamlTokenValidationData().getInResponseTo(), testSettings.getSamlTokenValidationData().getMessageID(), testSettings.getSamlTokenValidationData().getEncryptionKeyUser(), testSettings.getSamlTokenValidationData().getRecipient(), testSettings.getSamlTokenValidationData().getEncryptAlg());
-
         
     }
 

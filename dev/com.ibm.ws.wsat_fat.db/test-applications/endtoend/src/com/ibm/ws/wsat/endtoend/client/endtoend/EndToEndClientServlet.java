@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2020 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -86,7 +88,7 @@ public class EndToEndClientServlet extends HttpServlet {
 			bind.getRequestContext().put(
 					"javax.xml.ws.service.endpoint.address",
 					BASE_URL + "/endtoend/HelloImplTwowayService");
-			if (type.equals("testTwoServerCommit")) {
+			if (type.equals("testTwoServerCommit") || type.equals("testFeatureDynamic")) {
 				Context ctx = new InitialContext();
 				UserTransaction userTransaction = (UserTransaction) ctx
 						.lookup("java:comp/UserTransaction");
@@ -357,7 +359,7 @@ public class EndToEndClientServlet extends HttpServlet {
 				} else {
 					finalOutput = "EnlistXAResource failed.";
 				}
-			}else if (type.equals("noOptionalNoTransaction")) {
+			}else if (type.equals("testNoOptionalNoTransaction")) {
 				// "-1" is used for informing provider of not enlisting XAResourse
 				System.out.println("Reply from server: " + proxy.sayHello("commit", -1));
 				finalOutput = "Finish Twoway message";
@@ -367,6 +369,21 @@ public class EndToEndClientServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 
+		/*
+
+		Uncomment to recreate 286979
+		
+		Also uncomment similar code in ProtocolImpl, TranManagerImpl, MultiServerTest & TransactionImpl
+		
+		try {
+			System.out.println("SLEEPING at end of client servlet to see what comes in");
+
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
 		System.out.println("end dispatch");
 		return "<html><header></header>"
 						+ "<body>" + finalOutput + "</body></html>";
@@ -383,6 +400,12 @@ public class EndToEndClientServlet extends HttpServlet {
 			XAResourceImpl xaRes;
 			if (vote.equals("rollback")) {
 				xaRes = XAResourceFactoryImpl.instance().getXAResourceImpl(
+						/*
+
+						Use this to recreate 286979						
+						
+						xaResInfo).setSleepTime(13000).setPrepareAction(XAResourceImpl.SLEEP_ROLLBACK);
+						 */
 						xaResInfo).setPrepareAction(XAException.XA_RBROLLBACK);
 			} else {
 				xaRes = XAResourceFactoryImpl.instance().getXAResourceImpl(

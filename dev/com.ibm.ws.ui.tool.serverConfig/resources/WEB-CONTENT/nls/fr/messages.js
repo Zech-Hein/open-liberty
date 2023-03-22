@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ var editorMessages = {
 "ADD_CHILD": "Ajouter un enfant",
 "REMOVE": "Retirer",
 "TEST" : "Tester",
-"TEST_CONNECTION": "Tester la connexion",
+"TEST_CONNECTION": "Test de connexion",
+"TEST_CONNECTION_DESCRIPTION": "Tester la connexion",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "Enregistrer les modifications pour tester la connexion",
 "DESCRIPTION": "Description",
 "PREVIOUS": "Précédent",
 "NEXT": "Suivant",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "Boîte de dialogue Retrait d'un élément",
 "VALIDATE_DATASOURCE_DIALOG": "Boîte de dialogue Validation de la connexion de source de données",
 "VALIDATE_DATASOURCE": "Test de la connexion de source de données",
+"VALIDATE_CONNECTION_DIALOG":"Boîte de dialogue Valider la connexion",
+"DEFAULT_AUTHENTICATION_ALIAS":"Authentification par défaut",
+"SPECIFY_AUTHENTICATION_ALIAS":"Spécifier l'alias d'authentification",
+"LOGIN_CONFIG":"Configuration de connexion",
+"LOGIN_CONFIG_ID":"ID de configuration de connexion",
+"ADD_LOGIN_CONFIG_PROPERTY":"Ajouter une propriété de configuration de connexion",
+"KEY":"Clé",
+"CHOOSE_AN_OPTION":"Choisir une option",
 "ENUMERATION_SELECTION_DIALOG": "Boîte de dialogue Sélection d'une énumération",
 "SAVE_BEFORE_CLOSING_DIALOG": "Boîte de dialogue Sauvegarde avant fermeture",
 "ERROR_SAVING_FILE_DIALOG": "Boîte de dialogue Erreur de sauvegarde du fichier",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "Alias d'authentification (facultatif)",
 "AUTH_ALIAS": "Alias d'authentification",
 "CONTAINER_AUTHENTICATION": "Authentification des conteneurs",
+"RESOURCE_REFERENCE": "Référence de ressource",
 "NO_RESOURCE_REFERENCE": "Aucune référence de ressource",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "Testez la connexion à l'aide d'une référence de ressource qui s'authentifie avec l'authentification d'application.",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "Testez la connexion à l'aide d'une référence de ressource qui s'authentifie avec l'authentification de conteneur.",
+"RESOURCE_REFERENCE_IN_USE": "L'authentification de conteneur pour les recherches directes est activée. Le test de connexion utilise les données d'authentification de conteneur par défaut configurées.",
+"NO_RESOURCE_REFERENCE_IN_USE": "Testez la connexion sans utiliser de référence de ressource.",
 "APPLICATION_AUTHENTICATION": "Authentification des applications",
 "CUSTOM_LOGIN_MODULE": "Module de connexion personnalisé (facultatif)",
 "LOGIN_PROPERTIES": "Propriétés de connexion (facultatif)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "Sélectionnez une fonction pour afficher sa description.",
 "SUPPORT_MESSAGE" : "La configuration du serveur n'est pas disponible pour les serveurs Node.js, ni pour les serveurs se trouvant dans un conteneur Docker accessible via le contrôleur de collectivité.",
 "NO_ROLE_MESSAGE": "Le rôle de l'utilisateur ne l'autorise pas à modifier la configuration. Les fichiers sont disponibles en mode lecture seule.",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "ACTIONS REQUISES POUR LES MEMBRES D'UNE COLLECTIVITE :",
 "RUN_UPDATE_HOST" : "Exécutez 'collective updateHost' ou 'collective registerHost' avec '--hostWritePath' en spécifiant un chemin pour lequel l'utilisateur rpcUser dispose du droit d'accès en écriture.  Des données d'identification d'hôte valides doivent également être fournies.",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "En créant un lien vers JAVA dans /usr/bin. Exemple : /usr/bin/java -> [chemin_JAVA]",
 "JAVA_ON_PATH" : "En ajoutant JAVA dans la variable d'environnement PATH.  L'exportation de PATH doit être effectuée dans .bashrc sous Linux.", 
 "MORE_INFORMATION" : "Pour plus d'informations, voir : "
-
 };

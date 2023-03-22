@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -421,7 +423,7 @@ public class DataModelSerializer {
         Method found = null;
 
         //precalc the field name as a setter to use for each method test.
-        String fieldNameAsASetter = new StringBuilder("set").append(fieldName.substring(0, 1).toUpperCase()).append(fieldName.substring(1)).toString();
+        String fieldNameAsASetter = new StringBuilder("set").append(fieldName.substring(0, 1).toUpperCase(Locale.ENGLISH)).append(fieldName.substring(1)).toString();
 
         //hunt for any matching setter in the object
         for (Method m : classToLookForFieldIn.getMethods()) {

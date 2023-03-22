@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -18,6 +20,7 @@ import javax.security.auth.Subject;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.security.common.structures.SingleTableCache;
 import com.ibm.ws.security.openidconnect.client.jose4j.OidcTokenImpl;
@@ -30,12 +33,17 @@ public class AccessTokenCacheHelper {
 
     private static final TraceComponent tc = Tr.register(AccessTokenCacheHelper.class);
 
+    public AccessTokenCacheKey getCacheKey(@Sensitive String accessToken, String configId) {
+        return new AccessTokenCacheKey(accessToken, configId);
+    }
+
     public ProviderAuthenticationResult getCachedTokenAuthenticationResult(OidcClientConfig clientConfig, String token) {
         if (!clientConfig.getAccessTokenCacheEnabled()) {
             return null;
         }
         SingleTableCache cache = clientConfig.getCache();
-        AccessTokenCacheEntry cacheEntry = (AccessTokenCacheEntry) cache.get(token);
+        AccessTokenCacheKey cacheKey = getCacheKey(token, clientConfig.getId());
+        AccessTokenCacheValue cacheEntry = (AccessTokenCacheValue) cache.get(cacheKey);
         if (cacheEntry == null) {
             return null;
         }
@@ -60,7 +68,8 @@ public class AccessTokenCacheHelper {
             if (customProperties != null) {
                 uniqueID = (String) customProperties.get(AttributeNameConstants.WSCREDENTIAL_UNIQUEID);
             }
-            cache.put(token, new AccessTokenCacheEntry(uniqueID, result));
+            AccessTokenCacheKey cacheKey = getCacheKey(token, clientConfig.getId());
+            cache.put(cacheKey, new AccessTokenCacheValue(uniqueID, result), clientConfig.getClockSkew());
         }
     }
 

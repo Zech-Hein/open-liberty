@@ -1,19 +1,21 @@
 #*******************************************************************************
-# Copyright (c) 2017 IBM Corporation and others.
+# Copyright (c) 2017, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 bVersion=1.0
 
-Bundle-Name: Database Store for HTTP Sessions
-Bundle-SymbolicName: com.ibm.ws.session.db
-Bundle-Description: Allows persistence of sessions to a database, version ${bVersion}
 
 Private-Package: \
    	com.ibm.ws.session.store.db, \
@@ -50,10 +52,9 @@ instrument.disabled: true
 	com.ibm.websphere.org.osgi.service.component,\
 	com.ibm.ws.resource;version=latest,\
 	com.ibm.ws.serialization;version=latest,\
-	com.ibm.tx.ltc;version=latest,\
 	com.ibm.tx.jta;version=latest,\
 	com.ibm.ws.tx.embeddable;version=latest,\
 	com.ibm.ws.container.service;version=latest,\
-	com.ibm.ws.org.osgi.annotation.versioning;version=latest
+	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
+	com.ibm.ws.kernel.boot.common;version=latest
 
-jakartaeeMe: true

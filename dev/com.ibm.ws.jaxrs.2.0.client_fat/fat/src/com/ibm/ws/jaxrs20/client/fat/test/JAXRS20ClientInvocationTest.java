@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,10 +28,14 @@ import com.ibm.websphere.simplicity.ShrinkHelper;
 import componenttest.annotation.Server;
 import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.custom.junit.runner.Mode;
+import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 
 @RunWith(FATRunner.class)
+@Mode(TestMode.FULL)
 public class JAXRS20ClientInvocationTest extends AbstractTest {
 
     @Server("jaxrs20.client.JAXRS20ClientInvocationTest")
@@ -68,10 +74,10 @@ public class JAXRS20ClientInvocationTest extends AbstractTest {
         serverRef = null;
     }
 
-    @Test    
+    @Test
     public void testClientClass() throws Exception {
-        Map<String, String> p = new HashMap<String, String>();        
-        if (JakartaEE9Action.isActive()) {
+        Map<String, String> p = new HashMap<String, String>();
+        if ((JakartaEE9Action.isActive()) || (JakartaEE10Action.isActive())) {
             this.runTestOnServer(invocationTarget, "testClientClass", p, "io.openliberty.org.jboss.resteasy.common.client.LibertyResteasyClientImpl");
         } else {
             this.runTestOnServer(invocationTarget, "testClientClass", p, "com.ibm.ws.jaxrs20.client.JAXRSClientImpl");
@@ -79,7 +85,7 @@ public class JAXRS20ClientInvocationTest extends AbstractTest {
     }
 
     @Test
-    @SkipForRepeat("EE9_FEATURES") // Skip this test for EE9 as this test is failing intermittently with EE9.  See issue https://github.com/OpenLiberty/open-liberty/issues/16650
+//    @SkipForRepeat("EE9_FEATURES") // Skip this test for EE9 as this test is failing intermittently with EE9.  See issue https://github.com/OpenLiberty/open-liberty/issues/16650
     public void testInvocation_invoke1() throws Exception {
         Map<String, String> p = new HashMap<String, String>();
         this.runTestOnServer(invocationTarget, "testInvocation_invoke1", p, "Good book");

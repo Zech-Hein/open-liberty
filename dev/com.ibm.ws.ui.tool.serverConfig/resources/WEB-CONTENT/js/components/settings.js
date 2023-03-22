@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -51,7 +53,7 @@ var settings = (function() {
             html: true,
             trigger: "manual",
             content: function() {
-                return "<div id=\"settings\">" +
+                return "<div id=\"settings\" class=\"popover\" role=\"tooltip\">" +
                 "<span class=\"settingsTitle\">" + editorMessages.DESIGN + "</span>" +
                 "<a href=\"#\" id=\"settingsShowEnhancedLabels\" class=\"editorSetting clearfix\" role=\"button\" aria-pressed=\"" + (settings.enhanceLabels? "true" : "false") + "\">" + editorMessages.ENHANCED_LABELS + "<span id=\"settingsShowEnhancedLabelsToggle\" class=\"pull-right configurationEditorToggle " + (settings.enhanceLabels? "configurationEditorToggleOn" : "configurationEditorToggleOff") + "\"></span></a>" +
                 "<a href=\"#\" id=\"settingsShowDescriptions\" class=\"editorSetting clearfix\" role=\"button\" aria-pressed=\"" + (settings.showDescriptions? "true" : "false") + "\">" + editorMessages.FIELD_DESCRIPTIONS + "<span id=\"settingsShowDescriptionsToggle\" class=\"pull-right configurationEditorToggle " + (settings.showDescriptions? "configurationEditorToggleOn" : "configurationEditorToggleOff") + "\"></span></a>" +

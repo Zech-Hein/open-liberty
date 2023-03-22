@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,6 +35,7 @@ import com.ibm.ws.jsf22.fat.JSFUtils;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.topology.impl.LibertyServer;
 import junit.framework.Assert;
 
@@ -65,9 +68,12 @@ public class JSF22FlowsTests {
 
     @BeforeClass
     public static void setup() throws Exception {
+        boolean isEE10 = JakartaEE10Action.isActive();
+
         JavaArchive JSF22FacesFlowsJar = ShrinkHelper.buildJavaArchive("JSF22FacesFlows.jar", "");
 
-        WebArchive JSF22FacesFlowsWar = ShrinkHelper.buildDefaultApp("JSF22FacesFlows.war", "com.ibm.ws.jsf22.fat.flows.beans");
+        WebArchive JSF22FacesFlowsWar = ShrinkHelper.buildDefaultApp("JSF22FacesFlows.war",
+                                                                     isEE10 ? "com.ibm.ws.jsf22.fat.flows.beans.faces40" : "com.ibm.ws.jsf22.fat.flows.beans.jsf22");
 
         JSF22FacesFlowsWar.addAsLibraries(JSF22FacesFlowsJar);
 

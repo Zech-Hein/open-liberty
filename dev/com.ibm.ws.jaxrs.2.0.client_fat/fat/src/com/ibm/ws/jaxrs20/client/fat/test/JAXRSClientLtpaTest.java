@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -119,7 +121,7 @@ public class JAXRSClientLtpaTest extends AbstractTest {
     @Test
     public void testClientLtpaHandler_ClientWithToken() throws Exception {
         String result = setCookie(true);
-        Assert.assertTrue("Expect access resource with sso successfully: ", result.equals("Hello LTPA Resource"));
+        Assert.assertEquals("Expect access resource with sso successfully: ", "Hello LTPA Resource", result);
     }
 
     @Test
@@ -164,8 +166,17 @@ public class JAXRSClientLtpaTest extends AbstractTest {
         HttpURLConnection resumeConnection = (HttpURLConnection) url
                         .openConnection();
         if (cookieVal != null) {
-            String newCookie = cookieVal.toString().substring(cookieVal.toString().indexOf("HttpOnly,"), cookieVal.toString().indexOf("]"));
-            newCookie = newCookie.replace("Path=/;", "");
+            StringBuilder newCookieBuilder = new StringBuilder();
+            for (String cookie : cookieVal) {
+                if (cookie.indexOf("Expires=") != -1) {
+                    continue;
+                }
+                if (newCookieBuilder.length() != 0) {
+                    newCookieBuilder.append(", ");
+                }
+                newCookieBuilder.append(cookie.replace("Path=/;", ""));
+            }
+            String newCookie = newCookieBuilder.toString();
             Log.info(c, "setCookie", "newCookie: " + newCookie);
 
             if (setCookie) {

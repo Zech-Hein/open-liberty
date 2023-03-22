@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -257,8 +259,9 @@ public class InfoStoreImpl implements InfoStore {
             try {
                 classReader.accept(infoVisitor, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE);
 
-            } catch (InfoVisitor.VisitEnded e) {
+            } catch (Exception e) {
                 // Already logged a warning from the info visitor.
+                // Since we are handing ClassReader a non-valid class, we want to be prepared for any exception it might throw
 
                 String eMsg = "Target [ " + className + " ] from resource [ " + resourceName + " ] Processing exception: " + e.getMessage();
                 throw InfoStoreException.wrap(tc, CLASS_NAME, methodName, eMsg, e);

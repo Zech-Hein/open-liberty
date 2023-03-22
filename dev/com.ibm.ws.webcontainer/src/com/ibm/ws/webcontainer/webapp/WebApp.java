@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2021 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -186,6 +188,8 @@ import com.ibm.wsspi.webcontainer.util.ThreadContextHelper;
 import com.ibm.wsspi.webcontainer.util.URIMapper;
 import com.ibm.wsspi.webcontainer.webapp.WebAppConfig;
 
+import io.openliberty.checkpoint.spi.CheckpointPhase;
+
 /**
  * @author mmolden
  */
@@ -323,7 +327,8 @@ public abstract class WebApp extends BaseContainer implements ServletContext, IS
     protected String lastProgAddListenerInitialized; // PI41941
     private ClassLoader webInfLibClassloader;
     protected Map<String, URL> metaInfCache;
-    
+    private final boolean hasSlashStarMapping;
+
     protected final static boolean useMetaInfCache = (WCCustomProperties.META_INF_RESOURCES_CACHE_SIZE > 0);
 
     //The following two JSF listener classes are used to make sure that the JSF ServletContextListener 
@@ -360,7 +365,8 @@ public abstract class WebApp extends BaseContainer implements ServletContext, IS
     
     private static Object[] OBJ_EMPTY = new Object[] {};
     private static Class<?>[] CLASS_EMPTY = new Class<?>[] {};
-
+    private final CheckpointPhase checkpointPhase = CheckpointPhase.getPhase();
+    
     // PK37608 Start
     static {
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled() && logger.isLoggable(Level.FINE)) {
@@ -382,10 +388,29 @@ public abstract class WebApp extends BaseContainer implements ServletContext, IS
   }
   
   public static final boolean DEFER_SERVLET_REQUEST_LISTENER_DESTROY_ON_ERROR = WCCustomProperties.DEFER_SERVLET_REQUEST_LISTENER_DESTROY_ON_ERROR;  //PI26908
-  
+
     // PK37698 End
     public WebApp(WebAppConfiguration webAppConfig, Container parent) {
         super(webAppConfig.getId(), parent);
+         
+        boolean _hasSlashStarMapping = false;
+        Map<String,List<String>> mappings = webAppConfig.getServletMappings();
+        if (mappings != null) {
+          for (List<String> list : mappings.values()) {
+              for (String urlPattern : list) {
+                if (urlPattern != null && ("/*").equals(urlPattern)) {
+                  _hasSlashStarMapping = true;
+                  break;
+                }
+              }
+              if(_hasSlashStarMapping) {
+                  break;
+              }                     
+           }                                                                                               
+        }
+        
+        this.hasSlashStarMapping = _hasSlashStarMapping;
+        
         this.config = webAppConfig;
         // PK63920 Start
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled() && logger.isLoggable(Level.FINE))
@@ -1055,6 +1080,11 @@ public abstract class WebApp extends BaseContainer implements ServletContext, IS
                 }
             }
 
+            // if we're checkpointing, call commonInitializationFinally before the initTaskComplete
+            if (checkpointPhase == CheckpointPhase.APPLICATIONS) {
+                commonInitializationFinally(extensionFactories);
+            }
+            
             if (moduleConfig instanceof com.ibm.ws.webcontainer.osgi.container.DeployedModule) {
                 // complete the notification here for app manager
                 ((com.ibm.ws.webcontainer.osgi.container.DeployedModule) moduleConfig).initTaskComplete();
@@ -1064,13 +1094,14 @@ public abstract class WebApp extends BaseContainer implements ServletContext, IS
                 }
             }
             
-            commonInitializationFinally(extensionFactories); // NEVER INVOKED BY
-            // WEBSPHERE
-            // APPLICATION
-            // SERVER (Common
-            // Component
-            // Specific)
-            
+            if (checkpointPhase != CheckpointPhase.APPLICATIONS) {
+                commonInitializationFinally(extensionFactories); // NEVER INVOKED BY
+                // WEBSPHERE
+                // APPLICATION
+                // SERVER (Common
+                // Component
+                // Specific)
+            }
             // Fix for 96420, in which if the first call to AnnotationHelperManager happens in destroy(), we can get 
             // errors because the bundle associated with the thread context classloader may have been uninstalled, 
             // resulting in us being unable to load a resource bundle for AnnotationHelperManager. 
@@ -6307,7 +6338,7 @@ public abstract class WebApp extends BaseContainer implements ServletContext, IS
 
     @Override
     public Set<SessionTrackingMode> getDefaultSessionTrackingModes() {
-        if (withinContextInitOfProgAddListener) {
+        if (withinContextInitOfProgAddListener && (com.ibm.ws.webcontainer.osgi.WebContainer.getServletContainerSpecLevel() < com.ibm.ws.webcontainer.osgi.WebContainer.SPEC_LEVEL_60)) {
             throw new UnsupportedOperationException(MessageFormat.format(
                     nls.getString("Unsupported.op.from.servlet.context.listener"),
                     new Object[] {"getDefaultSessionTrackingModes", lastProgAddListenerInitialized, getApplicationName()}));  // PI41941
@@ -6317,7 +6348,7 @@ public abstract class WebApp extends BaseContainer implements ServletContext, IS
 
     @Override
     public Set<SessionTrackingMode> getEffectiveSessionTrackingModes() {
-        if (withinContextInitOfProgAddListener) {
+        if (withinContextInitOfProgAddListener && (com.ibm.ws.webcontainer.osgi.WebContainer.getServletContainerSpecLevel() < com.ibm.ws.webcontainer.osgi.WebContainer.SPEC_LEVEL_60)) {
             throw new UnsupportedOperationException(MessageFormat.format(
                     nls.getString("Unsupported.op.from.servlet.context.listener"),
                     new Object[] {"getEffectiveSessionTrackingModes", lastProgAddListenerInitialized, getApplicationName()}));  // PI41941
@@ -6507,7 +6538,7 @@ public abstract class WebApp extends BaseContainer implements ServletContext, IS
 
         // LIBERTY: cope with session not being present
         // this.config.getSessionCookieConfig().setContextInitialized();
-        SessionCookieConfigImpl scci = this.config.getSessionCookieConfig();
+        SessionCookieConfigImpl scci = (SessionCookieConfigImpl) this.config.getSessionCookieConfig();
         if (scci != null)
             scci.setContextInitialized();
     }
@@ -6610,7 +6641,7 @@ public abstract class WebApp extends BaseContainer implements ServletContext, IS
 
     @Override
     public JspConfigDescriptor getJspConfigDescriptor() {
-        if (withinContextInitOfProgAddListener) {
+        if (withinContextInitOfProgAddListener && (com.ibm.ws.webcontainer.osgi.WebContainer.getServletContainerSpecLevel() < com.ibm.ws.webcontainer.osgi.WebContainer.SPEC_LEVEL_60)) {
             throw new UnsupportedOperationException(MessageFormat.format(
                     nls.getString("Unsupported.op.from.servlet.context.listener"),
                     new Object[] {"getJspConfigDescriptor", lastProgAddListenerInitialized, getApplicationName()}));  // PI41941
@@ -6804,5 +6835,12 @@ public abstract class WebApp extends BaseContainer implements ServletContext, IS
      * does anything useful in the WebApp31.
      */
     protected abstract void checkForSessionIdListenerAndAdd(Object listener);
+
+    /**
+     * @return the hasSlashStarMapping
+     */
+    public boolean hasSlashStarMapping() {
+        return hasSlashStarMapping;
+    }
     
 }

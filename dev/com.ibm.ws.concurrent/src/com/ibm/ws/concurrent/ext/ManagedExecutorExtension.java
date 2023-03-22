@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,6 +14,7 @@ package com.ibm.ws.concurrent.ext;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -20,8 +23,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import javax.enterprise.concurrent.ContextService;
 import javax.enterprise.concurrent.ManagedExecutorService;
 
 import org.eclipse.microprofile.context.ManagedExecutor;
@@ -29,10 +34,11 @@ import org.eclipse.microprofile.context.ThreadContext;
 
 import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.concurrent.WSManagedExecutorService;
+import com.ibm.ws.concurrent.internal.ManagedExecutorServiceImpl;
 import com.ibm.ws.threading.CompletionStageExecutor;
 import com.ibm.ws.threading.PolicyExecutor;
 import com.ibm.wsspi.resource.ResourceInfo;
-import com.ibm.wsspi.threadcontext.WSContextService;
+import com.ibm.wsspi.threadcontext.ThreadContextDescriptor;
 
 /**
  * Extend this interface to intercept and replace resource reference lookups for
@@ -54,6 +60,11 @@ public class ManagedExecutorExtension implements CompletionStageExecutor, Manage
     @Override
     public final boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         return ((ExecutorService) executor).awaitTermination(timeout, unit);
+    }
+
+    @Override
+    public final ThreadContextDescriptor captureThreadContext(Map<String, String> props) {
+        return executor.captureThreadContext(props);
     }
 
     @Override
@@ -91,9 +102,8 @@ public class ManagedExecutorExtension implements CompletionStageExecutor, Manage
         return ((ManagedExecutor) executor).failedStage(x);
     }
 
-    @Override
-    public final WSContextService getContextService() {
-        return executor.getContextService();
+    public final ContextService getContextService() {
+        return ((ManagedExecutorServiceImpl) executor).getContextService();
     }
 
     @Override
@@ -139,6 +149,11 @@ public class ManagedExecutorExtension implements CompletionStageExecutor, Manage
     @Override
     public final boolean isTerminated() {
         return ((ExecutorService) executor).isTerminated();
+    }
+
+    @Override
+    public <I, T> CompletableFuture<T> newAsyncMethod(BiFunction<I, CompletableFuture<T>, CompletionStage<T>> invoker, I invocation) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

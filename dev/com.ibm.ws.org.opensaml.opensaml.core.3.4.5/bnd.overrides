@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2020 IBM Corporation and others.
+# Copyright (c) 2020,2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -11,9 +13,7 @@
 -include= ~../cnf/resources/bnd/rejar.props
 bVersion=1.0
 
-Bundle-Name: org.opensaml.core
-Bundle-Description: org.opensaml opensaml core; version=3.4.5
-Bundle-SymbolicName: com.ibm.ws.org.opensaml.opensaml.core.3.4.5
+Multi-Release: true
 
 WS-TraceGroup: SAML20
 
@@ -107,7 +107,7 @@ Export-Package: \
   org.opensaml.soap.soap11.decoder.http.impl;version="3.4.5", \
   org.opensaml.soap.soap11.encoder.http.impl;version="3.4.5"
 
-Private-Package: templates,schema
+Private-Package: schema
  
 
 
@@ -161,8 +161,8 @@ Include-Resource: \
  @${repo;org.opensaml:opensaml-xacml-api;3.4.5}!/!META-INF/MANIFEST.MF|META-INF/maven/*|META-INF/services/*, \
  @${repo;org.opensaml:opensaml-xacml-saml-impl;3.4.5}!/!META-INF/MANIFEST.MF|META-INF/maven/*|META-INF/services/*, \
  @${repo;io.dropwizard.metrics:metrics-core;4.1.5}!/!META-INF/MANIFEST.MF|META-INF/maven/*|META-INF/services/*, \
- @${repo;org.bouncycastle:bcprov-jdk15on;1.61;EXACT},\
- @${repo;org.bouncycastle:bcpkix-jdk15on;1.61;EXACT},\
+ @${repo;org.bouncycastle:bcprov-jdk15on;1.69;EXACT}!/!META-INF/versions/9/module-info.class,\
+ @${repo;org.bouncycastle:bcpkix-jdk15on;1.69;EXACT}!/!META-INF/versions/9/module-info.class,\
+ @${repo;org.bouncycastle:bcutil-jdk15on;1.69;EXACT}!/!META-INF/versions/9/module-info.class,\
  META-INF=resources/META-INF
 
-jakartaeeMe: true

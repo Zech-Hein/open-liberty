@@ -11,8 +11,20 @@
         <feature>cdi-1.2</feature>
         <feature>ejbLite-3.2</feature>
         <feature>componentTest-1.0</feature>
-        <feature>cdi.internals-1.0</feature>
-        <feature>usr:cdi.helloworld.extension-1.0</feature>
+        <feature>cdi.internals-1.2</feature>
+        <feature>usr:cdi.helloworld.extension-1.2</feature>
     </featureManager>
+    
+    <library id="enablementSharedLib">
+        <file name="enablementSharedLib.jar"/>
+    </library>
+    
+    <!-- enablement.war with no shared library -->
+    <webApplication location="enablement.war" name="enablement" />
+    
+    <!-- enablement.war with the shared library -->
+    <webApplication location="enablement.war" name="enablementSharedLib">
+        <classloader commonLibraryRef="enablementSharedLib"/>
+    </webApplication>
 
 </server>

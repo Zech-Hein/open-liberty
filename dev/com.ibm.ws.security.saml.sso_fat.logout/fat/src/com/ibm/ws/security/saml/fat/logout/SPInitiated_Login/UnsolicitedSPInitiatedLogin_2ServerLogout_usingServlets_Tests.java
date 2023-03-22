@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -69,12 +71,12 @@ public class UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests exten
         extraApps.add(SAMLConstants.SAML_CLIENT_APP);
 
         // the config filenames are the same, but their content is just a little different (and they live in different sub-directories)
-        server1MasterConfig = "server_SPLogoutFalse" + cookieInfo.getCookieFileExtension() + "_unsolicited.xml";
-        server2MasterConfig = "server_SPLogoutFalse" + cookieInfo.getCookieFileExtension() + "_unsolicited.xml";
+        server1MainConfig = "server_SPLogoutFalse" + cookieInfo.getCookieFileExtension() + "_unsolicited.xml";
+        server2MainConfig = "server_SPLogoutFalse" + cookieInfo.getCookieFileExtension() + "_unsolicited.xml";
         server1OtherConfig = "server_SPLogoutTrue" + cookieInfo.getCookieFileExtension() + "_unsolicited.xml";
         server2OtherConfig = "server_SPLogoutTrue" + cookieInfo.getCookieFileExtension() + "_unsolicited.xml";
 
-        start2SPWithIDPServer("com.ibm.ws.security.saml.sso_fat.logout", server1MasterConfig, "com.ibm.ws.security.saml.sso_fat.logout.server2", server2MasterConfig, SAMLConstants.SAML_SERVER_TYPE, extraMsgs, extraApps, true, null, null);
+        start2SPWithIDPServer("com.ibm.ws.security.saml.sso_fat.logout", server1MainConfig, "com.ibm.ws.security.saml.sso_fat.logout.server2", server2MainConfig, SAMLConstants.SAML_SERVER_TYPE, extraMsgs, extraApps, true, null, null);
 
         testSAMLServer.addIgnoredServerException(SAMLMessageConstants.CWWKS5207W_SAML_CONFIG_IGNORE_ATTRIBUTES);
         testSAMLServer2.addIgnoredServerException(SAMLMessageConstants.CWWKS5207W_SAML_CONFIG_IGNORE_ATTRIBUTES);
@@ -91,7 +93,7 @@ public class UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests exten
     public void UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests_IDPInitiated_LogoutUrl_sameUser() throws Exception {
 
         testUsers = new Testusers(UserType.SAME);
-        reconfigServers(server1MasterConfig, server2MasterConfig);
+        reconfigServers(server1MainConfig, server2MainConfig);
         test_logout_with_multipleSPs_on_2Servers(SAMLConstants.UNSOLICITED_SP_INITIATED, SAMLConstants.IDP_INITIATED, LOGOUT_INVOLVES_IDP);
 
     }
@@ -102,7 +104,7 @@ public class UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests exten
         // With an IDP initiated login, we'll login and generate an idp_session cookie on the IDP server
         // once we have that, the IDP won't make us log in again, so, we're really using the same user from the rest of test
         testUsers = new Testusers(UserType.DIFFERENT);
-        reconfigServers(server1MasterConfig, server2MasterConfig);
+        reconfigServers(server1MainConfig, server2MainConfig);
         test_logout_with_multipleSPs_on_2Servers(SAMLConstants.UNSOLICITED_SP_INITIATED, SAMLConstants.IDP_INITIATED, LOGOUT_INVOLVES_IDP);
 
     }
@@ -111,7 +113,7 @@ public class UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests exten
     public void UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests_IDPInitiated_LogoutUrl_tryToUseSPServer2CookieAfterLogout() throws Exception {
 
         testUsers = new Testusers(UserType.SAME);
-        reconfigServers(server1MasterConfig, server2MasterConfig);
+        reconfigServers(server1MainConfig, server2MainConfig);
         test_usingCookieAfterLogout(SAMLConstants.UNSOLICITED_SP_INITIATED, SAMLConstants.IDP_INITIATED, LOGOUT_INVOLVES_IDP);
 
     }
@@ -120,7 +122,7 @@ public class UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests exten
     public void UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests_servletRequestLogout_spLogoutFalse_sameUser() throws Exception {
 
         testUsers = new Testusers(UserType.SAME);
-        reconfigServers(server1MasterConfig, server2MasterConfig);
+        reconfigServers(server1MainConfig, server2MainConfig);
         test_logout_with_multipleSPs_on_2Servers(SAMLConstants.UNSOLICITED_SP_INITIATED, SAMLConstants.HTTPSERVLET_INITIATED, LogoutStaysInSPOnly);
 
     }
@@ -129,7 +131,7 @@ public class UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests exten
     public void UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests_servletRequestLogout_spLogoutFalse_differentUsers() throws Exception {
 
         testUsers = new Testusers(UserType.DIFFERENT);
-        reconfigServers(server1MasterConfig, server2MasterConfig);
+        reconfigServers(server1MainConfig, server2MainConfig);
         test_logout_with_multipleSPs_on_2Servers(SAMLConstants.UNSOLICITED_SP_INITIATED, SAMLConstants.HTTPSERVLET_INITIATED, LogoutStaysInSPOnly);
 
     }
@@ -138,7 +140,7 @@ public class UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests exten
     public void UnsolicitedSPInitiatedLogin_2ServerLogout_usingServlets_Tests_servletRequestLogout_spLogoutFalse_tryToUseSPServer2CookieAfterLogout() throws Exception {
 
         testUsers = new Testusers(UserType.SAME);
-        reconfigServers(server1MasterConfig, server2MasterConfig);
+        reconfigServers(server1MainConfig, server2MainConfig);
         test_usingCookieAfterLogout(SAMLConstants.UNSOLICITED_SP_INITIATED, SAMLConstants.HTTPSERVLET_INITIATED, LogoutStaysInSPOnly);
 
     }

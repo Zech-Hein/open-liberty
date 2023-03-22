@@ -1,25 +1,28 @@
-package com.ibm.tx.jta.embeddable.config;
-
 /*******************************************************************************
  * Copyright (c) 2010, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
+package com.ibm.tx.jta.embeddable.config;
+
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import com.ibm.ejs.ras.Tr;
-import com.ibm.ejs.ras.TraceComponent;
 import com.ibm.tx.TranConstants;
 import com.ibm.tx.config.ConfigurationProvider;
 import com.ibm.tx.config.RuntimeMetaDataProvider;
 import com.ibm.tx.jta.util.alarm.AlarmManagerImpl;
 import com.ibm.tx.util.alarm.AlarmManager;
+import com.ibm.websphere.ras.Tr;
+import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.wsspi.resource.ResourceFactory;
 
 public class EmbeddableConfigurationProviderImpl implements ConfigurationProvider {
@@ -489,40 +492,40 @@ public class EmbeddableConfigurationProviderImpl implements ConfigurationProvide
     /*
      * (non-Javadoc)
      *
-     * @see com.ibm.tx.config.ConfigurationProvider#getLightweightTransientErrorRetryTime()
+     * @see com.ibm.tx.config.ConfigurationProvider#getLightweightLogRetryInterval()
      */
     @Override
-    public int getLightweightTransientErrorRetryTime() {
+    public int getLightweightLogRetryInterval() {
         return 1;
     }
 
     /*
      * (non-Javadoc)
      *
-     * @see com.ibm.tx.config.ConfigurationProvider#getLightweightTransientErrorRetryAttempts()
+     * @see com.ibm.tx.config.ConfigurationProvider#getLightweightLogRetryLimit()
      */
     @Override
-    public int getLightweightTransientErrorRetryAttempts() {
+    public int getLightweightLogRetryLimit() {
         return 2;
     }
 
     /*
      * (non-Javadoc)
      *
-     * @see com.ibm.tx.config.ConfigurationProvider#getStandardTransientErrorRetryTime()
+     * @see com.ibm.tx.config.ConfigurationProvider#getLogRetryInterval()
      */
     @Override
-    public int getStandardTransientErrorRetryTime() {
+    public int getLogRetryInterval() {
         return 10;
     }
 
     /*
      * (non-Javadoc)
      *
-     * @see com.ibm.tx.config.ConfigurationProvider#getStandardTransientErrorRetryAttempts()
+     * @see com.ibm.tx.config.ConfigurationProvider#getLogRetryLimit()
      */
     @Override
-    public int getStandardTransientErrorRetryAttempts() {
+    public int getLogRetryLimit() {
         return 180;
     }
 
@@ -533,11 +536,46 @@ public class EmbeddableConfigurationProviderImpl implements ConfigurationProvide
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.tx.config.ConfigurationProvider#isDataSourceFactorySet()
      */
     @Override
     public boolean isDataSourceFactorySet() {
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.ibm.tx.config.ConfigurationProvider#enableLogRetries()
+     */
+    @Override
+    public boolean enableLogRetries() {
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.ibm.tx.config.ConfigurationProvider#getRetriableSqlCodes()
+     */
+    @Override
+    public List<Integer> getRetriableSqlCodes() {
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.ibm.tx.config.ConfigurationProvider#getNonRetriableSqlCodes()
+     */
+    @Override
+    public List<Integer> getNonRetriableSqlCodes() {
+        return null;
+    }
+
+    @Override
+    public boolean isForcePrepare() {
         return false;
     }
 }

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -58,7 +60,7 @@ public class JCAEnterpriseAppTestServlet extends FATServlet {
     private static String MBEAN_TYPE = "com.ibm.ws.jca.cm.mbean.ConnectionManagerMBean";
 
     /**
-     * Sanity check test to make sure the servlet is available
+     * Test to make sure the servlet is available
      */
     public void checkSetupTest(HttpServletRequest request, HttpServletResponse response) throws Exception {
         response.getWriter().println("Check setup test is working.");

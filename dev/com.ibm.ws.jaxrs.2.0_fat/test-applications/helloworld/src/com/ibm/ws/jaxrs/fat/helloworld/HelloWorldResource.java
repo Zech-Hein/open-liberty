@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -65,7 +67,6 @@ public class HelloWorldResource {
     @Path("/{uniqueid : ([0-9a-t]{8}|[0-9a-t]{11})}/{testString}")
     public String getMessage(@PathParam("uniqueid") String uniqueid,
                              @PathParam("testString") String testString) {
-        System.out.println("Jim... " +  HelloWorldResource.message + ":" + uniqueid + ":" + testString);
         return HelloWorldResource.message + ":" + uniqueid + ":" + testString;
     }
 

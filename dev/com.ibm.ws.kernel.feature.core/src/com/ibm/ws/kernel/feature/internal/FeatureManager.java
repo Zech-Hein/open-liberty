@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2021 IBM Corporation and others.
+ * Copyright (c) 2009, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -118,6 +120,8 @@ import com.ibm.wsspi.kernel.service.utils.OnErrorUtil;
 import com.ibm.wsspi.kernel.service.utils.OnErrorUtil.OnError;
 import com.ibm.wsspi.kernel.service.utils.PathUtils;
 import com.ibm.wsspi.kernel.service.utils.TimestampUtils;
+
+import io.openliberty.checkpoint.spi.CheckpointPhase;
 
 /**
  * The feature manager finishes the initialization of the runtime by analyzing a list
@@ -778,7 +782,6 @@ public class FeatureManager implements FeatureProvisioner, FrameworkReady, Manag
                     // even if no features are loaded
                     BundleLifecycleStatus startStatus = setStartLevel(ProvisionerConstants.LEVEL_ACTIVE);
                     checkBundleStatus(startStatus); // FFDC, etc.
-
                     checkServerReady();
 
                     //register a service that can be looked up for server start.
@@ -974,6 +977,10 @@ public class FeatureManager implements FeatureProvisioner, FrameworkReady, Manag
      */
     private void writeFeatureChangeMessages(long startTime, ProvisioningMode provisioningMode) {
         String time = TimestampUtils.getElapsedTimeNanos(startTime);
+
+        if (provisioningMode == ProvisioningMode.INITIAL_PROVISIONING && CheckpointPhase.getPhase() != CheckpointPhase.INACTIVE) {
+            time = TimestampUtils.getElapsedTime();
+        }
 
         if (provisioningMode == ProvisioningMode.UPDATE) {
             Tr.audit(tc, "COMPLETE_AUDIT", time);
@@ -1298,7 +1305,8 @@ public class FeatureManager implements FeatureProvisioner, FrameworkReady, Manag
 
         // short circuit if package server is expecting conflicts
         if (currentPackageServerConflict != null) {
-            return featureResolver.resolveFeatures(restrictedRespository, kernelFeatures, rootFeatures, Collections.<String> emptySet(), currentPackageServerConflict, EnumSet.allOf(ProcessType.class));
+            return featureResolver.resolveFeatures(restrictedRespository, kernelFeatures, rootFeatures, Collections.<String> emptySet(), currentPackageServerConflict,
+                                                   EnumSet.allOf(ProcessType.class));
         }
         // resolve the features
         // TODO Note that we are just supporting all types at runtime right now.  In the future this may be restricted by the actual running process type
@@ -1903,6 +1911,7 @@ public class FeatureManager implements FeatureProvisioner, FrameworkReady, Manag
             resolved.clear();
             Tr.warning(tc, "UPDATE_DISABLED_FEATURES_ON_CONFLICT");
         }
+
         return reportedErrors;
 
     }
@@ -2080,19 +2089,25 @@ public class FeatureManager implements FeatureProvisioner, FrameworkReady, Manag
         return symbolicName != null && symbolicName.lastIndexOf(EE_COMPATIBLE_NAME) >= 0;
     }
 
-    private static char getEeCompatibleVersion(String symbolicName) {
-        return symbolicName.charAt(symbolicName.lastIndexOf("-") + 1);
+    private static int getEeCompatibleVersion(String symbolicName) {
+        String version = symbolicName.substring(symbolicName.lastIndexOf("-") + 1);
+        int dotIndex = version.indexOf('.');
+        if (dotIndex != -1) {
+            version = version.substring(0, dotIndex);
+        }
+        return Integer.parseInt(version);
     }
 
     private String getEeCompatiblePlatform(String symbolicName, boolean ignoreVersion) {
-        char charVersion = getEeCompatibleVersion(symbolicName);
-        switch (charVersion) {
-            case '9':
-                return "Jakarta EE" + ((ignoreVersion) ? "" : " " + charVersion);
-            case '8':
-            case '7':
-            case '6':
-                return "Java EE" + ((ignoreVersion) ? "" : " " + charVersion);
+        int intVersion = getEeCompatibleVersion(symbolicName);
+        switch (intVersion) {
+            case 10:
+            case 9:
+                return "Jakarta EE" + ((ignoreVersion) ? "" : " " + intVersion);
+            case 8:
+            case 7:
+            case 6:
+                return "Java EE" + ((ignoreVersion) ? "" : " " + intVersion);
             default:
                 // TODO this is really just a fall back and for testing
                 // this should come from additional meta-data of the feature
@@ -2101,7 +2116,7 @@ public class FeatureManager implements FeatureProvisioner, FrameworkReady, Manag
                 if (fd != null) {
                     String subsystemName = fd.getHeader("Subsystem-Name");
                     if (subsystemName != null) {
-                        return subsystemName + ((ignoreVersion) ? "" : " " + charVersion);
+                        return subsystemName + ((ignoreVersion) ? "" : " " + intVersion);
                     }
                 }
                 return "Unknown";

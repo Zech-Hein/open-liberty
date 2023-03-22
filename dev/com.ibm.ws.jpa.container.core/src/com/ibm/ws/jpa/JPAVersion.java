@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,7 +17,8 @@ public enum JPAVersion {
     JPA20(6, "2.0"),
     JPA21(7, "2.1"),
     JPA22(8, "2.2"),
-    JPA30(9, "3.0");
+    JPA30(9, "3.0"),
+    JPA31(10, "3.1");
 
     private final int jeeSpecLevel;
     private final String versionStr;

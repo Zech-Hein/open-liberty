@@ -93,8 +93,11 @@ import org.apache.cxf.ws.addressing.EndpointReferenceType;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-import com.ibm.ws.cxf.client.component.AsyncClientRunnableWrapperManager;
+import com.ibm.ws.cxf.jaxrs21.client.component.AsyncClientRunnableWrapperManager;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
+
+
+import com.ibm.websphere.ras.annotation.Trivial;
 
 /*
  * HTTP Conduit implementation.
@@ -151,6 +154,7 @@ import com.ibm.ws.ffdc.annotation.FFDCIgnore;
  * instance is governed by policies either explicitly set or by
  * configuration.
  */
+@Trivial
 @NoJSR250Annotations
 public abstract class HTTPConduit
     extends AbstractConduit
@@ -1136,6 +1140,7 @@ public abstract class HTTPConduit
      * Wrapper output stream responsible for flushing headers and handling
      * the incoming HTTP-level response (not necessarily the MEP response).
      */
+    @Trivial
     protected abstract class WrappedOutputStream extends AbstractThresholdOutputStream {
         /**
          * This boolean is true if the request must be cached.
@@ -1428,6 +1433,10 @@ public abstract class HTTPConduit
                 String origMessage = e.getMessage();
                 if (origMessage != null && origMessage.contains(url.toString())) {
                     throw e;
+                }
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    // tracing here because this exception can get lost in async scenarios
+                    Tr.debug(tc, "Caught IOException while closing HTTPConduit", e);
                 }
                 throw mapException(e.getClass().getSimpleName()
                                    + " invoking " + url + ": "
@@ -1894,7 +1903,7 @@ public abstract class HTTPConduit
                     || !newUri.getHost().equals(lastUri.getHost())) {
                     String msg = "Different HTTP Scheme or Host Redirect detected on Conduit '"
                         + conduitName + "' on '" + newURL + "'";
-                    LOG.log(Level.INFO, msg);
+                    LOG.log(Level.FINEST, msg);
                     throw new IOException(msg);
                 }
             }
@@ -1902,7 +1911,7 @@ public abstract class HTTPConduit
             String allowedRedirectURI = (String)message.getContextualProperty(AUTO_REDIRECT_ALLOWED_URI);
             if (allowedRedirectURI != null && !newURL.startsWith(allowedRedirectURI)) {
                 String msg = "Forbidden Redirect URI " + newURL + "detected on Conduit '" + conduitName;
-                LOG.log(Level.INFO, msg);
+                LOG.log(Level.FINEST, msg);
                 throw new IOException(msg);
             }
 

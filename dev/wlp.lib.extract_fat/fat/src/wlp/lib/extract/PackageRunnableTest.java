@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 IBM Corporation and others.
+ * Copyright (c) 2011, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -59,21 +61,27 @@ public class PackageRunnableTest {
     private static final File extractDirectory2 = new File("publish" + File.separator + "wlpExtract2");
     private static final File extractAndRunDir = new File("publish" + File.separator + "wlpExtractAndRun");
     private static final File extractDirectory3 = new File("publish" + File.separator + "wlpExtract3");
+    private static final File extractDirectory4 = new File("publish" + File.separator + "wlpExtract4");
     private static File extractLocation = null;
     private static File outputAutoFVTDirectory = null;
     private static final long DUMMY_MANIFEST_FILE_SIZE = 41;
+    // Wait a few seconds longer than quiesce time
+    private static final int STOP_RETRY_COUNT = 35;
 
     /*
      * return env as array and add WLP_JAR_EXTRACT_DIR=extractDirectory
      */
     private static void runEnv(Map<String, String> envmap, String extractDirectory, boolean useDummyUserDir) {
+        String method = "runEnv";
 
         if (useDummyUserDir) {
             String dummyUserDir = extractDirectory + File.separator + "a1a" + File.separator + "b2b" + File.separator + "c3c";
             envmap.put("WLP_USER_DIR", dummyUserDir);
+            Log.info(c, method, "Adding env variable WLP_USER_DIR = " + dummyUserDir);
         }
         if (extractDirectory != null) {
             envmap.put("WLP_JAR_EXTRACT_DIR", extractDirectory);
+            Log.info(c, method, "Adding env variable WLP_JAR_EXTRACT_DIR = " + extractDirectory);
         }
     }
 
@@ -84,21 +92,31 @@ public class PackageRunnableTest {
         // Verify that /lib/extract exits, and the manifest.mf is valid
         validateWLPLibExtractAndManifest();
 
-        // Save off the output directory so we can save a copy of the .jar if its bad
-        outputAutoFVTDirectory = new File("output/servers/", serverName);
-        Log.info(c, method, "outputAutoFVTDirectory: " + outputAutoFVTDirectory.getAbsolutePath());
-
+        /*
+         * // Save off the output directory so we can save a copy of the .jar if its bad
+         * outputAutoFVTDirectory = new File("output/servers/", serverName);
+         * Log.info(c, method, "outputAutoFVTDirectory: " + outputAutoFVTDirectory.getAbsolutePath());
+         */
     }
 
     @BeforeClass
-    public static void setupClass() throws Exception {}
+    public static void setupClass() throws Exception {
+        final String METHOD_NAME = "setUpBeforeClass";
+
+        // Save this off for the tearDown method to manually copy logs from /NonDefaultUser
+        // folder to /autoFVT/output/servers/ folder.
+        outputAutoFVTDirectory = new File("output/servers", serverName);
+        Log.info(c, METHOD_NAME, "outputAutoFVTDirectory: " + outputAutoFVTDirectory.getAbsolutePath());
+    }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
+
         deleteDir(extractAndRunDir);
         deleteDir(extractDirectory1);
         deleteDir(extractDirectory2);
         deleteDir(extractDirectory3);
+        deleteDir(extractDirectory4);
         if (extractLocation != null)
             deleteDir(extractLocation);
     }
@@ -167,7 +185,7 @@ public class PackageRunnableTest {
 
         Log.info(c, method, "stdout for package cmd is: \n" + stdout);
 
-        executeTheJar(extractDirectory2, true, true, false);
+        executeTheJar(extractDirectory2, true, true, true);
         checkDirStructure(extractDirectory2, true);
     }
 
@@ -198,7 +216,7 @@ public class PackageRunnableTest {
 
         String extLoc = executeTheJar(extractDirectory3, false, true, true);
 
-        assertTrue("The extract location does not match the WLP_JAR_EXTRACT_DIR. ExtractDir = " + extractDirectory3.getAbsolutePath() + " vs " + extractLocation,
+        assertTrue("The extract location does not match the WLP_JAR_EXTRACT_DIR. ExtractDir = " + extractDirectory3.getAbsolutePath() + " vs " + extLoc,
                    extLoc.startsWith(extractDirectory3.getAbsolutePath()));
 
         assertTrue("root folder at " + extractDirectory3.getAbsolutePath() + " does not exist, but should.", extractDirectory3.exists());
@@ -229,7 +247,7 @@ public class PackageRunnableTest {
 
         Log.info(c, method, "stdout for package cmd is: \n" + stdout);
 
-        extractLocation = new File(executeTheJar(extractDirectory3, true, false, true));
+        extractLocation = new File(executeTheJar(extractDirectory4, true, false, true));
 
         // Make sure the server is stopped
         assertNotNull("The server did not show that it had stopped after executing the jar.",
@@ -288,117 +306,161 @@ public class PackageRunnableTest {
      * @throws InterruptedException
      */
     private String executeTheJar(File extractDirectory, boolean useDummyUserDir, boolean useRunEnv, boolean useNormalStop) throws Exception, InterruptedException {
-
+        String extractLoc = null;
+        Process proc = null;
         String method = "executeTheJar";
-        if (!extractDirectory.exists()) {
-            extractDirectory.mkdirs();
-        }
 
-        OutputStream os = new FileOutputStream(server.getLogsRoot() + File.separator + "executeTheJar.log");
+        try {
+            if (!extractDirectory.exists()) {
+                extractDirectory.mkdirs();
+            }
 
-        assertTrue("Extract directory " + extractDirectory.getAbsolutePath() + " does not exist.", extractDirectory.exists());
+            OutputStream os = new FileOutputStream(server.getLogsRoot() + File.separator + "executeTheJar.log");
 
-        String[] cmd = { "java", "-jar", runnableJar.getAbsolutePath() };
-        Log.info(c, method, "Running command: " + Arrays.toString(cmd));
-        ProcessBuilder processBuilder = new ProcessBuilder(cmd);
-        processBuilder.redirectErrorStream(true);
-        if (useRunEnv == true) {
-            runEnv(processBuilder.environment(), extractDirectory.getAbsolutePath(), useDummyUserDir);
-        }
-        Process proc = processBuilder.start();
+            assertTrue("Extract directory " + extractDirectory.getAbsolutePath() + " does not exist.", extractDirectory.exists());
 
-        // setup and start reader threads for error and output streams
+            String[] cmd;
+
+            if (System.getProperty("os.name").equalsIgnoreCase("os/400")) {
+                // If this is running on IBM i, add the -XX:+EnableHCR option to not run in a separate JVM
+                cmd = new String[] { "java", "-XX:+EnableHCR", "-jar", runnableJar.getAbsolutePath() };
+            } else {
+                cmd = new String[] { "java", "-jar", runnableJar.getAbsolutePath() };
+            }
+
+            Log.info(c, method, "Running command: " + Arrays.toString(cmd));
+            ProcessBuilder processBuilder = new ProcessBuilder(cmd);
+            processBuilder.redirectErrorStream(true);
+            if (useRunEnv == true) {
+                runEnv(processBuilder.environment(), extractDirectory.getAbsolutePath(), useDummyUserDir);
+            }
+            proc = processBuilder.start();
+
+            // setup and start reader threads for error and output streams
 //        StreamReader errorReader = new StreamReader(proc.getErrorStream(), "ERROR", null);
 //        errorReader.start();
-        StreamReader outputReader = new StreamReader(proc.getInputStream(), "OUTPUT", "CWWKF0011I", os);
-        outputReader.start();
+            StreamReader outputReader = new StreamReader(proc.getInputStream(), "OUTPUT", "CWWKF0011I", os);
+            outputReader.start();
 
-        int count = 0;
+            int count = 0;
 
-        // wait up to 90 seconds to find watch for string
+            // wait up to 90 seconds to find watch for string
 
-        String extractLoc = null;
-        boolean found = outputReader.foundWatchFor();
-        extractLoc = outputReader.extractLoc();
-        while (!found && count <= 90) {
-
-            synchronized (proc) {
-                proc.wait(1000); // wait 1 second
-                Log.info(c, method, "Waiting for server to complete initialization - " + count + " seconds elapsed.");
-            }
-            found = outputReader.foundWatchFor();
+            boolean found = outputReader.foundWatchFor();
             extractLoc = outputReader.extractLoc();
-            count++;
-        }
+            while (!found && count <= 90) {
 
-        if (!found) {
-            Log.info(c, method, "Process is alive: " + proc.isAlive());
-            // capture the messages.log for debugging test
-            File messagesLog = new File(server.getInstallRoot(), "/usr/servers/" + serverName + "/logs/messages.log").getAbsoluteFile();
-            if (messagesLog.exists()) {
-                Files.lines(messagesLog.toPath()).forEach((l) -> {
-                    Log.info(c, method, "MESSAGES LINE: " + l);
-                });
-            } else {
-                Log.info(c, method, "No messages.log - " + messagesLog.getAbsolutePath());
-            }
-
-            // log the contents of the runnable jar's manifest.mf
-            JarFile jarFile = new JarFile(runnableJar.getAbsolutePath());
-            boolean manifestFound = false;
-
-            for (Enumeration<JarEntry> e = jarFile.entries(); e.hasMoreElements();) {
-                JarEntry je = e.nextElement();
-                Log.info(c, method, "entry name = " + je.getName() + " entry size = " + je.getSize());
-                if (je.getName().equals("META-INF/MANIFEST.MF")) {
-
-                    Log.info(c, method, "=== Start dumping contents of manifest file ===");
-                    Log.info(c, method, readJarEntryContent(jarFile, je));
-                    manifestFound = true;
-                    Log.info(c, method, "=== End dumping contents of manifest file ===");
+                synchronized (proc) {
+                    proc.wait(1000); // wait 1 second
+                    Log.info(c, method, "Waiting for server to complete initialization - " + count + " seconds elapsed.");
                 }
+                found = outputReader.foundWatchFor();
+                extractLoc = outputReader.extractLoc();
+                count++;
             }
 
-            if (jarFile != null) {
-                jarFile.close();
+            if (!found) {
+                Log.info(c, method, "Process is alive: " + proc.isAlive());
+                // capture the messages.log for debugging test
+                File messagesLog = new File(server.getInstallRoot(), "/usr/servers/" + serverName + "/logs/messages.log").getAbsoluteFile();
+                if (messagesLog.exists()) {
+                    Files.lines(messagesLog.toPath()).forEach((l) -> {
+                        Log.info(c, method, "MESSAGES LINE: " + l);
+                    });
+                } else {
+                    Log.info(c, method, "No messages.log - " + messagesLog.getAbsolutePath());
+                }
+
+                // log the contents of the runnable jar's manifest.mf
+                JarFile jarFile = new JarFile(runnableJar.getAbsolutePath());
+                boolean manifestFound = false;
+
+                for (Enumeration<JarEntry> e = jarFile.entries(); e.hasMoreElements();) {
+                    JarEntry je = e.nextElement();
+                    Log.info(c, method, "entry name = " + je.getName() + " entry size = " + je.getSize());
+                    if (je.getName().equals("META-INF/MANIFEST.MF")) {
+
+                        Log.info(c, method, "=== Start dumping contents of manifest file ===");
+                        Log.info(c, method, readJarEntryContent(jarFile, je));
+                        manifestFound = true;
+                        Log.info(c, method, "=== End dumping contents of manifest file ===");
+                    }
+                }
+
+                if (jarFile != null) {
+                    jarFile.close();
+                }
+
+                assertTrue("Runnable jar did not contain a META-INF/MANIFEST.MF file", manifestFound);
+
+                // If we have an invalid package, save off the jar for troubleshooting.
+                outputAutoFVTDirectory = new File("output/servers/", serverName);
+                Log.info(c, method, "outputAutoFVTDirectory: " + outputAutoFVTDirectory.getAbsolutePath());
+
+                outputAutoFVTDirectory.mkdirs();
+                Log.info(c, method, "Copying directory from " +
+                                    runnableJar.getAbsolutePath() + " to " +
+                                    outputAutoFVTDirectory.getAbsolutePath() + "/" + serverName + ".jar");
+
+                File srcDir = new File(runnableJar.getAbsolutePath());
+                copyFile(srcDir, new File(outputAutoFVTDirectory.getAbsolutePath() + "/" + serverName + ".jar"));
+
             }
 
-            assertTrue("Runnable jar did not contain a META-INF/MANIFEST.MF file", manifestFound);
+            assertTrue("Server did not start successfully in time.", found);
 
-            // If we have an invalid package, save off the jar for troubleshooting.
-            outputAutoFVTDirectory.mkdirs();
-            Log.info(c, method, "Copying directory from " +
-                                runnableJar.getAbsolutePath() + " to " +
-                                outputAutoFVTDirectory.getAbsolutePath() + "/" + serverName + ".jar");
+            outputReader.setIs(null);
 
-            File srcDir = new File(runnableJar.getAbsolutePath());
-            copyFile(srcDir, new File(outputAutoFVTDirectory.getAbsolutePath() + "/" + serverName + ".jar"));
+            // Attempt to stop the server
+            int retry = 0;
 
-        }
-
-        assertTrue("Server did not start successfully in time.", found);
-
-        outputReader.setIs(null);
-        if (useNormalStop != true) {
-            // ensure no process left behind
-            proc.destroy();
-        } else {
-            // stop cleanly so shutdown hook is called
-            stopServer(extractLoc);
-            Log.info(c, method, "Server is stopping via the stop command, thus the shutdown hook should run...");
-            while (server.isStarted()) {
-                Log.info(c, method, "Server still alive..sleeping");
-                Thread.sleep(1);
+            if (useNormalStop == false) {
+                // ensure no process left behind
+                while (proc.isAlive() && retry < STOP_RETRY_COUNT) {
+                    Log.info(c, method, "Server is stopping via the proc.destroy() method.  Retry = " + retry);
+                    proc.destroy();
+                    Thread.sleep(1000);
+                    retry++;
+                }
+            } else {
+                // stop normally so shutdown hook is called
+                stopServer(extractLoc);
             }
+
+            if (os != null) {
+                os.close();
+            }
+
+            Log.info(c, method,
+                     "Server with name = " + server.getServerName() + " server.isStarted() = "
+                                + server.isStarted() + " proc.isAlive() = " + proc.isAlive() + " retry = " + retry);
+
+        } finally {
+
+            if (proc.isAlive()) {
+                if (server.isStarted()) {
+                    // Attempt to dump the server if its still alive
+                    Log.info(c, method, "Dumping server as it has not stopped by request.");
+                    server.dumpServer(extractLoc + File.separator + "usr" + File.separator + "servers" + File.separator + serverName);
+                }
+                Log.info(c, method, "Destroying the process as it was not stopped via the previous attempts.");
+                proc.destroy();
+            }
+/*
+ * // Manually copy the logs since the framework does not do this given the extract locations.
+ * int loc = extractDirectory.getAbsolutePath().lastIndexOf(File.separator);
+ * String folder = extractDirectory.getAbsolutePath().substring(loc);
+ * File pathWithFolder = new File(outputAutoFVTDirectory.getAbsolutePath() + File.separator + folder);
+ * Log.info(c, method, "Saving logs to " + pathWithFolder.getAbsolutePath());
+ * pathWithFolder.mkdirs();
+ * Log.info(c, method, "Copying directory from " +
+ * extractLoc + File.separator + "usr" + File.separator + "servers" + File.separator + serverName + " to " +
+ * pathWithFolder.getAbsolutePath());
+ *
+ * File srcDir = new File(extractLoc + File.separator + "usr" + File.separator + "servers" + File.separator + serverName);
+ * copyDirectory(srcDir, pathWithFolder.getAbsoluteFile());
+ */
         }
-
-        if (os != null) {
-            os.close();
-        }
-
-        Log.info(c, method, "Waiting 30 seconds...to make sure all Liberty thread exiting.");
-        Thread.sleep(30000); // wait 30 second
-
         return extractLoc;
     }
 
@@ -429,7 +491,15 @@ public class PackageRunnableTest {
             }
         }
 
-        String[] cmd = { "java", "-cp", extractAndRunDir.getAbsolutePath(), "wlp.lib.extract.SelfExtractRun" };
+        String[] cmd;
+
+        if (System.getProperty("os.name").equalsIgnoreCase("os/400")) {
+            // If this is running on IBM i, add the -XX:+EnableHCR option to not run in a separate JVM
+            cmd = new String[] { "java", "-XX:+EnableHCR", "-cp", extractAndRunDir.getAbsolutePath(), "wlp.lib.extract.SelfExtractRun" };
+        } else {
+            cmd = new String[] { "java", "-cp", extractAndRunDir.getAbsolutePath(), "wlp.lib.extract.SelfExtractRun" };
+        }
+
         Log.info(c, "executeAndExecuteMain", "Running command: " + Arrays.toString(cmd));
         ProcessBuilder processBuilder = new ProcessBuilder(cmd);
         processBuilder.redirectErrorStream(true);
@@ -457,6 +527,12 @@ public class PackageRunnableTest {
             count++;
         }
 
+        // make sure we close out the OutputStream in case we timeout looking for the msg above! when
+        // this happens the server framework cant delete the extractAndExecuteMain.log file.
+        if (os != null) {
+            os.close();
+        }
+
         assertTrue("Server did not start successfully in time.", found);
 
         outputReader.setIs(null);
@@ -467,11 +543,7 @@ public class PackageRunnableTest {
             Log.info(c, "extractAndExecuteMain", "WLP installation directory was removed.");
         }
 
-        if (os != null) {
-            os.close();
-        }
-
-        Log.info(c, "extractAndExecuteMain", "Waiting 30 seconds...to make sure all Liberty thread exiting.");
+        Log.info(c, "extractAndExecuteMain", "Waiting 30 seconds...to make sure all Liberty threads exit.");
         Thread.sleep(30000); // wait 30 second
     }
 
@@ -550,25 +622,20 @@ public class PackageRunnableTest {
     }
 
     /**
-     * Stops the server at the specified location
+     * Stops the server at the specified location via the server framework
      *
      * @param extractLocation
      * @throws Exception
      */
     private void stopServer(String extractLocation) throws Exception {
-        // build the stop command for Unix platforms
-        String cmd = extractLocation + File.separator + "bin" + File.separator + "server stop " + serverName + " --force";
+        String method = "stopServer";
 
-        // modify cmd if windows based
-        if (System.getProperty("os.name").startsWith("Win")) {
-            if (System.getenv("WLP_JAR_CYGWIN") != null) {
-                cmd = "bash -c  " + '"' + cmd.replace('\\', '/') + '"';
-            } else {
-                cmd = "cmd /k " + cmd;
-            }
-        }
+        Log.info(c, method, "Getting existing liberty server");
+        LibertyServer server = LibertyServerFactory.getExistingLibertyServer(extractLocation + File.separator + "usr" + File.separator + "servers" + File.separator
+                                                                             + serverName);
+        Log.info(c, method, "Attempting to stop server = " + server.getServerName() + " with status = " + server.isStarted());
 
-        Runtime.getRuntime().exec(cmd); // stop server
+        server.stopServer();
     }
 
     /**
@@ -782,6 +849,31 @@ public class PackageRunnableTest {
             }
         } finally {
             reader.close();
+        }
+    }
+
+    public static void copyDirectory(File source, File target) throws IOException {
+        if (source.isDirectory()) {
+            if (!target.exists()) {
+                target.mkdir();
+            }
+
+            String[] children = source.list();
+            for (int i = 0; i < children.length; i++) {
+                copyDirectory(new File(source, children[i]),
+                              new File(target, children[i]));
+            }
+        } else {
+            InputStream in = new FileInputStream(source);
+            OutputStream out = new FileOutputStream(target);
+
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+            in.close();
+            out.close();
         }
     }
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,6 +16,7 @@ package web.war.database.immediate;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -40,7 +43,8 @@ public class DatabaseSettingsBean {
 
     private Properties props;
 
-    public DatabaseSettingsBean() {}
+    public DatabaseSettingsBean() {
+    }
 
     public String getCallerQuery() throws IOException {
         refreshConfiguration();
@@ -112,7 +116,7 @@ public class DatabaseSettingsBean {
         if (resultsSet.size() > 0) {
             results = resultsSet.toArray(new ValidationType[resultsSet.size()]);
         }
-        System.out.println(CLASS_NAME + ".getUseFor() returns: " + results);
+        System.out.println(CLASS_NAME + ".getUseFor() returns: " + Arrays.toString(results));
         return results;
     }
 

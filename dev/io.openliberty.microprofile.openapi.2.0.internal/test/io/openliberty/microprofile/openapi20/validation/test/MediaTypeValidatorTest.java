@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,10 +22,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import io.openliberty.microprofile.openapi20.internal.utils.OpenAPIModelWalker.Context;
+import io.openliberty.microprofile.openapi20.internal.validation.MediaTypeValidator;
 import io.openliberty.microprofile.openapi20.test.utils.TestValidationContextHelper;
 import io.openliberty.microprofile.openapi20.test.utils.TestValidationHelper;
-import io.openliberty.microprofile.openapi20.utils.OpenAPIModelWalker.Context;
-import io.openliberty.microprofile.openapi20.validation.MediaTypeValidator;
 import io.smallrye.openapi.api.models.OpenAPIImpl;
 import io.smallrye.openapi.api.models.examples.ExampleImpl;
 import io.smallrye.openapi.api.models.media.EncodingImpl;
@@ -69,7 +71,7 @@ public class MediaTypeValidatorTest {
 
         EncodingImpl encoding = new EncodingImpl();
         encoding.setContentType("text/plain");
-        Map<String, Encoding> encodingMap = new HashMap<String, Encoding>();
+        Map<String, Encoding> encodingMap = new HashMap<>();
         encodingMap.put("name", encoding);
 
         mediaType.setEncoding(encodingMap);
@@ -83,7 +85,7 @@ public class MediaTypeValidatorTest {
     public void testInvalidEncodingMediaTypeValidator() {
         EncodingImpl encoding = new EncodingImpl();
         encoding.setContentType("text/plain");
-        Map<String, Encoding> encodingMap = new HashMap<String, Encoding>();
+        Map<String, Encoding> encodingMap = new HashMap<>();
         encodingMap.put("stuff", encoding);
 
         mediaType.setEncoding(encodingMap);
@@ -105,7 +107,7 @@ public class MediaTypeValidatorTest {
 
         EncodingImpl encoding = new EncodingImpl();
         encoding.setContentType("text/plain");
-        Map<String, Encoding> encodingMap = new HashMap<String, Encoding>();
+        Map<String, Encoding> encodingMap = new HashMap<>();
         encodingMap.put("stuff", encoding);
 
         mediaType.setEncoding(encodingMap);
@@ -120,7 +122,7 @@ public class MediaTypeValidatorTest {
 
         EncodingImpl encoding = new EncodingImpl();
         encoding.setContentType("text/plain");
-        Map<String, Encoding> encodingMap = new HashMap<String, Encoding>();
+        Map<String, Encoding> encodingMap = new HashMap<>();
         encodingMap.put("stuff", encoding);
 
         mediaType.setEncoding(encodingMap);
@@ -133,12 +135,12 @@ public class MediaTypeValidatorTest {
     public void testInvalidExampleMediaTypeValidator() {
         EncodingImpl encoding = new EncodingImpl();
         encoding.setContentType("text/plain");
-        Map<String, Encoding> encodingMap = new HashMap<String, Encoding>();
+        Map<String, Encoding> encodingMap = new HashMap<>();
         encodingMap.put("name", encoding);
 
         mediaType.setEncoding(encodingMap);
         mediaType.setExample("example");
-        Map<String, Example> examples = new HashMap<String, Example>();
+        Map<String, Example> examples = new HashMap<>();
         examples.put("example", new ExampleImpl());
         mediaType.setExamples(examples);
 
@@ -156,7 +158,7 @@ public class MediaTypeValidatorTest {
 
     @Test
     public void testValidExamplesMediaTypeValidator() {
-        Map<String, ExampleImpl> examples = new HashMap<String, ExampleImpl>();
+        Map<String, ExampleImpl> examples = new HashMap<>();
         examples.put("example", new ExampleImpl());
 
         mediaType.setExample(examples);

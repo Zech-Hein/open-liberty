@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 1998, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -1614,7 +1616,7 @@ public class BeanMetaData extends com.ibm.ws.runtime.metadata.MetaDataImpl imple
                                               "ExPC Ids                    = " + Arrays.toString(ivExPcPuIds), // F743-30682
                                               "WebService Endpoint Created = " + ivWebServiceEndpointCreated, // d497921
                                               "Component NameSpace :  nsid = " + getJavaNameSpaceID(), // d508455
-                                              "Has aysnchronous method(s)  = " + ivHasAsynchMethod,
+                                              "Has asynchronous method(s)  = " + ivHasAsynchMethod,
                                               "Singleton Concurrency Type  = " + singletonConcurrency, //F743-1752CodRev
                                               "Synch AfterBegin            = " + ivAfterBegin, // F743-25855
                                               "Synch BeforeCompletion      = " + ivBeforeCompletion, // F743-25855

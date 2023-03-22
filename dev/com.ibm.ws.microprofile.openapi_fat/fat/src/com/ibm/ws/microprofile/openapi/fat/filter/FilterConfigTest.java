@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,6 +20,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -29,8 +32,9 @@ import com.ibm.ws.microprofile.openapi.fat.utils.OpenAPITestUtil;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.MicroProfileActions;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
-import componenttest.topology.utils.HttpUtils;
 
 /**
  * Checks that a filter can be defined and called and can use values from MP
@@ -42,12 +46,21 @@ public class FilterConfigTest {
     private static final String TITLE_VALUE = "title from config";
     private static final String DESC_VALUE = "description from config";
 
-    @Server("FilterServer")
+    private static final String SERVER_NAME = "FilterServer";
+
+    @Server(SERVER_NAME)
     public static LibertyServer server;
+
+    @ClassRule
+    public static RepeatTests r = MicroProfileActions.repeat(SERVER_NAME,
+        MicroProfileActions.MP60, // mpOpenAPI-3.1, LITE
+        MicroProfileActions.MP50, // mpOpenAPI-3.0, FULL
+        MicroProfileActions.MP41, // mpOpenAPI-2.0, FULL
+        MicroProfileActions.MP33, // mpOpenAPI-1.1, FULL
+        MicroProfileActions.MP22);// mpOpenAPI-1.0, FULL
 
     @BeforeClass
     public static void setUpTest() throws Exception {
-        HttpUtils.trustAllCertificates();
         OpenAPITestUtil.changeServerPorts(server, server.getHttpDefaultPort(), server.getHttpDefaultSecurePort());
 
         server.addEnvVar("filter_title", TITLE_VALUE);

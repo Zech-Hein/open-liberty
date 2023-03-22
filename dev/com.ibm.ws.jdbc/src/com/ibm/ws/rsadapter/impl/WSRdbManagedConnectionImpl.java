@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2001, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,6 +29,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference; 
 
 import javax.security.auth.Subject;
@@ -70,7 +73,6 @@ import com.ibm.ws.rsadapter.ConnectionSharing;
 import com.ibm.ws.rsadapter.DSConfig; 
 import com.ibm.ws.rsadapter.exceptions.DataStoreAdapterException;
 import com.ibm.ws.rsadapter.jdbc.WSJdbcConnection;
-import com.ibm.ws.rsadapter.jdbc.WSJdbcTracer;
 import com.ibm.ws.tx.embeddable.EmbeddableWebSphereTransactionManager;
 
 /**
@@ -96,7 +98,7 @@ public class WSRdbManagedConnectionImpl extends WSManagedConnection implements
                 StatementEventListener, 
                 FFDCSelfIntrospectable {
 
-    private boolean aborted;
+    private AtomicBoolean aborted = new AtomicBoolean(false);
 
     /**
      * Indicates whether any Vendor Specific Connection properties have changed.
@@ -3131,7 +3133,7 @@ public class WSRdbManagedConnectionImpl extends WSManagedConnection implements
                     // Continue with the rollback if an exception is thrown on end. 
                 }
                 
-                if (aborted) {
+                if (aborted.get()) {
                     break;
                 }
 
@@ -3149,7 +3151,7 @@ public class WSRdbManagedConnectionImpl extends WSManagedConnection implements
                     throw new DataStoreAdapterException("DSA_ERROR", xae, getClass());
                 }
 
-                if (inCleanup && !aborted) 
+                if (inCleanup && !aborted.get()) 
                 {
                     String message =
                                     "Cannot call 'cleanup' on a ManagedConnection while it is still in a " +
@@ -3174,7 +3176,7 @@ public class WSRdbManagedConnectionImpl extends WSManagedConnection implements
                 // be on.  In this case, just no-op, since some drivers like ConnectJDBC 3.1
                 // don't allow commit/rollback when autoCommit is on.  
 
-                if (aborted) {
+                if (aborted.get()) {
                     break;
                 }
                 
@@ -4460,22 +4462,28 @@ public class WSRdbManagedConnectionImpl extends WSManagedConnection implements
     public void abort(Executor ex) throws Exception {
         if (mcf.beforeJDBCVersion(JDBCRuntimeVersion.VERSION_4_1))
           throw new SQLFeatureNotSupportedException();
-        
-        mcf.jdbcRuntime.doAbort(sqlConn, ex);
-        setAborted(true);
+
+        Connection con = sqlConn;
+        if (con == null) {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                Tr.debug(this, tc, "unable to abort a destroyed connection");
+        } else {
+            mcf.jdbcRuntime.doAbort(con, ex);
+            setAborted(true);
+        }
     }
     
     @Override
     public boolean isAborted() {
         if (mcf.beforeJDBCVersion(JDBCRuntimeVersion.VERSION_4_1))
             return false;
-        return aborted;
+        return aborted.get();
     }
     
     public void setAborted(boolean aborted) throws SQLFeatureNotSupportedException{
         if (mcf.beforeJDBCVersion(JDBCRuntimeVersion.VERSION_4_1))
           throw new SQLFeatureNotSupportedException();
-        this.aborted = aborted;
+        this.aborted.set(aborted);
     }
     
     public int getNetworkTimeout() throws SQLException {

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,15 +16,10 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.TreeSet;
-
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
@@ -45,7 +42,7 @@ public class Generator {
     public static final ResourceBundle messages = ResourceBundle.getBundle(XMLConfigConstants.NLS_PROPS);
     public static final ResourceBundle options = ResourceBundle.getBundle(XMLConfigConstants.NLS_OPTIONS);
 
-    private static final String JAR_NAME = "ws-schemagen.jar";
+    private static final String SCRIPT_NAME = "schemaGen";
 
     /**
      * Pick and use a consistent set of return codes across all
@@ -56,6 +53,7 @@ public class Generator {
         // Jump a few numbers for error return codes
         BAD_ARGUMENT(20),
         RUNTIME_EXCEPTION(21),
+        NO_ARGUMENT(22),
 
         // All "actions" should be < 0, these are not returned externally
         HELP_ACTION(-1),
@@ -141,10 +139,17 @@ public class Generator {
                     generate(smtp.getMetatypeInformation());
                     break;
                 case HELP_ACTION:
-                    // Only show command-line-style brief usage -help or --help invoked from command line
-                    System.out.println(MessageFormat.format(options.getString("briefUsage"), JAR_NAME));
-                    System.out.println();
+
+                    showPurpose();                    
+                    showBriefUsage();
                     showUsageInfo();
+
+                    rc = ReturnCode.OK;
+                    break;
+                case NO_ARGUMENT:
+
+                    showPurpose();                    
+                    showBriefUsage();
 
                     rc = ReturnCode.OK;
                     break;
@@ -175,7 +180,8 @@ public class Generator {
     private void generate(List<MetaTypeInformationSpecification> metatype) {
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
         try {
-            PrintWriter writer = new PrintWriter(generatorOptions.getOutputFile(), generatorOptions.getEncoding());
+            String outputFileName = generatorOptions.getOutputFile();
+            PrintWriter writer = new PrintWriter(outputFileName, generatorOptions.getEncoding());
             XMLStreamWriter xmlWriter = null;
             if (generatorOptions.getCompactOutput()) {
             	 xmlWriter = new CompactOutputXMLStreamWriter(factory.createXMLStreamWriter(writer));
@@ -194,6 +200,7 @@ public class Generator {
                 schemaWriter.add(item);
             }
             schemaWriter.generate(true);
+            System.out.println(MessageFormat.format(messages.getString("schemagen.info.schema.file.created"), outputFileName));           
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -201,39 +208,35 @@ public class Generator {
         }
     }
 
-    /**
-     * @param b
-     */
+    private void showPurpose() {
+        System.out.println();
+        System.out.println(MessageFormat.format(options.getString("purpose"), SCRIPT_NAME));
+        System.out.println();
+    }
+    
+    private void showBriefUsage() {
+        System.out.println(MessageFormat.format(options.getString("briefUsageScript"), SCRIPT_NAME));
+        System.out.println();
+    }
+
     private void showUsageInfo() {
         final String okpfx = "option-key.";
         final String odpfx = "option-desc.";
 
         // Kernel feature list tools and schema tools for some reason share the same configuration options file.
-        // Create an exclusion set to prevent the schema generator tool help from displaying undesired information.
-        Set<String> exclusionSet = new HashSet<String>();
-        exclusionSet.add("option-key.productExtension");
-        
-        Enumeration<String> keys = options.getKeys();
-        Set<String> optionKeys = new TreeSet<String>();
+        // Hard-code the ones that apply to the schema generator tool to prevent --help from displaying undesired information.
 
-        while (keys.hasMoreElements()) {
-            String key = keys.nextElement();
-            if (key.startsWith(okpfx) && !exclusionSet.contains(key)) {
-                optionKeys.add(key);
-            }
-        }
+        String[] optionKeys = new String[] { "option-key.compactoutput", "option-key.encoding", "option-key.ignorePids", "option-key.locale", "option-key.schemaVersion", "option-key.outputVersion" };
 
-        if (optionKeys.size() > 0) {
-            System.out.println(options.getString("use.options"));
+        System.out.println(options.getString("use.options"));
+        System.out.println();
+
+        // Print each option and it's associated descriptive text
+        for (String optionKey : optionKeys) {
+            String option = optionKey.substring(okpfx.length());
+            System.out.println(options.getString(optionKey));
+            System.out.println(options.getString(odpfx + option));
             System.out.println();
-
-            // Print each option and it's associated descriptive text
-            for (String optionKey : optionKeys) {
-                String option = optionKey.substring(okpfx.length());
-                System.out.println(options.getString(optionKey));
-                System.out.println(options.getString(odpfx + option));
-                System.out.println();
-            }
         }
     }
 }

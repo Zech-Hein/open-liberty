@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2021 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -80,6 +82,14 @@ public class CommonLocalLDAPServerSuite {
         ldapSSLPort = ds.getLdapsPort();
         Log.info(thisClass, "ldapSetUp", "LDAP Port is: " + ldapPort);
         Log.info(thisClass, "ldapSetUp", "LDAP SSL Port is: " + ldapSSLPort);
+
+        // override the default port values that get saved in bootstrap.properties (by LDAPUtils) - the code updating bootstrap will read the system properties
+        System.setProperty("ldap.1.port", Integer.toString(ldapPort));
+        System.setProperty("ldap.2.port", Integer.toString(ldapPort));
+        System.setProperty("ldap.3.port", Integer.toString(ldapPort));
+        System.setProperty("ldap.1.ssl.port", Integer.toString(ldapSSLPort));
+        System.setProperty("ldap.2.ssl.port", Integer.toString(ldapSSLPort));
+        System.setProperty("ldap.3.ssl.port", Integer.toString(ldapSSLPort));
 
         /*
          * Add the partition entries.

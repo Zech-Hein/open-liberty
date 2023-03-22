@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -81,7 +83,10 @@ public class TrConfigZapper extends TrConfigurator {
         }
 
         LogProviderConfigImpl config = new LogProviderConfigImpl(rasSettings, logDirectory, fileStreamFactory);
+
+        System.out.println("    TrConfigZapper.zapTrConfig : start invoke init()");
         init(config);
+        System.out.println("    TrConfigZapper.zapTrConfig : finished invoke init()");
         TrService delegate = config.getTrDelegate();
         if (delegate instanceof CapturedOutputHolder)
             return (CapturedOutputHolder) delegate;

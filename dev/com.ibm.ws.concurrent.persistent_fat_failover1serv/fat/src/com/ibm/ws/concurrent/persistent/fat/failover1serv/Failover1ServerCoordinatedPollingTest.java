@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -76,7 +78,7 @@ public class Failover1ServerCoordinatedPollingTest extends FATServletClient {
     public static void tearDown() throws Exception {
         try {
             server.stopServer(
-                    "DSRA0302E", "DSRA0304E" // transaction times out and rolls back, persistent executor will retry
+                    "DSRA0302E", "DSRA0304E", "J2CA0027E" // transaction times out and rolls back, persistent executor will retry
                     );
         } finally {
             server.updateServerConfiguration(originalConfig);

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -78,7 +80,7 @@ public class KafkaBadConfigTest {
     public void testBadConfig() throws Exception {
 
         // Invalid config because bootstrap.servers not set
-        ConnectorProperties incomingProperties = simpleIncomingChannel("", KafkaBadConfigIncomingBean.CHANNEL_NAME, APP_GROUP_ID);
+        ConnectorProperties incomingProperties = simpleIncomingChannel(null, KafkaBadConfigIncomingBean.CHANNEL_NAME, APP_GROUP_ID);
 
         PropertiesAsset appConfig = new PropertiesAsset()
                         .include(incomingProperties);
@@ -113,7 +115,7 @@ public class KafkaBadConfigTest {
     @ExpectedFFDC("com.ibm.ws.microprofile.reactive.messaging.kafka.adapter.KafkaAdapterException")
     public void testBadConfigRetry() throws Exception {
         // Invalid config because bootstrap.servers not set, but creation retry enabled
-        ConnectorProperties incomingProperties = simpleIncomingChannel("", KafkaBadConfigIncomingBean.CHANNEL_NAME, APP_GROUP_ID)
+        ConnectorProperties incomingProperties = simpleIncomingChannel(null, KafkaBadConfigIncomingBean.CHANNEL_NAME, APP_GROUP_ID)
                         .addProperty(KafkaConnectorConstants.CREATION_RETRY_SECONDS, "5");
 
         PropertiesAsset appConfig = new PropertiesAsset()
@@ -154,7 +156,7 @@ public class KafkaBadConfigTest {
     public void testBadConfigOutgoing() throws Exception {
 
         // Invalid config because bootstrap.servers not set
-        ConnectorProperties outgoingProperties = ConnectorProperties.simpleOutgoingChannel("", KafkaBadConfigOutgoingBean.CHANNEL_NAME);
+        ConnectorProperties outgoingProperties = ConnectorProperties.simpleOutgoingChannel(null, KafkaBadConfigOutgoingBean.CHANNEL_NAME);
 
         PropertiesAsset appConfig = new PropertiesAsset()
                         .include(outgoingProperties);
@@ -190,7 +192,7 @@ public class KafkaBadConfigTest {
     public void testBadConfigOutgoingRetry() throws Exception {
 
         // Invalid config because bootstrap.servers not set
-        ConnectorProperties outgoingProperties = ConnectorProperties.simpleOutgoingChannel("", KafkaBadConfigOutgoingBean.CHANNEL_NAME)
+        ConnectorProperties outgoingProperties = ConnectorProperties.simpleOutgoingChannel(null, KafkaBadConfigOutgoingBean.CHANNEL_NAME)
                         .addProperty(KafkaConnectorConstants.CREATION_RETRY_SECONDS, "5");
 
         PropertiesAsset appConfig = new PropertiesAsset()

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ var editorMessages = {
 "ADD_CHILD": "新增子項",
 "REMOVE": "移除",
 "TEST" : "測試",
-"TEST_CONNECTION": "測試連線",
+"TEST_CONNECTION": "連接測試",
+"TEST_CONNECTION_DESCRIPTION": "測試連線",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "儲存變更以測試連線",
 "DESCRIPTION": "說明",
 "PREVIOUS": "前一個",
 "NEXT": "下一個",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "「移除元素」對話框",
 "VALIDATE_DATASOURCE_DIALOG": "驗證資料來源連線對話框",
 "VALIDATE_DATASOURCE": "測試資料來源連線",
+"VALIDATE_CONNECTION_DIALOG":"驗證連線對話框",
+"DEFAULT_AUTHENTICATION_ALIAS":"預設鑑別",
+"SPECIFY_AUTHENTICATION_ALIAS":"指定鑑別別名",
+"LOGIN_CONFIG":"登入配置",
+"LOGIN_CONFIG_ID":"登入配置 ID",
+"ADD_LOGIN_CONFIG_PROPERTY":"新增登入配置內容",
+"KEY":"索引鍵",
+"CHOOSE_AN_OPTION":"選擇選項",
 "ENUMERATION_SELECTION_DIALOG": "「列舉選擇」對話框",
 "SAVE_BEFORE_CLOSING_DIALOG": "關閉對話框之前先儲存",
 "ERROR_SAVING_FILE_DIALOG": "「儲存檔案時發生錯誤」對話框",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "鑑別別名（選用）",
 "AUTH_ALIAS": "鑑別別名",
 "CONTAINER_AUTHENTICATION": "儲存器鑑別",
+"RESOURCE_REFERENCE": "資源參照",
 "NO_RESOURCE_REFERENCE": "無資源參照",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "使用以應用程式鑑別進行鑑別的資源參照來測試連線。",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "使用以儲存器鑑別進行鑑別的資源參照來測試連線。",
+"RESOURCE_REFERENCE_IN_USE": "已啟用直接查閱的儲存器鑑別。 連線測試會使用已配置的預設儲存器鑑別資料。",
+"NO_RESOURCE_REFERENCE_IN_USE": "在不使用資源參照的情況下測試連線。",
 "APPLICATION_AUTHENTICATION": "應用程式鑑別",
 "CUSTOM_LOGIN_MODULE": "自訂登入模組（選用）",
 "LOGIN_PROPERTIES": "登入內容（選用）",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "選取功能，以檢視其說明。",
 "SUPPORT_MESSAGE" : "無論是 Node.js 伺服器或 Docker 儲存器中的伺服器，都無法透過群體控制器來存取「伺服器配置」。",
 "NO_ROLE_MESSAGE": "使用者的角色不具有執行配置變更的權限。將提供唯讀模式的檔案。",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "群體成員的必要動作：",
 "RUN_UPDATE_HOST" : "執行 'collective updateHost' 或 'collective registerHost'，並將 '--hostWritePath' 指定成 rpcUser 具備寫入權的路徑。同時必須提供有效的主機認證。",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "在 /usr/bin 中建立指向 JAVA 的鏈結。例如 /usr/bin/java -> [pathToJAVA]",
 "JAVA_ON_PATH" : "新增 JAVA 至 PATH 環境變數。在 Linux 上，如果要匯出 PATH，應在 .bashrc 中完成。", 
 "MORE_INFORMATION" : "如需相關資訊，請參閱："
-
 };

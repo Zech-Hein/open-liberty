@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,7 +13,6 @@
 package com.ibm.ws.sip.container.util;
 
 import java.util.Iterator;
-
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipSession;
 
@@ -141,12 +142,15 @@ public class SipLogExtension {
      * @return SAS ID
      */
     private static String getSasId() {
-    	
+    	try {
     	SipApplicationSession sas = ThreadLocalStorage.getApplicationSession();
     	if (sas != null) {
     		return sas.getId(); 
     	}
     	
+    	} catch (NullPointerException e) {
+    		
+    	}
     	//If there's no SAS on ThreadLocal, get the ID from the TU on ThreadLocal
 		TransactionUserWrapper tu = ThreadLocalStorage.getTuWrapper();
 		if (tu != null) {
@@ -167,10 +171,13 @@ public class SipLogExtension {
      * @return call ID
      */
     private static String getCallId() {
-    	
+    	//try catch block needed to catch NPE thrown by logger
+    	//in case ThreadLocalStorage.getApplicationSession() returns NULL
+    	//see open-liberty issue #21770
+    	try {
     	SipApplicationSession sas = ThreadLocalStorage.getApplicationSession();
     	if (sas != null) {
-    		Iterator<SipSession> i = sas.getSessions("SIP");
+    		Iterator<SipSession> i = sas.getSessions("SIP", false);
     		//Get the first call ID
     		if (i.hasNext()) {
     			SipSession session = i.next();
@@ -188,6 +195,9 @@ public class SipLogExtension {
 			}
 		}
 		
+    	} catch (NullPointerException e ) {
+    		
+    	}
 		//Look for the call ID on the stack's ThreadLocal
 		return com.ibm.ws.sip.stack.util.ThreadLocalStorage.getCallID();
     }
@@ -198,10 +208,13 @@ public class SipLogExtension {
      * @return SIP session ID
      */
     private static String getSessionId() {
-    	
+    	//try catch block needed to catch NPE thrown by logger
+    	//in case ThreadLocalStorage.getApplicationSession() returns NULL
+    	//see open-liberty issue #21770
+    	try {
     	SipApplicationSession sas = ThreadLocalStorage.getApplicationSession();
     	if (sas != null) {
-    		Iterator<SipSession> i = sas.getSessions("SIP");
+    		Iterator<SipSession> i = sas.getSessions("SIP", false);
     		//Get the first session ID
     		if (i.hasNext()) {
     			SipSession session = i.next();
@@ -217,7 +230,11 @@ public class SipLogExtension {
 			} catch (IllegalStateException e) {
 				// this exception can be thrown when the transaction is in TERMINATED state
 			}
-		}
+		} 
+		
+    	} catch (NullPointerException e ) {
+    		
+    	}
 		
 		return null;
     }
@@ -228,11 +245,15 @@ public class SipLogExtension {
      * @return second call ID
      */
     private static String getSecondCallId() {
-    	
+    	//try catch block needed to catch NPE thrown by logger
+    	//in case ThreadLocalStorage.getApplicationSession() returns NULL
+    	//see open-liberty issue #21770
+    	try {
     	SipApplicationSession sas = ThreadLocalStorage.getApplicationSession();
     	
     	if (sas != null) {
-    		Iterator<SipSession> i = sas.getSessions("SIP");
+    		
+    		Iterator<SipSession> i = sas.getSessions("SIP", false);
     		int sessionsCounter = 0;
     		//When there are several SIP sessions and/or call IDs associated 
     		//with the same SAS, only the first two will be printed.
@@ -246,6 +267,9 @@ public class SipLogExtension {
     		}
     	}
     	
+    	} catch (NullPointerException e ) {
+    		
+    	}
 		return null;
     }
     
@@ -255,11 +279,14 @@ public class SipLogExtension {
      * @return second SIP session ID
      */
     private static String getSecondSessionId() {
-    	
-    	SipApplicationSession sas = ThreadLocalStorage.getApplicationSession();
+    	//try catch block needed to catch NPE thrown by logger
+    	//in case ThreadLocalStorage.getApplicationSession() returns NULL
+    	//see open-liberty issue #21770
+    	try {
+    		SipApplicationSession sas = ThreadLocalStorage.getApplicationSession();
     	
     	if (sas != null) {
-    		Iterator<SipSession> i = sas.getSessions("SIP");
+    		Iterator<SipSession> i = sas.getSessions("SIP", false);
     		int sessionsCounter = 0;
     		//When there are several SIP sessions and/or call IDs associated 
     		//with the same SAS, only the first two will be printed.
@@ -271,8 +298,12 @@ public class SipLogExtension {
     				return session.getId();
     			}
     		}
-    	}
+    	}	
+		
+    } catch (NullPointerException e) {
     	
-		return null;
+    }
+    	return null;
     }
 }
+

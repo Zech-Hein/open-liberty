@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 1997, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -331,6 +333,8 @@ public abstract class CollaboratorHelper implements ICollaboratorHelper {
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled() && logger.isLoggable(Level.FINE))
             logger.entering(CLASS_NAME, "preInvokeCollaborators");
 
+        WebContainerRequestState reqState = com.ibm.wsspi.webcontainer.WebContainerRequestState.getInstance(false);
+
         com.ibm.ejs.j2c.HandleList _connectionHandleList = new HandleList();
         collabMetaData.setConnectionHandleList(_connectionHandleList);
 
@@ -452,7 +456,16 @@ public abstract class CollaboratorHelper implements ICollaboratorHelper {
                 // Invoke notifyServletRequestCreated here because JSR 375 requires that all CDI scopes are available.
                 if (securityCollaborator.isCDINeeded()) {
                     // Invoke notifyServletRequestCreated here because JSR 375 requires that all CDI scopes are available. 
-                    collabMetaData.setServletRequestCreated(webApp.notifyServletRequestCreated(httpRequest));
+
+                    // Same fix as OLGH18333 -- For Async Error Path & ServletRequestListeners 
+                    if (DEFER_SERVLET_REQUEST_LISTENER_DESTROY_ON_ERROR && reqState != null && reqState.getAttribute("_invokeAsyncErrorHandling") != null ) {
+                        if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled() && logger.isLoggable(Level.FINE))
+                            logger.logp(Level.FINE, CLASS_NAME, "preInvokeCollaborators", "Async error handling, setting servlet request created manually"); 
+    
+                        collabMetaData.setServletRequestCreated(true);      //set manually; this won't trigger the servlet request created listener
+                    } else {
+                        collabMetaData.setServletRequestCreated(webApp.notifyServletRequestCreated(httpRequest));
+                    }
                     servletRequestListenersNotificationNeeded = false;
                 }
                 
@@ -491,7 +504,6 @@ public abstract class CollaboratorHelper implements ICollaboratorHelper {
             if (servletRequestListenersNotificationNeeded) { 
                 //Async error handling goes through this path and can set the setServletRequestCreated to false. That can stop the request listener destroy notification in the postInvoke.
                 //Set it manually so it won't trigger the notification for listeners' request created.
-                WebContainerRequestState reqState = com.ibm.wsspi.webcontainer.WebContainerRequestState.getInstance(false);
                 if (DEFER_SERVLET_REQUEST_LISTENER_DESTROY_ON_ERROR && reqState != null && reqState.getAttribute("_invokeAsyncErrorHandling") != null ) {
                     if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled() && logger.isLoggable(Level.FINE))
                         logger.logp(Level.FINE, CLASS_NAME, "preInvokeCollaborators", "Async error handling, setting servlet request created manually"); 

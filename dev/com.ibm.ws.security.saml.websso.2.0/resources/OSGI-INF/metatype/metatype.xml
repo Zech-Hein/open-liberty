@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2021 IBM Corporation and others.
+    Copyright (c) 2021,2022 IBM Corporation and others.
     All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
+    are made available under the terms of the Eclipse Public License 2.0
     which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    http://www.eclipse.org/legal/epl-2.0/
+    
+    SPDX-License-Identifier: EPL-2.0
    
     Contributors:
         IBM Corporation - initial API and implementation
@@ -108,9 +110,11 @@
         <AD id="authFilterRef" name="%authFilterRef" description="%authFilterRef.desc" 
              ibm:type="pid" ibm:reference="com.ibm.ws.security.authentication.filter"
              required="false" type="String"  />
+        <AD id="disableInitialRequestCookie" name="%disableIRCookie" description="%disableIRCookie.desc"
+            required="false" type="Boolean" default="false"/>
         <AD id="disableLtpaCookie" name ="%disableLtpaCookie" description="%disableLtpaCookie.desc"
             required="false" type="Boolean" default="true"/>
-        <AD id="spCookieName" name="internal" description="internal use only"
+        <AD id="spCookieName" name="%spCookieName" description="%spCookieName.desc"
             required="false" type="String" />
         <AD id="realmName" name="%realmName" description="%realmName.desc"
             required="false" type="String" />            

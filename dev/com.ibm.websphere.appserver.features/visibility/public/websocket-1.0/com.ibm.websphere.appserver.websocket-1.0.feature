@@ -11,9 +11,12 @@ IBM-API-Package: javax.websocket; type="spec", \
 IBM-ShortName: websocket-1.0
 Subsystem-Name: Java WebSocket 1.0
 -features= com.ibm.websphere.appserver.servlet-3.1; ibm.tolerates:="4.0", \
+ io.openliberty.servlet.internal-3.1; ibm.tolerates:="4.0", \
  io.openliberty.javaee.websocket-1.0, \
  com.ibm.websphere.appserver.eeCompatible-7.0; ibm.tolerates:="6.0,8.0"
--bundles=com.ibm.ws.wsoc
+-bundles=com.ibm.ws.wsoc, \
+ io.openliberty.wsoc.1.0.internal,\
+ io.openliberty.wsoc.ssl.internal
 -jars=com.ibm.websphere.appserver.api.wsoc; location:=dev/api/ibm/
 -files=dev/api/ibm/javadoc/com.ibm.websphere.appserver.api.wsoc_1.0-javadoc.zip
 kind=ga

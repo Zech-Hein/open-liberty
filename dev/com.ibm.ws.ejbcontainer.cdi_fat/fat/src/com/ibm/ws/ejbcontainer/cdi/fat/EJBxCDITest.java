@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2020 IBM Corporation and others.
+ * Copyright (c) 2010, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,6 +22,7 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
+import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
 import com.ibm.ws.ejbcontainer.cdi.jcdi.web.BeanManagerInjectionServlet;
 import com.ibm.ws.ejbcontainer.cdi.jcdi.web.InjectMultiLocalEJBServlet;
 import com.ibm.ws.ejbcontainer.cdi.jcdi.web.InterceptorIntegrationServlet;
@@ -30,6 +33,7 @@ import componenttest.annotation.TestServlet;
 import componenttest.annotation.TestServlets;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.rules.repeater.FeatureReplacementAction;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
@@ -46,7 +50,7 @@ public class EJBxCDITest extends FATServletClient {
     public static LibertyServer server;
 
     @ClassRule
-    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().forServers("com.ibm.ws.ejbcontainer.cdi.fat.EJB-CDI-Server")).andWith(FeatureReplacementAction.EE8_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.cdi.fat.EJB-CDI-Server")).andWith(new JakartaEE9Action().forServers("com.ibm.ws.ejbcontainer.cdi.fat.EJB-CDI-Server"));
+    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().forServers("com.ibm.ws.ejbcontainer.cdi.fat.EJB-CDI-Server")).andWith(FeatureReplacementAction.EE8_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.cdi.fat.EJB-CDI-Server")).andWith(new JakartaEE9Action().conditionalFullFATOnly(FeatureReplacementAction.GREATER_THAN_OR_EQUAL_JAVA_11).forServers("com.ibm.ws.ejbcontainer.cdi.fat.EJB-CDI-Server")).andWith(new JakartaEE10Action().forServers("com.ibm.ws.ejbcontainer.cdi.fat.EJB-CDI-Server"));
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -60,7 +64,7 @@ public class EJBxCDITest extends FATServletClient {
         EJB31JCDITestApp.addAsModule(EJB31JCDIBeanjar).addAsModule(EJB31InterceptorJCDIBean).addAsModule(EJB31NonJCDIBean).addAsModule(EJB31JCDIWeb);
         ShrinkHelper.addDirectory(EJB31JCDITestApp, "test-applications/EJB31JCDITestApp.ear/resources");
 
-        ShrinkHelper.exportDropinAppToServer(server, EJB31JCDITestApp);
+        ShrinkHelper.exportDropinAppToServer(server, EJB31JCDITestApp, DeployOptions.SERVER_ONLY);
 
         server.startServer();
 

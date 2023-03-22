@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,6 +28,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.ibm.websphere.microprofile.faulttolerance_fat.suite.FATSuite;
 import com.ibm.ws.microprofile.faulttolerance.fat.repeat.RepeatFaultTolerance;
 import com.ibm.ws.microprofile.faulttolerance_fat.cdi.AnnotationsDisabledServlet;
 
@@ -57,6 +60,8 @@ public class CDIAnnotationsDisabledTest extends FATServletClient {
 
     @BeforeClass
     public static void setup() throws Exception {
+        FATSuite.exportCDIFaultToleranceAppToServer(server);
+
         Map<String, String> envVars = new HashMap<>();
         envVars.put("MP_Fault_Tolerance_NonFallback_Enabled", "false");
         server.setAdditionalSystemProperties(envVars);

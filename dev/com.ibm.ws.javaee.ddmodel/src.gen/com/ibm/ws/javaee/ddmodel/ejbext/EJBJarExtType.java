@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -64,15 +66,16 @@ public class EJBJarExtType extends com.ibm.ws.javaee.ddmodel.DDParser.ElementCon
 
     @Override
     public void finish(DDParser parser) throws DDParser.ParseException {
+        if ( version == null ) {
+            version = parser.parseToken( parser.getDottedVersionText() );
+        }
         this.idMap = parser.idMap;
 
-        {
-            java.util.Map<String, com.ibm.ws.javaee.dd.ejbext.EnterpriseBean> beans = new java.util.HashMap<String, com.ibm.ws.javaee.dd.ejbext.EnterpriseBean>(getEnterpriseBeans().size());
-            for (com.ibm.ws.javaee.dd.ejbext.EnterpriseBean bean : getEnterpriseBeans()) {
-                com.ibm.ws.javaee.dd.ejbext.EnterpriseBean existing = beans.put(bean.getName(), bean);
-                if (existing != null) {
-                    throw new DDParser.ParseException(Tr.formatMessage(tc, "found.duplicate.ejbname", parser.getDeploymentDescriptorPath(), existing.getName()));
-                }
+        java.util.Map<String, com.ibm.ws.javaee.dd.ejbext.EnterpriseBean> beans = new java.util.HashMap<String, com.ibm.ws.javaee.dd.ejbext.EnterpriseBean>(getEnterpriseBeans().size());
+        for (com.ibm.ws.javaee.dd.ejbext.EnterpriseBean bean : getEnterpriseBeans()) {
+            com.ibm.ws.javaee.dd.ejbext.EnterpriseBean existing = beans.put(bean.getName(), bean);
+            if (existing != null) {
+                throw new DDParser.ParseException(Tr.formatMessage(tc, "found.duplicate.ejbname", parser.getDeploymentDescriptorPath(), existing.getName()));
             }
         }
     }

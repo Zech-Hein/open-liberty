@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 IBM Corporation and others.
+ * Copyright (c) 2010, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,6 +19,7 @@ import static com.ibm.ws.classloading.internal.Util.freeze;
 import static com.ibm.ws.classloading.internal.Util.list;
 
 import java.io.IOException;
+import java.lang.instrument.ClassFileTransformer;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.List;
@@ -37,8 +40,8 @@ class ParentLastClassLoader extends AppClassLoader {
     static {
         ClassLoader.registerAsParallelCapable();
     }
-    ParentLastClassLoader(ClassLoader parent, ClassLoaderConfiguration config, List<Container> urls, DeclaredApiAccess access, ClassRedefiner redefiner, ClassGenerator generator, GlobalClassloadingConfiguration globalConfig) {
-        super(parent, config, urls, access, redefiner, generator, globalConfig);
+    ParentLastClassLoader(ClassLoader parent, ClassLoaderConfiguration config, List<Container> urls, DeclaredApiAccess access, ClassRedefiner redefiner, ClassGenerator generator, GlobalClassloadingConfiguration globalConfig, List<ClassFileTransformer> systemTransformers) {
+        super(parent, config, urls, access, redefiner, generator, globalConfig, systemTransformers);
     }
 
     static final List<SearchLocation> PARENT_LAST_SEARCH_ORDER = freeze(list(SELF, DELEGATES, PARENT));
@@ -72,28 +75,58 @@ class ParentLastClassLoader extends AppClassLoader {
     @FFDCIgnore(ClassNotFoundException.class)
     @Override
     @Trivial
-    protected Class<?> findOrDelegateLoadClass(String className) throws ClassNotFoundException {
+    protected Class<?> findOrDelegateLoadClass(String className, boolean onlySearchSelf, boolean returnNull) throws ClassNotFoundException {
+        ClassNotFoundException findClassException = null;
         // search order: 1) my class path 2) parent loader
         Class<?> rc;
-        synchronized (getClassLoadingLock(className)) {
-            // first check whether we already loaded this class
-            rc = findLoadedClass(className);
-            if (rc == null) {
-                try {
-                    // first check our classpath
-                    rc = findClass(className);
-                } catch (ClassNotFoundException cnfe) {
-                    // See if we can generate the class here before
-                    // checking the parent:
-                    Class<?> generatedClass = generateClass(className);
-                    if (generatedClass != null)
-                        return generatedClass;
 
-                    // no luck? try the parent next
-                }
+        // first check whether we already loaded this class
+        rc = findLoadedClass(className);
+
+        if (rc != null) {
+            return rc;
+        }
+
+        try {
+            // first check our classpath
+            rc = findClass(className, returnNull);
+            if (rc != null) {
+                return rc;
+            }
+        } catch (ClassNotFoundException cnfe) {
+            findClassException = cnfe;
+        }
+
+        // See if we can generate the class here before
+        // checking the parent:
+        Class<?> generatedClass = generateClass(className);
+        if (generatedClass != null)
+            return generatedClass;
+
+        // no luck? try the parent next unless we are only checking ourself
+        if (onlySearchSelf) {
+            if (returnNull) {
+                return null;
+            }
+            throw findClassException;
+        }
+
+        if (this.parent instanceof NoClassNotFoundLoader) {
+            rc = ((NoClassNotFoundLoader) this.parent).loadClassNoException(className);
+            if (rc != null || returnNull) {
+                return rc;
+            }
+            throw findClassException;
+        }
+
+        if (returnNull) {
+            try {
+                return this.parent.loadClass(className);
+            } catch (ClassNotFoundException cnfe) {
+                return null;
             }
         }
-        return rc == null ? this.parent.loadClass(className) : rc;
+        
+        return this.parent.loadClass(className);
     }
-
 }

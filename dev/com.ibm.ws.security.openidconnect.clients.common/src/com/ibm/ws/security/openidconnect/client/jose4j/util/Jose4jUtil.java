@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2021 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -15,16 +17,15 @@ import java.security.Key;
 import java.security.PrivilegedAction;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 
 import javax.security.auth.Subject;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
-import org.jose4j.jwt.consumer.JwtConsumer;
-import org.jose4j.jwt.consumer.JwtConsumerBuilder;
+import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.jwx.JsonWebStructure;
 import org.jose4j.keys.HmacKey;
@@ -32,10 +33,12 @@ import org.jose4j.keys.HmacKey;
 import com.ibm.json.java.JSONObject;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.security.authentication.AuthenticationConstants;
 import com.ibm.ws.security.common.jwk.impl.JwKRetriever;
+import com.ibm.ws.security.common.web.WebSSOUtils;
 import com.ibm.ws.security.jwt.utils.JweHelper;
 import com.ibm.ws.security.openidconnect.clients.common.AttributeToSubject;
 import com.ibm.ws.security.openidconnect.clients.common.ClientConstants;
@@ -43,6 +46,8 @@ import com.ibm.ws.security.openidconnect.clients.common.ConvergedClientConfig;
 import com.ibm.ws.security.openidconnect.clients.common.JtiNonceCache;
 import com.ibm.ws.security.openidconnect.clients.common.OIDCClientAuthenticatorUtil;
 import com.ibm.ws.security.openidconnect.clients.common.OidcClientRequest;
+import com.ibm.ws.security.openidconnect.clients.common.OidcSessionCache;
+import com.ibm.ws.security.openidconnect.clients.common.OidcSessionInfo;
 import com.ibm.ws.security.openidconnect.clients.common.OidcUtil;
 import com.ibm.ws.security.openidconnect.clients.common.TraceConstants;
 import com.ibm.ws.security.openidconnect.common.Constants;
@@ -53,6 +58,9 @@ import com.ibm.ws.webcontainer.security.ProviderAuthenticationResult;
 import com.ibm.wsspi.security.token.AttributeNameConstants;
 import com.ibm.wsspi.ssl.SSLSupport;
 
+import io.openliberty.security.common.jwt.JwtParsingUtils;
+import io.openliberty.security.oidcclientcore.utils.Utils;
+
 public class Jose4jUtil {
 
     private static final TraceComponent tc = Tr.register(Jose4jUtil.class, TraceConstants.TRACE_GROUP, TraceConstants.MESSAGE_BUNDLE);
@@ -62,6 +70,8 @@ public class Jose4jUtil {
     private static final String SIGNATURE_ALG_NONE = "none";
     private final SSLSupport sslSupport;
     private static final JtiNonceCache jtiCache = new JtiNonceCache(); // Jose4jUil has only one instance
+
+    WebSSOUtils webSsoUtils = new WebSSOUtils();
 
     private static boolean issuedBetaMessage = false;
 
@@ -78,6 +88,7 @@ public class Jose4jUtil {
     };
 
     public Jose4jUtil(SSLSupport sslSupport) {
+        super();
         this.sslSupport = sslSupport;
     }
 
@@ -91,6 +102,7 @@ public class Jose4jUtil {
         // This is for ID Token only at the writing time
         ProviderAuthenticationResult oidcResult = null;
         String tokenStr = getIdToken(tokens, clientConfig);
+        String originalIdTokenString = tokenStr;
         String accessToken = tokens.get(Constants.ACCESS_TOKEN);
         String refreshToken = tokens.get(Constants.REFRESH_TOKEN);
         String clientId = clientConfig.getClientId();
@@ -100,12 +112,8 @@ public class Jose4jUtil {
                 Tr.error(tc, "OIDC_CLIENT_IDTOKEN_REQUEST_FAILURE", new Object[] { clientId, clientConfig.getTokenEndpointUrl() });
                 return new ProviderAuthenticationResult(AuthResult.SEND_401, HttpServletResponse.SC_UNAUTHORIZED);
             }
-            if (JweHelper.isJwe(tokenStr) && isRunningBetaMode()) {
-                tokenStr = JweHelper.extractJwsFromJweToken(tokenStr, clientConfig, null);
-            }
-
-            JwtContext jwtContext = parseJwtWithoutValidation(tokenStr);
-            JwtClaims jwtClaims = parseJwtWithValidation(clientConfig, tokenStr, jwtContext, oidcClientRequest);
+            JwtContext jwtContext = validateJwtStructureAndGetContext(tokenStr, clientConfig);
+            JwtClaims jwtClaims = parseJwtWithValidation(clientConfig, jwtContext.getJwt(), jwtContext, oidcClientRequest);
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "post jwtClaims: " + jwtClaims + " firstPass jwtClaims=" + jwtContext.getJwtClaims());
             }
@@ -139,12 +147,18 @@ public class Jose4jUtil {
                     Tr.debug(tc, "social login flow, storing id token in result");
                 }
                 Hashtable<String, Object> props = new Hashtable<String, Object>();
-                props.put(Constants.ID_TOKEN, tokenStr);
+                props.put(Constants.ID_TOKEN, originalIdTokenString);
                 props.put(Constants.ACCESS_TOKEN, accessToken);
+                if (refreshToken != null) {
+                    props.put(Constants.REFRESH_TOKEN, refreshToken);
+                }
                 if (idToken != null) {
                     props.put(Constants.ID_TOKEN_OBJECT, idToken);
                 }
                 oidcResult = new ProviderAuthenticationResult(AuthResult.SUCCESS, HttpServletResponse.SC_OK, null, null, props, null);
+                if (isRunningBetaMode()) {
+                    createWASOidcSession(oidcClientRequest, jwtClaims, clientConfig);
+                }
                 return oidcResult;
             }
 
@@ -180,13 +194,34 @@ public class Jose4jUtil {
             //doIdAssertion(customProperties, payload, clientConfig);
             oidcResult = attributeToSubject.doMapping(customProperties, subject);
             //oidcResult = new ProviderAuthenticationResult(AuthResult.SUCCESS, HttpServletResponse.SC_OK, username, subject, customProperties, null);
-
+            if (oidcResult.getStatus() == AuthResult.SUCCESS && isRunningBetaMode()) {
+                createWASOidcSession(oidcClientRequest, jwtClaims, clientConfig);
+            }
         } catch (Exception e) {
             Tr.error(tc, "OIDC_CLIENT_IDTOKEN_VERIFY_ERR", new Object[] { e.getLocalizedMessage(), clientId });
             oidcResult = new ProviderAuthenticationResult(AuthResult.SEND_401, HttpServletResponse.SC_UNAUTHORIZED);
         }
 
         return oidcResult;
+    }
+
+    private void createWASOidcSession(OidcClientRequest oidcClientRequest, @Sensitive JwtClaims jwtClaims, ConvergedClientConfig clientConfig) throws MalformedClaimException {
+        String configId = clientConfig.getId();
+        String iss = jwtClaims.getIssuer();
+        String sub = jwtClaims.getSubject();
+        String sid = jwtClaims.getClaimValue("sid", String.class);
+        String timestamp = Utils.getTimeStamp();
+
+        OidcSessionInfo sessionInfo = new OidcSessionInfo(configId, iss, sub, sid, timestamp);
+
+        OidcSessionCache oidcSessionCache = clientConfig.getOidcSessionCache();
+        oidcSessionCache.insertSession(sessionInfo);
+
+        String wasOidcSessionId = sessionInfo.getSessionId();
+        Cookie cookie = webSsoUtils.createCookie(ClientConstants.WAS_OIDC_SESSION, wasOidcSessionId, oidcClientRequest.getRequest());
+        cookie.setSecure(true);
+
+        oidcClientRequest.getResponse().addCookie(cookie);
     }
 
     boolean isRunningBetaMode() {
@@ -217,15 +252,15 @@ public class Jose4jUtil {
         return clientConfig.getUseAccessTokenAsIdToken();
     }
 
-    //Just parse without validation for now
-    public static JwtContext parseJwtWithoutValidation(String jwtString) throws Exception {
-        JwtConsumer firstPassJwtConsumer = new JwtConsumerBuilder()
-                .setSkipAllValidators()
-                .setDisableRequireSignature()
-                .setSkipSignatureVerification()
-                .build();
-
-        return firstPassJwtConsumer.process(jwtString);
+    public void checkJwtFormatAgainstConfigRequirements(String jwtString, ConvergedClientConfig clientConfig) throws JWTTokenValidationFailedException {
+        if (JweHelper.isJwsRequired(clientConfig) && !JweHelper.isJws(jwtString)) {
+            String errorMsg = Tr.formatMessage(tc, "OIDC_CLIENT_JWS_REQUIRED_BUT_TOKEN_NOT_JWS", new Object[] { clientConfig.getId() });
+            throw new JWTTokenValidationFailedException(errorMsg);
+        }
+        if (JweHelper.isJweRequired(clientConfig) && !JweHelper.isJwe(jwtString)) {
+            String errorMsg = Tr.formatMessage(tc, "OIDC_CLIENT_JWE_REQUIRED_BUT_TOKEN_NOT_JWE", new Object[] { clientConfig.getId() });
+            throw new JWTTokenValidationFailedException(errorMsg);
+        }
     }
 
     @FFDCIgnore({ Exception.class })
@@ -234,13 +269,13 @@ public class Jose4jUtil {
             JwtContext jwtContext,
             OidcClientRequest oidcClientRequest) throws JWTTokenValidationFailedException, IllegalStateException, Exception {
         try {
-            JsonWebStructure jsonStruct = getJsonWebStructureFromJwtContext(jwtContext);
+            JsonWebStructure jsonStruct = JwtParsingUtils.getJsonWebStructureFromJwtContext(jwtContext);
 
             Key key = getSignatureVerificationKeyFromJsonWebStructure(jsonStruct, clientConfig, oidcClientRequest);
 
             Jose4jValidator validator = new Jose4jValidator(key,
                     clientConfig.getClockSkewInSeconds(),
-                    new OIDCClientAuthenticatorUtil().getIssuerIdentifier(clientConfig),
+                    OIDCClientAuthenticatorUtil.getIssuerIdentifier(clientConfig),
                     clientConfig.getClientId(),
                     clientConfig.getSignatureAlgorithm(),
                     oidcClientRequest);
@@ -252,22 +287,6 @@ public class Jose4jUtil {
             }
             throw e;
         }
-    }
-
-    public JsonWebStructure getJsonWebStructureFromJwtContext(JwtContext jwtContext) throws Exception {
-        List<JsonWebStructure> jsonStructures = jwtContext.getJoseObjects();
-        if (jsonStructures == null || jsonStructures.isEmpty()) {
-            throw new Exception("Invalid JsonWebStructure");
-        }
-        JsonWebStructure jsonStruct = jsonStructures.get(0);
-        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-            Tr.debug(tc, "JsonWebStructure class: " + jsonStruct.getClass().getName() + " data:" + jsonStruct);
-            if (jsonStruct instanceof JsonWebSignature) {
-                JsonWebSignature signature = (JsonWebSignature) jsonStruct;
-                Tr.debug(tc, "JsonWebSignature alg: " + signature.getAlgorithmHeaderValue() + " 3rd:'" + signature.getEncodedSignature() + "'");
-            }
-        }
-        return jsonStruct;
     }
 
     @FFDCIgnore({ Exception.class })
@@ -286,13 +305,17 @@ public class Jose4jUtil {
             if (caughtException != null) {
                 objs = new Object[] { clientConfig.getSignatureAlgorithm(), caughtException.getLocalizedMessage() };
             }
-            oidcClientRequest.setRsFailMsg(OidcClientRequest.NO_KEY, Tr.formatMessage(tc, "OIDC_CLIENT_NO_VERIFYING_KEY", objs));
-            throw oidcClientRequest.error(true, tc, "OIDC_CLIENT_NO_VERIFYING_KEY", objs);
+            if (oidcClientRequest != null) {
+                oidcClientRequest.setRsFailMsg(OidcClientRequest.NO_KEY, Tr.formatMessage(tc, "OIDC_CLIENT_NO_VERIFYING_KEY", objs));
+                throw oidcClientRequest.error(true, tc, "OIDC_CLIENT_NO_VERIFYING_KEY", objs);
+            } else {
+                throw JWTTokenValidationFailedException.format(tc, "OIDC_CLIENT_NO_VERIFYING_KEY", objs);
+            }
         }
         return key;
     }
 
-    protected Key getVerifyKey(ConvergedClientConfig clientConfig, String kid, String x5t) throws Exception {
+    public Key getVerifyKey(ConvergedClientConfig clientConfig, String kid, String x5t) throws Exception {
         Key keyValue = null;
         String signatureAlgorithm = clientConfig.getSignatureAlgorithm();
         if (signatureAlgorithm == null) {
@@ -357,10 +380,10 @@ public class Jose4jUtil {
         String refreshToken = null;
         String clientId = clientConfig.getClientId();
         try {
-            if (JweHelper.isJwe(jwtString) && isRunningBetaMode()) {
+            if (JweHelper.isJwe(jwtString)) {
                 jwtString = JweHelper.extractJwsFromJweToken(jwtString, clientConfig, null);
             }
-            JwtContext jwtContext = parseJwtWithoutValidation(jwtString);
+            JwtContext jwtContext = JwtParsingUtils.parseJwtWithoutValidation(jwtString);
             JwtClaims jwtClaims = parseJwtWithValidation(clientConfig, jwtString, jwtContext, oidcClientRequest);
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "jwtClaims: " + jwtClaims);
@@ -430,6 +453,34 @@ public class Jose4jUtil {
             return new ProviderAuthenticationResult(AuthResult.SEND_401, HttpServletResponse.SC_UNAUTHORIZED);
         }
         return null;
+    }
+
+    /**
+     * Verifies that the JWT is either a JWS or a JWE, depending on the client configuration, and does simple parsing of the
+     * token to ensure it is formatted correctly. If the token is a JWE, this decrypts and extracts the JWS payload from the
+     * token.
+     */
+    public JwtContext validateJwtStructureAndGetContext(String jwtString, ConvergedClientConfig clientConfig) throws Exception {
+        checkJwtFormatAgainstConfigRequirements(jwtString, clientConfig);
+        if (JweHelper.isJwe(jwtString)) {
+            jwtString = JweHelper.extractJwsFromJweToken(jwtString, clientConfig, null);
+        }
+        return JwtParsingUtils.parseJwtWithoutValidation(jwtString);
+    }
+
+    public JwtClaims validateJwsSignature(JwtContext jwtContext, ConvergedClientConfig clientConfig) throws Exception {
+        return validateJwsSignature(jwtContext, clientConfig, null);
+
+    }
+
+    public JwtClaims validateJwsSignature(JwtContext jwtContext, ConvergedClientConfig clientConfig, OidcClientRequest oidcClientRequest) throws Exception {
+        // TODO - update to use io.openliberty.security.common.jwt.jws.JwsVerificationKeyHelper and io.openliberty.security.common.jwt.jws.JwsSignatureVerifier
+        JsonWebStructure jwStructure = JwtParsingUtils.getJsonWebStructureFromJwtContext(jwtContext);
+        Key key = getSignatureVerificationKeyFromJsonWebStructure(jwStructure, clientConfig, oidcClientRequest);
+
+        // Clock skew and issuer aren't needed to validate the signature
+        Jose4jValidator validator = new Jose4jValidator(key, 0L, null, clientConfig.getClientId(), clientConfig.getSignatureAlgorithm(), oidcClientRequest);
+        return validator.validateJwsSignature((JsonWebSignature) jwStructure, jwtContext.getJwt());
     }
 
 }

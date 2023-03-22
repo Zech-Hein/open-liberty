@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2018, 2020 IBM Corporation and others.
+# Copyright (c) 2018, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -21,7 +23,15 @@ tested.features: \
  beanvalidation-3.0,\
  xmlBinding-3.0,\
  jpacontainer-3.0,\
- persistence-3.0
+ persistence-3.0,\
+ expressionLanguage-5.0,\
+ pages-3.1,\
+ servlet-6.0,\
+ faces-4.0,\
+ cdi-4.0,\
+ persistence-3.1,\
+ persistencecontainer-3.1,\
+ websocket-2.1
 
 
 src: \
@@ -59,7 +69,8 @@ src: \
     test-applications/CDIInjectionTests.war/src,\
     test-applications/CDICommon/src,\
     test-applications/CDIConfigByACP.war/src,\
-    test-applications/CDIConfigByACP.jar/src
+    test-applications/CDIConfigByACPJSF23.jar/src,\
+    test-applications/CDIConfigByACPFaces40.jar/src
 
 fat.project: true
 
@@ -74,5 +85,5 @@ fat.project: true
     com.ibm.websphere.javaee.validation.2.0;version=latest,\
     com.ibm.websphere.javaee.servlet.4.0;version=latest,\
     com.ibm.websphere.javaee.el.3.0;version=latest,\
-        io.openliberty.org.apache.commons.logging;version=latest,\
-        io.openliberty.org.apache.commons.codec;version=latest
+    io.openliberty.org.apache.commons.logging;version=latest,\
+    io.openliberty.org.apache.commons.codec;version=latest

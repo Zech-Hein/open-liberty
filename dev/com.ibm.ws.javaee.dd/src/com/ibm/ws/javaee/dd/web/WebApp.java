@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2020 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,45 +17,35 @@ import com.ibm.ws.javaee.dd.common.ModuleDeploymentDescriptor;
 import com.ibm.ws.javaee.dd.web.common.AbsoluteOrdering;
 import com.ibm.ws.javaee.dd.web.common.WebCommon;
 
-/**
- *
- */
 public interface WebApp extends ModuleDeploymentDescriptor, DeploymentDescriptor, WebCommon {
+    String DD_SHORT_NAME = "web.xml";
+    String DD_NAME = "WEB-INF/web.xml";
 
-    static final String DD_NAME = "WEB-INF/web.xml";
+    int VERSION_2_2 = 22;
+    int VERSION_2_3 = 23;
+    int VERSION_2_4 = 24;
+    int VERSION_2_5 = 25;    
+    int VERSION_3_0 = 30;
+    int VERSION_3_1 = 31;
+    int VERSION_4_0 = 40; // JavaEE
+    int VERSION_5_0 = 50; // Jakarta EE 9
+    int VERSION_6_0 = 60; // Jakarta EE 10
 
-    static final int VERSION_5_0 = 50;
+    int[] VERSIONS = { 
+        VERSION_2_2, VERSION_2_3,
+        VERSION_2_4,
+        VERSION_2_5, VERSION_3_0,
+        VERSION_3_1, VERSION_4_0,
+        VERSION_5_0, VERSION_6_0
+    };
 
-    static final int VERSION_4_0 = 40;
-
-    static final int VERSION_3_1 = 31;
-
-    static final int VERSION_3_0 = 30;
-
-    /**
-     * @return version="..." attribute value
-     */
     String getVersion();
 
-    /**
-     * @return true if metadata-complete="..." attribute is specified
-     */
     boolean isSetMetadataComplete();
-
-    /**
-     * @return metadata-complete="..." attribute value if specified
-     */
     boolean isMetadataComplete();
 
-    /**
-     * @return &lt;module-name>, or null if unspecified
-     */
     @Override
     String getModuleName();
 
-    /**
-     * @return &lt;absolute-ordering>, or null if unspecified
-     */
     AbsoluteOrdering getAbsoluteOrdering();
-
 }

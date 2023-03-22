@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -238,12 +240,12 @@ public class FileTransferHelper {
 
         if (!checkAccess(processedPath, readOnly)) {
             //Return an exception
-            Object[] params = new String[] { processedPath };
+            Object[] params = new String[] { filePath };
             IOException ioe = new IOException(TraceNLS.getFormattedMessage(this.getClass(),
                                                                            APIConstants.TRACE_BUNDLE_FILE_TRANSFER,
                                                                            "SERVER_ACCESS_DENIED_ERROR",
                                                                            params,
-                                                                           "CWWKX0121E: Access denied to the " + processedPath + " path."));
+                                                                           "CWWKX0121E: Access denied to the " + filePath + " path."));
             throw ErrorHelper.createRESTHandlerJsonException(ioe, null, APIConstants.STATUS_BAD_REQUEST);
         }
 
@@ -639,8 +641,8 @@ public class FileTransferHelper {
             IOException ioe = new IOException(TraceNLS.getFormattedMessage(this.getClass(),
                                                                            APIConstants.TRACE_BUNDLE_FILE_TRANSFER,
                                                                            "DELETE_REQUEST_ERROR",
-                                                                           null,
-                                                                           "CWWKX0126E: Delete request for file " + processedPath + " could not be completed."));
+                                                                           new Object[] { filePath },
+                                                                           "CWWKX0126E: Delete request for file " + filePath + " could not be completed."));
             throw ErrorHelper.createRESTHandlerJsonException(ioe, null, APIConstants.STATUS_BAD_REQUEST);
         }
 
@@ -667,7 +669,7 @@ public class FileTransferHelper {
                 IOException ioe = new IOException(TraceNLS.getFormattedMessage(this.getClass(),
                                                                                APIConstants.TRACE_BUNDLE_FILE_TRANSFER,
                                                                                "UPLOAD_EXPANSION_ERROR",
-                                                                               new Object[] { processedPath },
+                                                                               new Object[] { filePath },
                                                                                "CWWKX0129E: Uploaded archive could not be expanded."));
                 throw ErrorHelper.createRESTHandlerJsonException(ioe, null, APIConstants.STATUS_INTERNAL_SERVER_ERROR);
             }

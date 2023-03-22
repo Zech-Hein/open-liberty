@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2021 IBM Corporation and others.
+ * Copyright (c) 2009, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,11 +22,14 @@ import java.security.PrivilegedAction;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
+import com.ibm.ws.http.channel.h2internal.H2HttpInboundLinkWrap;
 import com.ibm.ws.http.channel.h2internal.H2InboundLink;
 import com.ibm.ws.http.channel.internal.HttpChannelConfig;
 import com.ibm.ws.http.channel.internal.inbound.HttpInboundChannel;
@@ -118,6 +123,14 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
     private boolean WebConnCanClose = true;
     private final String h2InitError = "com.ibm.ws.transport.http.http2InitError";
 
+    private final AtomicBoolean decrementNeeded = new AtomicBoolean(false);
+
+    private final AtomicBoolean closeCompleted = new AtomicBoolean(false);
+
+    // Servlet 6.0
+    private static AtomicInteger connectionCounter = new AtomicInteger(1);
+    private int connectionId;
+
     /**
      * Constructor.
      *
@@ -158,6 +171,17 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "Connection must be already closed since vc is null");
             }
+
+            // closeCompleted check is for the close, destroy, close order scenario.
+            // Without this check, this second close (after the destroy) would decrement the connection again and produce a quiesce error.
+            if (this.decrementNeeded.compareAndSet(true, false) & !closeCompleted.get()) {
+                //  ^ set back to false in case close is called more than once after destroy is called (highly unlikely)
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "decrementNeeded is true: decrement active connection");
+                }
+                this.myChannel.decrementActiveConns();
+            }
+
             return;
         }
 
@@ -248,6 +272,7 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
                 }
                 this.myChannel.decrementActiveConns();
             }
+            closeCompleted.compareAndSet(false, true);
         }
     }
 
@@ -262,31 +287,39 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
 
         linkIsReady = false;
 
+        String upgraded = null;
         // if this was an http upgrade connection, then tell it to close also.
         VirtualConnection vc = getVC();
         if (vc != null) {
-            String upgraded = (String) (vc.getStateMap().get(TransportConstants.UPGRADED_CONNECTION));
-            if (upgraded != null) {
-                if (upgraded.compareToIgnoreCase("true") == 0) {
-                    Object webConnectionObject = vc.getStateMap().get(TransportConstants.UPGRADED_WEB_CONNECTION_OBJECT);
-                    if (webConnectionObject != null) {
-                        if (webConnectionObject instanceof TransportConnectionAccess) {
-                            TransportConnectionAccess tWebConn = (TransportConnectionAccess) webConnectionObject;
-                            try {
-                                tWebConn.close();
-                            } catch (Exception webConnectionCloseException) {
-                                //continue closing other resources
-                                //I don't believe the close operation should fail - but record trace if it does
-                                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                                    Tr.debug(tc, "Failed to close WebConnection {0}", webConnectionCloseException);
-                                }
-                            }
-                        } else {
+            upgraded = (String) (vc.getStateMap().get(TransportConstants.UPGRADED_CONNECTION));
+            if ("true".equalsIgnoreCase(upgraded)) {
+                Object webConnectionObject = vc.getStateMap().get(TransportConstants.UPGRADED_WEB_CONNECTION_OBJECT);
+                if (webConnectionObject != null) {
+                    if (webConnectionObject instanceof TransportConnectionAccess) {
+                        TransportConnectionAccess tWebConn = (TransportConnectionAccess) webConnectionObject;
+                        try {
+                            tWebConn.close();
+                        } catch (Exception webConnectionCloseException) {
+                            //continue closing other resources
+                            //I don't believe the close operation should fail - but record trace if it does
                             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                                Tr.debug(tc, "call application destroy if not done yet");
+                                Tr.debug(tc, "Failed to close WebConnection {0}", webConnectionCloseException);
                             }
                         }
+                    } else {
+                        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                            Tr.debug(tc, "call application destroy if not done yet");
+                        }
                     }
+                }
+            }
+        }
+
+        // set decrementNeeded to true only for wsoc upgrade requests
+        if (upgraded != null && !getHttpInboundLink2().isDirectHttp2Link(vc)) {
+            if (this.decrementNeeded.compareAndSet(false, true)) { // i.e. this is called first
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "decrementNeeded set to true");
                 }
             }
         }
@@ -320,7 +353,7 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
     @FFDCIgnore(Throwable.class)
     public void ready(VirtualConnection inVC) {
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-            Tr.debug(tc, "Received HTTP connection: " + inVC + " hc: " + this.hashCode());
+            Tr.debug(tc, "Received HTTP connection: " + inVC + " hc: " + this.hashCode() + " , this link: " + this);
             Tr.debug(tc, "increment active connection count");
         }
 
@@ -328,6 +361,15 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
         init(inVC);
         this.isc = (HttpInboundServiceContextImpl) getDeviceLink().getChannelAccessor();
         this.remoteAddress = isc.getRemoteAddr();
+
+        //Add for Servlet 6.0
+        //HttpDispatcherLink can be reused but ready(VirtualConnection) is always called to get a current VirtualConnection.
+        //If thats true, don't need to clean up this connectionID
+        this.connectionId = connectionCounter.getAndIncrement();
+
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.debug(tc, "ready , connection id [" + connectionId + "] for this [" + this + "]");
+        }
 
         // if this is an http/2 link, process via that ready
         if (this.getHttpInboundLink2().isDirectHttp2Link(inVC)) {
@@ -712,7 +754,7 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
      * It is the value of the part before ":" in the Host header value, if any,
      * or the resolved server name, or the server IP address.
      *
-     * @param request the inbound request
+     * @param request        the inbound request
      * @param remoteHostAddr the requesting client IP address
      */
     @Override
@@ -721,7 +763,7 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
         // contents of Host and $WS* headers..
         if (useTrustedHeaders()) {
             // If the plugin provided a header, prefer that..
-            String pluginHost = request.getHeader(HttpHeaderKeys.HDR_$WSSN.getName());
+            String pluginHost = request.getHeader(HttpHeaderKeys.HDR_$WSSN);
             if (pluginHost != null)
                 return pluginHost;
         }
@@ -743,8 +785,8 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
      * the part after ":" in the Host header value, if any, or the server port
      * where the client connection was accepted on.
      *
-     * @param request the inbound request
-     * @param localPort the server port where the client connection was accepted on.
+     * @param request        the inbound request
+     * @param localPort      the server port where the client connection was accepted on.
      * @param remoteHostAddr the requesting client IP address
      */
     @Override
@@ -753,7 +795,7 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
         // Get the requested port: this takes into consideration whether or not we should trust the
         // contents of Host and $WS* headers..
         if (useTrustedHeaders()) {
-            String pluginPort = request.getHeader(HttpHeaderKeys.HDR_$WSSP.getName());
+            String pluginPort = request.getHeader(HttpHeaderKeys.HDR_$WSSP);
             if (pluginPort != null)
                 return Integer.parseInt(pluginPort);
         }
@@ -771,10 +813,10 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
 
             if (scheme == null && isc != null && !isc.useForwardedHeaders()) {
                 //if remoteIp is not enabled, still verify for the x-forwarded-proto
-                scheme = getTrustedHeader(HttpHeaderKeys.HDR_X_FORWARDED_PROTO.getName());
+                scheme = getTrustedHeader(HttpHeaderKeys.HDR_X_FORWARDED_PROTO);
             }
 
-            if (scheme == null && request.getHeader(HttpHeaderKeys.HDR_HOST.getName()) != null) {
+            if (scheme == null && request.getHeader(HttpHeaderKeys.HDR_HOST) != null) {
                 scheme = request.getScheme();
 
             }
@@ -807,6 +849,13 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
     public String getTrustedHeader(String headerName) {
         if (useTrustedHeaders() && request != null) {
             return request.getHeader(headerName);
+        }
+        return null;
+    }
+
+    private String getTrustedHeader(HttpHeaderKeys headerKey) {
+        if (useTrustedHeaders() && request != null) {
+            return request.getHeader(headerKey);
         }
         return null;
     }
@@ -878,16 +927,56 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
 
         }
         if (remoteAddr == null) {
-            remoteAddr = getTrustedHeader(HttpHeaderKeys.HDR_$WSRA.getName());
+            remoteAddr = getTrustedHeader(HttpHeaderKeys.HDR_$WSRA);
             if (remoteAddr != null) {
-                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-                    Tr.debug(tc, "getRemoteHostAddress isTrusted --> true, addr --> " + remoteAddr);
-            } else {
-                remoteAddr = contextRemoteHostAddress();
+                if (!validateRemoteAddress(remoteAddr)) {
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                        Tr.debug(tc, "getRemoteHostAddress isTrusted --> true, invalid addr --> " + remoteAddr);
+                    remoteAddr = null;
+                }
             }
+        }
+        if (remoteAddr == null) {
+            remoteAddr = contextRemoteHostAddress();
         }
 
         return remoteAddr;
+    }
+
+    /*
+     * Validate the remote address
+     */
+    boolean validateRemoteAddress(String address) {
+        //The node identifier is defined by the ABNF syntax as
+        //        node     = nodename [ ":" node-port ]
+        //                   nodename = IPv4address / "[" IPv6address "]" /
+        //                             "unknown" / obfnode
+        //As such, to make it equivalent to the de-facto headers, remove the quotations
+        //and possible port
+        String extract = address.replaceAll("\"", "").trim();
+        String nodeName = null;
+
+        //obfnodes are only allowed to contain ALPHA / DIGIT / "." / "_" / "-"
+        //so if the token contains "[", it is an IPv6 address
+        int openBracket = extract.indexOf("[");
+        int closedBracket = extract.indexOf("]");
+
+        if (openBracket > -1) {
+            //This is an IPv6address
+            //The nodename is enclosed in "[ ]", get it now
+
+            //If the first character isn't the open bracket or if a close bracket
+            //is not provided, this is a badly formed header
+            if (openBracket != 0 || !(closedBracket > -1)) {
+                //badly formated header
+                if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+                    Tr.debug(tc, "$WSRA IPv6 address was malformed: " + address);
+                }
+                return false;
+            }
+
+        }
+        return true;
     }
 
     /**
@@ -922,7 +1011,7 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
         }
         if (remoteHost == null) {
 
-            remoteHost = getTrustedHeader(HttpHeaderKeys.HDR_$WSRH.getName());
+            remoteHost = getTrustedHeader(HttpHeaderKeys.HDR_$WSRH);
             if (remoteHost != null) {
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
                     Tr.debug(tc, "getRemoteHost isTrusted --> true, host --> " + remoteHost);
@@ -1299,4 +1388,44 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
 
     }
 
+    // <since Servlet 6.0>
+
+    @Override
+    public int getStreamId() {
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.entry(tc, "getStreamId");
+        }
+        int streamId = -1;
+        if (isc.isH2Connection()) {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "Is H2 Connection ");
+            }
+
+            HttpInboundLink link = isc.getLink();
+            if (link instanceof H2HttpInboundLinkWrap) {
+                streamId = ((H2HttpInboundLinkWrap) link).getStreamId();
+            }
+        } else {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "Not H2 Connection");
+            }
+        }
+
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.exit(tc, "getStreamId , stream id [" + streamId + "]");
+        }
+
+        return streamId;
+    }
+
+    @Override
+    public int getConnectionId() {
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.debug(tc, "getConnectionId , returns connection id [" + connectionId + "] , this [" + this + "]");
+        }
+
+        return connectionId;
+    }
+
+    // </since Servlet 6.0>
 }

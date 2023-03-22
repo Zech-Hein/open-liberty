@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2021 IBM Corporation and others.
+ * Copyright (c) 2010, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -48,6 +50,9 @@ public interface LoggingConstants {
     String JSON_FORMAT = "json";
     String DEPRECATED_DEFAULT_FORMAT = "basic";
 
+    String ROLLOVER_START_TIME_DEFAULT = "00:00";
+    long ROLLOVER_INTERVAL_DEFAULT = 1440;
+
     String ENV_WLP_LOGGING_MESSAGE_SOURCE = "WLP_LOGGING_MESSAGE_SOURCE";
     String ENV_WLP_LOGGING_MESSAGE_FORMAT = "WLP_LOGGING_MESSAGE_FORMAT";
     String ENV_WLP_LOGGING_CONSOLE_SOURCE = "WLP_LOGGING_CONSOLE_SOURCE";
@@ -60,9 +65,22 @@ public interface LoggingConstants {
     String ENV_WLP_LOGGING_APPS_WRITE_JSON = "WLP_LOGGING_APPS_WRITE_JSON";
 
     String ENV_WLP_LOGGING_JSON_ACCESS_LOG_FIELDS = "WLP_LOGGING_JSON_ACCESS_LOG_FIELDS";
+
+    String ENV_WLP_LOGGING_ROLLOVER_START_TIME = "WLP_LOGGING_ROLLOVER_START_TIME";
+    String ENV_WLP_LOGGING_ROLLOVER_INTERVAL = "WLP_LOGGING_ROLLOVER_INTERVAL";
+
+    String ENV_WLP_LOGGING_MAX_FFDC_AGE = "WLP_LOGGING_MAX_FFDC_AGE";
+
     String DEFAULT_JSON_ACCESS_LOG_FIELDS = "default";
+
+    // Stack Joiner feature configurations
+    String ENV_WLP_LOGGING_MAX_SYSTEM_STREAM_PRINT_EVENT_SIZE = "WLP_LOGGING_MAX_SYSTEM_STREAM_PRINT_EVENT_SIZE";
+    String ENV_WLP_LOGGING_STACK_TRACE_SINGLE_ENTRY = "WLP_LOGGING_STACK_TRACE_SINGLE_ENTRY";
 
     enum FFDCSummaryPolicy {
         DEFAULT, IMMEDIATE
     };
+
+    String CHECKPOINT_PROPERTY_NAME = "io.openliberty.checkpoint";
+    String RESTORE_ENABLED = "RESTORE_ENABLED";
 }

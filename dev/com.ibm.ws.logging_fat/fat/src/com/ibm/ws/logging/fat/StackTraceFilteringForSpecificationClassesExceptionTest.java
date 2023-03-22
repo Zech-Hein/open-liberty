@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -65,7 +67,7 @@ public class StackTraceFilteringForSpecificationClassesExceptionTest extends Abs
         // if the message doesn't include the id 'SRVE.*E' or misspells it, as our current messages do
         int errorCount = server.findStringsInFileInLibertyServerRoot("ERROR.*SRVE.*E", CONSOLE_LOG).size();
         int causedByCount = server.findStringsInFileInLibertyServerRoot("Caused by", CONSOLE_LOG).size();
-        // Sanity check - we got an [ERROR], right?
+        // Test - we got an [ERROR], right?
         assertConsoleLogContains("The console log should have [ERROR] prefix in it", "ERROR");
 
         assertConsoleLogCountEquals("The console stack should only have one [internal classes] in it per stack trace.",

@@ -4,8 +4,8 @@ Subsystem-Version: 9.0
 visibility=private
 singleton=true
 -features=\
-  com.ibm.websphere.appserver.servlet-5.0
+  com.ibm.websphere.appserver.servlet-5.0; ibm.tolerates:="6.0"
 -bundles=\
   io.openliberty.security.acme.internal
-kind=beta
+kind=ga
 edition=base

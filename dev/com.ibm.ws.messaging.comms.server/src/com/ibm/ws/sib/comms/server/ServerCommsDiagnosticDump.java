@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2003, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -121,7 +123,7 @@ public class ServerCommsDiagnosticDump {
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
             SibTr.entry(this, tc, "dumpMEtoMEConversations", writer);
 
-        List<Conversation> conversations = ServerConnectionManager.getRef().getActiveOutboundMEtoMEConversations();
+        List<Conversation> conversations = ServerConnectionManager.getActiveOutboundMEtoMEConversations();
         Map<Object, List<Conversation>> connectionToConversationMap = buildConnectionMap(conversations);
 
         // Dump each comms connection.

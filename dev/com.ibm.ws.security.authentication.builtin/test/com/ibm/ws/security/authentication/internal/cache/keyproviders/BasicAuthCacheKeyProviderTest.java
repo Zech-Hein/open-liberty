@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,14 +32,14 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import test.common.SharedOutputManager;
-
 import com.ibm.websphere.security.cred.WSCredential;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.security.authentication.cache.AuthCacheConfig;
 import com.ibm.ws.security.authentication.cache.CacheContext;
 import com.ibm.ws.security.authentication.cache.CacheKeyProvider;
 import com.ibm.ws.security.authentication.cache.CacheObject;
+
+import test.common.SharedOutputManager;
 
 /**
  *
@@ -123,13 +125,13 @@ public class BasicAuthCacheKeyProviderTest {
     }
 
     private static String getHashedPassword(String password) throws NoSuchAlgorithmException {
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA");
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-512");
         return Base64Coder.base64EncodeToString(messageDigest.digest(Base64Coder.getBytes(password)));
     }
 
     /**
      * Final teardown work when class is exiting.
-     * 
+     *
      * @throws Exception
      */
     @AfterClass
@@ -140,7 +142,7 @@ public class BasicAuthCacheKeyProviderTest {
 
     /**
      * Individual teardown after each test.
-     * 
+     *
      * @throws Exception
      */
     @After

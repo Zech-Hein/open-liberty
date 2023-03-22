@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2015 IBM Corporation and others.
+ * Copyright (c) 2013, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -82,13 +84,21 @@ public abstract class FATServlet extends HttpServlet {
                     t = t.getCause();
                 }
 
-                System.out.println("ERROR: " + t);
                 StringWriter sw = new StringWriter();
                 t.printStackTrace(new PrintWriter(sw));
                 System.err.print(sw);
-
-                writer.println("ERROR: Caught exception attempting to call test method " + method + " on servlet " + getClass().getName());
-                t.printStackTrace(writer);
+                if (t instanceof AssertionError && t.getCause() == null) {
+                    AssertionError e = (AssertionError) t;
+                    System.out.println("ASSERTION ERROR: " + e);
+                    writer.write(AssertionErrorSerializer.START_TAG);
+                    AssertionError simple = AssertionErrorSerializer.simplify(getClass(), method, e);
+                    AssertionErrorSerializer.serialize(simple, writer);
+                    writer.write(AssertionErrorSerializer.END_TAG);
+                } else {
+                    System.out.println("ERROR: " + t);
+                    writer.println("ERROR: Caught exception attempting to call test method " + method + " on servlet " + getClass().getName());
+                    t.printStackTrace(writer);
+                }
             }
         } else {
             System.out.println("ERROR: expected testMethod parameter");
@@ -104,12 +114,14 @@ public abstract class FATServlet extends HttpServlet {
     /**
      * Override to mimic JUnit's {@code @Before} annotation.
      */
-    protected void before() throws Exception {}
+    protected void before() throws Exception {
+    }
 
     /**
      * Override to mimic JUnit's {@code @After} annotation.
      */
-    protected void after() throws Exception {}
+    protected void after() throws Exception {
+    }
 
     /**
      * Implement this method for custom test invocation, such as specific test method signatures

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,6 +14,9 @@
 package com.ibm.ws.webcontainer.security.test.servlets;
 
 import static org.junit.Assert.assertNotNull;
+
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import org.junit.rules.TestName;
 
@@ -32,6 +37,7 @@ public class TestConfiguration {
     private final String application;
 
     private String currentConfigFile;
+    private static String osName = null;
 
     public TestConfiguration(LibertyServer server, Class<?> logClass, TestName name, String application) {
         this.server = server;
@@ -109,6 +115,12 @@ public class TestConfiguration {
         currentConfigFile = configFile;
         server.startServer(true);
         assertSecurityFeatureExpectations();
+        /*
+         * Max wait time based on Windows test failure sample: CWWKZ0001I: Application basicauth started in 290.026 seconds.
+         */
+        //assertNotNull("The application " + application + " did not report as started, if this is a Windows run, may need more time to complete",
+        //              server.waitForStringInLog("CWWKZ0001I: Application " + application + " started", 300000));
+
         assertApplicationStarted();
     }
 
@@ -145,12 +157,38 @@ public class TestConfiguration {
     }
 
     /**
+     *
      * Asserts that the application is started. This message is issued only once
      * in the server life cycle unless the application is reinstalled.
      */
     public void assertApplicationStarted() {
-        assertNotNull("The application " + application + " should have started",
-                      server.waitForStringInLogUsingMark("CWWKZ0001I.* " + application));
+        if (isWindows()) {
+            assertNotNull("The application " + application + " should have started",
+                          server.waitForStringInLogUsingMark("CWWKZ0001I.* " + application, 900000));
+
+        } else {
+            assertNotNull("The application " + application + " should have started",
+                          server.waitForStringInLogUsingMark("CWWKZ0001I.* " + application, 300000));
+
+        }
+    }
+
+    protected static boolean isWindows() {
+        String name = getOSName();
+        return name.toLowerCase().startsWith("windows");
+    }
+
+    protected static String getOSName() {
+        if (osName == null) {
+            osName = AccessController.doPrivileged(new PrivilegedAction<String>() {
+                @Override
+                public String run() {
+                    return System.getProperty("os.name", "unknown");
+                }
+            });
+        }
+
+        return osName;
     }
 
     /**
@@ -297,7 +335,7 @@ public class TestConfiguration {
             updateServerConfig(newConfig);
             assertNotNull("Expected to see server configuration was successfully updated",
                           waitForServerConfigurationUpdate());
-            assertNotNull("Expected to see application " +application+ " updated",
+            assertNotNull("Expected to see application " + application + " updated",
                           waitForAppUpdate(application));
         }
     }

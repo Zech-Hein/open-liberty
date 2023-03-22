@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -56,9 +58,7 @@ public class RSSamlAPITests extends SAMLCommonTest {
      * @throws Exception
      */
     //	@Mode(TestMode.LITE)
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.message.decoder.MessageDecodingException", "org.opensaml.xml.parse.XMLParserException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" })
     @Test
     public void RSSamlAPITests_useJaxRSCLientServlet_encodedAssertion() throws Exception {
 
@@ -93,9 +93,7 @@ public class RSSamlAPITests extends SAMLCommonTest {
      *
      * @throws Exception
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.message.decoder.MessageDecodingException", "org.opensaml.xml.parse.XMLParserException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" })
     //	@Mode(TestMode.LITE)
     @Test
     public void RSSamlAPITests_useJaxRSCLientServlet_compressedEncodedAssertion() throws Exception {
@@ -132,9 +130,7 @@ public class RSSamlAPITests extends SAMLCommonTest {
      *
      * @throws Exception
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.message.decoder.MessageDecodingException", "org.opensaml.xml.parse.XMLParserException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" })
     //	@Mode(TestMode.LITE)
     @Test
     public void RSSamlAPITests_useJaxRSCLientServlet_textAssertion() throws Exception {
@@ -171,9 +167,7 @@ public class RSSamlAPITests extends SAMLCommonTest {
      *
      * @throws Exception
      */
-    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException" })
-    @ExpectedFFDC(value = { "org.opensaml.ws.message.decoder.MessageDecodingException", "org.opensaml.xml.parse.XMLParserException" }, repeatAction = {EmptyAction.ID})
-    @ExpectedFFDC(value = { "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" }, repeatAction = {JakartaEE9Action.ID})
+    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" })
     //	@Mode(TestMode.LITE)
     @Test
     public void RSSamlAPITests_useJaxRSCLientServlet_junkInAssertion() throws Exception {
@@ -229,9 +223,7 @@ public class RSSamlAPITests extends SAMLCommonTest {
      * @throws Exception
      */
     @Mode(TestMode.LITE)
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException"})
-    @AllowedFFDC(value = { "org.opensaml.ws.message.decoder.MessageDecodingException", "org.opensaml.xml.parse.XMLParserException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException"})
     @Test
     public void RSSamlAPITests_useJaxRSCLientServlet_runtimePropagateToken_setStringTrue() throws Exception {
 
@@ -267,9 +259,7 @@ public class RSSamlAPITests extends SAMLCommonTest {
      * @throws Exception
      */
     @Mode(TestMode.LITE)
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException"})
-    @AllowedFFDC(value = { "org.opensaml.ws.message.decoder.MessageDecodingException", "org.opensaml.xml.parse.XMLParserException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException"})
     @Test
     public void RSSamlAPITests_useJaxRSCLientServlet_runtimePropagateToken_setBooleanTrue() throws Exception {
 
@@ -303,9 +293,7 @@ public class RSSamlAPITests extends SAMLCommonTest {
      * @throws Exception
      */
     @Mode(TestMode.LITE)
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException"})
-    @AllowedFFDC(value = { "org.opensaml.ws.message.decoder.MessageDecodingException", "org.opensaml.xml.parse.XMLParserException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException"})
     @Test
     public void RSSamlAPITests_useJaxRSCLientServlet_runtimePropagateToken_setStringFalse() throws Exception {
 
@@ -337,9 +325,7 @@ public class RSSamlAPITests extends SAMLCommonTest {
      * @throws Exception
      */
     @Mode(TestMode.LITE)
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException"})
-    @AllowedFFDC(value = { "org.opensaml.ws.message.decoder.MessageDecodingException", "org.opensaml.xml.parse.XMLParserException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.decoder.MessageDecodingException", "net.shibboleth.utilities.java.support.xml.XMLParserException"})
     @Test
     public void RSSamlAPITests_useJaxRSCLientServlet_runtimePropagateToken_setBooleanFalse() throws Exception {
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +21,7 @@ import java.util.UUID;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,6 +30,8 @@ import com.ibm.websphere.simplicity.log.Log;
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
+import componenttest.custom.junit.runner.RepeatTestFilter;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
 
@@ -48,6 +53,9 @@ public class SessionCacheTwoServerTimeoutTest extends FATServletClient {
     public static SessionCacheApp appA;
     public static SessionCacheApp appB;
 
+    @ClassRule
+    public static RepeatTests repeatRule = RepeatTests.withoutModification().andWith(new CacheManagerRepeatAction());
+
     @BeforeClass
     public static void setUp() throws Exception {
         appA = new SessionCacheApp(serverA, false, "session.cache.web", "session.cache.web.listener1");
@@ -62,11 +70,18 @@ public class SessionCacheTwoServerTimeoutTest extends FATServletClient {
             hazelcastConfigFile = "hazelcast-localhost-only-multicastDisabled.xml";
         }
 
+        String sessionCacheConfigFile = "httpSessionCache_1.xml";
+        if (RepeatTestFilter.isRepeatActionActive(CacheManagerRepeatAction.ID)) {
+            sessionCacheConfigFile = "httpSessionCache_2.xml";
+        }
+
         String rand = UUID.randomUUID().toString();
         serverA.setJvmOptions(Arrays.asList("-Dhazelcast.group.name=" + rand,
-                                            "-Dhazelcast.config.file=" + hazelcastConfigFile));
+                                            "-Dhazelcast.config.file=" + hazelcastConfigFile,
+                                            "-Dsession.cache.config.file=" + sessionCacheConfigFile));
         serverB.setJvmOptions(Arrays.asList("-Dhazelcast.group.name=" + rand,
-                                            "-Dhazelcast.config.file=" + hazelcastConfigFile));
+                                            "-Dhazelcast.config.file=" + hazelcastConfigFile,
+                                            "-Dsession.cache.config.file=" + sessionCacheConfigFile));
 
         serverA.startServer();
 

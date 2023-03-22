@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,6 +27,7 @@ import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.security.common.claims.UserClaims;
 import com.ibm.ws.security.common.claims.UserClaimsRetrieverService;
+import com.ibm.ws.security.common.random.RandomUtils;
 import com.ibm.ws.security.oauth20.TraceConstants;
 import com.ibm.ws.security.oauth20.api.Constants;
 import com.ibm.ws.security.oauth20.util.ConfigUtils;
@@ -107,6 +110,7 @@ public class JwtCreator {
                     for (Map.Entry<String, Object> e : userClaims.entrySet())
                         claims.setClaim(e.getKey(), e.getValue());
                 }
+                claims.setClaim(OIDCConstants.PAYLOAD_SESSION_ID, generateSidClaimValue());
             }
             if (oidcServerConfig.isJTIClaimEnabled() || mpJwt) { // addOptionalClaims for IDToken and jwt too 224198
                 claims.setClaim(JTI_CLAIM, OAuthUtil.getRandom(16));
@@ -276,6 +280,7 @@ public class JwtCreator {
             if (accessTokenHash != null) {
                 claims.setClaim(AT_HASH, accessTokenHash);
             }
+            claims.setClaim(OIDCConstants.PAYLOAD_SESSION_ID, generateSidClaimValue());
 
             // String sharedKey = OAuth20Util.getValueFromMap(OAuth20Constants.CLIENT_SECRET, tokenMap);
             // JWTData jwtData = new JWTData(sharedKey, oidcServerConfig, JWTData.TYPE_ID_TOKEN);
@@ -290,6 +295,10 @@ public class JwtCreator {
         }
 
         return jwt;
+    }
+
+    public static String generateSidClaimValue() {
+        return RandomUtils.getRandomAlphaNumeric(OIDCConstants.SID_CLAIM_LENGTH);
     }
 
 }

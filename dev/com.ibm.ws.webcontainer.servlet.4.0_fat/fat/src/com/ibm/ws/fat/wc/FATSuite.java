@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2021 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,17 +35,21 @@ import com.ibm.ws.fat.wc.tests.WCSameSiteCookieAttributeTests;
 import com.ibm.ws.fat.wc.tests.WCSendRedirectRelativeURLDefault;
 import com.ibm.ws.fat.wc.tests.WCSendRedirectRelativeURLTrue;
 import com.ibm.ws.fat.wc.tests.WCServerMiscTest;
+import com.ibm.ws.fat.wc.tests.WCServerPropertyTest;
 import com.ibm.ws.fat.wc.tests.WCServerTest;
 import com.ibm.ws.fat.wc.tests.WCServletClarificationTest;
 import com.ibm.ws.fat.wc.tests.WCServletContainerInitializerExceptionTest;
 import com.ibm.ws.fat.wc.tests.WCServletContainerInitializerFilterServletNameMappingTest;
+import com.ibm.ws.fat.wc.tests.WCServletContextUnsupportedOperationExceptionTest;
 import com.ibm.ws.fat.wc.tests.WCServletPathForDefaultMappingDefault;
 import com.ibm.ws.fat.wc.tests.WCServletPathForDefaultMappingFalse;
+import com.ibm.ws.fat.wc.tests.WCTestEncodedX590;
 import com.ibm.ws.fat.wc.tests.WCTrailersTest;
 
 import componenttest.rules.repeater.EmptyAction;
 import componenttest.rules.repeater.FeatureReplacementAction;
 import componenttest.rules.repeater.RepeatTests;
+import componenttest.topology.impl.JavaInfo;
 
 /**
  * Servlet 4.0 Tests
@@ -63,12 +69,7 @@ import componenttest.rules.repeater.RepeatTests;
  */
 @RunWith(Suite.class)
 @SuiteClasses({
-                // TFB:
-                // Locally, WCTrailersTest fails unless I add '-Dglobal.debug.java2.sec=false' to
-                // the gradlew 'buildandrun' invocation.
-                // And, when WCTrailersTest fails, it causes most of the tests to fail with errors.
-                // I'm still determining if this is purely a local problem.
-                //              WCPushBuilderSecurityTest.class,
+                // WCPushBuilderSecurityTest.class,
                 WCApplicationMBeanStatusTest.class,
                 WCContextRootPrecedence.class,
                 WCPushBuilderTest.class,
@@ -91,14 +92,26 @@ import componenttest.rules.repeater.RepeatTests;
                 WC5GetContextPath.class,
                 WCSCIHandlesTypesTest.class,
                 WCResponseHeadersTest.class,
-                WCServerMiscTest.class
-
+                WCServerMiscTest.class,
+                WCServerPropertyTest.class,
+                WCTestEncodedX590.class,
+                WCServletContextUnsupportedOperationExceptionTest.class
 })
 
 public class FATSuite {
 
     @ClassRule
-    public static RepeatTests repeat = RepeatTests.with(new EmptyAction().fullFATOnly()).andWith(FeatureReplacementAction.EE9_FEATURES());
+    public static RepeatTests repeat;
+
+    static {
+        // EE10 requires Java 11.  If we only specify EE10 for lite mode it will cause no tests to run which causes an error.
+        // If we are running on Java 8 have EE9 be the lite mode test to run.
+        if (JavaInfo.JAVA_VERSION >= 11) {
+            repeat = RepeatTests.with(new EmptyAction().fullFATOnly()).andWith(FeatureReplacementAction.EE9_FEATURES().fullFATOnly()).andWith(FeatureReplacementAction.EE10_FEATURES());
+        } else {
+            repeat = RepeatTests.with(new EmptyAction().fullFATOnly()).andWith(FeatureReplacementAction.EE9_FEATURES());
+        }
+    }
 
     /**
      * @see {@link FatLogHandler#generateHelpFile()}

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -23,6 +25,7 @@ import org.junit.Test;
 import com.ibm.ws.install.internal.InstallKernelImpl;
 
 import test.common.SharedOutputManager;
+import test.common.TestFile;
 
 /**
  *
@@ -70,6 +73,14 @@ public class UninstallKernelTest {
 
     @Test
     public void testUninstallProduct() throws Exception {
+        File targetDir = new File("build/unittest/wlpDirs/testUninstallProduct/");
+        if (targetDir.exists()) {
+            TestFile.recursiveClean(targetDir);
+        }
+        targetDir.mkdirs();
+        File wlpDirs = new File("publish/zips/wlpDirs.zip");
+        TestFile.unzip(wlpDirs, targetDir);
+
         File installDir = getInstallDir("testUninstallProduct");
         InstallKernel installKernel = new InstallKernelImpl(installDir);
         installKernel.uninstallFeaturesByProductId("com.ibm.websphere.appserver");
@@ -116,6 +127,14 @@ public class UninstallKernelTest {
 
     @Test
     public void testUninstallProductFeatures() throws Exception {
+        File targetDir = new File("build/unittest/wlpDirs/testUninstallProductFeatures/");
+        if (targetDir.exists()) {
+            TestFile.recursiveClean(targetDir);
+        }
+        targetDir.mkdirs();
+        File wlpDirs = new File("publish/zips/wlpDirs.zip");
+        TestFile.unzip(wlpDirs, targetDir);
+
         File installDir = getInstallDir("testUninstallProductFeatures");
         InstallKernel installKernel = new InstallKernelImpl(installDir);
         installKernel.uninstallProductFeatures("com.ibm.websphere.appserver", null);

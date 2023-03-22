@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2020 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
+import com.ibm.ws.transaction.fat.util.FATUtils;
 
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServerFactory;
@@ -72,8 +75,6 @@ import componenttest.topology.impl.LibertyServerFactory;
 @RunWith(FATRunner.class)
 public class DBTestDisabled extends DBTestBase {
 
-	public static String notInstalled = "WS-AT Feature is not installed";
-
 	@BeforeClass
 	public static void beforeTests() throws Exception {
 
@@ -110,19 +111,13 @@ public class DBTestDisabled extends DBTestBase {
 		
 		// ATAssertion with Optional=true exists on Service level in WSDL
 		appNameServiceOptional = "wsatAppServiceOptional";
-
-		if (client != null && !client.isStarted()) {
-			client.startServer();
-		}
-		if (server1 != null && !server1.isStarted()) {
-			server1.startServer();
-		}
+		
+		FATUtils.startServers(client, server1);
 	}
 
 	@AfterClass
 	public static void tearDown() throws Exception {
-		ServerUtils.stopServer(client);
-		ServerUtils.stopServer(server1);
+		FATUtils.stopServers(client, server1);
 
 		DBTestBase.cleanupWSATTest(client);
 		DBTestBase.cleanupWSATTest(server1);
@@ -152,7 +147,7 @@ public class DBTestDisabled extends DBTestBase {
 		String wsatURL = CLient_URL + testURL + "?" + server1Name + "p="
 				+ commit + ":" + basicURL + ":" + server1Port
 				+ "&withouttrans=true";
-		commonTest(appName, wsatURL, notInstalled, "1", "0");
+		commonTest(appName, wsatURL, WSAT_NOT_INSTALLED, "1", "0");
 	}
 
 	@Test
@@ -161,7 +156,7 @@ public class DBTestDisabled extends DBTestBase {
 		String wsatURL = CLient_URL + testURL + "?" + server1Name + "p="
 				+ rollback + ":" + basicURL + ":" + server1Port
 				+ "&withouttrans=true";
-		commonTest(appName, wsatURL, notInstalled, "1", "0");
+		commonTest(appName, wsatURL, WSAT_NOT_INSTALLED, "1", "0");
 	}
 
 	@Test
@@ -186,7 +181,7 @@ public class DBTestDisabled extends DBTestBase {
 		String testURL = "/" + appName + "/ClientServlet";
 		String wsatURL = CLient_URL + testURL + "?" + server1Name + "p="
 				+ commit + ":" + basicURL + ":" + server1Port;
-		commonTest(appName, wsatURL, notInstalled, "0");
+		commonTest(appName, wsatURL, WSAT_NOT_INSTALLED, "0");
 	}
 
 	@Test
@@ -195,7 +190,7 @@ public class DBTestDisabled extends DBTestBase {
 		String wsatURL = CLient_URL + testURL + "?" + server1Name + "p="
 				+ commit + ":" + basicURL + ":" + server1Port
 				+ "&" + clientName + "=" + rollback;
-		commonTest(appName, wsatURL, notInstalled, "0");
+		commonTest(appName, wsatURL, WSAT_NOT_INSTALLED, "0");
 	}
 	
 	@Override

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2020 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -65,7 +67,8 @@ public class JwtConsumerConfigImpl implements JwtConsumerConfig {
     private String keyManagementKeyAlias;
     String sslRef;
 
-    private ConsumerUtils consumerUtil = null; // init during process(activate and modify)
+    private ConsumerUtils consumerUtil = null; // init during process(activate
+                                               // and modify)
     private JWKSet jwkSet = null; // lazy init
 
     /***********************************
@@ -122,12 +125,14 @@ public class JwtConsumerConfigImpl implements JwtConsumerConfig {
         jwkEnabled = (Boolean) props.get(JwtUtils.CFG_KEY_JWK_ENABLED); // internal
         jwkEndpointUrl = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_JWK_ENDPOINT_URL)); // internal
         sslRef = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_SSL_REF));
-        useSystemPropertiesForHttpClientConnections = (Boolean) props.get(JwtUtils.CFG_KEY_USE_SYSPROPS_FOR_HTTPCLIENT_CONNECTONS);
+        useSystemPropertiesForHttpClientConnections = (Boolean) props
+                .get(JwtUtils.CFG_KEY_USE_SYSPROPS_FOR_HTTPCLIENT_CONNECTONS);
         amrClaim = JwtUtils.trimIt((String[]) props.get(JwtUtils.CFG_AMR_CLAIM));
         keyManagementKeyAlias = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_KEY_MANAGEMENT_KEY_ALIAS));
 
         consumerUtil = new ConsumerUtils(keyStoreServiceRef);
-        jwkSet = null; // the jwkEndpoint may have been changed during dynamic update
+        jwkSet = null; // the jwkEndpoint may have been changed during dynamic
+                       // update
     }
 
     @Override
@@ -191,14 +196,13 @@ public class JwtConsumerConfigImpl implements JwtConsumerConfig {
         }
         Properties sslConfigProps;
         try {
-            sslConfigProps = (Properties) AccessController.doPrivileged(
-                    new PrivilegedExceptionAction<Object>() {
-                        @Override
-                        public Object run() throws Exception {
-                            return sslSupportService.getJSSEHelper().getProperties(sslRef);
+            sslConfigProps = (Properties) AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+                @Override
+                public Object run() throws Exception {
+                    return sslSupportService.getJSSEHelper().getProperties(sslRef);
 
-                        }
-                    });
+                }
+            });
         } catch (Exception e) {
             if (tc.isDebugEnabled()) {
                 Tr.debug(tc, "Caught exception getting SSL properties: " + e);
@@ -216,6 +220,11 @@ public class JwtConsumerConfigImpl implements JwtConsumerConfig {
     @Override
     public long getClockSkew() {
         return clockSkewMilliSeconds;
+    }
+
+    @Override
+    public long getTokenAge() {
+        return 0;
     }
 
     @Override
@@ -259,7 +268,8 @@ public class JwtConsumerConfigImpl implements JwtConsumerConfig {
 
     @Override
     public boolean getTokenReuse() {
-        // The common JWT code is not allowed to reuse JWTs. This could be revisited later as a potential config option.
+        // The common JWT code is not allowed to reuse JWTs. This could be
+        // revisited later as a potential config option.
         return false;
     }
 

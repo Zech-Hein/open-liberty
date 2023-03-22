@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -32,6 +34,7 @@ import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.security.auth.CredentialDestroyedException;
 import com.ibm.websphere.security.cred.WSCredential;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
+import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.security.SecurityService;
 import com.ibm.ws.security.authentication.AuthenticationConstants;
 import com.ibm.ws.security.authentication.AuthenticationData;
@@ -47,14 +50,12 @@ import com.ibm.ws.security.common.structures.BoundedHashMap;
 import com.ibm.ws.security.common.web.WebUtils;
 import com.ibm.ws.security.context.SubjectManager;
 import com.ibm.ws.security.oauth20.util.OAuth20ProviderUtils;
-import com.ibm.ws.security.openidconnect.client.AccessTokenAuthenticator;
-import com.ibm.ws.security.openidconnect.client.AttributeToSubjectExt;
-import com.ibm.ws.security.openidconnect.client.OidcClientAuthenticator;
-import com.ibm.ws.security.openidconnect.client.OidcClientCache;
 import com.ibm.ws.security.openidconnect.client.web.OidcRedirectServlet;
 import com.ibm.ws.security.openidconnect.clients.common.ClientConstants;
 import com.ibm.ws.security.openidconnect.clients.common.OidcClientConfig;
 import com.ibm.ws.security.openidconnect.clients.common.OidcClientRequest;
+import com.ibm.ws.security.openidconnect.clients.common.OidcSessionInfo;
+import com.ibm.ws.security.openidconnect.clients.common.OidcSessionUtils;
 import com.ibm.ws.security.openidconnect.clients.common.OidcUtil;
 import com.ibm.ws.webcontainer.security.AuthResult;
 import com.ibm.ws.webcontainer.security.PostParameterHelper;
@@ -113,6 +114,8 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
     int iClientIsBeforeSso = 0;
     boolean needProviderHint = true;
 
+    private static boolean issuedBetaMessage = false;
+
     protected void setOidcClientConfig(ServiceReference<OidcClientConfig> ref) {
         synchronized (initOidcClientAuthLock) {
             oidcClientConfigRef.putReference((String) ref.getProperty(CFG_KEY_ID), ref);
@@ -157,6 +160,10 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
     protected void setSecurityService(ServiceReference<SecurityService> reference) {
         securityServiceRef.setReference(reference);
         securityService = securityServiceRef.getService();
+        if (tc.isDebugEnabled()) {
+            Tr.debug(tc, "OLGH22405 - setSecurityService service.pid:" + reference.getProperty("service.pid"));
+            Tr.debug(tc, "OLGH22405 - setSecurityService securityService:" + securityService);
+        }
         initOidcClientAuth = true;
     }
 
@@ -414,12 +421,15 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
                 // This is propagation "supported"
                 // 218872 provider is the id of the oidc client
                 //CWWKS1740W: The inbound propagation token for client [{1}] is not valid due to [{0}]. The request will be authenticated using OpenID Connect.
-                boolean suppress = oidcClientRequest.getRsFailMsg() != null && oidcClientRequest.getRsFailMsg().equals("suppress_CWWKS1704W");
-                if (!suppress) {
-                    Tr.warning(tc, "OIDC_CLIENT_BAD_RS_TOKEN", oidcClientRequest.getRsFailMsg(), provider);
-                } else {
-                    if (tc.isDebugEnabled()) {
-                        Tr.debug(tc, "access token was not present, warning message was suppressed");
+                String rsFailMsg = oidcClientRequest.getRsFailMsg();
+                if (rsFailMsg != null) {
+                    boolean suppress = rsFailMsg.equals("suppress_CWWKS1704W");
+                    if (!suppress) {
+                        Tr.warning(tc, "OIDC_CLIENT_BAD_RS_TOKEN", rsFailMsg, provider);
+                    } else {
+                        if (tc.isDebugEnabled()) {
+                            Tr.debug(tc, "access token was not present, warning message was suppressed");
+                        }
                     }
                 }
             }
@@ -427,12 +437,56 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
         return oidcClientAuthenticator.authenticate(req, res, oidcClientConfig);
     }
 
+    @Override
+    public void logoutIfSessionInvalidated(HttpServletRequest req) {
+        if (!isRunningBetaMode()) {
+            return;
+        }
+
+        String provider = getOidcProvider(req);
+        if (provider == null) {
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "Could not get oidc provider.");
+            }
+            return;
+        }
+
+        OidcSessionInfo sessionInfo = OidcSessionInfo.getSessionInfo(req);
+        if (sessionInfo == null) {
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "Session info not found from client cookies.");
+            }
+            return;
+        }
+
+        OidcClientConfig oidcClientConfig = oidcClientConfigRef.getService(provider);
+
+        OidcSessionUtils.logoutIfSessionInvalidated(req, sessionInfo, oidcClientConfig);
+    }
+
+    boolean isRunningBetaMode() {
+        if (!ProductInfo.getBetaEdition()) {
+            return false;
+        } else {
+            // Running beta exception, issue message if we haven't already issued one for this class
+            if (!issuedBetaMessage) {
+                Tr.info(tc, "BETA: A beta method has been invoked for the class " + this.getClass().getName() + " for the first time.");
+                issuedBetaMessage = !issuedBetaMessage;
+            }
+            return true;
+        }
+    }
+
     private boolean requestHasOidcCookie(HttpServletRequest req) {
+        return requestHasCookie(req, ClientConstants.COOKIE_NAME_OIDC_CLIENT_PREFIX);
+    }
+
+    private boolean requestHasCookie(HttpServletRequest req, String cookieNamePrefix) {
         Cookie[] cookies = req.getCookies();
         if (cookies != null) {
             for (int i = 0; i < cookies.length; i++) {
                 Cookie ck = cookies[i];
-                if (ck.getName().startsWith(ClientConstants.COOKIE_NAME_OIDC_CLIENT_PREFIX)) {
+                if (ck.getName().startsWith(cookieNamePrefix)) {
                     return true;
                 }
             }
@@ -547,7 +601,11 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
      * @param reqProviderHint
      * @return
      */
-    protected String getProviderConfig(Iterator<OidcClientConfig> oidcClientConfigs,
+    protected String getProviderConfig(Iterator<OidcClientConfig> oidcClientConfigs, String reqProviderHint, HttpServletRequest req) {
+        return getProviderConfig(reqProviderHint, req);
+    }
+
+    protected String getProviderConfigCurrent(Iterator<OidcClientConfig> oidcClientConfigs,
             String reqProviderHint,
             HttpServletRequest req) {
         while (oidcClientConfigs.hasNext()) {
@@ -575,26 +633,146 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
         return null;
     }
 
-    /**
-     * @param oidcClientConfig
-     * @param provider
-     * @return
-     */
-    String authFilter(OidcClientConfig oidcClientConfig, HttpServletRequest req,
-            String provider) {
-        // handle filter if any
+    protected String getProviderConfig(String reqProviderHint, HttpServletRequest req) {
+        String provider = null;
+
+        if (reqProviderHint != null) {
+            provider = selectByRequestProviderHint(req, reqProviderHint);
+        } else {
+            provider = selectByAuthFilter(req);
+
+            if (provider == null) {
+                provider = selectByIssuer(req);
+            }
+
+            if (provider == null) {
+                provider = selectNonFiltered(req);
+            }
+        }
+
+        return provider;
+    }
+
+    private String selectByRequestProviderHint(HttpServletRequest req, String reqProviderHint) {
+        Iterator<OidcClientConfig> oidcClientConfigs = oidcClientConfigRef.getServices();
+
+        while (oidcClientConfigs.hasNext()) {
+            OidcClientConfig oidcClientConfig = oidcClientConfigs.next();
+
+            if (oidcClientConfig.isValidConfig()) {
+                String provider = oidcClientConfig.getId();
+
+                // This is undocumented scenario. It allows servlet filter to select an RP instance for SSO
+                if (reqProviderHint.equalsIgnoreCase(provider) && authFilter(oidcClientConfig, req, provider) != null) {
+                    return provider;
+                }
+                String issuerIdentifier = oidcClientConfig.getIssuerIdentifier();
+                if (reqProviderHint.equals(issuerIdentifier) && authFilter(oidcClientConfig, req, provider) != null) {
+                    return provider;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    String authFilter(OidcClientConfig oidcClientConfig, HttpServletRequest req, String provider) {
         String authFilterId = oidcClientConfig.getAuthFilterId();
+
         if (authFilterId != null && authFilterId.length() > 0) {
             AuthenticationFilter authFilter = authFilterServiceRef.getService(authFilterId);
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "authFilter id:" + authFilterId + " authFilter:" + authFilter);
             }
-            if (authFilter != null) {
-                if (!authFilter.isAccepted(req))
-                    return null;
+            if (authFilter != null && !authFilter.isAccepted(req)) {
+                return null;
             }
         }
+
         return provider;
+    }
+
+    private String selectByAuthFilter(HttpServletRequest req) {
+        Iterator<OidcClientConfig> oidcClientConfigs = oidcClientConfigRef.getServices();
+
+        while (oidcClientConfigs.hasNext()) {
+            OidcClientConfig oidcClientConfig = oidcClientConfigs.next();
+
+            if (oidcClientConfig.isValidConfig()) {
+                String provider = oidcClientConfig.getId();
+                if (isConfigUsableByAuthFilter(oidcClientConfig, req)) {
+                    return provider;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private String selectByIssuer(HttpServletRequest req) {
+        Iterator<OidcClientConfig> oidcClientConfigs = oidcClientConfigRef.getServices();
+        // There is no accessTokenAuthenticator unless authenticator objects are initialized during authenticate.
+        // Use a lighter instance of AccessTokenAuthenticator until it is initialized.
+        AccessTokenAuthenticator tempAccessTokenAuthenticator = accessTokenAuthenticator != null ? accessTokenAuthenticator : new AccessTokenAuthenticator();
+
+        while (oidcClientConfigs.hasNext()) {
+            OidcClientConfig oidcClientConfig = oidcClientConfigs.next();
+
+            if (oidcClientConfig.isValidConfig()) {
+                String provider = oidcClientConfig.getId();
+                if (tempAccessTokenAuthenticator.canUseIssuerAsSelectorForInboundPropagation(req, oidcClientConfig)) {
+                    return provider;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /*
+     * Select config without an authFilerRef or with an authFilterRef with no corresponding authFilter.
+     */
+    private String selectNonFiltered(HttpServletRequest req) {
+        Iterator<OidcClientConfig> oidcClientConfigs = oidcClientConfigRef.getServices();
+
+        while (oidcClientConfigs.hasNext()) {
+            OidcClientConfig oidcClientConfig = oidcClientConfigs.next();
+
+            if (oidcClientConfig.isValidConfig()) {
+                String provider = oidcClientConfig.getId();
+
+                String authFilterId = oidcClientConfig.getAuthFilterId();
+
+                if (authFilterId != null && authFilterId.length() > 0) {
+                    AuthenticationFilter authFilter = authFilterServiceRef.getService(authFilterId);
+                    if (authFilter == null) {
+                        return provider;
+                    }
+                } else {
+                    return provider;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isConfigUsableByAuthFilter(OidcClientConfig oidcClientConfig, HttpServletRequest req) {
+        boolean result = false;
+        String authFilterId = oidcClientConfig.getAuthFilterId();
+
+        if (authFilterId != null && authFilterId.length() > 0) {
+            AuthenticationFilter authFilter = authFilterServiceRef.getService(authFilterId);
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "authFilter id:" + authFilterId + " authFilter:" + authFilter);
+            }
+
+            if (authFilter != null && authFilter.isAccepted(req)) {
+                result = true;
+            }
+        }
+
+        return result;
     }
 
     /** {@inheritDoc} */
@@ -656,6 +834,9 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
 
             while (services.hasNext()) {
                 OidcClientConfig oidcClientConfig = services.next();
+                if (isRunningBetaMode()) {
+                    OidcSessionUtils.removeOidcSession(request, response, oidcClientConfig);
+                }
                 OidcClientRequest oidcClientRequest = new OidcClientRequest(request, response, oidcClientConfig, (ReferrerURLCookieHandler) null);
                 if (handleOidcCookie(request, response, oidcClientRequest, userName, bSetSubject)) {
                     bSetSubject = true;
@@ -742,9 +923,20 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
         if (tc.isDebugEnabled()) {
             Tr.debug(tc, "subject from oidcCookie is:" + subject);
         }
-        SecurityService securityService = securityServiceRef.getService();
-        AuthenticationService authenticationService = securityService.getAuthenticationService();
-        return authenticateWithSubject(req, resp, subject, authenticationService, authenticationData);
+        try {
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "OLGH22405 - securityService:" + securityServiceRef.getService());
+                Tr.debug(tc, "OLGH22405 - authenticationService:" + securityServiceRef.getService().getAuthenticationService());
+            }
+            SecurityService securityService = securityServiceRef.getService();
+            AuthenticationService authenticationService = securityService.getAuthenticationService();
+            return authenticateWithSubject(req, resp, subject, authenticationService, authenticationData);
+        } catch (Exception e) {
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "OLGH22405 - exception authenticateWithSubject():" + e.getMessage());
+            }
+        }
+        return false;
     }
 
     /**
@@ -860,7 +1052,7 @@ public class OidcClientImpl implements OidcClient, UnprotectedResourceService {
     }
 
     /**
-     * @param res
+     * @param response
      * @param result
      */
     void handleOauthChallenge(HttpServletResponse rsp, ProviderAuthenticationResult oidcResult) {

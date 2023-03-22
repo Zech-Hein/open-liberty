@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -44,10 +46,11 @@ import io.smallrye.openapi.runtime.io.OpenApiSerializer;
 /**
  * Displays validation schema
  */
-@Component(configurationPolicy = ConfigurationPolicy.IGNORE, service = { RESTHandler.class }, property = { RESTHandler.PROPERTY_REST_HANDLER_CONTEXT_ROOT
-                                                                                                           + "=/openapi/platform",
-                                                                                                           RESTHandler.PROPERTY_REST_HANDLER_ROOT
-                                                                                                                                   + "=/validation" })
+@Component(configurationPolicy = ConfigurationPolicy.IGNORE, 
+           service = { RESTHandler.class }, 
+           property = { RESTHandler.PROPERTY_REST_HANDLER_CONTEXT_ROOT + "=/openapi/platform",
+                        RESTHandler.PROPERTY_REST_HANDLER_CONTEXT_ROOT + "=/ibm/api/platform",
+                        RESTHandler.PROPERTY_REST_HANDLER_ROOT + "=/validation" })
 public class ValidatorSchemaRESTHandler implements RESTHandler {
     private static final TraceComponent tc = Tr.register(ValidatorSchemaRESTHandler.class);
 
@@ -200,8 +203,14 @@ public class ValidatorSchemaRESTHandler implements RESTHandler {
             try {
                 return getClass().getClassLoader().loadClass("javax.jms.ConnectionFactory");
             } catch (ClassNotFoundException e) {
-                return null;
             }
+
+            try {
+                return getClass().getClassLoader().loadClass("jakarta.jms.ConnectionFactory");
+            } catch (ClassNotFoundException e) {
+            }
+
+            return null;
         });
         return jmsClass != null;
     }

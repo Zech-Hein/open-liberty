@@ -1,15 +1,18 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.rest.handler.config.fat;
 
+import static com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions.SERVER_ONLY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -47,12 +50,12 @@ public class ConfigRESTHandlerJCATest extends FATServletClient {
         ResourceAdapterArchive tca_rar = ShrinkWrap.create(ResourceAdapterArchive.class, "TestConfigAdapter.rar")
                         .addAsLibraries(ShrinkWrap.create(JavaArchive.class)
                                         .addPackage("org.test.config.adapter"));
-        ShrinkHelper.exportToServer(server, "connectors", tca_rar);
+        ShrinkHelper.exportToServer(server, "connectors", tca_rar, SERVER_ONLY);
 
         ResourceAdapterArchive ata_rar = ShrinkWrap.create(ResourceAdapterArchive.class, "AnotherTestAdapter.rar")
                         .addAsLibraries(ShrinkWrap.create(JavaArchive.class)
                                         .addPackage("org.test.config.adapter"));
-        ShrinkHelper.exportToServer(server, "connectors", ata_rar);
+        ShrinkHelper.exportToServer(server, "connectors", ata_rar, SERVER_ONLY);
 
         FATSuite.setupServerSideAnnotations(server);
 

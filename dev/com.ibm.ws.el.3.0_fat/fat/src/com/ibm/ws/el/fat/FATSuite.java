@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2020 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,6 +23,7 @@ import com.ibm.ws.el.fat.tests.EL30CoercionRulesTest;
 import com.ibm.ws.el.fat.tests.EL30LambdaExpressionsTest;
 import com.ibm.ws.el.fat.tests.EL30ListCollectionObjectOperationsTest;
 import com.ibm.ws.el.fat.tests.EL30MethodExpressionInvocationsTest;
+import com.ibm.ws.el.fat.tests.EL30MiscTests;
 import com.ibm.ws.el.fat.tests.EL30OperatorPrecedenceTest;
 import com.ibm.ws.el.fat.tests.EL30OperatorsTest;
 import com.ibm.ws.el.fat.tests.EL30ReservedWordsTest;
@@ -31,6 +34,8 @@ import com.ibm.ws.fat.util.FatLogHandler;
 import componenttest.rules.repeater.EmptyAction;
 import componenttest.rules.repeater.FeatureReplacementAction;
 import componenttest.rules.repeater.RepeatTests;
+import componenttest.topology.impl.JavaInfo;
+
 /**
  * EL 3.0 Tests
  *
@@ -57,7 +62,8 @@ import componenttest.rules.repeater.RepeatTests;
                 EL22OperatorsTest.class,
                 EL30OperatorsTest.class,
                 EL30MethodExpressionInvocationsTest.class,
-                EL30VarargsMethodMatchingTest.class
+                EL30VarargsMethodMatchingTest.class,
+                EL30MiscTests.class
 })
 public class FATSuite {
 
@@ -70,8 +76,17 @@ public class FATSuite {
     }
 
     @ClassRule
-    public static RepeatTests r = RepeatTests
-                    .with(new EmptyAction().fullFATOnly())
-                    .andWith(FeatureReplacementAction.EE9_FEATURES());
+    public static RepeatTests repeat;
 
+    static {
+        // EE10 requires Java 11.  If we only specify EE10 for lite mode it will cause no tests to run which causes an error.
+        // If we are running on Java 8 have EE9 be the lite mode test to run.
+        if (JavaInfo.JAVA_VERSION >= 11) {
+            repeat = RepeatTests.with(new EmptyAction().fullFATOnly())
+                            .andWith(FeatureReplacementAction.EE9_FEATURES().fullFATOnly())
+                            .andWith(FeatureReplacementAction.EE10_FEATURES());
+        } else {
+            repeat = RepeatTests.with(new EmptyAction().fullFATOnly()).andWith(FeatureReplacementAction.EE9_FEATURES());
+        }
+    }
 }

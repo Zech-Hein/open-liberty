@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,6 +32,7 @@ import javax.json.JsonObject;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Assume;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -41,6 +44,8 @@ import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.MicroProfileActions;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.HttpUtils;
 
@@ -63,12 +68,17 @@ public class SlowAppStartupHealthCheckTest {
     @Server(SERVER_NAME)
     public static LibertyServer server1;
 
+    @ClassRule
+    public static RepeatTests r = MicroProfileActions.repeat(SERVER_NAME,
+                                                             MicroProfileActions.MP60, // mpHealth-4.0 LITE
+                                                             MicroProfileActions.MP41); // mpHealth-3.0 FULL
+
     public void setupClass(LibertyServer server, String testName) throws Exception {
         log("setupClass", testName + " - Deploying the Delayed App into the apps directory and starting the server.");
 
         WebArchive app = ShrinkHelper.buildDefaultApp(APP_NAME, "io.openliberty.microprofile.health31.delayed.health.check.app");
         //This test expects to hit the server before the app is started so we disable validation to prevent the test framework waiting for the app to start.
-        ShrinkHelper.exportAppToServer(server, app, DeployOptions.DISABLE_VALIDATION);
+        ShrinkHelper.exportAppToServer(server, app, DeployOptions.DISABLE_VALIDATION, DeployOptions.SERVER_ONLY);
 
         if (!server.isStarted())
             server.startServer();
@@ -114,7 +124,7 @@ public class SlowAppStartupHealthCheckTest {
         int max_num_of_attempts = 5;
         int responseCode = -1;
         long start_time = System.currentTimeMillis();
-        long time_out = 180000; // 180000ms = 3min
+        long time_out = 240000; // 240000ms = 4min
         boolean connectionExceptionEncountered = false;
         boolean first_time = true;
         boolean app_started = false;
@@ -190,7 +200,7 @@ public class SlowAppStartupHealthCheckTest {
                             List<String> lines = server1.findStringsInFileInLibertyServerRoot("(CWWKZ0001I: Application DelayedHealthCheckApp started)+", MESSAGE_LOG);
                             if (lines.size() == 0) {
                                 log("testStartupEndpointOnServerStart", "Waiting for Application to start.");
-                                String line = server1.waitForStringInLog("(CWWKZ0001I: Application DelayedHealthCheckApp started)+");
+                                String line = server1.waitForStringInLog("(CWWKZ0001I: Application DelayedHealthCheckApp started)+", time_out);
                                 log("testStartupEndpointOnServerStart", "Application started. Line Found : " + line);
                                 assertNotNull("The CWWKZ0001I Application started message did not appear in messages.log", line);
                             } else {

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 1998, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -56,7 +58,7 @@ public abstract class SingletonActivationStrategy extends ActivationStrategy
 
         BeanO bean = null;
         Throwable exception = null;
-        MasterKey key = new MasterKey(beanId);
+        MainKey key = new MainKey(beanId);
         boolean activate = false;
         boolean pushedCallbackBeanO = false;
 
@@ -160,7 +162,7 @@ public abstract class SingletonActivationStrategy extends ActivationStrategy
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
             Tr.entry(tc, "atCommit", new Object[] { tx, bean });
 
-        Object key = bean.ivCacheKey; // MasterKey                d199233
+        Object key = bean.ivCacheKey; // MainKey                d199233
 
         synchronized (locks.getLock(key)) {
 
@@ -186,7 +188,7 @@ public abstract class SingletonActivationStrategy extends ActivationStrategy
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
             Tr.entry(tc, "atEnlist", new Object[] { tx, bean });
 
-        cache.pin(bean.ivCacheKey); // take transaction reference (MasterKey)
+        cache.pin(bean.ivCacheKey); // take transaction reference (MainKey)
 
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
             Tr.exit(tc, "atEnlist");
@@ -197,7 +199,7 @@ public abstract class SingletonActivationStrategy extends ActivationStrategy
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
             Tr.entry(tc, "atRemove", new Object[] { tx, bean });
 
-        final Object key = bean.ivCacheKey; // MasterKey          d199233
+        final Object key = bean.ivCacheKey; // MainKey          d199233
 
         synchronized (locks.getLock(key)) {
             cache.remove(key, true);
@@ -213,7 +215,7 @@ public abstract class SingletonActivationStrategy extends ActivationStrategy
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
             Tr.entry(tc, "atGet", new Object[] { tx, id });
 
-        final MasterKey key = new MasterKey(id);
+        final MainKey key = new MainKey(id);
         BeanO result;
 
         synchronized (locks.getLock(key)) {

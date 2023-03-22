@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,6 +16,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -104,8 +110,46 @@ public class BestMatch {
                             }
 
                         });
-
+        manageWSJars(matched, outputDir);
         writePom(matched, outputDir);
+
+    }
+
+    /**
+     * @param matched
+     * @param outputDir
+     * @param path
+     */
+    private static void manageWSJars(Set<Module> matched, String outputDir) {
+
+        new File(outputDir + "/wsJars").mkdirs();
+        matched.forEach(library -> {
+            if (wsLibraries(library)) {
+                manageLibrary(library, outputDir);
+            }
+        });
+    }
+
+    /**
+     * @param library
+     * @param outputDir
+     * @param path
+     */
+    private static void manageLibrary(Module library, String outputDir) {
+
+        // If the proper group name can be detected in the rebundled ibm ws jar, then we will use it for scanning purposes
+
+        String fileName = library.getArtifactId() + "-" + library.getVersion() + ".jar";
+        System.out.println(library);
+
+        Path copied = Paths.get(outputDir + "/wsJars/" + fileName);
+        Path originalPath = library.getOriginalFile().toPath();
+        try {
+            Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
     }
 
@@ -115,8 +159,8 @@ public class BestMatch {
     private static void writePom(Set<Module> matched, String path) {
 
         matched.forEach(library -> {
-            if (!library.getGroupId().equals("com.ibm.ws")) {
-                List<String> versions = depVersionMap.computeIfAbsent((library.getGroupId() + library.getArtifactId()), k -> new ArrayList<>());
+            if (!filteredLibraries(library)) {
+                List<String> versions = depVersionMap.computeIfAbsent(library.getModuleId(), k -> new ArrayList<>());
                 versions.add(library.getVersion());
                 if (versions.size() > pomFiles)
                     pomFiles = versions.size();
@@ -130,10 +174,11 @@ public class BestMatch {
             model.setVersion("1.0-SNAPSHOT");
             model.setGroupId("liberty");
             model.setArtifactId("dependency-report");
+            new File(path + "/proj_" + count.intValue()).mkdirs(); //Make sure directory is created first
 
             matched.forEach(library -> {
-                if (!library.getGroupId().equals("com.ibm.ws")) {
-                    List<String> versions = depVersionMap.get((library.getGroupId() + library.getArtifactId()));
+                if (!(filteredLibraries(library))) {
+                    List<String> versions = depVersionMap.get(library.getModuleId());
                     if (versions.size() > count.intValue()) {
 
                         class ComparedDependency extends Dependency {
@@ -178,13 +223,29 @@ public class BestMatch {
 
             MavenXpp3Writer writer = new MavenXpp3Writer();
             try {
-                writer.write(new FileWriter(path + "/pom_" + count.intValue() + ".xml"), model);
+                writer.write(new FileWriter(path + "/proj_" + count.intValue() + "/pom.xml"), model);
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
 
+    }
+
+    /**
+     * @param library
+     * @return
+     */
+    private static boolean filteredLibraries(Module library) {
+        return (library.getGroupId().equals("org.glassfish") && (library.getArtifactId().equals("javax.faces")));
+    }
+
+    /**
+     * @param library
+     * @return
+     */
+    private static boolean wsLibraries(Module library) {
+        return library.getGroupId().startsWith("com.ibm.ws");
     }
 
     private static String toMavenCoords(String coords) {

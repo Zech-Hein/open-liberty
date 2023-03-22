@@ -1,0 +1,479 @@
+/*******************************************************************************
+ * Copyright (c) 2022, 2023 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *******************************************************************************/
+package io.openliberty.checkpoint.fat;
+
+import static io.openliberty.checkpoint.fat.FATSuite.configureEnvVariable;
+import static io.openliberty.checkpoint.fat.FATSuite.getTestMethod;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.KeyStore;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestName;
+import org.junit.runner.RunWith;
+
+import com.ibm.websphere.simplicity.LocalFile;
+import com.ibm.websphere.simplicity.RemoteFile;
+import com.ibm.websphere.simplicity.ShrinkHelper;
+import com.ibm.websphere.simplicity.config.SSL;
+import com.ibm.websphere.simplicity.config.ServerConfiguration;
+import com.ibm.websphere.simplicity.log.Log;
+
+import componenttest.annotation.Server;
+import componenttest.annotation.SkipIfCheckpointNotSupported;
+import componenttest.custom.junit.runner.FATRunner;
+import componenttest.custom.junit.runner.Mode;
+import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.JakartaEE10Action;
+import componenttest.rules.repeater.JakartaEE9Action;
+import componenttest.rules.repeater.RepeatTests;
+import componenttest.topology.impl.LibertyServer;
+import componenttest.topology.impl.LibertyServerFactory;
+import io.openliberty.checkpoint.spi.CheckpointPhase;
+
+@RunWith(FATRunner.class)
+@SkipIfCheckpointNotSupported
+public class SSLTest {
+    @Rule
+    public TestName testName = new TestName();
+
+    private static final String SERVER_NAME = "checkpointSSL";
+
+    @Server(SERVER_NAME)
+    public static LibertyServer server;
+
+    private static final Class<?> c = SSLTest.class;
+    private final String APP_NAME = "app2";
+    private final String KEYSTORE_GENERATED = "CWPKI0803A";
+    private final String TCP_CHANNEL_STARTED = "CWWKO0219I:.*defaultHttpEndpoint-ssl";
+    public TestMethod testMethod;
+
+    @ClassRule
+    public static RepeatTests r = RepeatTests.withoutModification() //
+                    .andWith(new JakartaEE9Action().forServers(SERVER_NAME).fullFATOnly()) //
+                    .andWith(new JakartaEE10Action().forServers(SERVER_NAME).fullFATOnly());
+
+    @Before
+    public void beforeEach() throws Exception {
+        ShrinkHelper.defaultApp(server, APP_NAME, "app2");
+        FATSuite.copyAppsAppToDropins(server, APP_NAME);
+        testMethod = getTestMethod(TestMethod.class, testName);
+        configureBeforeCheckpoint();
+        server.setCheckpoint(CheckpointPhase.APPLICATIONS, true,
+                             server -> {
+                                 assertNotNull("'SRVE0169I: Loading Web Module: " + APP_NAME + "' message not found in log before rerstore",
+                                               server.waitForStringInLogUsingMark("SRVE0169I: .*" + APP_NAME, 0));
+                                 assertNotNull("'CWWKZ0001I: Application " + APP_NAME + " started' message not found in log.",
+                                               server.waitForStringInLogUsingMark("CWWKZ0001I: .*" + APP_NAME, 0));
+                                 configureBeforeRestore();
+                             });
+        server.startServer(getTestMethod(TestMethod.class, testName) + ".log");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        try {
+            server.stopServer();
+        } finally {
+            server.restoreServerConfiguration();
+            configureEnvVariable(server, emptyMap());
+            server.deleteDirectoryFromLibertyServerRoot("resources");
+        }
+    }
+
+    private void configureBeforeCheckpoint() throws Exception {
+        Log.info(getClass(), testName.getMethodName(), "configureBeforeCheckpoint: " + testMethod);
+        server.saveServerConfiguration();
+        switch (testMethod) {
+            case testSSLConfiguredAutoGenerated:
+            case testTransportSecurityConfiguredAutoGenerated:
+                addKeystore("defaultKeyStore", null, null, "liberty");
+                break;
+            case testSSLEnvPasswordOnCheckpoint:
+            case testTransportSecurityEnvPasswordOnCheckpoint:
+                configureEnvVariable(server, singletonMap("keystore_password", "svkDut1koAFmksqPCYRQnST"));
+                break;
+            case testSSLConfigured:
+            case testTransportSecurityConfigured:
+                addKeystore("serverKeyStore", "server-keystore.jks", "JKS", "secret");
+                addKeystore("serverTrustStore", "server-truststore.jks", "JKS", "secret");
+                addSSL("defaultSSLConfig", "serverKeyStore", "serverTrustStore");
+                LibertyServerFactory.recursivelyCopyDirectory(server.getMachine(), new LocalFile("lib/LibertyFATTestFiles/sslKeystore/resources"),
+                                                              new RemoteFile(server.getMachine(), server.getServerRoot() + "/resources"));
+                break;
+            default:
+                break;
+        }
+
+        switch (testMethod) {
+            case testSSLConfiguredAutoGenerated:
+            case testSSLEnvPasswordOnCheckpoint:
+            case testSSLEnvPasswordOnRestore:
+            case testSSLConfigured:
+                addFeature("ssl-1.0");
+                break;
+            case testTransportSecurityConfiguredAutoGenerated:
+            case testTransportSecurityEnvPasswordOnCheckpoint:
+            case testTransportSecurityEnvPasswordOnRestore:
+            case testTransportSecurityConfigured:
+                addFeature("transportSecurity-1.0");
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void configureBeforeRestore() {
+        try {
+            Log.info(getClass(), testName.getMethodName(), "Configuring: " + testMethod);
+            switch (testMethod) {
+                case testSSLEnvPasswordOnRestore:
+                case testTransportSecurityEnvPasswordOnRestore:
+                    configureEnvVariable(server, singletonMap("keystore_password", "svkDut1koAFmksqPCYRQnST"));
+                    break;
+                default:
+                    Log.info(getClass(), testName.getMethodName(), "No configuration required: " + testMethod);
+                    break;
+            }
+
+        } catch (Exception e) {
+            throw new AssertionError("Unexpected error configuring test.", e);
+        }
+    }
+
+    @Test
+    public void testSSLConfiguredAutoGenerated() throws Exception {
+        configuredAutoGeneratedSSL();
+    }
+
+    @Test
+    public void testSSLEnvPasswordOnCheckpoint() throws Exception {
+        envPasswordOnCheckpointSSL();
+    }
+
+    @Test
+    public void testSSLEnvPasswordOnRestore() throws Exception {
+        envPasswordOnRestoreSSL();
+    }
+
+    @Test
+    public void testSSLConfigured() throws Exception {
+        configuredSSL();
+    }
+
+    @Test
+    @Mode(TestMode.FULL)
+    public void testTransportSecurityConfiguredAutoGenerated() throws Exception {
+        configuredAutoGeneratedSSL();
+    }
+
+    @Test
+    @Mode(TestMode.FULL)
+    public void testTransportSecurityEnvPasswordOnCheckpoint() throws Exception {
+        envPasswordOnCheckpointSSL();
+    }
+
+    @Test
+    @Mode(TestMode.FULL)
+    public void testTransportSecurityEnvPasswordOnRestore() throws Exception {
+        envPasswordOnRestoreSSL();
+    }
+
+    @Test
+    @Mode(TestMode.FULL)
+    public void testTransportSecurityConfigured() throws Exception {
+        configuredSSL();
+    }
+
+    public void addFeature(String feature) throws Exception {
+        ServerConfiguration config = server.getServerConfiguration();
+        config.getFeatureManager().getFeatures().add(feature);
+        server.updateServerConfiguration(config);
+    }
+
+    public void addKeystore(String id, String location, String type, String password) throws Exception {
+        ServerConfiguration config = server.getServerConfiguration();
+        com.ibm.websphere.simplicity.config.KeyStore keystore = new com.ibm.websphere.simplicity.config.KeyStore();
+        keystore.setId(id);
+        keystore.setLocation(location);
+        keystore.setType(type);
+        keystore.setPassword(password);
+        config.getKeyStores().add(keystore);
+        server.updateServerConfiguration(config);
+    }
+
+    public void addSSL(String id, String keyStoreRef, String trustStoreRef) throws Exception {
+        ServerConfiguration config = server.getServerConfiguration();
+        SSL ssl = new SSL();
+        ssl.setId(id);
+        ssl.setKeyStoreRef(keyStoreRef);
+        ssl.setTrustStoreRef(trustStoreRef);
+        config.addSSL(ssl);
+        server.updateServerConfiguration(config);
+    }
+
+    public void configuredAutoGeneratedSSL() throws Exception {
+        assertNotNull("Expected CWPKI0803A message not found", server.waitForStringInLog(KEYSTORE_GENERATED));
+        validateGeneratedKeyStore(server, "liberty");
+
+        RemoteFile ksRemoteFile = server.getFileFromLibertyServerRoot("resources/security/key.p12");
+        final String ksPath = ksRemoteFile.getAbsolutePath();
+        final String ksPassword = "liberty";
+        final String tsPath = null;
+        final String tsPassword = null;
+
+        assertNotNull("Ecpected CWWKO0219I message not found", server.waitForStringInLog(TCP_CHANNEL_STARTED));
+
+        String result = sendHttpsGet("app2/request", server, ksPath, ksPassword, tsPath, tsPassword);
+        assertNotNull(result);
+        assertEquals("Expected response not found.", "Got ServletA", result);
+    }
+
+    public void envPasswordOnCheckpointSSL() throws Exception {
+        assertNotNull("Expected CWPKI0803A message not found", server.waitForStringInLog(KEYSTORE_GENERATED));
+        validateGeneratedKeyStore(server, server.getServerEnv().getProperty("keystore_password"));
+
+        RemoteFile ksRemoteFile = server.getFileFromLibertyServerRoot("resources/security/key.p12");
+        final String ksPath = ksRemoteFile.getAbsolutePath();
+        final String ksPassword = server.getServerEnv().getProperty("keystore_password");
+        final String tsPath = null;
+        final String tsPassword = null;
+
+        assertNotNull("Ecpected CWWKO0219I message not found", server.waitForStringInLog(TCP_CHANNEL_STARTED));
+
+        String result = sendHttpsGet("app2/request", server, ksPath, ksPassword, tsPath, tsPassword);
+        assertNotNull(result);
+        assertEquals("Expected response not found.", "Got ServletA", result);
+    }
+
+    public void envPasswordOnRestoreSSL() throws Exception {
+        assertEquals("Expected restore message not found", 1, server.findStringsInLogs("CWWKC0452I", server.getDefaultLogFile()).size());
+        assertNotNull("Expected CWPKI0803A message not found", server.waitForStringInLog(KEYSTORE_GENERATED));
+        validateGeneratedKeyStore(server, server.getServerEnv().getProperty("keystore_password"));
+
+        RemoteFile ksRemoteFile = server.getFileFromLibertyServerRoot("resources/security/key.p12");
+        final String ksPath = ksRemoteFile.getAbsolutePath();
+        final String ksPassword = server.getServerEnv().getProperty("keystore_password");
+        final String tsPath = null;
+        final String tsPassword = null;
+
+        assertNotNull("Ecpected CWWKO0219I message not found", server.waitForStringInLog(TCP_CHANNEL_STARTED));
+
+        String result = sendHttpsGet("app2/request", server, ksPath, ksPassword, tsPath, tsPassword);
+        assertNotNull(result);
+        assertEquals("Expected response not found.", "Got ServletA", result);
+    }
+
+    public void configuredSSL() throws Exception {
+        RemoteFile ksRemoteFile = server.getFileFromLibertyServerRoot("resources/security/server-keystore.jks");
+        final String ksPath = ksRemoteFile.getAbsolutePath();
+        RemoteFile tsRemoteFile = server.getFileFromLibertyServerRoot("resources/security/server-truststore.jks");
+        final String tsPath = ksRemoteFile.getAbsolutePath();
+
+        final String ksPassword = "secret";
+        final String tsPassword = "secret";
+
+        assertNotNull("Ecpected CWWKO0219I message not found", server.waitForStringInLog(TCP_CHANNEL_STARTED));
+
+        String result = sendHttpsGet("app2/request", server, ksPath, ksPassword, tsPath, tsPassword);
+        assertNotNull(result);
+        assertEquals("Expected response not found.", "Got ServletA", result);
+    }
+
+    public static String sendHttpsGet(String url, LibertyServer server, String ksPath, String ksPassword, String tsPath, String tsPassword) throws Exception {
+
+        String result = null;
+        SSLContext sslcontext = SSLContext.getInstance("SSL");
+
+        establishSSLcontext(sslcontext, server, ksPath, ksPassword, tsPath, tsPassword);
+
+        URL requestUrl = getURL(url, server);
+
+        HttpsURLConnection httpsConn = (HttpsURLConnection) requestUrl.openConnection();
+        httpsConn.setHostnameVerifier(new MyHostnameVerifier());
+        httpsConn.setSSLSocketFactory(sslcontext.getSocketFactory());
+        httpsConn.setRequestMethod("GET");
+        httpsConn.setDoOutput(false);
+        httpsConn.setDoInput(true);
+
+        int code = httpsConn.getResponseCode();
+        assertEquals("Expected response code not found.", 200, code);
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(httpsConn.getInputStream()));
+        String temp = in.readLine();
+
+        while (temp != null) {
+            if (result != null)
+                result += temp;
+            else
+                result = temp;
+            temp = in.readLine();
+        }
+        return result;
+    }
+
+    private static void establishSSLcontext(SSLContext sslcontext, LibertyServer server, String ksPath, String ksPassword, String tsPath, String tsPassword) throws Exception {
+        InputStream ksStream = null;
+        InputStream tsStream = null;
+
+        try {
+            KeyManager keyManagers[] = null;
+
+            if (ksPath != null) {
+                KeyManagerFactory kmFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                File ksFile = new File(ksPath);
+                KeyStore keyStore = null;
+                try {
+                    keyStore = KeyStore.getInstance("JKS");
+                    ksStream = new FileInputStream(ksFile);
+                    keyStore.load(ksStream, ksPassword.toCharArray());
+                } catch (Exception e) {
+                    try {
+                        keyStore = KeyStore.getInstance("PKCS12");
+                        ksStream = new FileInputStream(ksFile);
+                        keyStore.load(ksStream, ksPassword.toCharArray());
+                    } catch (Exception e1) {
+                        throw e1;
+                    }
+
+                }
+
+                kmFactory.init(keyStore, ksPassword.toCharArray());
+                keyManagers = kmFactory.getKeyManagers();
+            }
+            TrustManager[] trustManagers = null;
+
+            if (tsPath != null) {
+                TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                File tsFile = new File(tsPath);
+                KeyStore trustStore = null;
+                try {
+                    trustStore = KeyStore.getInstance("JKS");
+                    tsStream = new FileInputStream(tsFile);
+                    trustStore.load(tsStream, tsPassword.toCharArray());
+
+                } catch (Exception e) {
+                    try {
+                        trustStore = KeyStore.getInstance("PKCS12");
+                        tsStream = new FileInputStream(tsFile);
+                        trustStore.load(tsStream, tsPassword.toCharArray());
+                    } catch (Exception e1) {
+                        throw e1;
+                    }
+
+                }
+
+                tmFactory.init(trustStore);
+                trustManagers = tmFactory.getTrustManagers();
+            }
+            if (trustManagers == null) {
+                trustManagers = getTrustManager();
+            }
+
+            sslcontext.init(keyManagers, trustManagers, null);
+        } finally {
+            if (ksStream != null) {
+                ksStream.close();
+            }
+            if (tsStream != null) {
+                tsStream.close();
+            }
+        }
+    }
+
+    private static TrustManager[] getTrustManager() {
+        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+            @Override
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            @Override
+            public void checkClientTrusted(
+                                           java.security.cert.X509Certificate[] certs, String authType) {
+            }
+
+            @Override
+            public void checkServerTrusted(
+                                           java.security.cert.X509Certificate[] certs, String authType) {
+            }
+        } };
+
+        return trustAllCerts;
+    }
+
+    private static URL getURL(String path, LibertyServer server) throws MalformedURLException {
+        if (!path.startsWith("/")) {
+            path = "/" + path;
+        }
+        return new URL("https://" + server.getHostname() + ":" + server.getHttpDefaultSecurePort() + path);
+
+    }
+
+    private static void validateGeneratedKeyStore(LibertyServer server, String password) throws Exception {
+        String m = "validateGeneratedKeyStore";
+        File keystore = new File(server.getFileFromLibertyServerRoot("resources/security/key.p12").getAbsolutePath());
+        if (!keystore.exists())
+            fail("Keystore was not generated at location: " + keystore.getAbsolutePath());
+        Log.info(c, m, "Keystore exists at " + keystore.getAbsolutePath());
+
+        Log.info(c, m, "Verifying that keystore is accessible using password=" + password);
+        KeyStore ks = KeyStore.getInstance("PKCS12");
+        ks.load(new FileInputStream(keystore), password.toCharArray());
+    }
+
+    static enum TestMethod {
+        testSSLConfiguredAutoGenerated,
+        testSSLEnvPasswordOnCheckpoint,
+        testSSLEnvPasswordOnRestore,
+        testSSLConfigured,
+        testTransportSecurityConfiguredAutoGenerated,
+        testTransportSecurityEnvPasswordOnCheckpoint,
+        testTransportSecurityEnvPasswordOnRestore,
+        testTransportSecurityConfigured,
+        unknown
+    }
+}
+
+class MyHostnameVerifier implements HostnameVerifier {
+
+    @Override
+    public boolean verify(String hostname, SSLSession session) {
+        return true;
+    }
+}

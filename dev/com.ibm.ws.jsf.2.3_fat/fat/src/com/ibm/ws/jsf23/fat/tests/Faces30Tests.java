@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -35,20 +37,20 @@ import componenttest.topology.impl.LibertyServer;
 public class Faces30Tests {
 
     @Server("faces30Server")
-    public static LibertyServer faces30Server;
+    public static LibertyServer server;
 
     @BeforeClass
     public static void setup() throws Exception {
-        ShrinkHelper.defaultDropinApp(faces30Server, "Faces30FacesConfigTest.war");
+        ShrinkHelper.defaultDropinApp(server, "Faces30FacesConfigTest.war");
 
-        faces30Server.startServer(Faces30Tests.class.getSimpleName() + ".log");
+        server.startServer(Faces30Tests.class.getSimpleName() + ".log");
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
         // Stop the server
-        if (faces30Server != null && faces30Server.isStarted()) {
-            faces30Server.stopServer();
+        if (server != null && server.isStarted()) {
+            server.stopServer();
         }
     }
 
@@ -70,7 +72,7 @@ public class Faces30Tests {
     @Test
     public void testFacesConfigVersion30() throws Exception {
         assertTrue("The CWWKC2262E exception was found in the trace.log when it should not have been.",
-                   faces30Server.findStringsInTrace("CWWKC2262E").isEmpty());
+                   server.findStringsInTrace("CWWKC2262E").isEmpty());
     }
 
 }

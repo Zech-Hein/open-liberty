@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2020 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,10 +13,16 @@
 
 package com.ibm.ws.sib.processor.test;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -71,14 +79,15 @@ import com.ibm.wsspi.sib.core.exception.SIRollbackException;
 
 /**
  * This class was copied from JsStandaloneEngineImpl.
- * 
+ *
  * We are using this class because admin are extremely unwilling to update
  * JsStandaloneEngineImpl to cater for requirements (in this case the ability to
  * control message store persistence recovery for warm restart tests.
- * 
+ *
  * This is a temporary measure and it should be easy to revert to admin's
  * standalone in the future.
  */
+@SuppressWarnings("restriction")
 public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
     // Vector of the classes which are bootstrapped
     // 174199.2.8
@@ -203,6 +212,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     }
 
+    @SuppressWarnings("restriction")
     @Override
     public synchronized MessageStore createMessageStoreOnly(boolean clean) throws Exception {
         // Instantiate the message store for my messaging engine
@@ -223,23 +233,27 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
         }
 
         if (_messageStore == null) {
-            _messageStore = MessageStore.createInstance();
+            final String IMPL = "com.ibm.ws.sib.msgstore.impl.MessageStoreImpl";
+            final String METHOD = "createForTesting";
+            final Class<?> implClass = Class.forName(IMPL);
+            final Method factoryMethod = implClass.getMethod(METHOD);
+            assertTrue(IMPL + "." + METHOD + "() should be static", Modifier.isStatic(factoryMethod.getModifiers()));
+            assertTrue(IMPL + "." + METHOD + "() should be public", Modifier.isPublic(factoryMethod.getModifiers()));
+            _messageStore = (MessageStore) factoryMethod.invoke(null);
 
             Configuration configuration = Configuration.createBasicConfiguration();
             configuration.setCleanPersistenceOnStart(clean);
             configuration.getDatasourceProperties().setProperty("databaseName",
                                                                 System.getProperty("js.test.dbname", "msdb"));
             if (System.getProperty("js.test.dbAttributes") != null)
-                configuration.getDatasourceProperties().setProperty(
-                                                                    "connectionAttributes", System.getProperty("js.test.dbAttributes"));
+                configuration.getDatasourceProperties().setProperty("connectionAttributes", System.getProperty("js.test.dbAttributes"));
             configuration.setObjectManagerMaximumPermanentStoreSize(41943040);
             configuration.setObjectManagerMinimumPermanentStoreSize(41943040);
             configuration.setObjectManagerMaximumTemporaryStoreSize(41943040);
             configuration.setObjectManagerMinimumTemporaryStoreSize(41943040);
             configuration.setObjectManagerLogSize(20043040);
 
-            configuration
-                            .setPersistentMessageStoreClassname(UnitTestConstants.USE_DB_CLASS);
+            configuration.setPersistentMessageStoreClassname(UnitTestConstants.USE_DB_CLASS);
 
             _messageStore.initialize(configuration);
             _messageStore.start(JsConstants.ME_START_DEFAULT);
@@ -283,7 +297,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
         /*
          * Do not initialize MP (the single sub-component). We will do this manually
          * for unit tests.
-         * 
+         *
          * 174199.2.18
          */
         // Initialize any engine components
@@ -305,7 +319,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
         /*
          * Do not start MP (the single sub-component). We will do this manually for
          * unit tests.
-         * 
+         *
          * 174199.2.18
          */
         // Start the sub-components
@@ -320,7 +334,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.ws.sib.admin.JsEngineComponent#stop(int)
      */
     @Override
@@ -383,10 +397,10 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /**
      * Method loadClass.
-     * 
+     *
      * This method loads the named class and adds it to the list of process
      * components.
-     * 
+     *
      * @param className
      */
     private JsEngineComponent loadClass(String className) {
@@ -432,7 +446,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /**
      * Add an alias definition to simulated admin which we will get back from {@link #getSIBDestination(String, String)}. This bypasses the WCCM file.
-     * 
+     *
      * @param dd
      */
     public synchronized void addAliasDestination(DestinationAliasDefinition dd) {
@@ -446,7 +460,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /**
      * Add a local definition to simulated admin which we will get back from {@link #getSIBDestination(String, String)}. This bypasses the WCCM file.
-     * 
+     *
      * @param dd
      */
     public synchronized void addLocalDestination(DestinationDefinition dd) {
@@ -471,7 +485,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /**
      * Delete an alias definition to simulated admin which we will get back from {@link #getSIBDestination(String, String)}. This bypasses the WCCM file.
-     * 
+     *
      * @param dd
      */
     public synchronized void deleteAliasDestination(String busName, String destName) {
@@ -486,7 +500,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /**
      * Add a foreign definition to simulated admin which we will get back from {@link #getSIBDestination(String, String)}. This bypasses the WCCM file.
-     * 
+     *
      * @param dfd
      */
     public synchronized void addForeignDestination(DestinationForeignDefinition dfd) {
@@ -529,7 +543,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /**
      * Method getBusName.
-     * 
+     *
      * @return String
      */
     @Override
@@ -556,7 +570,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /**
      * Method getEngineComponent.
-     * 
+     *
      * @param className
      * @return JsEngineComponent
      */
@@ -613,7 +627,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /**
      * Method getMessageProcessor.
-     * 
+     *
      * @return JsEngineComponent
      */
     @Override
@@ -627,7 +641,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /**
      * Method getMessageStore.
-     * 
+     *
      * @return MessageStore
      */
     @Override
@@ -645,7 +659,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.ws.sib.admin.JsMessagingEngine#loadLocalizations()
      */
     @Override
@@ -716,7 +730,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.ws.sib.admin.JsMessagingEngine#readPropertiesFile()
      */
     public synchronized void readPropertiesFile() {
@@ -1317,7 +1331,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /**
      * Adds the key to a set, creating the set if it doesn't already exist.
-     * 
+     *
      * @param setOfMEsSoFar
      *            An existing set to which the key should be added, or null if no
      *            set exists yet, and on needs to be created.
@@ -1443,7 +1457,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
      * Returns the runtime configuration object proxy for a named SIBMQClientLink
      * WCCM object, if one exists. If an object with the specified name does not
      * exist, then null is returned.
-     * 
+     *
      * @param name
      * @return
      */
@@ -1453,7 +1467,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.ws.sib.processor.test.SIMPJsStandaloneEngine#initializeMessageProcessor()
      */
     @Override
@@ -1534,7 +1548,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
     /**
      * Returns a connection factory for use primarily for the mediations simualted
      * framework.
-     * 
+     *
      * @return A connection factory, or null if it's not possible right now.
      */
     public synchronized static SICoreConnectionFactory getConnectionFactory() {
@@ -1570,7 +1584,7 @@ public class SIMPJsStandaloneEngineImpl implements SIMPJsStandaloneEngine {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.ws.sib.admin.RuntimeEventListener#isEventNotificationEnabled()
      */
     @Override

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2020 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -86,7 +88,6 @@ public class JwtComponent implements JwtConfig {
 
     private List<String> amrAttributes;
 
-    private final KeyAlgorithmChecker keyAlgChecker = new KeyAlgorithmChecker();
     private final CommonConfigUtils configUtils = new CommonConfigUtils();
 
     @org.osgi.service.component.annotations.Reference(target = "(jmx.objectname=WebSphere:feature=channelfw,type=endpoint,name=defaultHttpEndpoint)", cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY)
@@ -141,7 +142,6 @@ public class JwtComponent implements JwtConfig {
     }
 
     private void process(Map<String, Object> props) {
-        // TODO Auto-generated method stub
         if (props == null || props.isEmpty()) {
             return;
         }
@@ -179,7 +179,7 @@ public class JwtComponent implements JwtConfig {
             initializeJwkProvider(this);
         }
 
-        //expiresInSeconds wins if present
+        // expiresInSeconds wins if present
         if (expiresInSeconds > -1) {
             valid = expiresInSeconds;
         } else {
@@ -191,7 +191,7 @@ public class JwtComponent implements JwtConfig {
         if (sigAlg == null) {
             return false;
         }
-        return (keyAlgChecker.isRSAlgorithm(sigAlg) || keyAlgChecker.isESAlgorithm(sigAlg));
+        return (KeyAlgorithmChecker.isRSAlgorithm(sigAlg) || KeyAlgorithmChecker.isESAlgorithm(sigAlg));
     }
 
     private void initializeJwkProvider(JwtConfig jwtConfig) {
@@ -214,7 +214,9 @@ public class JwtComponent implements JwtConfig {
         keyManagementKeyAlias = configUtils.getConfigAttribute(props, JwtUtils.CFG_KEY_KEY_MANAGEMENT_KEY_ALIAS);
         if (keyManagementKeyAlgorithm != null || contentEncryptionAlgorithm != null) {
             if (keyManagementKeyAlias == null) {
-                Tr.warning(tc, "KEY_MANAGEMENT_KEY_ALIAS_MISSING", new Object[] { getId(), JwtUtils.CFG_KEY_KEY_MANAGEMENT_KEY_ALIAS, JwtUtils.CFG_KEY_KEY_MANAGEMENT_KEY_ALG, JwtUtils.CFG_KEY_CONTENT_ENCRYPTION_ALG });
+                Tr.warning(tc, "KEY_MANAGEMENT_KEY_ALIAS_MISSING",
+                        new Object[] { getId(), JwtUtils.CFG_KEY_KEY_MANAGEMENT_KEY_ALIAS,
+                                JwtUtils.CFG_KEY_KEY_MANAGEMENT_KEY_ALG, JwtUtils.CFG_KEY_CONTENT_ENCRYPTION_ALG });
             }
         }
     }
@@ -233,13 +235,11 @@ public class JwtComponent implements JwtConfig {
 
     @Override
     public String getId() {
-        // TODO Auto-generated method stub
         return issuer;
     }
 
     @Override
     public String getIssuerUrl() {
-        // TODO Auto-generated method stub
         return issuerUrl;
     }
 
@@ -251,55 +251,46 @@ public class JwtComponent implements JwtConfig {
 
     @Override
     public List<String> getAudiences() {
-        // TODO Auto-generated method stub
         return audiences;
     }
 
     @Override
     public String getSignatureAlgorithm() {
-        // TODO Auto-generated method stub
         return sigAlg;
     }
 
     @Override
     public List<String> getClaims() {
-        // TODO Auto-generated method stub
         return claims;
     }
 
     @Override
     public String getScope() {
-        // TODO Auto-generated method stub
         return scope;
     }
 
     @Override
     public boolean getJti() {
-        // TODO Auto-generated method stub
         return jti;
     }
 
     @Override
     public String getTrustStoreRef() {
-        // TODO Auto-generated method stub
         return trustStoreRef;
     }
 
     @Override
     public String getKeyStoreRef() {
-        // TODO Auto-generated method stub
         return keyStoreRef;
     }
 
     @Override
     public String getKeyAlias() {
-        // TODO Auto-generated method stub
         return keyAlias;
     }
 
     @Override
     public String getTrustedAlias() {
-        // TODO Auto-generated method stub
         return trustedAlias;
     }
 
@@ -441,9 +432,9 @@ public class JwtComponent implements JwtConfig {
         return amrAttributes;
     }
 
-	@Override
-	public long getNbfOffsetTime() {
-		return nbfOffsetTime;
-	}
+    @Override
+    public long getNbfOffsetTime() {
+        return nbfOffsetTime;
+    }
 
 }

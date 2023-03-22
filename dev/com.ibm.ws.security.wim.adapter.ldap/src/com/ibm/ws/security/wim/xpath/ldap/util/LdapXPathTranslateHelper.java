@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2020 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +21,7 @@ import com.ibm.websphere.security.wim.ras.WIMMessageHelper;
 import com.ibm.websphere.security.wim.ras.WIMMessageKey;
 import com.ibm.ws.security.wim.adapter.ldap.LdapConfigManager;
 import com.ibm.ws.security.wim.adapter.ldap.LdapEntity;
+import com.ibm.ws.security.wim.adapter.ldap.LdapHelper;
 import com.ibm.ws.security.wim.xpath.ParenthesisNode;
 import com.ibm.ws.security.wim.xpath.mapping.datatype.LogicalNode;
 import com.ibm.ws.security.wim.xpath.mapping.datatype.PropertyNode;
@@ -47,9 +50,13 @@ public class LdapXPathTranslateHelper implements XPathTranslateHelper {
 
     @Override
     public void genSearchString(StringBuffer searchExpBuffer, XPathNode node) throws WIMException {
+        genSearchString(searchExpBuffer, node, false);
+    }
+
+    public void genSearchString(StringBuffer searchExpBuffer, XPathNode node, boolean encodeAsterisk) throws WIMException {
         switch (node.getNodeType()) {
             case XPathNode.NODE_PROPERTY:
-                genSearchString(searchExpBuffer, (PropertyNode) node);
+                genSearchString(searchExpBuffer, (PropertyNode) node, encodeAsterisk);
                 break;
             case XPathNode.NODE_PARENTHESIS:
                 genSearchString(searchExpBuffer, (ParenthesisNode) node);
@@ -67,7 +74,7 @@ public class LdapXPathTranslateHelper implements XPathTranslateHelper {
      *
      * @see com.ibm.ws.wim.xpath.util.XPathTranslateHelper#genSearchString(java.lang.StringBuffer, com.ibm.ws.wim.xpath.mapping.datatype.PropertyNode)
      */
-    private void genSearchString(StringBuffer searchExpBuffer, PropertyNode propNode) throws WIMException {
+    private void genSearchString(StringBuffer searchExpBuffer, PropertyNode propNode, boolean encodeAsterisk) throws WIMException {
         String propName = propNode.getName();
         String ldapAttrName = null;
         String dataType = null;
@@ -102,9 +109,9 @@ public class LdapXPathTranslateHelper implements XPathTranslateHelper {
             }
 
             short operator = ldapConfigMgr.getOperator(propNode.getOperator());
-            value = ldapConfigMgr.escapeSpecialCharacters((String) value);
             value = ((String) value).replace("\"\"", "\""); // Unescape escaped XPath quotation marks
             value = ((String) value).replace("''", "'"); // Unescape escaped XPath apostrophes
+            value = LdapHelper.encode((String) value, encodeAsterisk);
             Object[] arguments = { ldapAttrName, value };
             String searchCondtion = ldapConfigMgr.CONDITION_FORMATS[operator].format(arguments);
             searchExpBuffer.append(searchCondtion);

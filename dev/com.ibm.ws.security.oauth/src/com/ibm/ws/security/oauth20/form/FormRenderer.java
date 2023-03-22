@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,7 +15,6 @@ package com.ibm.ws.security.oauth20.form;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ import com.ibm.oauth.core.internal.oauth20.OAuth20Constants;
 import com.ibm.oauth.core.util.JSONUtil;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.security.oauth20.util.Nonce;
 import com.ibm.ws.security.oauth20.util.TemplateRetriever;
 
@@ -85,17 +86,7 @@ public class FormRenderer {
         map.put(OAuth20Constants.CLIENT_ID, attributes.getAttributeValueByName(OAuth20Constants.CLIENT_ID));
         map.put(OAuth20Constants.RESPONSE_TYPE, attributes.getAttributeValueByName(OAuth20Constants.RESPONSE_TYPE));
         map.put(OAuth20Constants.REDIRECT_URI, attributes.getAttributeValueByName(OAuth20Constants.REDIRECT_URI));
-        // map.put(OAuth20Constants.STATE, attributes.getAttributeValueByName(OAuth20Constants.STATE));
-
-        String strState = attributes.getAttributeValueByName(OAuth20Constants.STATE);
-        if (strState != null && strState.length() > 0) {
-            String encoding = response.getCharacterEncoding();
-            String encodedState = URLEncoder.encode(strState, encoding != null ? encoding : "UTF-8");
-            map.put(OAuth20Constants.STATE, encodedState);
-        } else {
-            map.put(OAuth20Constants.STATE, strState);
-        }
-
+        map.put(OAuth20Constants.STATE, attributes.getAttributeValueByName(OAuth20Constants.STATE));
         map.put(OAuth20Constants.SCOPE, attributes.getAttributeValuesByName(OAuth20Constants.SCOPE));
         map.put(FORM_CLIENT_DISPLAYNAME, client.getClientName());
 

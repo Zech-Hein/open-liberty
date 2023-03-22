@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,7 +32,7 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-import com.ibm.ws.config.xml.internal.nester.Nester;
+import com.ibm.ws.config.xml.nester.Nester;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.transport.iiop.spi.IIOPEndpoint;
 import com.ibm.wsspi.channelfw.ChannelConfiguration;
@@ -42,7 +44,6 @@ import com.ibm.wsspi.channelfw.ChannelConfiguration;
  * to use either plain socket listeners or SSL listeners
  * 
  */
-@SuppressWarnings("restriction") // Suppress warnings for import and use of com.ibm.ws.config.xml.internal.nester.Nester
 @Component(configurationPolicy = ConfigurationPolicy.REQUIRE, property = { "service.vendor=IBM" })
 public class IIOPEndpointImpl implements IIOPEndpoint {
 

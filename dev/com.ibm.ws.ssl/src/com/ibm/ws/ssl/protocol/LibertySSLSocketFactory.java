@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,6 +35,7 @@ import com.ibm.websphere.ssl.Constants;
 import com.ibm.websphere.ssl.JSSEHelper;
 import com.ibm.websphere.ssl.SSLConfigChangeListener;
 import com.ibm.ws.ffdc.FFDCFilter;
+import com.ibm.ws.ssl.config.ProtocolHelper;
 import com.ibm.ws.ssl.config.SSLConfigManager;
 
 /**
@@ -703,17 +706,32 @@ public class LibertySSLSocketFactory extends javax.net.ssl.SSLSocketFactory {
     }
 
     private static SSLParameters createSSLParameters(Properties sslprops, SSLSocket socket) {
+        if (tc.isEntryEnabled())
+            Tr.entry(tc, "createSSLParameters", new Object[] { sslprops, socket });
 
         SSLParameters p = socket.getSSLParameters();
-        String[] ciphers = SSLConfigManager.getInstance().getCipherList(sslprops, socket);
-        p.setCipherSuites(ciphers);
+        ProtocolHelper protocolHelper = new ProtocolHelper();
 
-        //Enable hostname verification
-        String enableEndpointId = sslprops.getProperty(Constants.SSLPROP_HOSTNAME_VERIFICATION, "false");
-        if (enableEndpointId != null && enableEndpointId.equalsIgnoreCase("true")) {
-            p.setEndpointIdentificationAlgorithm(ENDPOINT_ALGORITHM);
+        if (sslprops != null) {
+            //Set ciphers
+            String[] ciphers = SSLConfigManager.getInstance().getCipherList(sslprops, socket);
+            p.setCipherSuites(ciphers);
+
+            //Set protocol
+            String protocol = sslprops.getProperty(Constants.SSLPROP_PROTOCOL);
+            String[] protocols = protocolHelper.getSSLProtocol(protocol);
+            if (protocols != null)
+                p.setProtocols(protocols);
+
+            //Enable hostname verification
+            String enableEndpointId = sslprops.getProperty(Constants.SSLPROP_HOSTNAME_VERIFICATION, "false");
+            if (enableEndpointId != null && enableEndpointId.equalsIgnoreCase("true")) {
+                p.setEndpointIdentificationAlgorithm(ENDPOINT_ALGORITHM);
+            }
         }
 
+        if (tc.isEntryEnabled())
+            Tr.exit(tc, "createSSLParameters", p);
         return p;
 
     }

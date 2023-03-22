@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2016, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,7 +33,7 @@ import com.ibm.ws.microprofile.config.fat.tests.StressTest;
 /**
  * Tests specific to appConfig
  *
- * BasicConfigTests repeats across all MP Config versions (EE8)
+ * BasicConfigTests repeats across all MP Config versions
  * the rest repeat against the lastest version of MP Config (where appropriate) and then one other combination of MP Config and EE version
  * the aim is that each combination is used to test at least once, across all of the MP Config FAT buckets
  * some classes do not repeat against the latest due to functional changes between MP Config 1.4 -> 2.0

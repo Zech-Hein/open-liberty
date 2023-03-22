@@ -1,16 +1,17 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.security.openidconnect.clients.common;
 
-import java.security.Key;
 import java.util.Map;
 
 import javax.net.ssl.SSLSocketFactory;
@@ -19,23 +20,21 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
-import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.consumer.JwtContext;
-import org.jose4j.jwx.JsonWebStructure;
 
 import com.ibm.json.java.JSONObject;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
-import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.security.jwt.utils.JweHelper;
 import com.ibm.ws.security.openidconnect.client.jose4j.util.Jose4jUtil;
 import com.ibm.ws.security.openidconnect.client.jose4j.util.OidcTokenImplBase;
 import com.ibm.ws.security.openidconnect.common.Constants;
-import com.ibm.ws.security.openidconnect.jose4j.Jose4jValidator;
 import com.ibm.ws.webcontainer.security.ProviderAuthenticationResult;
 import com.ibm.wsspi.ssl.SSLSupport;
+
+import io.openliberty.security.common.jwt.JwtParsingUtils;
 
 /**
  * Utility methods to retrieve UserInfo data, validate it, and update the Subject with it.
@@ -44,8 +43,6 @@ public class UserInfoHelper {
     private static final TraceComponent tc = Tr.register(UserInfoHelper.class, TraceConstants.TRACE_GROUP, TraceConstants.MESSAGE_BUNDLE);
     private ConvergedClientConfig clientConfig = null;
     private Jose4jUtil jose4jUtil = null;
-
-    private static boolean issuedBetaMessage = false;
 
     public UserInfoHelper(ConvergedClientConfig config, SSLSupport sslSupport) {
         this.clientConfig = config;
@@ -144,6 +141,7 @@ public class UserInfoHelper {
         try {
             jobj = JSONObject.parse(userInfo);
         } catch (Exception e) { // ffdc
+            Tr.error(tc, "USERINFO_CLAIMS_FORMAT_NOT_VALID", new Object[] { userInfo, e.getMessage() });
         }
         return jobj == null ? null : (String) jobj.get("sub");
     }
@@ -179,7 +177,7 @@ public class UserInfoHelper {
             statusCode = response.getStatusLine().getStatusCode();
             responseStr = extractClaimsFromResponse(response, config.getOidcClientConfig(), oidcClientRequest);
         } catch (Exception ex) {
-            //ffdc
+            Tr.error(tc, "ERROR_GETTING_USERINFO_OR_EXTRACTING_CLAIMS", new Object[] { config.getId(), ex.getMessage() });
         }
         if (statusCode != 200) {
             Tr.error(tc, "USERINFO_RETREIVE_FAILED", new Object[] { url, Integer.toString(statusCode), responseStr });
@@ -204,7 +202,7 @@ public class UserInfoHelper {
         String claimsStr = null;
         if (contentType.contains("application/json")) {
             claimsStr = jresponse;
-        } else if (contentType.contains("application/jwt") && isRunningBetaMode()) {
+        } else if (contentType.contains("application/jwt")) {
             claimsStr = extractClaimsFromJwtResponse(jresponse, clientConfig, oidcClientRequest);
         }
         return claimsStr;
@@ -219,7 +217,7 @@ public class UserInfoHelper {
     }
 
     @FFDCIgnore({ Exception.class })
-    String extractClaimsFromJwtResponse(String responseString, OidcClientConfig clientConfig, OidcClientRequest oidcClientRequest) {
+    public String extractClaimsFromJwtResponse(String responseString, OidcClientConfig clientConfig, OidcClientRequest oidcClientRequest) throws Exception {
         if (responseString == null || responseString.isEmpty()) {
             return null;
         }
@@ -234,23 +232,22 @@ public class UserInfoHelper {
             } else if (isJwe) {
                 // JWE payloads can be either JWS or JSON, so allow falling back to returning JSON in the case of a JWE response
                 return responseString;
+            } else {
+                // We expect to be extracting claims from a JWT, but the response string isn't a JWS or a JWE
+                String msg = Tr.formatMessage(tc, "JWT_RESPONSE_STRING_NOT_IN_JWT_FORMAT", new Object[] { responseString });
+                throw new UserInfoException(msg);
             }
         } catch (Exception e) {
-            if (tc.isDebugEnabled()) {
-                Tr.debug(tc, "Error extracting jwt claims from web response: ", e.getMessage());
-            }
+            String msg = Tr.formatMessage(tc, "OIDC_CLIENT_ERROR_EXTRACTING_JWT_CLAIMS_FROM_WEB_RESPONSE", new Object[] { clientConfig.getId(), e.getMessage() });
+            throw new UserInfoException(msg, e);
         }
-        return null;
     }
 
     String extractClaimsFromJwsResponse(String responseString, OidcClientConfig clientConfig, OidcClientRequest oidcClientRequest) throws Exception {
-        JwtContext jwtContext = Jose4jUtil.parseJwtWithoutValidation(responseString);
+        JwtContext jwtContext = JwtParsingUtils.parseJwtWithoutValidation(responseString);
         if (jwtContext != null) {
             // Validate the JWS signature only; extract the claims so they can be verified elsewhere
-            JsonWebStructure jwsStructure = jose4jUtil.getJsonWebStructureFromJwtContext(jwtContext);
-            Key signingKey = jose4jUtil.getSignatureVerificationKeyFromJsonWebStructure(jwsStructure, clientConfig, oidcClientRequest);
-            Jose4jValidator validator = new Jose4jValidator(signingKey, clientConfig.getClockSkewInSeconds(), null, clientConfig.getClientId(), clientConfig.getSignatureAlgorithm(), oidcClientRequest);
-            JwtClaims claims = validator.validateJwsSignature((JsonWebSignature) jwsStructure, responseString);
+            JwtClaims claims = jose4jUtil.validateJwsSignature(jwtContext, clientConfig, oidcClientRequest);
             if (claims != null) {
                 return claims.toJson();
             }
@@ -258,16 +255,4 @@ public class UserInfoHelper {
         return null;
     }
 
-    boolean isRunningBetaMode() {
-        if (!ProductInfo.getBetaEdition()) {
-            return false;
-        } else {
-            // Running beta exception, issue message if we haven't already issued one for this class
-            if (!issuedBetaMessage) {
-                Tr.info(tc, "BETA: A beta method has been invoked for the class " + this.getClass().getName() + " for the first time.");
-                issuedBetaMessage = !issuedBetaMessage;
-            }
-            return true;
-        }
-    }
 }

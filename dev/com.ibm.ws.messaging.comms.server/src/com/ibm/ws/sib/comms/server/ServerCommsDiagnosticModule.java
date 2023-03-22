@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2003, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -109,8 +111,7 @@ public class ServerCommsDiagnosticModule extends ClientCommsDiagnosticModule
    {
       if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) SibTr.entry(this, tc, "dumpMEtoMEConversations", is);
       
-      final ServerConnectionManager scm = ServerConnectionManager.getRef();
-      final List obc = scm.getActiveOutboundMEtoMEConversations();
+      final List obc = ServerConnectionManager.getActiveOutboundMEtoMEConversations();
       
       is.writeLine("", "");
       is.writeLine("\n------ ME to ME Conversation Dump ------ ", ">");
@@ -360,7 +361,7 @@ public class ServerCommsDiagnosticModule extends ClientCommsDiagnosticModule
            SibTr.entry(this, tc, "dumpMEtoMEConversations", writer);
 
        try {
-           List<Conversation> conversations = ServerConnectionManager.getRef().getActiveOutboundMEtoMEConversations();
+           List<Conversation> conversations = ServerConnectionManager.getActiveOutboundMEtoMEConversations();
            Map<Object, LinkedList<Conversation>> connectionToConversationMap = buildConnectionMap(conversations);
 
            // Dump each comms connection.

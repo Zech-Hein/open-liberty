@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -62,4 +64,6 @@
 22117=\u5728\u5904\u7406\u5165\u5c40\u6d88\u606f\u65f6\uff0c\u4f1a\u8bdd\u7684 RemoteCommandManager \u5df2\u5173\u95ed\u6216\u5c1a\u672a\u521d\u59cb\u5316
 
 22118=\u672a\u80fd\u4f7f\u7528\u914d\u7f6e\u6587\u4ef6\u521b\u5efa JGroups \u8fde\u63a5\uff1a{0}
+
+22119=\u521d\u59cb\u5316 {0} \u65f6\u51fa\u9519\uff0c\u8bf7\u5c06 org.eclipse.persistence.corba.jar \u6dfb\u52a0\u5230\u7c7b\u8def\u5f84\u3002
 

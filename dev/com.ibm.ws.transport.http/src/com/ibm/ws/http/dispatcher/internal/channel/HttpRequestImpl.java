@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2018 IBM Corporation and others.
+ * Copyright (c) 2009, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,7 +13,9 @@
 package com.ibm.ws.http.dispatcher.internal.channel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.http.channel.internal.HttpBaseMessageImpl;
@@ -26,12 +30,14 @@ import com.ibm.wsspi.http.ee7.HttpInputStreamEE7;
 import com.ibm.wsspi.http.ee8.Http2PushBuilder;
 import com.ibm.wsspi.http.ee8.Http2Request;
 
+import io.openliberty.http.ext.HttpRequestExt;
+
 /**
  * Implementation of an HTTP request message provided by the HTTP dispatcher to
  * various containers.
  */
 @Trivial
-public class HttpRequestImpl implements Http2Request {
+public class HttpRequestImpl implements Http2Request, HttpRequestExt {
     private HttpRequestMessage message = null;
     private HttpInputStreamImpl body = null;
     private boolean useEE7Streams = false;
@@ -113,14 +119,31 @@ public class HttpRequestImpl implements Http2Request {
     }
 
     /*
+     * @see com.ibm.websphere.http.HttpRequestExt#getHeader(com.ibm.wsspi.http.channel.values.HttpHeaderKeys)
+     */
+
+    @Override
+    public String getHeader(HttpHeaderKeys key) {
+        return this.message.getHeader(key).asString();
+    }
+
+    /*
      * @see com.ibm.websphere.http.HttpRequest#getHeaders(java.lang.String)
      */
     @Override
     public List<String> getHeaders(String name) {
         List<HeaderField> hdrs = this.message.getHeaders(name);
-        List<String> values = new ArrayList<String>(hdrs.size());
-        for (HeaderField header : hdrs) {
-            values.add(header.asString());
+        int size = hdrs.size();
+        List<String> values;
+        if (size == 0) {
+            values = Collections.emptyList();
+        } else if (size == 1) {
+            values = Collections.singletonList(hdrs.get(0).asString());
+        } else {
+            values = new ArrayList<String>(hdrs.size());
+            for (HeaderField header : hdrs) {
+                values.add(header.asString());
+            }
         }
         return values;
     }
@@ -131,6 +154,14 @@ public class HttpRequestImpl implements Http2Request {
     @Override
     public List<String> getHeaderNames() {
         return this.message.getAllHeaderNames();
+    }
+
+    /*
+     * @see com.ibm.websphere.http.HttpRequestExt#getHeaderNamesSet()
+     */
+    @Override
+    public Set<String> getHeaderNamesSet() {
+        return this.message.getAllHeaderNamesSet();
     }
 
     /*

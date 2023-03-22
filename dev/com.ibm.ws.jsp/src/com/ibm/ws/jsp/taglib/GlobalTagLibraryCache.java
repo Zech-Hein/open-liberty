@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2021 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -128,11 +130,16 @@ public class GlobalTagLibraryCache extends Hashtable implements JspCoreContext,
             
             TagLibCacheConfigParser tagLibCacheConfigParser = new TagLibCacheConfigParser();
 
-            if(com.ibm.ws.jsp.webcontainerext.JSPExtensionFactory.isPages30orHigher()){
+            if(com.ibm.ws.jsp.PagesVersionHandler.isPages30Loaded()){
                 if(com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable(Level.FINE)){
-                    logger.logp(Level.FINE, CLASS_NAME, "GlobalTagLibraryCache", "Parsing taglibcacheconfig.tags.2.0.xml for pages version >= 3.0");
+                    logger.logp(Level.FINE, CLASS_NAME, "GlobalTagLibraryCache", "Parsing taglibcacheconfig.tags.2.0.xml for pages version 3.0");
                 }
                 tagLibCacheConfigParser.parse(this.getClass().getResourceAsStream("/com/ibm/ws/jsp/resources/taglibcacheconfig.tags.2.0.xml"));
+            } else if(com.ibm.ws.jsp.PagesVersionHandler.isPages31Loaded()) {
+                if(com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable(Level.FINE)){
+                    logger.logp(Level.FINE, CLASS_NAME, "GlobalTagLibraryCache", "Parsing taglibcacheconfig.tags.3.0.xml for pages version 3.1");
+                }
+                tagLibCacheConfigParser.parse(this.getClass().getResourceAsStream("/com/ibm/ws/jsp/resources/taglibcacheconfig.tags.3.0.xml"));
             } else {
                 if(com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable(Level.FINE)){
                     logger.logp(Level.FINE, CLASS_NAME, "GlobalTagLibraryCache", "Parsing taglibcacheconfig.xml for pages version <= 2.3");

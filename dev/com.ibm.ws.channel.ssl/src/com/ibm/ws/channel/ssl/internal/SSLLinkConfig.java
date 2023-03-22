@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2004, 2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -96,7 +98,7 @@ public class SSLLinkConfig {
             }
             // Found the security level.
             ciphers = Constants.adjustSupportedCiphersToSecurityLevel(
-                                                                      sslEngine.getEnabledCipherSuites(), securityLevel);
+                                                                      sslEngine.getSupportedCipherSuites(), securityLevel);
         } else {
             // Found enabled cipher suites. Now we need to put them in the right kind of object.
             if (ciphersObject instanceof String) {
@@ -132,27 +134,34 @@ public class SSLLinkConfig {
     }
 
     /**
-     * Query the SSL Protocol for this connection.
+     * Get the SSL protocol for this connection and check to see it correct for setting on a SSLEngine
+     * and put the protocol in the correct format.
      *
      * @return String
      */
-    public String getSSLProtocol() {
+    public String[] getSSLProtocol() {
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
             Tr.entry(tc, "getSSLProtocol");
         }
 
-        // First check the properties object for the ciphers.
+        // get the configured protocol
         String protocol = (String) this.myConfig.get(Constants.SSLPROP_PROTOCOL);
+
+        // protocol(s) need to be in an array
+        String[] protocols = protocol.split(",");
 
         // we only want to set the protocol on the engine if it a specific protocol name
         // don't set to TLS or SSL
-        if (protocol.equals(Constants.PROTOCOL_SSL) || protocol.equals(Constants.PROTOCOL_TLS))
-            protocol = null;
+        if (protocols.length == 1) {
+            if (protocols[0].equals(Constants.PROTOCOL_TLS) || protocols[0].equals(Constants.PROTOCOL_SSL)) {
+                protocols = null;
+            }
+        }
 
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
-            Tr.exit(tc, "getSSLProtocol " + protocol);
+            Tr.exit(tc, "getSSLProtocol " + protocols);
         }
-        return protocol;
+        return protocols;
     }
 
 }

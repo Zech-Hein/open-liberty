@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -88,7 +90,9 @@ public class JavaInfo {
                 while ((srloc + len < runtimeVersion.length()) && Character.isDigit(runtimeVersion.charAt(srloc + len))) {
                     len++;
                 }
-                sr = parseIntSafe(runtimeVersion.substring(srloc, srloc + len));
+                if (len > 0) {
+                    sr = parseIntSafe(runtimeVersion.substring(srloc, srloc + len));
+                }
             }
         }
         SERVICE_RELEASE = sr;
@@ -103,7 +107,9 @@ public class JavaInfo {
                 while ((fploc + len < runtimeVersion.length()) && Character.isDigit(runtimeVersion.charAt(fploc + len))) {
                     len++;
                 }
-                fp = parseIntSafe(runtimeVersion.substring(fploc, fploc + len));
+                if (len > 0) {
+                    fp = parseIntSafe(runtimeVersion.substring(fploc, fploc + len));
+                }
             }
         }
         FIXPACK = fp;

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -85,21 +87,21 @@ public class AlternateFeatureNamesTest {
 
         //Test live config update
         ServerConfiguration cfg = AlternateFeatureNamesTest.initialCfg.clone();
-        cfg.getFeatureManager().getFeatures().add("jca-2.0");
+        cfg.getFeatureManager().getFeatures().add("jca-2.1");
         server.updateServerConfiguration(cfg);
 
-        Assert.assertNotNull("Expected missing feature error message for jca-2.0",
-                             server.waitForStringInLog(MISSING_FEAT_ERR + ".*jca-2.0"));
+        Assert.assertNotNull("Expected missing feature error message for jca-2.1",
+                             server.waitForStringInLog(MISSING_FEAT_ERR + ".*jca-2.1"));
 
-        Assert.assertNotNull("Expected an alternate feature name error message for connectors-2.0",
-                             server.waitForStringInLog(ALT_NAME_ERR + ".*connectors-2.0.*jca-2.0"));
+        Assert.assertNotNull("Expected an alternate feature name error message for connectors-2.1",
+                             server.waitForStringInLog(ALT_NAME_ERR + ".*connectors-2.1.*jca-2.1"));
     }
 
     @Test
     public void testAlternateNamesFromCachedFeatures() throws Exception {
         server.updateServerConfiguration(initialCfg);
         ServerConfiguration cfg = AlternateFeatureNamesTest.initialCfg.clone();
-        cfg.getFeatureManager().getFeatures().add("jca-2.0");
+        cfg.getFeatureManager().getFeatures().add("jca-2.1");
         server.updateServerConfiguration(cfg);
 
         server.startServer("alternateFeatureNamesTest_console.log", /* cleanStart */ false);
@@ -109,11 +111,11 @@ public class AlternateFeatureNamesTest {
         Assert.assertNotNull("Expected alternate feature name found error message for restfulWS-3.0",
                              server.waitForStringInLog(ALT_NAME_ERR + ".*restfulWS-3.0.*jaxrs-3.0"));
 
-        Assert.assertNotNull("Expected missing feature error message for jca-2.0",
-                             server.waitForStringInLog(MISSING_FEAT_ERR + ".*jca-2.0"));
+        Assert.assertNotNull("Expected missing feature error message for jca-2.1",
+                             server.waitForStringInLog(MISSING_FEAT_ERR + ".*jca-2.1"));
 
-        Assert.assertNotNull("Expected an alternate feature name error message for connectors-2.0",
-                             server.waitForStringInLog(ALT_NAME_ERR + ".*connectors-2.0.*jca-2.0"));
+        Assert.assertNotNull("Expected an alternate feature name error message for connectors-2.1",
+                             server.waitForStringInLog(ALT_NAME_ERR + ".*connectors-2.1.*jca-2.1"));
 
     }
 }

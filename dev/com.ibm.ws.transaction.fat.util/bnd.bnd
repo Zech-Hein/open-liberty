@@ -1,0 +1,51 @@
+#*******************************************************************************
+# Copyright (c) 2021, 2022 IBM Corporation and others.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License 2.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#     IBM Corporation - initial API and implementation
+#*******************************************************************************
+-include= ~../cnf/resources/bnd/bundle.props
+
+bVersion=1.0
+
+Bundle-Name: Transactions FAT Tools
+Bundle-SymbolicName: com.ibm.ws.transaction.fat.util
+Bundle-Description: Transactions FAT Tools; version=${bVersion}
+
+test.project: true
+generate.replacement: true
+
+src: src
+
+Export-Package: com.ibm.ws.transaction.fat.util,\
+	com.ibm.ws.wsat.fat.util
+
+-buildpath: \
+  com.ibm.tx.jta;version=latest,\
+  com.ibm.tx.util;version=latest,\
+  com.ibm.websphere.javaee.annotation.1.2;version=latest,\
+  com.ibm.websphere.javaee.cdi.1.2;version=latest,\
+  com.ibm.websphere.javaee.ejb.3.1;version=latest,\
+  com.ibm.websphere.javaee.interceptor.1.2;version=latest,\
+  com.ibm.websphere.javaee.servlet.3.1;version=latest,\
+  com.ibm.websphere.javaee.transaction.1.2;version=latest,\
+  com.ibm.websphere.org.eclipse.microprofile.faulttolerance.1.0;version=latest,\
+  com.ibm.websphere.org.osgi.core;version=latest,\
+  com.ibm.websphere.org.osgi.service.component;version=latest,\
+  com.ibm.ws.componenttest;version=latest,\
+  com.ibm.ws.kernel.service,\
+  com.ibm.ws.logging,\
+  com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
+  com.ibm.ws.transaction.cdi;version=latest,\
+  com.ibm.ws.transaction.test.util;version=latest,\
+  com.ibm.ws.tx.embeddable;version=latest,\
+  com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
+  fattest.simplicity;version=latest,\
+  io.openliberty.org.testcontainers;version=latest,\
+  org.jboss.shrinkwrap:shrinkwrap-api;version=1.2.3

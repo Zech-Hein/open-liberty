@@ -2,7 +2,7 @@
 symbolicName=io.openliberty.persistenceContainer-3.0
 visibility=public
 singleton=true
-kind=beta
+kind=ga
 edition=core
 Subsystem-Name: Jakarta Persistence 3.0 Container
 IBM-ShortName: persistenceContainer-3.0
@@ -21,7 +21,8 @@ IBM-App-ForceRestart: uninstall, \
   com.ibm.websphere.appserver.jndi-1.0, \
   io.openliberty.jakarta.persistence-3.0, \
   com.ibm.websphere.appserver.transaction-2.0
--bundles=com.ibm.ws.jpa.container.v30.jakarta, \
+-bundles=com.ibm.ws.jpa.container.v30, \
  com.ibm.ws.jpa.container.jakarta, \
  com.ibm.ws.jpa.container.thirdparty.jakarta
 WLP-Activation-Type: parallel
+WLP-InstantOn-Enabled: true

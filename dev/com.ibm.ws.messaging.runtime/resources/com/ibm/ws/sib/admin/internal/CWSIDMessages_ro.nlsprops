@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2012, 2013 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -74,12 +76,6 @@
 #NLS_ENCODING=UNICODE
  
 ### Search on "TBD" for messages that need information from other components ###
- 
-# -------------------------------------------------------------------------------------------------
-# {0} Messaging engine name
-ME_INITIALIZING_SIAS0001=CWSID0001I: Motorul de mesagerie {0} se ini\u0163ializeaz\u0103.
-ME_INITIALIZING_SIAS0001.explanation=Motorul de mesagerie specificat \u00eencepe ini\u0163ializarea.
-ME_INITIALIZING_SIAS0001.useraction=Nu este necesar\u0103 nicio ac\u0163iune.
  
 # -------------------------------------------------------------------------------------------------
 # {0} Internal reason string
@@ -252,7 +248,7 @@ NO_ID_PROVIDED_SIAS0102.explanation=ID-ul nu este specificat pentru destina\u016
 NO_ID_PROVIDED_SIAS0102.useraction=Furniza\u0163i ID-ul pentru destina\u0163ie.
 
 # -------------------------------------------------------------------------------------------------
-NO_FILESTOR_DEFINED_SIAS0104=CWSID0104I:  Tagul fileStore nu a fost definit \u00een fi\u015fierul de configurare server, prin urmare se va folosi valoarea implicit\u0103
+NO_FILESTOR_DEFINED_SIAS0104=CWSID0104I: \ Tagul fileStore nu a fost definit \u00een fi\u015fierul de configurare server, prin urmare se va folosi valoarea implicit\u0103
 NO_FILESTOR_DEFINED_SIAS0104.explanation=Tagul fileStore nu a fost furnizat deci valorile implicite vor fi folosite la crearea magaziei de fi\u015fiere.   
 NO_FILESTOR_DEFINED_SIAS0104.useraction=Nu este necesar\u0103 nici o ac\u0163iune.
 

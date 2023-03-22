@@ -1,9 +1,11 @@
 <%--
-    Copyright (c) 2014 IBM Corporation and others.
+    Copyright (c) 2014, 2022 IBM Corporation and others.
     All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
+    are made available under the terms of the Eclipse Public License 2.0
     which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    http://www.eclipse.org/legal/epl-2.0/
+    
+    SPDX-License-Identifier: EPL-2.0
 
     Contributors:
         IBM Corporation - initial API and implementation
@@ -49,6 +51,21 @@
 </script>
 
 <%
+    Cookie[] cookies = request.getCookies();
+    response.setContentType("text/html");
+    if (cookies != null) {
+        for (Cookie cookie : cookies) {
+            if ("JSESSIONID".equals(cookie.getName())) {
+                String value = cookie.getValue();
+                cookie.setMaxAge(0);
+                cookie.setValue(null);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+                break;
+            }
+        }
+    }
+
     // Prevent any session fixation/hijacking hijinx by getting new session after logging in 
     request.getSession().invalidate();
     HttpSession newSession = request.getSession(true);
@@ -63,20 +80,11 @@
     response.setHeader("X-XSS-Protection", "1");	
     response.setHeader("X-Content-Type-Options", "nosniff");	
     response.setHeader("X-Frame-Options", "SAMEORIGIN");
+    response.setHeader("Content-Security-Policy", "default-src 'self' 'unsafe-inline' 'unsafe-eval'");
 
     String hasBidi = "";       // used to initialize dojo
     String userId = request.getRemoteUser();     // passed to widgets
-    // String userLocale = request.getLocale().toString().replace('_', '-').toLowerCase();
-    // TODO: In newer browsers, the lang could have a variant which is not handled by dojo. ex. zh-hant-tw
-    // So, construct a "normal" lang-country from the locale
-    // TODO: for some reason, getVariant() is returning the country so for now ...
-    String userLocale = request.getLocale().getLanguage().toLowerCase();
-    if (request.getLocale().getVariant().length() > 0) {
-        userLocale += "-" + request.getLocale().getVariant().toLowerCase();
-    } else if (request.getLocale().getCountry().length() > 0) {
-        userLocale += "-" + request.getLocale().getCountry().toLowerCase();
-    }
-    String dojoConfigString = "locale: '" + userLocale + "'";
+    String dojoConfigString = ""; // this is required otherwise it won't run
     
     String localAddress = request.getLocalAddr();
     // ipv6 addresses must be enclosed with square brackets in URLs
@@ -134,10 +142,6 @@ BIDI_PREFS_STRING = '<%=line%>';
 <%                
             }
         }
-        if (hasBidi.length() > 0){
-            dojoConfigString = dojoConfigString + ", " + hasBidi;
-        }
-                    
     } catch (MalformedURLException e) {
         // just default to no bidi
         //e.printStackTrace();
@@ -158,7 +162,36 @@ BIDI_PREFS_STRING = '<%=line%>';
     }
 %>
 
-<script src="dojo/dojo.js" data-dojo-config="<%=dojoConfigString%>"></script>
+<script src="404/404.js"></script>
+
+<script type="text/javascript">
+    var languageLocale = getLanguageCode();
+    document.documentElement.setAttribute("lang", languageLocale);
+</script>
+<%
+    if (hasBidi.length() == 0) {
+%>
+<script type="text/javascript">
+        var dojoConfig = {
+            locale: languageLocale
+        };
+</script>
+<%
+    } else {
+%>
+<script type="text/javascript">
+        var dojoConfig = {
+            locale: languageLocale,
+            has: {
+                'adminCenter-bidi': true,
+                'dojo-bidi': true
+            }
+        };
+</script>
+<%
+    }
+%>
+<script src="dojo/dojo.js"></script>
 <script>require(["js/loadToolbox"])</script>
 
  

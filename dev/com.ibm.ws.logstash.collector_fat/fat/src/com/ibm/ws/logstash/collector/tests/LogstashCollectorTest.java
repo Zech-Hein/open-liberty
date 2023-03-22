@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2021 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -29,6 +31,8 @@ import org.junit.ClassRule;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.images.builder.ImageFromDockerfile;
+import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.ImageNameSubstitutor;
 
 import com.ibm.websphere.simplicity.log.Log;
 
@@ -92,6 +96,19 @@ public abstract class LogstashCollectorTest {
                 url = url + "?id=" + URLEncoder.encode(id, "UTF-8");
             } catch (UnsupportedEncodingException e) {
                 Log.error(c, "createMessageEvent", e);
+                e.printStackTrace();
+            }
+        }
+        runApp(url);
+    }
+
+    protected void createMessageEventWithException(String id) {
+        String url = getAppUrl() + "/ExceptionURL";
+        if (id != null) {
+            try {
+                url = url + "?id=" + URLEncoder.encode(id, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                Log.error(c, "createMessageEventWithException", e);
                 e.printStackTrace();
             }
         }
@@ -170,12 +187,15 @@ public abstract class LogstashCollectorTest {
         return APP_URL;
     }
 
+    private static final String IMAGE_NAME = ImageNameSubstitutor.instance() //
+                    .apply(DockerImageName.parse("elastic/logstash:7.16.3")).asCanonicalNameString();
+
     // Can be added to the FATSuite to make the resource lifecycle bound to the entire
     // FAT bucket. Or, you can add this to any JUnit test class and the container will
     // be started just before the @BeforeClass and stopped after the @AfterClass
     @ClassRule
     public static GenericContainer<?> logstashContainer = new GenericContainer<>(new ImageFromDockerfile() //
-                    .withDockerfileFromBuilder(builder -> builder.from("docker.elastic.co/logstash/logstash:7.2.0") //
+                    .withDockerfileFromBuilder(builder -> builder.from(IMAGE_NAME) //
                                     .copy("/usr/share/logstash/pipeline/logstash.conf", "/usr/share/logstash/pipeline/logstash.conf") //
                                     .copy("/usr/share/logstash/config/logstash.yml", "/usr/share/logstash/config/logstash.yml") //
                                     .copy("/usr/share/logstash/config/logstash.key", "/usr/share/logstash/config/logstash.key") //

@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2011 IBM Corporation and others.
+# Copyright (c) 2011, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -28,13 +30,13 @@ JAAS_AUTHENTICATION_FAILED_BADUSERPWD=CWWKS1100A: Die Authentifizierung f\u00fcr
 JAAS_AUTHENTICATION_FAILED_BADUSERPWD.explanation=Die angegebene Benutzer-ID oder das zugeh\u00f6rige Kennwort ist nicht g\u00fcltig.
 JAAS_AUTHENTICATION_FAILED_BADUSERPWD.useraction=Vergewissern Sie sich, dass die Benutzer-ID und das Kennwort korrekt eingegeben wurden. Wenden Sie sich an den Administrator der Benutzerregistry, wenn das Problem weiterhin auftritt.
 
-JAAS_AUTHENTICATION_FAILED_CERTNOMAP=CWWKS1101W: Die CLIENT-CERT-Authentifizierung f\u00fcr das Zertifikat mit den DN {0} war nicht erfolgreich. Der definierte Name (DN) ist keinem Benutzer in der Registry zugeordnet.
+JAAS_AUTHENTICATION_FAILED_CERTNOMAP=CWWKS1101W: Die CLIENT-CERT-Authentifizierung f\u00fcr das Zertifikat mit dem DN {0} war nicht erfolgreich. Der definierte Name (DN) ist keinem Benutzer in der Registry zugeordnet.
 JAAS_AUTHENTICATION_FAILED_CERTNOMAP.explanation=Das angegebene Clientzertifikat ist keinem Benutzer in der Registry zugeordnet.
 JAAS_AUTHENTICATION_FAILED_CERTNOMAP.useraction=Stellen Sie sicher, dass der Client ein Zertifikat bereitstellt, das einem Benutzer in der Registry zugeordnet ist.
 
 JAAS_AUTHENTICATION_FAILED_CERT_INTERNAL_ERROR=CWWKS1102E: Die CLIENT-CERT-Authentifizierung f\u00fcr das Zertifikat mit dem DN {0} war nicht erfolgreich. Es ist eine interne Ausnahme eingetreten: {1}.
-JAAS_AUTHENTICATION_FAILED_CERT_INTERNAL_ERROR.explanation=CMSG0001 
-JAAS_AUTHENTICATION_FAILED_CERT_INTERNAL_ERROR.useraction=CMSG0002  
+JAAS_AUTHENTICATION_FAILED_CERT_INTERNAL_ERROR.explanation=CMSG0001
+JAAS_AUTHENTICATION_FAILED_CERT_INTERNAL_ERROR.useraction=CMSG0002
 
 JAAS_CUSTOM_LOGIN_MODULE_JAR_FILE_NOT_FOUND=CWWKS1103E: Es gibt keine gemeinsam genutzte Bibliothek f\u00fcr das angepasste Anmeldemodul.
 JAAS_CUSTOM_LOGIN_MODULE_JAR_FILE_NOT_FOUND.explanation=Die Authentifizierung war nicht erfolgreich, weil keine JAR-Datei f\u00fcr das angepasste JAAS-Anmeldemodul vorhanden ist.
@@ -44,21 +46,17 @@ JAAS_LOGIN_MODULE_NOT_FOUND_FOR_LOGIN_MODULE_REF=CWWKS1104W: F\u00fcr die loginM
 JAAS_LOGIN_MODULE_NOT_FOUND_FOR_LOGIN_MODULE_REF.explanation=Die Authentifizierung war nicht erfolgreich, weil kein Anmeldemodul f\u00fcr die Anmeldemodulreferenz definiert ist.
 JAAS_LOGIN_MODULE_NOT_FOUND_FOR_LOGIN_MODULE_REF.useraction=Stellen Sie sicher, dass das Element loginModuleRef ein konfiguriertes Element jaasLoginModule hat.
 
-JAAS_LOGIN_MODULE_CLASS_LOADER_ERROR=CWWKS1105W: Das JAAS-Anmeldemodul konnte aus der gemeinsam genutzten Bibliothek nicht geladen werden. Es ist eine interne Ausnahme eingetreten.
-JAAS_LOGIN_MODULE_CLASS_LOADER_ERROR.explanation=Interner Fehler.
+JAAS_LOGIN_MODULE_CLASS_LOADER_ERROR=CWWKS1105W: Das JAAS-Anmeldemodul konnte nicht aus der gemeinsam genutzten Bibliothek geladen werden.  Es ist eine interne Ausnahme eingetreten.
+JAAS_LOGIN_MODULE_CLASS_LOADER_ERROR.explanation=Es ist ein interner Fehler aufgetreten.
 JAAS_LOGIN_MODULE_CLASS_LOADER_ERROR.useraction=Lesen Sie die Informationen zur Fehlerbestimmung auf der Unterst\u00fctzungswebseite von WebSphere Application Server (http://www.ibm.com/software/webservers/appserv/was/support).
 
 JAAS_AUTHENTICATION_FAILED_BADUSER=CWWKS1106A: Die Authentifizierung f\u00fcr die Benutzer-ID {0} war nicht erfolgreich. Es wurde eine ung\u00fcltige Benutzer-ID angegeben.
 JAAS_AUTHENTICATION_FAILED_BADUSER.explanation=Die Authentifizierung war nicht erfolgreich, weil die angegebene Benutzer-ID nicht g\u00fcltig ist.
 JAAS_AUTHENTICATION_FAILED_BADUSER.useraction=Vergewissern Sie sich, dass die Benutzer-ID korrekt eingegeben wurde. Wenden Sie sich an den Administrator der Benutzerregistry, wenn das Problem weiterhin auftritt.
 
-JAAS_WSLOGIN_MODULE_PROXY_NULL_OPTIONS=CWWKS1107E: Optionen f\u00fcr WSLoginModuleProxy sind null oder leer.
+JAAS_WSLOGIN_MODULE_PROXY_NULL_OPTIONS=CWWKS1107E: Die Optionen f\u00fcr WSLoginModuleProxy sind null oder leer.
 JAAS_WSLOGIN_MODULE_PROXY_NULL_OPTIONS.explanation=Die Authentifizierung war nicht erfolgreich, weil das WSLoginModuleProxy-Element options null oder leer sind.
 JAAS_WSLOGIN_MODULE_PROXY_NULL_OPTIONS.useraction=Vergewissern Sie sich, dass die WSLoginModuleProxy-Konfiguration das Element options enth\u00e4lt.
-
-JAAS_WSLOGIN_MODULE_PROXY_DELEGATE_NOT_SET=CWWKS1108E: Die WSLoginModuleProxy-Stellvertreteroption (delegate) ist nicht definiert.
-JAAS_WSLOGIN_MODULE_PROXY_DELEGATE_NOT_SET.explanation=Die Authentifizierung war nicht erfolgreich, weil das jaasLoginModule mit der ID WSLoginModuleProxy kein Attribut delegate im Element options enth\u00e4lt.
-JAAS_WSLOGIN_MODULE_PROXY_DELEGATE_NOT_SET.useraction=Vergewissern Sie sich, dass das jaasLoginModule mit der ID WSLoginModuleProxy das Attribut delegate im Element options enth\u00e4lt. 
 
 JAAS_PROXY_IS_NOT_SUPPORT_IN_SYSTEM_DEFAULT=CWWKS1109W: WSLoginModuleProxy wird in jaasLoginContextEntry system.DEFAULT nicht unterst\u00fctzt.
 JAAS_PROXY_IS_NOT_SUPPORT_IN_SYSTEM_DEFAULT.explanation=WSLoginModuleProxy wird in jaasLoginContextEntry system.DEFAULT nicht unterst\u00fctzt.
@@ -83,3 +81,27 @@ JAAS_LOGIN_COLLECTIVE_PLUGIN_AVAILABLE.useraction=Es ist keine Aktion erforderli
 JAAS_LOGIN_COLLECTIVE_PLUGIN_UNAVAILABLE=CWWKS1124I: Das Verbundauthentifizierungs-Plug-in mit dem Klassennamen {0} wurde inaktiviert. 
 JAAS_LOGIN_COLLECTIVE_PLUGIN_UNAVAILABLE.explanation=Es wurde ein Verbundauthentifizierungs-Plug-in inaktiviert, das jetzt nicht mehr f\u00fcr die Authentifizierung von Verbundanforderungen verf\u00fcgbar ist.
 JAAS_LOGIN_COLLECTIVE_PLUGIN_UNAVAILABLE.useraction=Es ist keine Aktion erforderlich.
+
+JCACHE_AUTH_CACHE_CLEARED_ALL_ENTRIES=CWWKS1125I: Vom Authentifizierungscache wurden alle Eintr\u00e4ge im JCache-Cache {0} gel\u00f6scht. 
+JCACHE_AUTH_CACHE_CLEARED_ALL_ENTRIES.explanation=Vom Authentifizierungscache werden alle Eintr\u00e4ge im JCache-Sicherungscache bereinigt, wenn die Konfiguration der Sicherheit oder der Benutzerregistry ge\u00e4ndert wird oder wenn die MBean "DeleteAuthCache" aufgerufen wird. 
+JCACHE_AUTH_CACHE_CLEARED_ALL_ENTRIES.useraction=Es ist keine Aktion erforderlich.
+
+JCACHE_AUTH_CACHE_SERIALIZATION_FAILED=CWWKS1126W: Das Einf\u00fcgen des Eintrags f\u00fcr den Schl\u00fcssel {0} in den JCache-Authentifizierungscache {1} ist aufgrund eines Serialisierungsfehlers fehlgeschlagen. Der Eintrag wird stattdessen in den speicherinternen Authentifizierungscache eingef\u00fcgt. Ausnahme: {2}
+JCACHE_AUTH_CACHE_SERIALIZATION_FAILED.explanation=Der Inhalt des Eintrags wurde nicht serialisiert und daher nicht im JCache-Authentifizierungscache gespeichert.
+JCACHE_AUTH_CACHE_SERIALIZATION_FAILED.useraction=Untersuchen Sie die in der Nachricht enthaltene Ausnahme und beheben Sie die Fehlerursache.
+
+JCACHE_AUTH_CACHE_GET_FAILED=CWWKS1127E: Das Abrufen des Eintrags f\u00fcr den Schl\u00fcssel {0} aus dem JCache-Authentifizierungscache {1} ist aufgrund eines Fehlers fehlgeschlagen. Ausnahme: {2}
+JCACHE_AUTH_CACHE_GET_FAILED.explanation=Der Eintrag konnte nicht aus dem JCache-Authentifizierungscache abgerufen werden.
+JCACHE_AUTH_CACHE_GET_FAILED.useraction=Untersuchen Sie die in der Nachricht enthaltene Ausnahme und beheben Sie die Fehlerursache.
+
+JCACHE_AUTH_CACHE_INSERT_FAILED=CWWKS1128E: Das Einf\u00fcgen des Eintrags f\u00fcr den Schl\u00fcssel {0} in den JCache-Authentifizierungscache {1} ist aufgrund eines Fehlers fehlgeschlagen. Ausnahme: {2}
+JCACHE_AUTH_CACHE_INSERT_FAILED.explanation=Der Eintrag wurde nicht im JCache-Authentifizierungscache gespeichert.
+JCACHE_AUTH_CACHE_INSERT_FAILED.useraction=Untersuchen Sie die in der Nachricht enthaltene Ausnahme und beheben Sie die Fehlerursache.
+
+JCACHE_AUTH_CACHE_REMOVE_FAILED=CWWKS1129E: Das Entfernen des Eintrags f\u00fcr den Schl\u00fcssel {0} im JCache-Authentifizierungscache {1} ist aufgrund eines Fehlers fehlgeschlagen. Ausnahme: {2}
+JCACHE_AUTH_CACHE_REMOVE_FAILED.explanation=Der Eintrag wurde nicht aus dem JCache-Authentifizierungscache entfernt.
+JCACHE_AUTH_CACHE_REMOVE_FAILED.useraction=Untersuchen Sie die in der Nachricht enthaltene Ausnahme und beheben Sie die Fehlerursache.
+
+JCACHE_AUTH_CACHE_CLEAR_FAILED=CWWKS1130E: Der JCache-Authentifizierungscache {0} konnte aufgrund eines Fehlers nicht gel\u00f6scht werden. Ausnahme: {1}
+JCACHE_AUTH_CACHE_CLEAR_FAILED.explanation=Die Eintr\u00e4ge wurden nicht aus dem JCache-Authentifizierungscache gel\u00f6scht.
+JCACHE_AUTH_CACHE_CLEAR_FAILED.useraction=Untersuchen Sie die in der Nachricht enthaltene Ausnahme und beheben Sie die Fehlerursache.

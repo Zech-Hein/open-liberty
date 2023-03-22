@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2011 IBM Corporation and others.
+# Copyright (c) 2011, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -56,10 +58,6 @@ JAAS_WSLOGIN_MODULE_PROXY_NULL_OPTIONS=CWWKS1107E: WSLoginModuleProxy options is
 JAAS_WSLOGIN_MODULE_PROXY_NULL_OPTIONS.explanation=The authentication did not succeed because the WSLoginModuleProxy options element is null or empty.
 JAAS_WSLOGIN_MODULE_PROXY_NULL_OPTIONS.useraction=Verify that the WSLoginModuleProxy configuration includes the options element.
 
-JAAS_WSLOGIN_MODULE_PROXY_DELEGATE_NOT_SET=CWWKS1108E: WSLoginModuleProxy delegate option is not set.
-JAAS_WSLOGIN_MODULE_PROXY_DELEGATE_NOT_SET.explanation=The authentication did not succeed because the jaasLoginModule with id WSLoginModuleProxy does not have the delegate attribute in the options element.
-JAAS_WSLOGIN_MODULE_PROXY_DELEGATE_NOT_SET.useraction=Verify that the jaasLoginModule with id WSLoginModuleProxy includes the delegate attribute on the options element.  
-
 JAAS_PROXY_IS_NOT_SUPPORT_IN_SYSTEM_DEFAULT=CWWKS1109W: WSLoginModuleProxy is not supported in the jaasLoginContextEntry system.DEFAULT.
 JAAS_PROXY_IS_NOT_SUPPORT_IN_SYSTEM_DEFAULT.explanation=The WSLoginModuleProxy is not supported in the jaasLoginContextEntry system.DEFAULT.
 JAAS_PROXY_IS_NOT_SUPPORT_IN_SYSTEM_DEFAULT.useraction=Remove the proxy entry from the loginModuleRef attribute of the jaasLoginContextEntry system.DEFAULT.
@@ -83,3 +81,27 @@ JAAS_LOGIN_COLLECTIVE_PLUGIN_AVAILABLE.useraction=No action is required.
 JAAS_LOGIN_COLLECTIVE_PLUGIN_UNAVAILABLE=CWWKS1124I: The collective authentication plugin with class name {0} has been deactivated. 
 JAAS_LOGIN_COLLECTIVE_PLUGIN_UNAVAILABLE.explanation=A collective authentication plugin has been deactivated, and is no longer available to authenticate collective requests.
 JAAS_LOGIN_COLLECTIVE_PLUGIN_UNAVAILABLE.useraction=No action is required.
+
+JCACHE_AUTH_CACHE_CLEARED_ALL_ENTRIES=CWWKS1125I: The authentication cache cleared all entries in the {0} JCache cache. 
+JCACHE_AUTH_CACHE_CLEARED_ALL_ENTRIES.explanation=The authentication cache clears all entries in the backing JCache cache when security or user registry configuration is modified, or when the DeleteAuthCache MBean is called. 
+JCACHE_AUTH_CACHE_CLEARED_ALL_ENTRIES.useraction=No action is required.
+
+JCACHE_AUTH_CACHE_SERIALIZATION_FAILED=CWWKS1126W: Insertion of entry for the {0} key into the {1} JCache authentication cache failed due to a serialization error. The entry will be inserted into the in-memory authentication cache instead. The exception is: {2}
+JCACHE_AUTH_CACHE_SERIALIZATION_FAILED.explanation=The entry contents were not serialized so they were not stored in the JCache authentication cache.
+JCACHE_AUTH_CACHE_SERIALIZATION_FAILED.useraction=Investigate the exception included in the message and fix the cause of the error.
+
+JCACHE_AUTH_CACHE_GET_FAILED=CWWKS1127E: Retrieval of entry for the {0} key from the {1} JCache authentication cache failed due to an error. The exception is: {2}
+JCACHE_AUTH_CACHE_GET_FAILED.explanation=The entry could not be retrieved from the JCache authentication cache.
+JCACHE_AUTH_CACHE_GET_FAILED.useraction=Investigate the exception included in the message and fix the cause of the error.
+
+JCACHE_AUTH_CACHE_INSERT_FAILED=CWWKS1128E: Insertion of entry for the {0} key into the {1} JCache authentication cache failed due to an error. The exception is: {2}
+JCACHE_AUTH_CACHE_INSERT_FAILED.explanation=The entry was not not stored in the JCache authentication cache.
+JCACHE_AUTH_CACHE_INSERT_FAILED.useraction=Investigate the exception included in the message and fix the cause of the error.
+
+JCACHE_AUTH_CACHE_REMOVE_FAILED=CWWKS1129E: Removal of entry for the {0} key into the {1} JCache authentication cache failed due to an error. The exception is: {2}
+JCACHE_AUTH_CACHE_REMOVE_FAILED.explanation=The entry was not removed from the JCache authentication cache.
+JCACHE_AUTH_CACHE_REMOVE_FAILED.useraction=Investigate the exception included in the message and fix the cause of the error.
+
+JCACHE_AUTH_CACHE_CLEAR_FAILED=CWWKS1130E: Clear of the {0} JCache authentication cache failed due to an error. The exception is: {1}
+JCACHE_AUTH_CACHE_CLEAR_FAILED.explanation=The entries were not cleared from the JCache authentication cache.
+JCACHE_AUTH_CACHE_CLEAR_FAILED.useraction=Investigate the exception included in the message and fix the cause of the error.

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,7 +33,7 @@ dependencies {
 				'org.eclipse.jetty.websocket:websocket-common:9.4.5.v20170502',
 				'org.eclipse.jetty:jetty-util:9.4.7.RC0',
 				'org.eclipse.jetty:jetty-websocket:8.2.0.v20160908',
-				'xerces:xercesImpl:2.11.0',
+				project(':io.openliberty.org.apache.xercesImpl'),
 				'xml-apis:xml-apis:1.4.01'
       
       
@@ -64,12 +66,6 @@ task jwtbuilder(type: War, dependsOn: classes) {
     include 'com/ibm/ws/security/fat/common/Constants.class', 'com/ibm/ws/security/fat/common/utils/KeyTools.class'
     into "WEB-INF/classes"
   }
-  /* start of jose4j copy */  
-  /* copy contents of the jose4j jar into our test app - we don't have another way to get to the jar */
-  from(zipTree("../com.ibm.ws.org.jose4j/build/libs/com.ibm.ws.org.jose4j.jar")) {
-    into "WEB-INF/classes"
-  }
-  /* end of jose4j copy */    
     
 }
 

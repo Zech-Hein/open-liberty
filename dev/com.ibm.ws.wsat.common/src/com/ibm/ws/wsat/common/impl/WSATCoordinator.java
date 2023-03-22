@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,11 +15,11 @@ package com.ibm.ws.wsat.common.impl;
 import javax.xml.bind.JAXBElement;
 
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
+import org.apache.cxf.ws.addressing.EndpointReferenceUtils;
 import org.apache.cxf.ws.addressing.ReferenceParametersType;
 
 import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.jaxws.wsat.Constants;
-import com.ibm.ws.wsat.cxf.utils.WSATCXFUtils;
 
 /**
  * Represents the coordinator in a WSAT transaction.
@@ -50,16 +52,6 @@ public class WSATCoordinator extends WSATEndpoint {
     }
 
     /*
-     * Remove the coordinator from the transaction when done
-     */
-    public void remove() {
-        WSATTransaction tran = WSATTransaction.getTran(globalId);
-        if (tran != null) {
-            tran.removeCoordinator();
-        }
-    }
-
-    /*
      * Return a coordinator EPR for a specific participant. This is the same as the
      * basic coordinator EPR but it has an additional ReferenceParameter containing
      * the participant identifier. Later, when the participant calls us back using
@@ -67,7 +59,7 @@ public class WSATCoordinator extends WSATEndpoint {
      */
 
     public EndpointReferenceType getEndpointReference(String partId) {
-        EndpointReferenceType epr = WSATCXFUtils.duplicate(getEndpointReference());
+        EndpointReferenceType epr = EndpointReferenceUtils.duplicate(getEndpointReference());
         // duplicate doesn't seem to copy the ReferenceParams?, so add
         // back the originals plus our new participant id.
         ReferenceParametersType refs = new ReferenceParametersType();

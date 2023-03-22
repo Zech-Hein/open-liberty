@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2014 IBM Corporation and others.
+ * Copyright (c) 1997, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -133,7 +135,7 @@ public abstract class OAuthJDBCImpl {
 
     @Trivial
     private void getDBClogAndSleep(int msec) {
-        String methodName = "getDBConnection";
+        String methodName = "getDBClogAndSleep";
         if (_log.isLoggable(Level.FINEST)) {
             _log.logp(Level.FINEST, CLASS, methodName,
                     "caught exception getting db connection, will retry in " + msec + " msec");
@@ -204,10 +206,16 @@ public abstract class OAuthJDBCImpl {
 
     protected DBType getDBType() {
         if (databaseType == null) {
+            Connection conn = null;
             try {
-                databaseType = DetectDatabaseType.DetectionUtils.detectDbType(getDBConnection());
+                conn = getDBConnection();
+                databaseType = DetectDatabaseType.DetectionUtils.detectDbType(conn);
             } catch (OAuthDataException e) {
                 Tr.error(tc, "Internal error getting DB connection: " + e.getMessage(), e);
+            } finally {
+                if (conn != null) {
+                    closeConnection(conn, false);
+                }
             }
         }
         return databaseType;

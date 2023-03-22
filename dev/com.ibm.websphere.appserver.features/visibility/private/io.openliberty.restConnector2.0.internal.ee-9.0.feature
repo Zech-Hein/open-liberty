@@ -5,9 +5,9 @@ singleton=true
 visibility = private
 
 -features=\
-  com.ibm.websphere.appserver.servlet-5.0
+  com.ibm.websphere.appserver.servlet-5.0; ibm.tolerates:="6.0"
 
 -bundles= com.ibm.ws.jmx.connector.server.rest.jakarta
 
-kind=beta
+kind=ga
 edition=core

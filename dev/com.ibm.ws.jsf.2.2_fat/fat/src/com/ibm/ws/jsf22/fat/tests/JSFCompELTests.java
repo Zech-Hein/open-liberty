@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,7 @@
 package com.ibm.ws.jsf22.fat.tests;
 
 import static org.junit.Assert.assertFalse;
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 
 import java.net.URL;
 import java.util.List;
@@ -31,9 +34,11 @@ import com.ibm.ws.jsf22.fat.JSFUtils;
 
 import componenttest.annotation.ExpectedFFDC;
 import componenttest.annotation.Server;
+import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import junit.framework.Assert;
@@ -58,7 +63,11 @@ public class JSFCompELTests {
 
     @BeforeClass
     public static void setup() throws Exception {
-        ShrinkHelper.defaultDropinApp(jsfTestServer2, "TestJSFEL.war", "com.ibm.ws.jsf22.el.*");
+        boolean isEE10 = JakartaEE10Action.isActive();
+
+        ShrinkHelper.defaultDropinApp(jsfTestServer2, "TestJSFEL.war",
+                                      isEE10 ? "com.ibm.ws.jsf22.el.beans.faces40" : "com.ibm.ws.jsf22.el.beans.jsf22",
+                                      "com.ibm.ws.jsf22.el.components");
 
         jsfTestServer2.startServer(JSFCompELTests.class.getSimpleName() + ".log");
     }
@@ -127,7 +136,7 @@ public class JSFCompELTests {
     @Test
     public void testELResolverOrderAndComponentSystemEvent() throws Exception {
         String[] expectedInResponse = {
-                                        "The order and number of ELResolvers from the CompositeELResolver are correct!",
+                                        "The order and number of ELResolvers are correct!",
                                         "Invoked JSF 2.2 new methods in ComponentSystemEvent, isAppropriateListener() and processListener()"
         };
         this.verifyResponse(contextRoot, "ComponentEventListener.xhtml", expectedInResponse);
@@ -157,7 +166,8 @@ public class JSFCompELTests {
             }
 
             //Test case on the server, which is ELExceptionBean intentionally throws exception for valueChangeListener. Hence check if it's in the log
-            String msgToSearchFor = (JakartaEE9Action.isActive() ? "jakarta." : "javax.") + "servlet.ServletException: " + (JakartaEE9Action.isActive() ? "jakarta." : "javax.")
+            String msgToSearchFor = (JakartaEE10Action.isActive() || JakartaEE9Action.isActive() ? "jakarta." : "javax.") + "servlet.ServletException: "
+                                    + (JakartaEE10Action.isActive() || JakartaEE9Action.isActive() ? "jakarta." : "javax.")
                                     + "el.ELException: java.lang.NullPointerException";
             List<String> msgs = jsfTestServer2.findStringsInLogs(msgToSearchFor);
 
@@ -237,6 +247,7 @@ public class JSFCompELTests {
 
     //tests ValueExpression support in f:ajax event=#{bean.method} - https://issues.apache.org/jira/browse/MYFACES-3233
     @Test
+    @SkipForRepeat(EE10_FEATURES)  // Skipped due to HTMLUnit / JavaScript Incompatabilty (New JS in RC5)
     public void testAjaxEvent() throws Exception {
         // Fix the response once RTC is fixed
         String[] expectedInResponse = {

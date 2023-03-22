@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2020 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,75 +14,54 @@ package com.ibm.ws.javaee.dd.ejb;
 
 import java.util.List;
 
+import com.ibm.ws.javaee.dd.DeploymentDescriptor;
 import com.ibm.ws.javaee.dd.common.ModuleDeploymentDescriptor;
 
-/**
- * Represents &lt;ejb-jar>.
- */
-public interface EJBJar extends ModuleDeploymentDescriptor {
-    /**
-     * Represents "1.1" for {@link #getVersionID}.
-     *
-     * @see org.eclipse.jst.j2ee.internal.J2EEVersionConstants#EJB_1_1_ID
-     */
+public interface EJBJar extends ModuleDeploymentDescriptor, DeploymentDescriptor {
+    String DD_SHORT_NAME = "ejb-jar.xml";
+    String DD_NAME_EJB = "META-INF/ejb-jar.xml";
+    String DD_NAME_WEB = "WEB-INF/ejb-jar.xml";
+    String[] DD_NAMES = { DD_NAME_EJB, DD_NAME_WEB };
+
     int VERSION_1_1 = 11;
-
-    /**
-     * Represents "2.0" for {@link #getVersionID}.
-     *
-     * @see org.eclipse.jst.j2ee.internal.J2EEVersionConstants#EJB_2_0_ID
-     */
     int VERSION_2_0 = 20;
-
-    /**
-     * Represents "2.1" for {@link #getVersionID}.
-     *
-     * @see org.eclipse.jst.j2ee.internal.J2EEVersionConstants#EJB_2_1_ID
-     */
     int VERSION_2_1 = 21;
-
-    /**
-     * Represents "3.0" for {@link #getVersionID}.
-     *
-     * @see org.eclipse.jst.j2ee.internal.J2EEVersionConstants#EJB_3_0_ID
-     */
     int VERSION_3_0 = 30;
-
-    /**
-     * Represents "3.1" for {@link #getVersionID}.
-     *
-     * @see org.eclipse.jst.j2ee.internal.J2EEVersionConstants#EJB_3_1_ID
-     */
     int VERSION_3_1 = 31;
-
-    /**
-     * Represents "3.2" for {@link #getVersionID}.
-     *
-     * @see org.eclipse.jst.j2ee.internal.J2EEVersionConstants#EJB_3_2_ID
-     */
     int VERSION_3_2 = 32;
+    int VERSION_4_0 = 40; // Jakarta EE 9
 
-    /**
-     * Represents "4.0" for {@link #getVersionID}.
-     */
-    int VERSION_4_0 = 40;
+    // EJB was not updated for EE 10. See issue 20386.
+    // int VERSION_5_0 = 50; // Jakarta EE 10
 
-    /**
-     * @return the version
-     *         <ul>
-     *         <li>{@link #VERSION_1_1} - 1.1
-     *         <li>{@link #VERSION_2_0} - 2.0
-     *         <li>{@link #VERSION_2_1} - 2.1
-     *         <li>{@link #VERSION_3_0} - 3.0
-     *         <li>{@link #VERSION_3_1} - 3.1
-     *         <li>{@link #VERSION_3_2} - 3.2
-     *         <li>{@link #VERSION_4_0} - 4.0
-     *         </ul>
-     */
+    int MAX_VERSION = 40;
+    
+    int[] VERSIONS = {
+        VERSION_1_1, VERSION_2_0,
+        VERSION_2_1,
+        VERSION_3_0, VERSION_3_1, VERSION_3_2,
+        VERSION_4_0
+    };
+
+    int[] DTD_VERSION = {
+        VERSION_1_1, VERSION_2_0
+    };
+    
+    int[] SCHEMA_VERSIONS = {
+        VERSION_2_1,
+        VERSION_3_0, VERSION_3_1, VERSION_3_2,
+        VERSION_4_0
+    };
+    
+    int[] ANNOTATION_ENABLED_VERSIONS = {
+        VERSION_3_0, VERSION_3_1, VERSION_3_2,
+        VERSION_4_0
+    };
+    
     int getVersionID();
 
     /**
-     * @return &lt;metadata-complete> if specified, false if unspecified, or
+     * @return &lt;metadata-complete&gt; if specified, false if unspecified, or
      *         false if {@link #getVersionID} is less than {@link #VERSION_3_0} (though
      *         these module versions are semantically metadata-complete per the EJB 3.0
      *         specification)
@@ -88,28 +69,28 @@ public interface EJBJar extends ModuleDeploymentDescriptor {
     boolean isMetadataComplete();
 
     /**
-     * @return &lt;session>, &lt;entity>, and &lt;message-driven> as a read-only
+     * @return &lt;session&gt;, &lt;entity&gt;, and &lt;message-driven&gt; as a read-only
      *         list
      */
     List<EnterpriseBean> getEnterpriseBeans();
 
     /**
-     * @return &lt;interceptors>, or null if unspecified
+     * @return &lt;interceptors&gt;, or null if unspecified
      */
     Interceptors getInterceptors();
 
     /**
-     * @return &lt;relationships>, or null if unspecified
+     * @return &lt;relationships&gt;, or null if unspecified
      */
     Relationships getRelationshipList();
 
     /**
-     * @return &lt;assembly-descriptor>, or null if unspecified
+     * @return &lt;assembly-descriptor&gt;, or null if unspecified
      */
     AssemblyDescriptor getAssemblyDescriptor();
 
     /**
-     * @return &lt;ejb-client-jar>, or null if unspecified
+     * @return &lt;ejb-client-jar&gt;, or null if unspecified
      */
     String getEjbClientJar();
 }

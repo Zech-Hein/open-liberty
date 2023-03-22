@@ -1,0 +1,54 @@
+###############################################################################
+# Copyright (c) 2022 IBM Corporation and others.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License 2.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#     IBM Corporation - initial API and implementation
+###############################################################################
+#CMVCPATHNAME io.openliberty.security.jakartasec.3.0.internal/resources/io/openliberty/security/jakartasec/internal/resources/JakartaSecurity30Messages.nlsprops
+#COMPONENTPREFIX CWWKS
+#COMPONENTNAMEFOR WebSphere Application Server Jakarta Security 3.0
+#ISMESSAGEFILE TRUE
+#NLS_MESSAGEFORMAT_VAR
+#NLS_ENCODING=UNICODE
+# -------------------------------------------------------------------------------------------------
+
+# Message prefix block: 2500-2519
+
+#Note to translator, do not translate EL or OpenID
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG=CWWKS2500W: La expresi\u00f3n de lenguaje de expresi\u00f3n (EL) para el atributo {0} de la anotaci\u00f3n de definici\u00f3n de mecanismo de autenticaci\u00f3n de OpenID no se puede resolver en un valor v\u00e1lido. El valor proporcionado era ''{1}''. Aseg\u00farese de que la expresi\u00f3n EL y el resultado son v\u00e1lidos y de que los beans de referencia que se utilizan en la expresi\u00f3n se pueden resolver. Se utiliza el valor de atributo predeterminado de ''{2}''.
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG.explanation=El atributo no se puede resolver como una expresi\u00f3n. Es posible que el resultado EL y el tipo de valor de atributo esperado no coincidan. Por ejemplo, si el tipo de atributo esperado es Serie, el resultado EL debe ser una Serie.
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG.useraction=Aseg\u00farese de que la anotaci\u00f3n contiene un valor de configuraci\u00f3n v\u00e1lido. Aseg\u00farese de que las expresiones EL son v\u00e1lidas, que los beans referenciados en la expresi\u00f3n se pueden resolver y que el tipo del resultado se corresponde con el atributo.
+
+JAKARTASEC_WARNING_CLAIM_DEF_CONFIG=CWWKS2501W: La expresi\u00f3n de lenguaje de expresi\u00f3n (EL) para el atributo {0} de la anotaci\u00f3n de definici\u00f3n de reclamaciones no se puede resolver en un valor v\u00e1lido. El valor proporcionado era ''{1}''. Aseg\u00farese de que la expresi\u00f3n EL y el resultado son v\u00e1lidos y de que los beans de referencia que se utilizan en la expresi\u00f3n se pueden resolver. Se utiliza el valor de atributo predeterminado de ''{2}''.
+JAKARTASEC_WARNING_CLAIM_DEF_CONFIG.explanation=El atributo no se puede resolver como una expresi\u00f3n. Es posible que el resultado EL y el tipo de valor de atributo esperado no coincidan. Por ejemplo, si el tipo de atributo esperado es Serie, el resultado EL debe ser una Serie.
+JAKARTASEC_WARNING_CLAIM_DEF_CONFIG.useraction=Aseg\u00farese de que la anotaci\u00f3n contiene un valor de configuraci\u00f3n v\u00e1lido. Aseg\u00farese de que las expresiones EL son v\u00e1lidas, que los beans referenciados en la expresi\u00f3n se pueden resolver y que el tipo del resultado se corresponde con el atributo.
+
+JAKARTASEC_WARNING_LOGOUT_DEF_CONFIG=CWWKS2502W: La expresi\u00f3n de lenguaje de expresi\u00f3n (EL) para el atributo {0} de la anotaci\u00f3n de definici\u00f3n de cierre de sesi\u00f3n no se puede resolver en un valor v\u00e1lido. El valor proporcionado era ''{1}''. Aseg\u00farese de que la expresi\u00f3n EL y el resultado son v\u00e1lidos y de que los beans de referencia que se utilizan en la expresi\u00f3n se pueden resolver. Se utiliza el valor de atributo predeterminado de ''{2}''.
+JAKARTASEC_WARNING_LOGOUT_DEF_CONFIG.explanation=El atributo no se puede resolver como una expresi\u00f3n. Es posible que el resultado EL y el tipo de valor de atributo esperado no coincidan. Por ejemplo, si el tipo de atributo esperado es Serie, el resultado EL debe ser una Serie.
+JAKARTASEC_WARNING_LOGOUT_DEF_CONFIG.useraction=Aseg\u00farese de que la anotaci\u00f3n contiene un valor de configuraci\u00f3n v\u00e1lido. Aseg\u00farese de que las expresiones EL son v\u00e1lidas, que los beans referenciados en la expresi\u00f3n se pueden resolver y que el tipo del resultado se corresponde con el atributo.
+
+JAKARTASEC_WARNING_PROV_METADATA_CONFIG=CWWKS2503W: La expresi\u00f3n de lenguaje de expresi\u00f3n (EL) para el atributo {0} de la anotaci\u00f3n de metadatos del proveedor de OpenID no se puede resolver en un valor v\u00e1lido. El valor proporcionado era ''{1}''. Aseg\u00farese de que la expresi\u00f3n EL y el resultado son v\u00e1lidos y de que los beans de referencia que se utilizan en la expresi\u00f3n se pueden resolver. Se utiliza el valor de atributo predeterminado de ''{2}''.
+JAKARTASEC_WARNING_PROV_METADATA_CONFIG.explanation=El atributo no se puede resolver como una expresi\u00f3n. Es posible que el resultado EL y el tipo de valor de atributo esperado no coincidan. Por ejemplo, si el tipo de atributo esperado es Serie, el resultado EL debe ser una Serie.
+JAKARTASEC_WARNING_PROV_METADATA_CONFIG.useraction=Aseg\u00farese de que la anotaci\u00f3n contiene un valor de configuraci\u00f3n v\u00e1lido. Aseg\u00farese de que las expresiones EL son v\u00e1lidas, que los beans referenciados en la expresi\u00f3n se pueden resolver y que el tipo del resultado se corresponde con el atributo.
+
+CREDENTIAL_VALIDATION_ERROR=CWWKS2504E: El cliente de OpenID Connect {0} ha encontrado el siguiente error al validar la credencial para el usuario autenticado: {1}
+CREDENTIAL_VALIDATION_ERROR.explanation=El cliente de OpenID Connect ha encontrado un error al validar las se\u00f1ales devueltas por el proveedor de OpenID Connect, o se ha producido un error al utilizar la informaci\u00f3n en las se\u00f1ales para crear la credencial.
+CREDENTIAL_VALIDATION_ERROR.useraction=Para obtener m\u00e1s informaci\u00f3n, consulte el error en el mensaje.
+
+JAKARTASEC_WARNING_MISSING_SUBJECT_CLAIMS=CWWKS2505W: El objeto JSON de reclamaciones en el bean OpenIdContext no puede a\u00f1adir el valor de asunto para el cliente {0} porque falta el valor de asunto en el objeto OpenIdClaims. 
+JAKARTASEC_WARNING_MISSING_SUBJECT_CLAIMS.explanation=Al objeto OpenIdClaims del bean OpenIdContext le falta el valor de asunto necesario. Por lo tanto, no se puede establecer el valor de asunto del objeto JSON de reclamaciones.  
+JAKARTASEC_WARNING_MISSING_SUBJECT_CLAIMS.useraction=Revise los registros para ver si hay errores anteriores relacionados con la autenticaci\u00f3n de OpenID.
+
+JAKARTASEC_CLAIMS_PROCESSING_ERROR=CWWKS2506E: El valor de clave de aserciones (claims) del cliente de OpenID Connect {0} es incorrecto. El valor es {1} y el tipo esperado es {2}. El error es {3}.
+JAKARTASEC_CLAIMS_PROCESSING_ERROR.explanation=El cliente de OpenID Connect ha encontrado un error al verificar el tipo esperado de campos en el objeto de aserciones (claims) de OpenID. Un error frecuente consiste en que el tipo del valor devuelto no coincide con el tipo esperado.
+JAKARTASEC_CLAIMS_PROCESSING_ERROR.useraction=Para obtener m\u00e1s informaci\u00f3n, consulte el error en el mensaje.
+
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG_NEGATIVE_INT=CWWKS2507W: El valor del atributo {0} de la anotaci\u00f3n de definici\u00f3n del mecanismo de autenticaci\u00f3n OpenID no puede ser un entero negativo. Si el valor del atributo es una expresi\u00f3n en Lenguaje de Expresiones (EL), no puede resolver a un entero negativo. El valor proporcionado era ''{1}''. En su lugar se utiliza el valor de atributo predeterminado de ''{2}''.
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG_NEGATIVE_INT.explanation=El valor del atributo no puede ser un entero negativo. Si el valor de atributo es una expresi\u00f3n en EL, el valor no puede resolver a un entero negativo.
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG_NEGATIVE_INT.useraction=Actualice el atributo para utilizar un entero no negativo. Si el valor de atributo es una expresi\u00f3n en EL, actualice el bean referenciado para que resuelva a un entero no negativo.

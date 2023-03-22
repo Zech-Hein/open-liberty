@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,11 +24,11 @@ import com.ibm.ws.jpa.fvt.entity.testlogic.DatatypeSupportTestLogic;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext.PersistenceContextType;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext.PersistenceInjectionType;
-import com.ibm.ws.testtooling.vehicle.web.EJBTestVehicleServlet;
+import com.ibm.ws.testtooling.vehicle.web.EJBDBTestVehicleServlet;
 
 @SuppressWarnings("serial")
 @WebServlet(urlPatterns = "/DatatypeSupport_EJB_SL_TestServlet")
-public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
+public class DatatypeSupport_EJB_SL_TestServlet extends EJBDBTestVehicleServlet {
     @PostConstruct
     private void initFAT() {
         testClassName = DatatypeSupportTestLogic.class.getName();
@@ -53,7 +55,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -66,7 +67,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -79,7 +79,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -92,7 +91,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -105,7 +103,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -118,7 +115,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -131,7 +127,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -144,7 +139,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -157,7 +151,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -170,7 +163,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -183,7 +175,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -196,7 +187,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -209,7 +199,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -222,7 +211,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -235,7 +223,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -248,7 +235,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -261,7 +247,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -274,7 +259,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -287,7 +271,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -300,7 +283,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -313,7 +295,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -326,7 +307,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -339,7 +319,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -352,7 +331,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -365,7 +343,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -378,7 +355,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -391,7 +367,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -404,7 +379,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -417,7 +391,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -430,7 +403,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -443,7 +415,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -456,7 +427,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -469,7 +439,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -482,7 +451,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -495,7 +463,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -508,7 +475,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -521,7 +487,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -534,7 +499,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -547,7 +511,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -560,7 +523,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -573,7 +535,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -586,7 +547,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -599,7 +559,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -612,7 +571,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -625,7 +583,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -638,7 +595,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -651,7 +607,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -664,7 +619,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -677,7 +631,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -690,7 +643,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -703,7 +655,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -716,7 +667,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -729,7 +679,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -742,7 +691,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -755,7 +703,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -768,7 +715,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -781,7 +727,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -794,7 +739,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -807,7 +751,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -820,7 +763,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -833,7 +775,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -846,7 +787,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -859,7 +799,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -872,7 +811,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -885,7 +823,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -898,7 +835,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -911,7 +847,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -924,7 +859,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -937,7 +871,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -950,7 +883,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -963,7 +895,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -976,7 +907,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -989,7 +919,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1002,7 +931,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1015,7 +943,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1028,7 +955,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1041,7 +967,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1054,7 +979,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1067,7 +991,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1080,7 +1003,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1093,7 +1015,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1106,7 +1027,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1119,7 +1039,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1132,7 +1051,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1145,7 +1063,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1158,7 +1075,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1171,7 +1087,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1184,7 +1099,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1197,7 +1111,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1210,7 +1123,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1223,7 +1135,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1236,7 +1147,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1249,7 +1159,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1262,7 +1171,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1275,7 +1183,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1288,7 +1195,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1301,7 +1207,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1314,7 +1219,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1327,7 +1231,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1340,7 +1243,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1353,7 +1255,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1366,7 +1267,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1379,7 +1279,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1392,7 +1291,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1405,7 +1303,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1418,7 +1315,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1431,7 +1327,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1444,7 +1339,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1457,7 +1351,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1470,7 +1363,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1483,7 +1375,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1496,7 +1387,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1509,7 +1399,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1522,7 +1411,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportPropertyTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1535,7 +1423,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1548,7 +1435,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1561,7 +1447,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1574,7 +1459,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1587,7 +1471,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "DatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -1600,7 +1483,6 @@ public class DatatypeSupport_EJB_SL_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLDatatypeSupportTestEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 }

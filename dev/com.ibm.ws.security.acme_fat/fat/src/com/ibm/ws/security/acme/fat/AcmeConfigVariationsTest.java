@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -71,7 +73,7 @@ import componenttest.topology.impl.LibertyServer;
  */
 @RunWith(FATRunner.class)
 @Mode(TestMode.FULL)
-@SkipForRepeat(SkipForRepeat.EE9_FEATURES) // No value added
+@SkipForRepeat({SkipForRepeat.EE9_FEATURES, SkipForRepeat.EE10_FEATURES}) // No value added
 public class AcmeConfigVariationsTest {
 
 	@Server("com.ibm.ws.security.acme.fat.config_var")
@@ -204,6 +206,8 @@ public class AcmeConfigVariationsTest {
 			configuration.getFeatureManager().getFeatures().remove("acmeCA-2.0");
 			AcmeFatUtils.configureAcmeCA(server, caContainer, configuration, useAcmeURIs(), DOMAINS_1);
 			AcmeFatUtils.waitAcmeFeatureUninstall(server);
+			
+			AcmeFatUtils.resetMarksInLogs(server); // reset marks in case the cert checker woke up during the server update.
 
 			long timeElapsed = System.currentTimeMillis();
 
@@ -386,7 +390,7 @@ public class AcmeConfigVariationsTest {
 			AcmeFatUtils.configureAcmeCA(server, caContainer, configuration);
 			assertNotNull("Expected CWPKI2042E in logs.", server.waitForStringInLog("CWPKI2042E"));
 
-			if (AcmeFatUtils.isWindows(testName.getMethodName())) {
+			if (AcmeFatUtils.isWindows(testName.getMethodName()) || AcmeFatUtils.isISeries(testName.getMethodName())) {
 				acmeCA.setSubjectDN("cn=domain1.com");
 				acmeCA.setAccountKeyFile(null);
 			} else {

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -207,7 +209,7 @@ public class ServerBuilder {
      * <code>$WLP_INSTALL_DIR/etc/extensions</code> to constitute the full set of product
      * extensions for this instance of the running server.
      *
-     * @param name The name of the product extension.
+     * @param name  The name of the product extension.
      * @param props A properties file containing com.ibm.websphere.productId and com.ibm.websphere.productInstall.
      * @return a reference to this object.
      */

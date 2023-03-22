@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2020 IBM Corporation and others.
+# Copyright (c) 2020, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -25,7 +27,10 @@ Service-Component: \
 
 Include-Resource:\
   META-INF=resources/META-INF
-#  io/openliberty=${bin}/io/openliberty, \
+#  io/openliberty=${bin}/io/openliberty
+
+Export-Package: \
+ io.openliberty.restfulWS30.appSecurity;thread-context=true
 
 Import-Package: \
  com.ibm.wsspi.classloading, \
@@ -35,16 +40,23 @@ Import-Package: \
  jakarta.ws.rs.container, \
  jakarta.ws.rs.core, \
  jakarta.ws.rs.ext, \
- org.jboss.resteasy.annotations.cache, \
- org.jboss.resteasy.plugins.interceptors, \
- org.jboss.resteasy.spi, \
- org.jboss.resteasy.util
- 
+ org.jboss.resteasy.annotations.cache;version="[4.7,7.0)", \
+ org.jboss.resteasy.plugins.interceptors;version="[4.7,7.0)", \
+ org.jboss.resteasy.spi;version="[4.7,7.0)", \
+ org.jboss.resteasy.util;version="[4.7,7.0)", \
+ jakarta.servlet.*;version="[5.0,7.0)", \
+ *
+
 
 -buildpath: \
-  com.ibm.websphere.javaee.jaxrs.2.1, \
-  com.ibm.websphere.org.osgi.core;version=latest, \
-  com.ibm.websphere.org.osgi.service.component;version=latest, \
-  com.ibm.ws.logging.core, \
-  com.ibm.ws.org.osgi.annotation.versioning;version=latest, \
-  io.openliberty.org.jboss.resteasy.common;version=latest
+	io.openliberty.jakarta.annotation.2.0,\
+	io.openliberty.jakarta.restfulWS.3.0,\
+	io.openliberty.jakarta.servlet.5.0,\
+	com.ibm.websphere.org.osgi.core;version=latest,\
+	com.ibm.websphere.org.osgi.service.component;version=latest,\
+	com.ibm.ws.logging.core,\
+	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
+	com.ibm.ws.security.authorization.util;version=latest,\
+	io.openliberty.org.jboss.resteasy.common;version=latest,\
+	com.ibm.ws.security;version=latest,\
+	com.ibm.ws.security.authentication;version=latest

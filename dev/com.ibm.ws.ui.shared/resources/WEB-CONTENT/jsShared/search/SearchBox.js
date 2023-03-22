@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -47,6 +49,9 @@ define([
         addButtonLabel : i18n.SEARCH_BUTTON_ADD,
         clearButtonLabel : i18n.SEARCH_BUTTON_CLEAR,
         searchButtonLabel : i18n.SEARCH_BUTTON_SEARCH,
+        addButtonLabelText : i18n.SEARCH_BUTTON_ADD_TEXT,
+        clearButtonLabelText : i18n.SEARCH_BUTTON_CLEAR_TEXT,
+        searchButtonLabelText : i18n.SEARCH_BUTTON_SEARCH_TEXT,
         totalNumSearchPillsCreated : 0, /*for searchpill ID*/
         origSearchPaneHeight : 75, /*hard code the value to match what we currently use. can update later to dynamically pull the height*/
         keepSearchAreaExpanded : false, /*the on (mouse in/out, focus, blur, keypress, etc.) have very specific behaviors that will need to know if the expanded search box is expected to remain open or not*/

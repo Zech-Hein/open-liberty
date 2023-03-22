@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2018, 2021 IBM Corporation and others.
+# Copyright (c) 2018, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -17,21 +19,10 @@ bVersion=1.0
 
 src: \
 	fat/src,\
-	test-applications/applicationExtension.jar/src,\
-	test-applications/applicationExtension.war/src,\
-	test-applications/dynamicallyAddedBeans.jar/src,\
-	test-applications/dynamicallyAddedBeans.war/src,\
-	test-applications/helloWorldExtensionTest.war/src,\
-	test-applications/multipleWar1.war/src,\
-	test-applications/multipleWarEmbeddedJar.jar/src,\
-	test-applications/multipleWarNoBeans.war/src,\
 	test-bundles/cdi.helloworld.extension/src, \
 	test-bundles/cdi.spi.misplaced/src, \
 	test-bundles/cdi.spi.extension/src, \
-	test-bundles/cdi.spi.constructor.fail.extension/src, \
-	test-applications/observeProcessProducerMethod.war/src, \
-	test-applications/SPIExtension.war/src, \
-	test-applications/SPIConstructorException.war/src
+	test-bundles/cdi.spi.constructor.fail.extension/src
 	
 tested.features:\
 	cdi-2.0,\
@@ -46,9 +37,14 @@ tested.features:\
 	enterprisebeanslite-4.0,\
 	cdi.internals-3.0,\
 	beanvalidation-3.0,\
-	faces-3.0
+	faces-3.0,\
+	expressionlanguage-5.0,\
+	pages-3.1,\
+	cdi-4.0,\
+	servlet-6.0,\
+	faces-4.0
 	
-test.project: true
+fat.project: true
 
 -buildpath: \
 	com.ibm.websphere.javaee.ejb.3.2;version=latest,\

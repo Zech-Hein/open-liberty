@@ -5,12 +5,12 @@ singleton=true
 visibility = private
 
 -features=\
-  io.openliberty.servlet.api-5.0; apiJar=false
+  io.openliberty.servlet.api-5.0; apiJar=false; ibm.tolerates:="6.0"
 
 -bundles= com.ibm.ws.session.jakarta, \
   		  com.ibm.ws.session.db.jakarta, \
   		  com.ibm.ws.session.store.jakarta
 
-kind=beta
+kind=ga
 edition=core
 

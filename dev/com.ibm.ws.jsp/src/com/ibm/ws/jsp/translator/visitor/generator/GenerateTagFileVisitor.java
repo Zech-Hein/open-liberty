@@ -1,15 +1,15 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2020 IBM Corporation and others.
+ * Copyright (c) 1997, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 package com.ibm.ws.jsp.translator.visitor.generator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -26,6 +26,7 @@ import org.w3c.dom.Element;
 
 import com.ibm.ws.jsp.Constants;
 import com.ibm.ws.jsp.JspCoreException;
+import com.ibm.ws.jsp.PagesVersionHandler;
 import com.ibm.ws.jsp.configuration.JspConfiguration;
 import com.ibm.ws.jsp.taglib.TagFileTagInfo;
 import com.ibm.ws.jsp.taglib.TagLibraryInfoImpl;
@@ -214,16 +215,50 @@ public class GenerateTagFileVisitor extends GenerateVisitor {
     protected void generateClassSection(ValidateTagFileResult validatorResult) {
         writer.println();
         writer.print("public class " + tagFileFiles.getClassName() + " extends javax.servlet.jsp.tagext.SimpleTagSupport");
+        
+        ArrayList<String> implementingInterfaces = new ArrayList<String>();
+
+        if(PagesVersionHandler.isPages31OrHigherLoaded()){
+            implementingInterfaces.add("com.ibm.ws.jsp.runtime.DirectiveInfo");
+        }
+
         TagFileInfo tfi = (TagFileInfo)inputMap.get("TagFileInfo");
         TagInfo ti = tfi.getTagInfo();
         if (ti.hasDynamicAttributes()) {
-            writer.println();
-            writer.print(" implements javax.servlet.jsp.tagext.DynamicAttributes");
+            implementingInterfaces.add("javax.servlet.jsp.tagext.DynamicAttributes");
+        }
+
+        if(implementingInterfaces.size() > 0){
+            writer.print(" implements");
+            int size = implementingInterfaces.size();
+            for(int i = 0; i < size; i++){
+                writer.print(" " + implementingInterfaces.get(i));
+                if(i < size -1 ){
+                    writer.print(",");
+                }
+            }
         }
         
         writer.println(" {");
         GeneratorUtils.generateFactoryInitialization(writer, jspConfiguration.getConfigManager().isJCDIEnabled());
 		writer.println();
+
+        if(PagesVersionHandler.isPages31OrHigherLoaded()){
+            writer.println();
+            writer.println("private static java.util.List<String> importPackageList = new java.util.ArrayList<String>();");
+            writer.println("private static java.util.List<String> importClassList = new java.util.ArrayList<String>();");
+            writer.println("private static java.util.List<String> importStaticList = new java.util.ArrayList<String>();");
+            writer.println();
+            
+            // Cannot place this in the ImportGenerator since that is only run when the import directive is included in the page
+            // the imports below are required for all pages 
+            writer.println("static {");
+            // Pages 1.10 Directive Packages java.lang.*, jakarta.servlet.*, jakarta.servlet.jsp.*, and jakarta.servlet.http.* are imported implicitly by the JSP container.
+			writer.println("importPackageList.add(\"jakarta.servlet\");");
+			writer.println("importPackageList.add(\"jakarta.servlet.jsp\");");
+			writer.println("importPackageList.add(\"jakarta.servlet.http\");");
+            writer.println("}");
+        }
     }
 
     protected void generateStaticSection() {
@@ -288,18 +323,45 @@ public class GenerateTagFileVisitor extends GenerateVisitor {
             writer.print(");");
             writer.println();     
         }
-        if (aliasSeen) {
-            writer.println("this.jspContext = new org.apache.jasper.runtime.JspContextWrapper(ctx, _jspx_nested, _jspx_at_begin, _jspx_at_end, aliasMap);");
-        } 
-        else {
-            writer.println("this.jspContext = new org.apache.jasper.runtime.JspContextWrapper(ctx, _jspx_nested, _jspx_at_begin, _jspx_at_end, null);");
+        if(PagesVersionHandler.isPages31OrHigherLoaded()){
+            if (aliasSeen) {
+                writer.println("this.jspContext = new org.apache.jasper.runtime.JspContextWrapper(ctx, this, _jspx_nested, _jspx_at_begin, _jspx_at_end, aliasMap);");
+            } 
+            else {
+                writer.println("this.jspContext = new org.apache.jasper.runtime.JspContextWrapper(ctx, this, _jspx_nested, _jspx_at_begin, _jspx_at_end, null);");
+            }
+        } else {
+            if (aliasSeen) {
+                writer.println("this.jspContext = new org.apache.jasper.runtime.JspContextWrapper(ctx, _jspx_nested, _jspx_at_begin, _jspx_at_end, aliasMap);");
+            } 
+            else {
+                writer.println("this.jspContext = new org.apache.jasper.runtime.JspContextWrapper(ctx, _jspx_nested, _jspx_at_begin, _jspx_at_end, null);");
+            }
         }
+
         writer.println("}");
         writer.println();
         writer.println("public JspContext getJspContext() {");
         writer.println("return this.jspContext;");
         writer.println("}");
-        
+
+        if(PagesVersionHandler.isPages31OrHigherLoaded()){
+            writer.println(" public boolean isErrorOnELNotFound() {");
+            writer.println("return "+ validatorResult.isErrorOnELNotFound()  + ";");
+            writer.println("}");
+
+            writer.println(" public java.util.List<String> getImportClassList() {");
+            writer.println("return  importPackageList;");
+            writer.println("}");
+
+            writer.println(" public java.util.List<String> getImportPackageList() {");
+            writer.println("return importClassList;");
+            writer.println("}");
+
+            writer.println(" public java.util.List<String> getImportStaticList() {");
+            writer.println("return importStaticList;");
+            writer.println("}");
+        }
 
         if (ti.hasDynamicAttributes()) {
             writer.println("private java.util.HashMap _jspx_dynamic_attrs = new java.util.HashMap();");

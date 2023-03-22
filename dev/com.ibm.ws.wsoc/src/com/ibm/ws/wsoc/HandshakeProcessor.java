@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,7 +13,9 @@
 package com.ibm.ws.wsoc;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +40,7 @@ import javax.websocket.server.ServerEndpointConfig;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Sensitive;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.wsoc.external.ExtensionExt;
 import com.ibm.ws.wsoc.external.HandshakeRequestExt;
 import com.ibm.ws.wsoc.external.HandshakeResponseExt;
@@ -93,7 +97,8 @@ public class HandshakeProcessor {
 
     private final ParametersOfInterest things = new ParametersOfInterest();
 
-    public HandshakeProcessor() {}
+    public HandshakeProcessor() {
+    }
 
     public void initialize(HttpServletRequest _hsr, HttpServletResponse resp, Map<String, String> extraParams) {
         httpRequest = _hsr;
@@ -128,7 +133,11 @@ public class HandshakeProcessor {
             }
         }
 
-        requestURI = new URI(httpRequest.getRequestURI());
+        if (WebSocketVersionServiceManager.isWsoc21OrHigher()) {
+            requestURI = buildFullURI(httpRequest);
+        } else {
+            requestURI = new URI(httpRequest.getRequestURI());
+        }
 
         things.setParameterMap(parameterMap);
         things.setQueryString(httpRequest.getQueryString());
@@ -474,4 +483,35 @@ public class HandshakeProcessor {
         }
         return extensions;
     }
+
+    private URI buildFullURI(HttpServletRequest req) throws MalformedURLException, URISyntaxException {
+        StringBuilder builder = new StringBuilder();
+
+        String url = req.getRequestURL().toString();
+        String https = "https";
+        String http = "http";
+
+        if (url.startsWith(https)) {
+            url = "wss" + url.substring(https.length(), url.length());
+        } else if (url.startsWith(http)) {
+            url = "ws" + url.substring(http.length(), url.length());
+        }
+
+        if (!(url.startsWith("ws:") || url.startsWith("wss:"))) {
+            String msg = Tr.formatMessage(tc, "scheme.incorrect.error", url);
+            Tr.error(tc, "scheme.incorrect.error", url);
+            throw new MalformedURLException(msg);
+        }
+
+        builder.append(url);
+
+        if (req.getQueryString() != null) {
+            builder.append("?");
+            builder.append(req.getQueryString());
+        }
+
+        return new URI(builder.toString());
+
+    }
+
 }

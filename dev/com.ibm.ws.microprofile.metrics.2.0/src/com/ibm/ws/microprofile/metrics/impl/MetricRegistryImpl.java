@@ -1,10 +1,12 @@
 /*******************************************************************************
-* Copyright (c) 2019, 2020 IBM Corporation and others.
+* Copyright (c) 2019, 2021 IBM Corporation and others.
 *
 * All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Eclipse Public License v1.0
+* are made available under the terms of the Eclipse Public License 2.0
 * which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v10.html
+* http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
 *
 *******************************************************************************
 * Copyright 2010-2013 Coda Hale and Yammer, Inc.
@@ -31,7 +33,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -42,7 +43,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.enterprise.inject.Vetoed;
 
-import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.metrics.ConcurrentGauge;
 import org.eclipse.microprofile.metrics.Counter;
@@ -58,8 +58,6 @@ import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.Timer;
-
-import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 
 /**
  * A registry of metric instances.
@@ -188,7 +186,6 @@ public class MetricRegistryImpl extends MetricRegistry {
     }
 
     @Override
-    @FFDCIgnore({ NoSuchElementException.class })
     public <T extends Metric> T register(Metadata metadata, T metric, Tag... tags) throws IllegalArgumentException {
 
         /*
@@ -209,33 +206,6 @@ public class MetricRegistryImpl extends MetricRegistry {
         MetadataBuilder metadataBuilder = Metadata.builder(metadata);
 
         ArrayList<Tag> cumulativeTags = (tags == null) ? new ArrayList<Tag>() : new ArrayList<Tag>(Arrays.asList(tags));
-
-        //Append global tags to the metric
-        //rf-rm
-        Config config = configResolver.getConfig(getThreadContextClassLoader());
-        try {
-            String[] globaltags = config.getValue("MP_METRICS_TAGS", String.class).split("(?<!\\\\),");
-            for (String tag : globaltags) {
-                if (!(tag == null || tag.isEmpty() || !tag.contains("="))) {
-                    String key = tag.substring(0, tag.indexOf("="));
-                    String val = tag.substring(tag.indexOf("=") + 1);
-                    if (key.length() == 0 || val.length() == 0) {
-                        throw new IllegalArgumentException("Malformed list of Global Tags. Tag names "
-                                                           + "must match the following regex [a-zA-Z_][a-zA-Z0-9_]*."
-                                                           + " Global Tag values must not be empty."
-                                                           + " Global Tag values MUST escape equal signs `=` and commas `,`"
-                                                           + "with a backslash `\\` ");
-                    }
-                    val = val.replace("\\,", ",");
-                    val = val.replace("\\=", "=");
-                    if (!cumulativeTags.contains(key)) {
-                        cumulativeTags.add(new Tag(key, val));
-                    }
-                }
-            }
-        } catch (NoSuchElementException e) {
-            //Continue if there is no global tags
-        }
 
         MetricID MetricID = new MetricID(metadata.getName(), tags);
         Class<T> metricClass = determineMetricClass(metric);

@@ -1,15 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2015 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-var editor = (function() {
+ var editor = (function() {
     "use strict";
 
     // File to edit
@@ -27,15 +29,12 @@ var editor = (function() {
     // Feature list
     var featureList = null;
 
-    // Validator list
-    var validatorList = null;
-
     // Dirty flags
     var editorDesignViewDirty = false;
     var editorSourceViewDirty = false;
 
 
-    var openFileForEditing = function(file, schemaTextContent, featureListContent, validatorListContent) {
+    var openFileForEditing = function(file, schemaTextContent, featureListContent) {
 
         // Set file for edit
         filePath = file.path;
@@ -45,7 +44,6 @@ var editor = (function() {
         documentDirty = false;
 
         featureList = featureListContent;
-        validatorList = validatorListContent;
 
         // Set schema for edit (when available)
         if(schemaTextContent !== null && schemaTextContent !== undefined) {
@@ -128,6 +126,29 @@ var editor = (function() {
     };
 
 
+    // Mark all nodes(and parents) in current path as dirty.
+    var markCurrentNodeTreeAsDirty = function() {
+        var activeNode = $(".editorTreeNode.active");
+        if(activeNode && activeNode.length) {
+            markNodeAsDirty(activeNode);
+            validationUtils.disableTestConnectionButton();
+        }
+    };
+
+
+    // markNodeAsDirty by Adding unsavedElement class to the treenode.
+    var markNodeAsDirty = function(node) {
+        // Mark current Node As Dirty.
+        $(node).addClass("unsavedElement");
+
+        // Mark parent node as Dirty.
+        var parentNodes = $(node).parents(".editorTreeNodeContainer");
+        if(parentNodes.length && parentNodes.length>1 && parentNodes[1].firstChild) { // 0th element is own container
+            markNodeAsDirty(parentNodes[1].firstChild);
+        }
+    };
+
+
     var markDocumentAsDirty = function() {
         if($("#editorNavigationDesignLink").hasClass("active")) {
             editorDesignViewDirty = true;
@@ -136,6 +157,8 @@ var editor = (function() {
         }
         documentDirty = true;
         $("#navbarEditorButtonsSave").removeAttr("disabled").removeAttr("aria-disabled").attr("tabindex", 0);
+
+        markCurrentNodeTreeAsDirty();
     };
 
 
@@ -300,6 +323,10 @@ var editor = (function() {
             // Show saving message
             core.showControlById("navbarEditorSavingMessage", true);
 
+            // Removed unsaved node tags from tree nodes and test connection button
+            $(".editorTreeNode.unsavedElement").removeClass("unsavedElement");
+            validationUtils.enableTestConnectionButton();
+
             fileChangedDuringEditing().done(function() {
 
                 // Unblock UI
@@ -426,10 +453,6 @@ var editor = (function() {
 
         getFeatureList: function() {
             return featureList;
-        },
-
-        getValidatorList: function() {
-            return validatorList;
         },
 
         switchToSourceView: switchToSourceView,

@@ -1,16 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.ui.internal.v1.pojo;
 
-import org.owasp.esapi.ESAPI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.ibm.websphere.jsonsupport.JSON;
 import com.ibm.websphere.jsonsupport.JSONMarshallException;
@@ -63,7 +66,7 @@ public class FeatureTool extends Bookmark {
 
     /**
      * Constructs the FeatureTool's id.
-     * 
+     *
      * @param featureName See {@link #featureName}.
      * @param featureVersion See {@link #featureVersion}.
      * @return The FeatureTool's id.
@@ -81,7 +84,7 @@ public class FeatureTool extends Bookmark {
 
     /**
      * Construct a tool representation.
-     * 
+     *
      * @param featureName See {@link #featureName}.
      * @param featureVersion See {@link #featureVersion}.
      * @param name See {@link #name}.
@@ -96,7 +99,7 @@ public class FeatureTool extends Bookmark {
 
     /**
      * Construct a FeatureTool representation.
-     * 
+     *
      * @param id the Tool's ID
      * @param type Set the Tool's type.
      * @param featureName See {@link #featureName}.
@@ -127,7 +130,7 @@ public class FeatureTool extends Bookmark {
     /**
      * Retrieve the feature that maps to this tool.
      * This can be null if the tool wasn't installed via a feature.
-     * 
+     *
      * @return the feature name that corresponds to the this tool
      */
     public String getFeatureName() {
@@ -145,7 +148,7 @@ public class FeatureTool extends Bookmark {
 
     /**
      * Retrieve the tool's feature version.
-     * 
+     *
      * @return the Tool's feature version
      */
     public String getFeatureVersion() {
@@ -163,7 +166,7 @@ public class FeatureTool extends Bookmark {
 
     /**
      * Retrieve the tool's feature short name.
-     * 
+     *
      * @return the Tool's feature short name
      */
     public String getFeatureShortName() {
@@ -172,7 +175,7 @@ public class FeatureTool extends Bookmark {
 
     /**
      * Determines which fields are null and/or blank.
-     * 
+     *
      * @return String comma-separated list of field names that are not valid
      */
     @Trivial
@@ -192,7 +195,7 @@ public class FeatureTool extends Bookmark {
      * <p>
      * This does not check version as version is already checked for syntax
      * of x.y.z.
-     * 
+     *
      * @return String comma-separated list of field names that are not valid
      */
     private String listXSSFields() {
@@ -208,16 +211,18 @@ public class FeatureTool extends Bookmark {
 
     /**
      * Check to see if the String is a valid version for the tool.
-     * 
+     *
      * @param value The String to check
      * @return {@code true} if the String is a valid version.
      */
     private boolean isValidVersion(final String value) {
-        return ESAPI.validator().isValidInput("VERSION",
-                                              value,
-                                              "UIToolVersion",
-                                              MAX_LENGTH,
-                                              false);
+        if (value == null)
+            return false;
+        if (value.length() > MAX_LENGTH)
+            return false;
+        Pattern p = Pattern.compile("^([0-9]+|([0-9]+)\\.([0-9]+)|([0-9]+)\\.([0-9]+)\\.([0-9]+)|([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([\\w-]+))$");
+        Matcher m = p.matcher(value);
+        return m.matches();
     }
 
     /** {@inheritDoc} */
@@ -282,7 +287,7 @@ public class FeatureTool extends Bookmark {
 
     /**
      * Gets this Object's JSON using the given ObjectMapper.
-     * 
+     *
      * @param mapper
      */
     @Trivial

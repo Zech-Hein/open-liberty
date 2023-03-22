@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 IBM Corporation and others.
+ * Copyright (c) 2015,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,6 +22,7 @@ import com.ibm.ws.container.service.app.deploy.extended.ExtendedApplicationInfo;
 import com.ibm.ws.javaee.dd.client.ApplicationClient;
 import com.ibm.ws.javaee.dd.common.AdministeredObject;
 import com.ibm.ws.javaee.dd.common.ConnectionFactory;
+import com.ibm.ws.javaee.dd.common.ContextService;
 import com.ibm.ws.javaee.dd.common.DataSource;
 import com.ibm.ws.javaee.dd.common.Description;
 import com.ibm.ws.javaee.dd.common.DisplayName;
@@ -30,6 +33,9 @@ import com.ibm.ws.javaee.dd.common.JMSConnectionFactory;
 import com.ibm.ws.javaee.dd.common.JMSDestination;
 import com.ibm.ws.javaee.dd.common.LifecycleCallback;
 import com.ibm.ws.javaee.dd.common.MailSession;
+import com.ibm.ws.javaee.dd.common.ManagedExecutor;
+import com.ibm.ws.javaee.dd.common.ManagedScheduledExecutor;
+import com.ibm.ws.javaee.dd.common.ManagedThreadFactory;
 import com.ibm.ws.javaee.dd.common.MessageDestination;
 import com.ibm.ws.javaee.dd.common.MessageDestinationRef;
 import com.ibm.ws.javaee.dd.common.PersistenceContextRef;
@@ -192,6 +198,11 @@ public class ClientModuleMetaDataImpl extends MetaDataImpl implements ClientModu
         return Collections.emptyList();
     }
 
+    @Override
+    public List<ContextService> getContextServices() {
+        return Collections.emptyList();
+    }
+
     /** {@inheritDoc} */
     @Override
     public List<DataSource> getDataSources() {
@@ -213,6 +224,21 @@ public class ClientModuleMetaDataImpl extends MetaDataImpl implements ClientModu
     /** {@inheritDoc} */
     @Override
     public List<MailSession> getMailSessions() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<ManagedExecutor> getManagedExecutors() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<ManagedScheduledExecutor> getManagedScheduledExecutors() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<ManagedThreadFactory> getManagedThreadFactories() {
         return Collections.emptyList();
     }
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,6 +29,7 @@ import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.classloading.internal.AppClassLoader.SearchLocation;
 import com.ibm.ws.classloading.internal.ContainerClassLoader.ByteResourceInformation;
+import com.ibm.ws.classloading.internal.util.Keyed;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.wsspi.classloading.ApiType;
 import com.ibm.wsspi.classloading.ClassLoaderIdentity;
@@ -43,7 +46,7 @@ import com.ibm.wsspi.classloading.ClassLoaderIdentity;
  * The {@link ClassLoader} should be discarded as early as possible to allow
  * any associated resources to be cleared up.
  */
-class ShadowClassLoader extends IdentifiedLoader {
+class ShadowClassLoader extends LibertyLoader implements Keyed<ClassLoaderIdentity> {
     static {
         ClassLoader.registerAsParallelCapable();
     }
@@ -62,10 +65,10 @@ class ShadowClassLoader extends IdentifiedLoader {
     };
 
     private final AppClassLoader shadowedLoader;
-    private final Iterable<ClassLoader> delegateLoaders;
+    private final Iterable<LibertyLoader> delegateLoaders;
 
     ShadowClassLoader(AppClassLoader shadowed) {
-        super(getShadow(shadowed.getParent()));
+        super(getShadow(shadowed.parent));
         this.shadowedLoader = shadowed;
         this.delegateLoaders = getShadows(shadowed.getDelegateLoaders());
     }
@@ -75,62 +78,99 @@ class ShadowClassLoader extends IdentifiedLoader {
         return loader instanceof AppClassLoader ? new ShadowClassLoader((AppClassLoader) loader) : loader;
     }
 
-    private static List<ClassLoader> getShadows(Iterable<? extends ClassLoader> loaders) {
-        ArrayList<ClassLoader> result = new ArrayList<ClassLoader>();
-        for (ClassLoader delegate : loaders)
+    /** create a {@link ShadowClassLoader} for the specified loader if it is an {@link AppClassLoader}. */
+    private static LibertyLoader getShadow(LibertyLoader loader) {
+        return loader instanceof AppClassLoader ? new ShadowClassLoader((AppClassLoader) loader) : loader;
+    }
+
+    private static List<LibertyLoader> getShadows(Iterable<? extends LibertyLoader> loaders) {
+        ArrayList<LibertyLoader> result = new ArrayList<>();
+        for (LibertyLoader delegate : loaders)
             result.add(getShadow(delegate));
         return result;
     }
 
     @Override
+    protected final Class<?> loadClass(String className, boolean resolveClass) throws ClassNotFoundException {
+        return loadClass(className, resolveClass, false, false);
+    }
+
+    @Override
     @FFDCIgnore(ClassNotFoundException.class)
-    public Class<?> loadClass(String className, boolean resolveClass) throws ClassNotFoundException {
+    protected Class<?> loadClass(String className, boolean resolveClass, boolean onlySearchSelf, boolean returnNull) throws ClassNotFoundException {
         // The resolve parameter is a legacy parameter that is effectively
         // never used as of JDK 1.1 (see footnote 1 of section 5.3.2 of the 2nd
         // edition of the JVM specification).  The only caller of this method is
         // is java.lang.ClassLoader.loadClass(String), and that method always
         // passes false, so we ignore the parameter.
 
-        {
+        ClassNotFoundException lastException = null;
+        synchronized (getClassLoadingLock(className)) {
             Class<?> result = findLoadedClass(className);
             if (result != null)
                 return result;
+
+            if (onlySearchSelf) {
+                return findClass(className, returnNull);
+            }
+
+            // use the shadowed loader's search order when searching for a class
+            for (SearchLocation what : shadowedLoader.getSearchOrder()) {
+                try {
+                    switch (what) {
+                        case PARENT:
+                            if (parent instanceof LibertyLoader) {
+                                result = ((LibertyLoader) parent).loadClass(className, false, false, returnNull);
+                                if (result != null) {
+                                    return result;
+                                }
+                            } else {
+                                return parent.loadClass(className);
+                            }
+                        case SELF:
+                            result = findClass(className, returnNull);
+                            if (result != null) {
+                                return result;
+                            }
+                        case DELEGATES:
+                            for (LibertyLoader delegate : delegateLoaders) {
+                                try {
+                                    result = delegate.loadClass(className, false, false, returnNull);
+                                    if (result != null) {
+                                        return result;
+                                    }
+                                } catch (ClassNotFoundException e) {
+                                    lastException = e;
+                                }
+                            }
+                            break;
+                        default:
+                            throw new IllegalStateException("Unknown class loader search ordering element: " + what);
+                    }
+                } catch (ClassNotFoundException e) {
+                    lastException = e;
+                }
+            }
+        }
+        if (returnNull) {
+            return null;
         }
 
-        ClassNotFoundException lastException = null;
-        // use the shadowed loader's search order when searching for a class
-        for (SearchLocation what : shadowedLoader.getSearchOrder()) {
-            try {
-                switch (what) {
-                    case PARENT:
-                        return getParent().loadClass(className);
-                    case SELF:
-                        return findClass(className);
-                    case DELEGATES:
-                        for (ClassLoader delegate : delegateLoaders) {
-                            try {
-                                return delegate.loadClass(className);
-                            } catch (ClassNotFoundException e) {
-                                lastException = e;
-                            }
-                        }
-                        break;
-                    default:
-                        throw new IllegalStateException("Unknown class loader search ordering element: " + what);
-                }
-            } catch (ClassNotFoundException e) {
-                lastException = e;
-            }
+        if (lastException == null) {
+            lastException = new ClassNotFoundException(className);
         }
         throw lastException;
     }
 
     @Override
-    protected Class<?> findClass(final String name) throws ClassNotFoundException {
+    protected Class<?> findClass(String name, boolean returnNull) throws ClassNotFoundException {
         String resourceName = Util.convertClassNameToResourceName(name);
         final ByteResourceInformation classBytesResourceInformation = shadowedLoader.findClassBytes(name, resourceName);
 
         if (classBytesResourceInformation == null) {
+            if (returnNull) {
+                return null;
+            }
             throw new ClassNotFoundException(name);
         }
 
@@ -141,71 +181,12 @@ class ShadowClassLoader extends IdentifiedLoader {
 
             // Try to avoid defining a package twice
             if (this.getPackage(packageName) == null) {
-                definePackage(classBytesResourceInformation, packageName);
+                classBytesResourceInformation.definePackage(packageName, this);
             }
         }
 
         byte[] bytes = classBytesResourceInformation.getBytes();
         return defineClass(name, bytes, 0, bytes.length);
-    }
-
-    /**
-     * Defines the package for this class by trying to load the manifest for the package and if that fails just sets all of the package properties to <code>null</code>.
-     * 
-     * @param classBytesResourceInformation
-     * @param packageName
-     */
-    @FFDCIgnore(IllegalArgumentException.class)
-    private void definePackage(final ByteResourceInformation classBytesResourceInformation, String packageName) {
-        /*
-         * We don't extend URL classloader so we automatically pass the manifest from the JAR to our supertype, still try to get hold of it though so that we can see if
-         * we can load the information ourselves from it
-         */
-        Manifest manifest = classBytesResourceInformation.getManifest();
-        try {
-            if (manifest == null) {
-                definePackage(packageName, null, null, null, null, null, null, null);
-            } else {
-                String classResourceName = classBytesResourceInformation.getResourcePath();
-
-                /*
-                 * Strip the class name off the end of the package, should always have at least one '/' as we have at least one . in the name, also end with a trailing
-                 * '/' to match the name style for package definitions in manifest files
-                 */
-                String packageResourceName = classResourceName.substring(0, classResourceName.lastIndexOf('/') + 1);
-
-                // Default all of the package info to null
-                String specTitle = null;
-                String specVersion = null;
-                String specVendor = null;
-                String implTitle = null;
-                String implVersion = null;
-                String implVendor = null;
-                URL sealBaseUrl = null;
-
-                // See if there is a package defined in the manifest 
-                Attributes packageAttributes = manifest.getAttributes(packageResourceName);
-                if (packageAttributes != null && !packageAttributes.isEmpty()) {
-                    specTitle = packageAttributes.getValue(Attributes.Name.SPECIFICATION_TITLE);
-                    specVersion = packageAttributes.getValue(Attributes.Name.SPECIFICATION_VERSION);
-                    specVendor = packageAttributes.getValue(Attributes.Name.SPECIFICATION_VENDOR);
-
-                    implTitle = packageAttributes.getValue(Attributes.Name.IMPLEMENTATION_TITLE);
-                    implVersion = packageAttributes.getValue(Attributes.Name.IMPLEMENTATION_VERSION);
-                    implVendor = packageAttributes.getValue(Attributes.Name.IMPLEMENTATION_VENDOR);
-
-                    String sealedValue = packageAttributes.getValue(Attributes.Name.SEALED);
-                    if (sealedValue != null && Boolean.parseBoolean(sealedValue)) {
-                        sealBaseUrl = classBytesResourceInformation.getResourceUrl();
-                    }
-                }
-
-                definePackage(packageName, specTitle, specVersion, specVendor, implTitle, implVersion, implVendor, sealBaseUrl);
-            }
-        } catch (IllegalArgumentException ignored) {
-            // This happens if the package is already defined but it is hard to guard against this in a thread safe way. See:
-            // http://bugs.sun.com/view_bug.do?bug_id=4841786
-        }
     }
 
     /////////////////////////////////////////////////

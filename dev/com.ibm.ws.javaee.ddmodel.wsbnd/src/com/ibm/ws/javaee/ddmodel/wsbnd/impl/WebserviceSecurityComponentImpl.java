@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017,2020 IBM Corporation and others.
+ * Copyright (c) 2017,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,11 +20,11 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 
+import com.ibm.ws.config.xml.nester.Nester;
 import com.ibm.ws.javaee.dd.common.SecurityRole;
 import com.ibm.ws.javaee.dd.web.common.LoginConfig;
 import com.ibm.ws.javaee.dd.web.common.SecurityConstraint;
 import com.ibm.ws.javaee.ddmodel.wsbnd.WebserviceSecurity;
-import com.ibm.ws.javaee.ddmodel.wsbnd.internal.NestingUtils;
 
 @Component(configurationPid = "com.ibm.ws.javaee.ddmodel.wsbnd.WebserviceSecurity",
            configurationPolicy = ConfigurationPolicy.REQUIRE,
@@ -36,18 +38,18 @@ public class WebserviceSecurityComponentImpl implements WebserviceSecurity {
 
     @Activate
     protected void activate(Map<String, Object> config) {
-        List<Map<String, Object>> loginConfigs = NestingUtils.nest(WebserviceSecurity.LOGIN_CONFIG_ELEMENT_NAME, config);
+        List<Map<String, Object>> loginConfigs = Nester.nest(WebserviceSecurity.LOGIN_CONFIG_ELEMENT_NAME, config);
         if (loginConfigs != null && !loginConfigs.isEmpty())
             this.loginConfig = new LoginConfigImpl(loginConfigs.get(0));
 
-        List<Map<String, Object>> securityConstraintConfigs = NestingUtils.nest(WebserviceSecurity.SECURITY_CONSTRAINT_ELEMENT_NAME, config);
+        List<Map<String, Object>> securityConstraintConfigs = Nester.nest(WebserviceSecurity.SECURITY_CONSTRAINT_ELEMENT_NAME, config);
         if (securityConstraintConfigs != null) {
             for (Map<String, Object> securityConstraintConfig : securityConstraintConfigs) {
                 securityConstraints.add(new SecurityConstraintImpl(securityConstraintConfig));
             }
         }
 
-        List<Map<String, Object>> securityRoleConfigs = NestingUtils.nest(WebserviceSecurity.SECURITY_ROLE_ELEMENT_NAME, config);
+        List<Map<String, Object>> securityRoleConfigs = Nester.nest(WebserviceSecurity.SECURITY_ROLE_ELEMENT_NAME, config);
         if (securityRoleConfigs != null) {
             for (Map<String, Object> securityRoleConfig : securityRoleConfigs) {
                 securityRoles.add(new SecurityRoleImpl(securityRoleConfig));

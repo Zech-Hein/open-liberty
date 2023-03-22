@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +21,7 @@ import com.ibm.oauth.core.api.attributes.AttributeList;
 import com.ibm.oauth.core.api.error.OAuthException;
 import com.ibm.oauth.core.api.error.oauth20.OAuth20InternalException;
 import com.ibm.oauth.core.api.oauth20.token.OAuth20Token;
+import com.ibm.oauth.core.api.oauth20.token.OAuth20TokenCache;
 import com.ibm.oauth.core.internal.oauth20.OAuth20Constants;
 import com.ibm.oauth.core.internal.oauth20.granttype.impl.OAuth20GrantTypeHandlerCodeImpl;
 import com.ibm.oauth.core.internal.oauth20.token.OAuth20TokenFactory;
@@ -99,6 +102,14 @@ public class OIDCGrantTypeHandlerCodeImpl extends OAuth20GrantTypeHandlerCodeImp
                                                                                  OAuth20Constants.GRANT_TYPE_AUTHORIZATION_CODE);
                                     BuildResponseTypeUtil.putAccessTokenInMap(idTokenMap, tokenList);
                                     BuildResponseTypeUtil.putIssuerIdentifierInMap(idTokenMap, attributeList);
+
+                                    OAuth20TokenCache tokenCache = tokenFactory.getOAuth20ComponentInternal().getTokenCache();
+                                    String thirdPartyIDTokenCacheKey = OAuth20Constants.THIRD_PARTY_ID_TOKEN_PREFIX + code.getTokenString();
+                                    OAuth20Token thirdPartyIDToken = tokenCache.get(thirdPartyIDTokenCacheKey);
+                                    if (thirdPartyIDToken != null) {
+                                        idTokenMap.put(OAuth20Constants.THIRD_PARTY_ID_TOKEN, new String[] { thirdPartyIDToken.getTokenString() });
+                                        tokenCache.remove(thirdPartyIDTokenCacheKey);
+                                    }
 
                                     OAuth20Token id = idTokenFactory.createIDToken(idTokenMap);
 

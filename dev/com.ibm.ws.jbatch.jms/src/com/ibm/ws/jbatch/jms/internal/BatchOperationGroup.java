@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,24 +13,25 @@
 
 package com.ibm.ws.jbatch.jms.internal;
 
-import java.util.HashSet;
-import java.util.List;
+import static java.util.Collections.unmodifiableSet;
+
+import java.util.Arrays;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class BatchOperationGroup {
-
-    HashSet<String> groupNames = new HashSet<String>();
+    final Set<String> groupNames;
     
-    public void addGroup(String anotherGroup){
-    	groupNames.add(anotherGroup);
-    }
-
-    public void removeGroup(String anotherGroup){
-    	groupNames.remove(anotherGroup);
+    public BatchOperationGroup(String...groups) {
+        this.groupNames = unmodifiableSet(new TreeSet<>(Arrays.asList(groups)));
     }
     
     public Set<String> getGroupNames(){
-        return groupNames;
+        return unmodifiableSet(groupNames);
     }
     
+    @Override
+    public String toString() {
+        return super.toString() + groupNames;
+    }
 }

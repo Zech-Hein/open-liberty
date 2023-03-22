@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013,2020 IBM Corporation and others.
+ * Copyright (c) 2013,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,6 +22,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -75,16 +79,6 @@ public class ManagedThreadFactoryService implements ResourceFactory, Application
      * Names of applications using this ResourceFactory
      */
     private final Set<String> applications = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
-
-    /**
-     * Privileged action to lazily obtain the context service.
-     */
-    private final PrivilegedAction<WSContextService> contextSvcAccessor = new PrivilegedAction<WSContextService>() {
-        @Override
-        public WSContextService run() {
-            return contextSvcRef.getServiceWithException();
-        }
-    };
 
     /**
      * Reference to the context service for this managed thread factory service.
@@ -271,7 +265,7 @@ public class ManagedThreadFactoryService implements ResourceFactory, Application
         /**
          * Construct a privileged action that creates a thread group.
          *
-         * @param name thread group name
+         * @param name        thread group name
          * @param maxPriority maximum priority for the threads
          */
         private CreateThreadGroupAction(String name, Integer maxPriority) {
@@ -325,12 +319,13 @@ public class ManagedThreadFactoryService implements ResourceFactory, Application
          * Capture the current thread context and construct a ManagedThreadFactory.
          *
          * @param serverAccessControlContext server access control context, which we can use to run certain privileged operations
-         *            that aren't available to application threads.
+         *                                       that aren't available to application threads.
          */
+        @SuppressWarnings("unchecked")
         ManagedThreadFactoryImpl(AccessControlContext serverAccessControlContext) {
             this.serverAccessControlContext = serverAccessControlContext;
 
-            WSContextService contextSvc = AccessController.doPrivileged(service.contextSvcAccessor);
+            WSContextService contextSvc = contextSvcRef.getServiceWithException();
             threadContextDescriptor = contextSvc.captureThreadContext(defaultExecutionProperties);
 
             ComponentMetaData cData = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor().getComponentMetaData();
@@ -367,10 +362,30 @@ public class ManagedThreadFactoryService implements ResourceFactory, Application
             return thread;
         }
 
+        /**
+         * @see java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory#newThread(java.util.concurrent.ForkJoinPool)
+         */
+        public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+            final boolean trace = TraceComponent.isAnyTracingEnabled();
+            if (trace && tc.isEntryEnabled())
+                Tr.entry(ManagedThreadFactoryService.this, tc, "newThread", this, pool);
+
+            // EE Concurrency 3.4.1: If a ManagedThreadFactory instance is stopped, all subsequent calls to newThread() must throw a
+            // java.lang.IllegalStateException
+            if (isShutdown.get())
+                throw new IllegalStateException(Tr.formatMessage(tc, "CWWKC1100.resource.unavailable", name));
+
+            ManagedForkJoinWorkerThread thread = new ManagedForkJoinWorkerThread(this, pool);
+
+            if (trace && tc.isEntryEnabled())
+                Tr.exit(ManagedThreadFactoryService.this, tc, "newThread", thread);
+            return thread;
+        }
+
         boolean sameMetaDataIdentity() {
             // Return false if our identity is null (even if the current component's metadata or metadata identity is also null).
             ComponentMetaData cData = ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor().getComponentMetaData();
-            return identifier == null ? false : identifier.equals(metadataIdentifierService.getMetaDataIdentifier(cData));
+            return identifier != null && metadataIdentifierService != null && identifier.equals(metadataIdentifierService.getMetaDataIdentifier(cData));
         }
     }
 }

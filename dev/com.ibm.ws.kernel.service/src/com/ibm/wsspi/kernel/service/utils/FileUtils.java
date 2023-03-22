@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -283,6 +285,27 @@ public class FileUtils {
                     return target.mkdirs();
                 }
 
+            });
+        } finally {
+            ThreadIdentityManager.reset(token);
+        }
+    }
+
+    /**
+     * Calls {@link File#mkdir()} on the specified <code>target</code> from
+     * within a {@link PrivilegedAction}.
+     *
+     * @param target The tarket to make a directory for
+     * @return <code>true</code> if this succeeded.
+     */
+    public static boolean fileMkDir(final File target) {
+        Object token = ThreadIdentityManager.runAsServer();
+        try {
+            return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+                @Override
+                public Boolean run() {
+                    return target.mkdir();
+                }
             });
         } finally {
             ThreadIdentityManager.reset(token);

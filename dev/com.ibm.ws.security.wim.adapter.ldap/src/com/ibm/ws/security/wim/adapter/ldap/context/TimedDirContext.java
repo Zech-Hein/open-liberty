@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -376,7 +378,8 @@ public class TimedDirContext {
 
         try {
 
-            traceJndiBegin(METHODNAME, name, filterExpr, filterArgs, LdapHelper.printSearchControls(cons));
+            traceJndiBegin(METHODNAME, name, filterExpr, filterArgs, LdapHelper.printSearchControls(cons),
+                           Context.REFERRAL + ": " + context.getEnvironment().get(Context.REFERRAL));
             begin = System.currentTimeMillis();
             results = context.search(name, filterExpr, filterArgs, cons);
         } catch (NamingException e) {
@@ -406,7 +409,8 @@ public class TimedDirContext {
         NamingEnumeration<SearchResult> results = null;
 
         try {
-            traceJndiBegin(METHODNAME, name, filterExpr, LdapHelper.printSearchControls(cons));
+            traceJndiBegin(METHODNAME, name, filterExpr, LdapHelper.printSearchControls(cons),
+                           Context.REFERRAL + ": " + context.getEnvironment().get(Context.REFERRAL));
             begin = System.currentTimeMillis();
             results = context.search(name, filterExpr, cons);
         } catch (NamingException e) {

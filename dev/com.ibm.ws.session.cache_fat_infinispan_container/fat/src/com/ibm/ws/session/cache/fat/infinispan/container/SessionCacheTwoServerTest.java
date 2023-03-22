@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,10 +18,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,7 +31,10 @@ import com.ibm.websphere.simplicity.RemoteFile;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.custom.junit.runner.RepeatTestFilter;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyFileManager;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -48,9 +55,12 @@ public class SessionCacheTwoServerTest extends FATServletClient {
     public static SessionCacheApp appA;
     public static SessionCacheApp appB;
 
+    @ClassRule
+    public static RepeatTests repeatRule = RepeatTests.withoutModification().andWith(new CacheManagerRepeatAction());
+
     @BeforeClass
     public static void setUp() throws Exception {
-        if (JakartaEE9Action.isActive()) {
+        if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
             RemoteFile originalResourceDir = LibertyFileManager.getLibertyFile(serverA.getMachine(), serverA.getInstallRoot() + "/usr/shared/resources/infinispan");
             RemoteFile jakartaResourceDir = LibertyFileManager.getLibertyFile(serverA.getMachine(), serverA.getInstallRoot() + "/usr/shared/resources/infinispan-jakarta");
 
@@ -62,8 +72,15 @@ public class SessionCacheTwoServerTest extends FATServletClient {
         appB = new SessionCacheApp(serverB, true, "session.cache.infinispan.web", "session.cache.infinispan.web.cdi", "session.cache.infinispan.web.listener1");
         serverB.useSecondaryHTTPPort();
 
-        serverA.addEnvVar("INF_SERVERLIST", infinispan.getContainerIpAddress() + ":" + infinispan.getMappedPort(11222));
-        serverB.addEnvVar("INF_SERVERLIST", infinispan.getContainerIpAddress() + ":" + infinispan.getMappedPort(11222));
+        String sessionCacheConfigFile = "httpSessionCache_1.xml";
+        if (RepeatTestFilter.isRepeatActionActive(CacheManagerRepeatAction.ID)) {
+            sessionCacheConfigFile = "httpSessionCache_2.xml";
+        }
+
+        serverA.addEnvVar("INF_SERVERLIST", infinispan.getHost() + ":" + infinispan.getMappedPort(11222));
+        serverA.setJvmOptions(Arrays.asList("-Dsession.cache.config.file=" + sessionCacheConfigFile));
+        serverB.addEnvVar("INF_SERVERLIST", infinispan.getHost() + ":" + infinispan.getMappedPort(11222));
+        serverB.setJvmOptions(Arrays.asList("-Dsession.cache.config.file=" + sessionCacheConfigFile));
 
         // Since we initialize the JCache provider lazily, use an HTTP session on serverA before starting serverB,
         // so that the JCache provider has fully initialized on serverA. Otherwise, serverB might start up its own

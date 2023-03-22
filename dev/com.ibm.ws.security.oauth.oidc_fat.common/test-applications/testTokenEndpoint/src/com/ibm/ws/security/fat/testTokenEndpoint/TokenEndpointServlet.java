@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -18,6 +20,7 @@ import java.util.Base64;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 
 import javax.json.Json;
@@ -95,6 +98,7 @@ public class TokenEndpointServlet extends HttpServlet {
                 builder.claim("uniqueSecurityName", "testuser");
                 builder.claim("realmName", "BasicRealm");
                 builder.subject("testuser");
+                builder.claim("sid", randomSessionId());
                 //System.out.println("Token value: " + builder.toString());
                 setEncryptWith(builder, req);
                 builtToken = builder.buildJwt();
@@ -127,7 +131,7 @@ public class TokenEndpointServlet extends HttpServlet {
      * @throws IOException
      */
     protected void handleReturnTokenRequest(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        System.out.println("Returning token: " + token);
+        System.out.println("Token Endpoint Returning token: " + token);
 
         JSONObject theResponse = new JSONObject();
         theResponse.put("access_token", token);
@@ -217,6 +221,25 @@ public class TokenEndpointServlet extends HttpServlet {
             System.out.println("Not explicitly updating the encryption settings");
         }
 
+    }
+
+    /**
+     * generate a random 20 digit sid to be used for the sid. It just has to be random enough to be unique for our testing.
+     *
+     * @return - random string
+     */
+    public static String randomSessionId() {
+
+        int length = 20;
+        StringBuffer sid = new StringBuffer(length);
+        Random rand = new Random();
+
+        for (int n = 0; n < length; n++) {
+            int randomNumber = rand.nextInt(9);
+            sid.append(randomNumber);
+        }
+
+        return sid.toString();
     }
 
 }

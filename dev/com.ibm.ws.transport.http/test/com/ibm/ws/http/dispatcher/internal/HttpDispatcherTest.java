@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -705,7 +707,7 @@ public class HttpDispatcherTest {
         // No dispatcher, no private header
         context.checking(new Expectations() {
             {
-                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSN.getName());
+                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSN);
                 will(returnValue(null));
 
                 one(mockRequest).getVirtualHost();
@@ -731,7 +733,7 @@ public class HttpDispatcherTest {
         // No dispatcher, $WSSN header
         context.checking(new Expectations() {
             {
-                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSN.getName());
+                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSN);
                 will(returnValue(host));
             }
         });
@@ -749,7 +751,7 @@ public class HttpDispatcherTest {
 
         context.checking(new Expectations() {
             {
-                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSN.getName());
+                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSN);
                 will(returnValue(host));
             }
         });
@@ -791,7 +793,7 @@ public class HttpDispatcherTest {
 
         context.checking(new Expectations() {
             {
-                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSN.getName());
+                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSN);
                 will(returnValue(host));
             }
         });
@@ -834,7 +836,7 @@ public class HttpDispatcherTest {
         // No dispatcher, no private headers
         context.checking(new Expectations() {
             {
-                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSP.getName());
+                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSP);
                 will(returnValue(null));
 
                 one(mockRequest).getVirtualPort();
@@ -859,13 +861,13 @@ public class HttpDispatcherTest {
         // No dispatcher, no private headers
         context.checking(new Expectations() {
             {
-                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSP.getName());
+                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSP);
                 will(returnValue(null));
 
                 one(mockRequest).getVirtualPort();
                 will(returnValue(-1));
 
-                one(mockRequest).getHeader(HttpHeaderKeys.HDR_HOST.getName());
+                one(mockRequest).getHeader(HttpHeaderKeys.HDR_HOST);
                 will(returnValue(""));
 
                 one(mockRequest).getScheme();
@@ -883,7 +885,7 @@ public class HttpDispatcherTest {
         // No dispatcher, WSSP: 1234
         context.checking(new Expectations() {
             {
-                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSP.getName());
+                one(mockRequest).getHeader(HttpHeaderKeys.HDR_$WSSP);
                 will(returnValue("1234"));
             }
         });
@@ -908,7 +910,7 @@ public class HttpDispatcherTest {
                 one(mockRequest).getVirtualPort();
                 will(returnValue(-1));
 
-                one(mockRequest).getHeader(HttpHeaderKeys.HDR_HOST.getName());
+                one(mockRequest).getHeader(HttpHeaderKeys.HDR_HOST);
                 will(returnValue(""));
 
                 one(mockRequest).getScheme();

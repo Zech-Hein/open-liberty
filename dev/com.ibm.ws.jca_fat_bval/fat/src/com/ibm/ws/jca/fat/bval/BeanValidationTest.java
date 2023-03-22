@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2020 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,6 +19,7 @@ import static org.junit.Assert.fail;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.AfterClass;
@@ -69,6 +72,10 @@ public class BeanValidationTest extends FATServletClient {
             server.startServer();
         else
             server.waitForConfigUpdateInLogUsingMark(appNames);
+
+        //Match the number of RAR installed (J2CA7001I) messages to the number of RAR uninstalled messages.
+        List<String> rarUninstallMessages = server.findStringsInLogs("J2CA7009I.*");
+        server.waitForMultipleStringsInLogUsingMark(rarUninstallMessages.size() + 1, "J2CA7001I.*" + BVAL_RAR);
     }
 
     @AfterClass
@@ -94,6 +101,8 @@ public class BeanValidationTest extends FATServletClient {
 
         server.setServerConfigurationFile(fileName);
         server.startServer(testName.getMethodName() + ".log");
+
+        assertNotNull(server.waitForStringInLog("J2CA7001I.*" + BVAL_RAR));
     }
 
     @Test

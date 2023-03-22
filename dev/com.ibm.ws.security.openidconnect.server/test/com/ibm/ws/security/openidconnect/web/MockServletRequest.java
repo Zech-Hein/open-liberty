@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -49,6 +51,7 @@ public class MockServletRequest implements HttpServletRequest {
     HashMap<String, ArrayList<String>> _params = new HashMap<String, ArrayList<String>>();
     Cookie[] _cookies = null;
     Principal _principal = null;
+    String attribute = null;
 
     @Override
     public String getAuthType() {
@@ -207,6 +210,9 @@ public class MockServletRequest implements HttpServletRequest {
 
     @Override
     public Object getAttribute(String arg0) {
+        if ("OIDC_END_SESSION_REDIRECT".equals(arg0)) {
+            return attribute;
+        }
         return null;
     }
 
@@ -360,10 +366,16 @@ public class MockServletRequest implements HttpServletRequest {
 
     @Override
     public void removeAttribute(String arg0) {
+        if ("OIDC_END_SESSION_REDIRECT".equals(arg0)) {
+            attribute = null;
+        }
     }
 
     @Override
     public void setAttribute(String arg0, Object arg1) {
+        if ("OIDC_END_SESSION_REDIRECT".equals(arg0)) {
+            attribute = (String)arg1;
+        }
     }
 
     @Override

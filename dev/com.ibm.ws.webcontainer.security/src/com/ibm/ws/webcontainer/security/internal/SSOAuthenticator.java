@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2021 IBM Corporation and others.
+ * Copyright (c) 2011, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -39,6 +41,8 @@ import com.ibm.ws.webcontainer.security.WebRequest;
 import com.ibm.ws.webcontainer.security.metadata.LoginConfiguration;
 import com.ibm.ws.webcontainer.security.metadata.SecurityMetadata;
 import com.ibm.ws.webcontainer.security.util.SSOAuthFilter;
+import com.ibm.ws.webcontainer.srt.ISRTServletRequest;
+import com.ibm.wsspi.http.channel.values.HttpHeaderKeys;
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 
 /**
@@ -46,7 +50,6 @@ import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
  */
 public class SSOAuthenticator implements WebAuthenticator {
     public static final String DEFAULT_SSO_COOKIE_NAME = "LtpaToken2";
-    private static final String Authorization_Header = "Authorization";
     public final static String REQ_METHOD_POST = "POST";
     public final static String REQ_CONTENT_TYPE_NAME = "Content-Type";
     public final static String REQ_CONTENT_TYPE_APP_FORM_URLENCODED = "application/x-www-form-urlencoded";
@@ -165,7 +168,13 @@ public class SSOAuthenticator implements WebAuthenticator {
                 if (hdrVal != null && hdrVal.length() > 0) {
                     String ltpa64 = hdrVal;
 
-                    boolean checkLoggedOutToken = webAppSecurityConfig != null && webAppSecurityConfig.isTrackLoggedOutSSOCookiesEnabled();
+                    /*
+                     * Track logged out LTPA tokens if webAppSecurityConfig is not null, AND either:
+                     * 1. wsAppSecurity->trackLoggedOutSSOCookies == true
+                     * 2. loggedOutTokenCache is present in the configuration.
+                     */
+                    boolean checkLoggedOutToken = webAppSecurityConfig != null && (webAppSecurityConfig.isTrackLoggedOutSSOCookiesEnabled()
+                                                                                   || LoggedOutTokenCacheImpl.getInstance().shouldTrackTokens());
                     if (checkLoggedOutToken && isTokenLoggedOut(ltpa64)) {
                         cleanupLoggedOutToken(req, res);
                         return authResult;
@@ -227,11 +236,7 @@ public class SSOAuthenticator implements WebAuthenticator {
      * @param ltpaToken
      */
     private boolean isTokenLoggedOut(String ltpaToken) {
-        boolean loggedOut = false;
-        Object entry = LoggedOutTokenCacheImpl.getInstance().getDistributedObjectLoggedOutToken(ltpaToken);
-        if (entry != null)
-            loggedOut = true;
-        return loggedOut;
+        return LoggedOutTokenCacheImpl.getInstance().contains(ltpaToken);
     }
 
     /*
@@ -306,7 +311,7 @@ public class SSOAuthenticator implements WebAuthenticator {
         String param = null;
         String reqMethod = req.getMethod();
         if (REQ_METHOD_POST.equalsIgnoreCase(reqMethod)) {
-            String contentType = req.getHeader(REQ_CONTENT_TYPE_NAME);
+            String contentType = ISRTServletRequest.getHeader(req, HttpHeaderKeys.HDR_CONTENT_TYPE);
 
             if (REQ_CONTENT_TYPE_APP_FORM_URLENCODED.equals(contentType)) {
                 param = req.getParameter(ACCESS_TOKEN);
@@ -321,7 +326,7 @@ public class SSOAuthenticator implements WebAuthenticator {
      */
     private String getBearerTokenFromHeader(HttpServletRequest req) {
 
-        String hdrValue = req.getHeader(Authorization_Header);
+        String hdrValue = ISRTServletRequest.getHeader(req, HttpHeaderKeys.HDR_AUTHORIZATION);
         String bearerAuthzMethod = "Bearer ";
         if (hdrValue != null && hdrValue.startsWith(bearerAuthzMethod)) {
             return hdrValue.substring(bearerAuthzMethod.length());

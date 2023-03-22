@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,6 +33,8 @@ import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.custom.junit.runner.Mode;
+import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.topology.impl.LibertyServer;
 
 /**
@@ -46,6 +50,7 @@ import componenttest.topology.impl.LibertyServer;
  * to the server.
  */
 @RunWith(FATRunner.class)
+@Mode(TestMode.FULL)
 public class JAXRSClient100ContinueTest extends AbstractTest {
 
     private final static Class<?> c = JAXRSClient100ContinueTest.class;
@@ -64,8 +69,10 @@ public class JAXRSClient100ContinueTest extends AbstractTest {
         WebArchive app = ShrinkHelper.defaultDropinApp(server, appname,
                                                        "com.ibm.ws.jaxrs20.client.jaxrsclient100Continue.client");
 
+        System.setProperty("mockserver.useBouncyCastleForKeyAndCertificateGeneration", "true");
+
         mockServerPort = Integer.getInteger("member_4.http");
-        //mockServerPort = 10080; //DIAG: tcptunnel --local-port=9080 --remote-host=localhost --remote-port=10080 --stay-alive --log 
+        //mockServerPort = 10080; //DIAG: tcptunnel --local-port=9080 --remote-host=localhost --remote-port=10080 --stay-alive --log
         mockServerClient = startClientAndServer(mockServerPort);
 
         // Make sure we don't fail because we try to start an
@@ -103,7 +110,7 @@ public class JAXRSClient100ContinueTest extends AbstractTest {
                                        .withBody("This is a really big body"))
                         .respond(response().withStatusCode(200)
                                            .withBody("We got it!"));
-        
+
         Map<String, String> p = new HashMap<String, String>();
         p.put("mockServerIP", "localhost");
         p.put("mockServerPort", "" + mockServerPort);

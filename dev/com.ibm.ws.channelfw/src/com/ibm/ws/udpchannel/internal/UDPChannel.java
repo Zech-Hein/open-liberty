@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2004, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -49,7 +51,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
 
     /**
      * Constructor.
-     * 
+     *
      * @param config
      * @param workQueueManager
      * @throws ChannelException
@@ -63,7 +65,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
 
         workQueueManager.addRef();
 
-        this.alists = AccessLists.getInstance(config);
+        this.alists = AccessLists.getInstance(config.accessListKeys());
 
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
             Tr.exit(this, tc, "UDPChannel");
@@ -73,6 +75,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /*
      * @see com.ibm.wsspi.channelfw.OutboundChannel#getDeviceAddress()
      */
+    @Override
     public Class<?> getDeviceAddress() {
         throw new IllegalStateException("Not implemented and never will be");
     }
@@ -80,14 +83,15 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /*
      * @see com.ibm.wsspi.channelfw.OutboundChannel#getApplicationAddress()
      */
+    @Override
     public Class<?>[] getApplicationAddress() {
         return appSideList;
     }
 
     /*
-     * 
      * see com.ibm.wsspi.channelfw.InboundChannel#getDiscriminator()
      */
+    @Override
     public Discriminator getDiscriminator() {
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(this, tc, "getDiscriminator should not be called in UDPChannel");
@@ -98,6 +102,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /*
      * @see com.ibm.wsspi.channelfw.InboundChannel#getDiscriminationProcess()
      */
+    @Override
     public DiscriminationProcess getDiscriminationProcess() {
         return this.discriminationProcess;
     }
@@ -107,6 +112,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
      * com.ibm.wsspi.channelfw.InboundChannel#setDiscriminationProcess(com.ibm
      * .wsspi.channelfw.DiscriminationProcess)
      */
+    @Override
     public void setDiscriminationProcess(DiscriminationProcess process) {
         this.discriminationProcess = process;
     }
@@ -114,6 +120,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /*
      * @see com.ibm.wsspi.channelfw.InboundChannel#getDiscriminatoryType()
      */
+    @Override
     public Class<?> getDiscriminatoryType() {
         return WsByteBuffer.class;
     }
@@ -123,6 +130,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
      * com.ibm.wsspi.channelfw.Channel#getConnectionLink(com.ibm.wsspi.channelfw
      * .VirtualConnection)
      */
+    @Override
     public ConnectionLink getConnectionLink(VirtualConnection vc) {
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
             Tr.entry(this, tc, "getConnectionLink");
@@ -143,7 +151,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
 
     /**
      * Remove the reference to the provided connection link as an active one.
-     * 
+     *
      * @param connLink
      */
     public void removeConnLink(UDPConnLink connLink) {
@@ -155,6 +163,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /*
      * @see com.ibm.wsspi.channelfw.Channel#start()
      */
+    @Override
     public void start() throws ChannelException {
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
             Tr.entry(this, tc, "start; " + getName());
@@ -197,6 +206,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /*
      * @see com.ibm.wsspi.channelfw.Channel#stop(long)
      */
+    @Override
     public void stop(long millisec) throws ChannelException {
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
             Tr.entry(this, tc, "stop " + millisec + "; " + getName());
@@ -231,6 +241,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /*
      * @see com.ibm.wsspi.channelfw.Channel#init()
      */
+    @Override
     public void init() throws ChannelException {
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(this, tc, "UDP Channel: " + getConfig().getExternalName() + " listening port: " + String.valueOf(getConfig().getPort()));
@@ -240,6 +251,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /*
      * @see com.ibm.wsspi.channelfw.Channel#destroy()
      */
+    @Override
     public void destroy() throws ChannelException {
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
             Tr.entry(this, tc, "destroy; " + getName());
@@ -260,6 +272,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /*
      * @see com.ibm.wsspi.channelfw.Channel#getName()
      */
+    @Override
     public String getName() {
         return this.udpChannelConfig.getChannelData().getName();
     }
@@ -267,6 +280,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /*
      * @see com.ibm.wsspi.channelfw.Channel#getApplicationInterface()
      */
+    @Override
     public Class<?> getApplicationInterface() {
         return appSideClass;
     }
@@ -274,6 +288,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /*
      * @see com.ibm.wsspi.channelfw.Channel#getDeviceInterface()
      */
+    @Override
     public Class<?> getDeviceInterface() {
         return null;
     }
@@ -283,6 +298,7 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
      * com.ibm.wsspi.channelfw.Channel#update(com.ibm.websphere.channelfw.ChannelData
      * )
      */
+    @Override
     public void update(ChannelData channelData) {
         synchronized (this.udpChannelConfig) {
             // can't do two updates at the same time
@@ -299,7 +315,6 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /**
      * call the destroy on all the UDPConnLink objects related to this
      * UDPChannel which are currently "in use".
-     * 
      */
     private void destroyConnLinks() {
         synchronized (inUse) {
@@ -317,13 +332,12 @@ public class UDPChannel implements OutboundChannel, InboundChannel {
     /**
      * Verify whether the remote address is allowed to communicated with the
      * channel.
-     * 
+     *
      * @param remoteAddr
      * @return boolean - false means it is denied
      */
     public boolean verifySender(InetAddress remoteAddr) {
         boolean returnValue = true;
-
         if (alists != null) {
             returnValue = !alists.accessDenied(remoteAddr);
         }

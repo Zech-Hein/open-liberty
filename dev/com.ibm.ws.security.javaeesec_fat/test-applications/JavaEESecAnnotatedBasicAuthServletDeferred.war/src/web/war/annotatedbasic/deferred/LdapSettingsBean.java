@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,6 +15,7 @@ package web.war.annotatedbasic.deferred;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -21,6 +24,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 import javax.security.enterprise.identitystore.IdentityStore.ValidationType;
 import javax.security.enterprise.identitystore.LdapIdentityStoreDefinition.LdapSearchScope;
+
+import com.ibm.websphere.ras.annotation.Trivial;
 
 /**
  * This bean will read LDAP identity store configuration settings from a well-known file
@@ -34,7 +39,8 @@ public class LdapSettingsBean {
 
     private Properties props;
 
-    public LdapSettingsBean() {}
+    public LdapSettingsBean() {
+    }
 
     public String getBindDn() throws IOException {
         refreshConfiguration();
@@ -44,11 +50,11 @@ public class LdapSettingsBean {
         return prop;
     }
 
+    @Trivial
     public String getBindDnPassword() throws IOException {
         refreshConfiguration();
 
         String prop = getProperty("bindDnPassword");
-        System.out.println(CLASS_NAME + ".getBindDnPassword() returns: " + prop);
         return prop;
     }
 
@@ -223,7 +229,7 @@ public class LdapSettingsBean {
         if (resultsSet.size() > 0) {
             results = resultsSet.toArray(new ValidationType[resultsSet.size()]);
         }
-        System.out.println(CLASS_NAME + ".getUseFor() returns: " + results);
+        System.out.println(CLASS_NAME + ".getUseFor() returns: " + Arrays.toString(results));
         return results;
     }
 

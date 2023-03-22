@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 1998, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -323,7 +325,7 @@ public final class Activator implements DiscardWithLockStrategy
      * The new bean is enlisted in the specified transaction. <p>
      * 
      * If a bean with the same identity is already enlisted in the current
-     * transaction, or there is a visible master instance, a
+     * transaction, or there is a visible main instance, a
      * <code>DuplicateKeyException</code> results. <p>
      * 
      * @param tx The transaction on which to add the bean
@@ -376,9 +378,9 @@ public final class Activator implements DiscardWithLockStrategy
      * a transaction which was successfully committed.
      * 
      * The transaction-local instance of the bean is removed from the cache,
-     * and any necessary reconciliation between that instance and the master
+     * and any necessary reconciliation between that instance and the main
      * instance is done (e.g. if the bean was removed during the transaction,
-     * the master instance is also removed from the cache).
+     * the main instance is also removed from the cache).
      * <p>
      * 
      * @param tx The transaction which just committed

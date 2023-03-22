@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2020 IBM Corporation and others.
+ * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,6 +19,8 @@ import static org.junit.Assert.fail;
 
 import java.io.Serializable;
 import java.security.Principal;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 import javax.ejb.CreateException;
@@ -43,22 +47,20 @@ public class MDBTimedBMTBean implements MessageListener {
     // These fields hold the test results for EJB callback methods
     private Object ivSetMessageDrivenContextResults;
     private static Object svEjbTimeoutResults = null;
+    private static CountDownLatch timerLatch = new CountDownLatch(1);
 
     public static Object results;
 
-    public void ejbCreate() throws CreateException {
-    }
+    public void ejbCreate() throws CreateException {}
 
-    public MDBTimedBMTBean() {
-    }
+    public MDBTimedBMTBean() {}
 
     /**
      * This method is called when the Message Driven Bean is removed from the server.
      *
      * @exception javax.ejb.EJBException
      */
-    public void ejbRemove() {
-    }
+    public void ejbRemove() {}
 
     /**
      * This method returns the MessageDrivenContext for this Message Driven Bean.
@@ -130,19 +132,18 @@ public class MDBTimedBMTBean implements MessageListener {
                 System.out.println("Creating a Timer to test access in ejbTimeout ...");
                 TimerService ts = myMessageDrivenCtx.getTimerService();
                 ivTimerService = ts;
+                timerLatch = new CountDownLatch(1);
                 createTimer(2000, "testContextMethods-BMT");
                 System.out.println("Waiting for timer to expire ...");
-                Thread.sleep(4000);
-                System.out.println("Returning the results ...");
-
-                int counter = 0;
-                int maxSleepTime = 60000;
-
-                System.out.println("Waiting for getEjbTimeoutResults ...");
-                while (counter < maxSleepTime && svEjbTimeoutResults == null) {
-                    Thread.sleep(1000);
-                    counter++;
+                try {
+                    boolean timerFired = timerLatch.await(2, TimeUnit.MINUTES);
+                    if (!timerFired) {
+                        System.out.println("Timed out getting svEjbTimeoutResults");
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace(System.out);
                 }
+
                 results = svEjbTimeoutResults;
             } else if (text.equalsIgnoreCase("test11")) {
                 System.out.println("Case : test11.");
@@ -270,6 +271,8 @@ public class MDBTimedBMTBean implements MessageListener {
                 } catch (Throwable t) {
                     System.out.println("test failure: " + t);
                     svEjbTimeoutResults = t;
+                } finally {
+                    timerLatch.countDown();
                 }
             }
         }

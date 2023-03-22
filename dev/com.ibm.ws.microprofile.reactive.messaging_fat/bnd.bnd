@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2019 IBM Corporation and others.
+# Copyright (c) 2019, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -22,6 +24,8 @@ fat.project: true
 # Uncomment to use remote docker host to simulate continuous build behavior.
 #fat.test.use.remote.docker: true
 
+fat.test.container.images: confluentinc/cp-kafka:7.1.1
+
 -buildpath: \
 	com.ibm.websphere.org.eclipse.microprofile.reactive.messaging.1.0;version=latest,\
 	com.ibm.websphere.org.eclipse.microprofile.reactive.streams.operators.1.0;version=latest,\
@@ -39,3 +43,6 @@ fat.project: true
 	com.ibm.ws.microprofile.reactive.messaging.kafka;version=latest,\
 	com.ibm.ws.microprofile.reactive.messaging.kafka.adapter;version=latest,\
 	com.ibm.ws.crypto.passwordutil;version=latest
+
+-dependson.1: \
+	com.ibm.ws.org.slf4j.jdk14

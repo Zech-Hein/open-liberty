@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,6 +34,7 @@ import com.ibm.ws.kernel.boot.SharedBootstrapConfig;
 import com.ibm.ws.kernel.boot.cmdline.Utils;
 import com.ibm.ws.kernel.launch.internal.FrameworkManager;
 import com.ibm.ws.kernel.launch.service.FrameworkReady;
+import com.ibm.wsspi.logprovider.LogProvider;
 
 import junit.framework.Assert;
 import test.common.SharedOutputManager;
@@ -162,7 +165,7 @@ public class FrameworkManagerTest {
     public void testStartFrameworkException() throws Throwable {
         TestFrameworkManager fm = new TestFrameworkManager() {
             @Override
-            protected Framework initFramework(BootstrapConfig config) {
+            protected Framework initFramework(BootstrapConfig config, LogProvider logProvider) {
                 throw new TestException();
             }
         };
@@ -236,7 +239,7 @@ public class FrameworkManagerTest {
         }
 
         @Override
-        protected Framework initFramework(BootstrapConfig config) throws BundleException {
+        protected Framework initFramework(BootstrapConfig config, LogProvider logProvider) throws BundleException {
             frameworkStarted = true;
             return FrameworkManagerTest.this.framework;
         }

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2002, 2019 IBM Corporation and others.
+ * Copyright (c) 2002, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -182,6 +184,10 @@ public class BMTXSessionBean implements SessionBean {
                 throw new EJBException("failed to read handles from file");
             }
 
+            // Verify the deserialized handle may be used to restore the bean reference and that it works
+            BMTXSession bmtxBean = (BMTXSession) PortableRemoteObject.narrow(savedHandle.getEJBObject(), BMTXSession.class);
+            bmtxBean.isPassivated();
+
             EJBObject ejbObject = sessionContext.getEJBObject();
 
             /*
@@ -190,7 +196,7 @@ public class BMTXSessionBean implements SessionBean {
              * segment after the isIdentical method is improved.
              */
             // if (!sessionContext.getEJBObject().isIdentical(savedHandle.getEJBObject()))
-            //     throw new RemoteException("Test of passivation and activation failed. Handle or session context is not correctly passivated.");
+            //     throw new EJBException("Test of passivation and activation failed. Handle or session context is not correctly passivated.");
 
             if (!cmHome.equals(cmEntity.getEJBHome()))
                 throw new EJBException("Test of passivation and activation failed. EJBHome or EJBObject is not correctly passivated.");
@@ -271,7 +277,8 @@ public class BMTXSessionBean implements SessionBean {
     //
     // ----------------------------------------------
 
-    public void ejbCreate() {}
+    public void ejbCreate() {
+    }
 
     @Override
     public void ejbActivate() {
@@ -290,7 +297,8 @@ public class BMTXSessionBean implements SessionBean {
     }
 
     @Override
-    public void ejbRemove() {}
+    public void ejbRemove() {
+    }
 
     /**
      * Set the session context for use by this bean.

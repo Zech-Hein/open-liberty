@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018-2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -36,11 +38,18 @@ public class SlowStopAppListener implements ServletContextListener {
                 System.err.println("Invalid timeout specified, using default value of " + count);
             }
         }
-        System.err.println("Sleeping for approx " + count + " seconds.");
+
+        long startTime = System.currentTimeMillis();
+        System.err.println("Sleeping for approx " + count + " seconds, starting at " + startTime);
         for (int i = 0; i < count; i++) {
             try {
                 System.err.println("SlowApp is sleeping, zzzzzzzz");
                 Thread.sleep(1000);
+                long elapsed = System.currentTimeMillis() - startTime;
+                if (elapsed > (count * 1000)) {
+                    System.err.println("Finished sleeping after " + elapsed + " milliseconds");
+                    break;
+                }
             } catch (InterruptedException e) {
                 //test failed, so re-throw as a runtime error
                 System.err.println("SlowApp was interrupted.");

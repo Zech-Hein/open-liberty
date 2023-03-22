@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,9 +30,7 @@ import com.ibm.ws.jaxws.fat.util.ExplodedShrinkHelper;
 import com.ibm.ws.jaxws.fat.util.TestUtils;
 
 import componenttest.annotation.Server;
-import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
-import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.HttpUtils;
 
@@ -167,16 +167,8 @@ public class WsBndServiceRefOverrideTest_Lite {
         assertTrue("WSDL Location Override is not working, and the result is not expected: " + result, "Hello".equals(result));
     }
 
-    /**
-     * Test the LoggingInOutInterceptor Prop defined in service-ref
-     *
-     * @throws Exception
-     *
-     *                       LoggingInOutInterceptors are replaced by LoggingFeature for jaxws-2.3 and xmlWS-3.0. This test will be skipped
-     */
     @Test
-    @SkipForRepeat({ "jaxws-2.3", JakartaEE9Action.ID })
-    public void testLoggingInOutInterceptorProp() throws Exception {
+    public void testOverrideLogginInOutInterceptorPropertyCXFFeature() throws Exception {
         TestUtils.publishFileToServer(server,
                                       "WsBndServiceRefOverrideTest", "ibm-ws-bnd_testLoggingInOutInterceptorProp.xml",
                                       "dropins/wsBndServiceRefOverride.war/WEB-INF/", "ibm-ws-bnd.xml");
@@ -185,8 +177,8 @@ public class WsBndServiceRefOverrideTest_Lite {
         server.startServer();
         server.waitForStringInLog("CWWKZ0001I.*wsBndServiceRefOverride");
         getServletResponse(getServletAddr());
-        List<String> dumpInMessages = server.findStringsInLogs("Inbound Message");
-        List<String> dumpOutMessages = server.findStringsInLogs("Outbound Message");
+        List<String> dumpInMessages = server.findStringsInLogs("REQ_OUT");
+        List<String> dumpOutMessages = server.findStringsInLogs("RESP_IN");
         assertTrue("Can't find inBoundMessage, the return inboundmessage is: " + dumpInMessages.toString(), !dumpInMessages.isEmpty());
         assertTrue("Can't find outBoundMessage, the return outboundmessage is: " + dumpOutMessages.toString(), !dumpOutMessages.isEmpty());
 

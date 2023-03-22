@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -44,6 +46,8 @@ import com.ibm.ws.monitor.internal.bci.ProbeMethodAdapter;
 import com.ibm.ws.monitor.internal.bci.remap.AddVersionFieldClassAdapter;
 import com.ibm.ws.monitor.internal.boot.templates.ClassAvailableProxy;
 import com.ibm.ws.monitor.internal.boot.templates.ProbeProxy;
+
+import io.openliberty.asm.ASMHelper;
 
 /**
  * Component that is responsible for generating and installing the
@@ -316,7 +320,7 @@ public class MonitoringProxyActivator {
         InputStream inputStream = classUrl.openStream();
 
         ClassReader reader = new ClassReader(inputStream);
-        reader.accept(new ClassVisitor(Opcodes.ASM8) {
+        reader.accept(new ClassVisitor(ASMHelper.getCurrentASM()) {
         }, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         inputStream.close();
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -11,12 +13,10 @@
 package com.ibm.ws.security.mp.jwt.v11.config.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Optional;
 
-import org.eclipse.microprofile.config.Config;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -29,7 +29,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
-import com.ibm.ws.security.mp.jwt.config.MpConstants;
+import com.ibm.ws.security.jwt.config.MpConfigProperties;
+import com.ibm.ws.security.mp.jwt.MpConfigProxyService.MpConfigProxy;
 
 import test.common.SharedOutputManager;
 
@@ -47,8 +48,8 @@ public class MpConfigProxyServiceImplTest {
 
     @SuppressWarnings("unchecked")
     private final ClassLoader cl = mockery.mock(ClassLoader.class);
-    private final Config configNoCL = mockery.mock(Config.class, "configNoCL");
-    private final Config configCL = mockery.mock(Config.class, "configCL");
+    private final MpConfigProxy configNoCL = mockery.mock(MpConfigProxy.class, "configNoCL");
+    private final MpConfigProxy configCL = mockery.mock(MpConfigProxy.class, "configCL");
 
     @Rule
     public final TestName testName = new TestName();
@@ -137,73 +138,92 @@ public class MpConfigProxyServiceImplTest {
         assertTrue("true should be returned", output);
     }
 
-    /**
-     * Tests getConfigValue method
-     */
     @Test
-    public void testGetConfigValueNoCL() {
+    public void testGetConfigValuesNoClassLoader() {
         MpConfigProxyServiceImpl mpConfigProxyServiceImpl = new MpConfigProxyServiceImplDouble();
-        String NAME = "name";
-        Class CLAZZ = Object.class;
-
-        String output = (String) mpConfigProxyServiceImpl.getConfigValue(null, NAME, CLAZZ);
-        assertNull("Expected the result to be null but was [" + output + "].", output);
-    }
-
-    @Test
-    public void testGetConfigValueNoCL_supportedMpJwtConfigProperty() {
-        MpConfigProxyServiceImpl mpConfigProxyServiceImpl = new MpConfigProxyServiceImplDouble();
-        String NAME = MpConstants.PUBLIC_KEY;
-        Class CLAZZ = Object.class;
-        String VALUE = "value";
+        Class CLAZZ = String.class;
 
         mockery.checking(new Expectations() {
             {
-                never(configCL).getValue(NAME, CLAZZ);
-                one(configNoCL).getOptionalValue(NAME, CLAZZ);
-                will(returnValue(Optional.of(VALUE)));
+                one(configNoCL).getOptionalValue(MpConfigProperties.ISSUER, CLAZZ);
+                will(returnValue(Optional.of("value_" + MpConfigProperties.ISSUER)));
+                one(configNoCL).getOptionalValue(MpConfigProperties.PUBLIC_KEY, CLAZZ);
+                will(returnValue(Optional.of("value_" + MpConfigProperties.PUBLIC_KEY)));
+                one(configNoCL).getOptionalValue(MpConfigProperties.KEY_LOCATION, CLAZZ);
+                will(returnValue(Optional.of("value_" + MpConfigProperties.KEY_LOCATION)));
             }
         });
 
-        String output = (String) mpConfigProxyServiceImpl.getConfigValue(null, NAME, CLAZZ);
-        assertEquals("the expected value should be returned", VALUE, output);
-    }
-
-    /**
-     * Tests getConfigValue method
-     */
-    @Test
-    public void testGetConfigValueCL_unknownMpJwtConfigProperty() {
-        MpConfigProxyServiceImpl mpConfigProxyServiceImpl = new MpConfigProxyServiceImplDouble();
-        String NAME = "name";
-        Class CLAZZ = Object.class;
-
-        String output = (String) mpConfigProxyServiceImpl.getConfigValue(cl, NAME, CLAZZ);
-        assertNull("Expected the result to be null but was [" + output + "].", output);
+        MpConfigProperties configProperties = mpConfigProxyServiceImpl.getConfigProperties(null);
+        assertEquals("the list should be 3 items.", 3, configProperties.size());
     }
 
     @Test
-    public void testGetConfigValueCL_supportedMpJwtConfigProperty() {
+    public void testGetConfigValuesClassLoader() {
         MpConfigProxyServiceImpl mpConfigProxyServiceImpl = new MpConfigProxyServiceImplDouble();
-        String NAME = MpConstants.ISSUER;
-        Class CLAZZ = Object.class;
-        String VALUE = "value";
+        Class CLAZZ = String.class;
 
         mockery.checking(new Expectations() {
             {
-                never(configNoCL).getValue(NAME, CLAZZ);
-                one(configCL).getOptionalValue(NAME, CLAZZ);
-                will(returnValue(Optional.of(VALUE)));
+                one(configCL).getOptionalValue(MpConfigProperties.ISSUER, CLAZZ);
+                will(returnValue(Optional.of("value_" + MpConfigProperties.ISSUER)));
+                one(configCL).getOptionalValue(MpConfigProperties.PUBLIC_KEY, CLAZZ);
+                will(returnValue(Optional.of("value_" + MpConfigProperties.PUBLIC_KEY)));
+                one(configCL).getOptionalValue(MpConfigProperties.KEY_LOCATION, CLAZZ);
+                will(returnValue(Optional.of("value_" + MpConfigProperties.KEY_LOCATION)));
             }
         });
 
-        String output = (String) mpConfigProxyServiceImpl.getConfigValue(cl, NAME, CLAZZ);
-        assertEquals("the expected value should be returned", VALUE, output);
+        MpConfigProperties configProperties = mpConfigProxyServiceImpl.getConfigProperties(cl);
+        assertEquals("the list should be 3 items.", 3, configProperties.size());
+    }
+
+    @Test
+    public void testGetConfigValuesClassLoader_noProperties() {
+        MpConfigProxyServiceImpl mpConfigProxyServiceImpl = new MpConfigProxyServiceImplDouble();
+        Class CLAZZ = String.class;
+
+        mockery.checking(new Expectations() {
+            {
+                one(configCL).getOptionalValue(MpConfigProperties.ISSUER, CLAZZ);
+                will(returnValue(null));
+                one(configCL).getOptionalValue(MpConfigProperties.PUBLIC_KEY, CLAZZ);
+                will(returnValue(null));
+                one(configCL).getOptionalValue(MpConfigProperties.KEY_LOCATION, CLAZZ);
+                will(returnValue(null));
+            }
+        });
+
+        MpConfigProperties configProperties = mpConfigProxyServiceImpl.getConfigProperties(cl);
+        assertEquals("the list should be 0 items.", 0, configProperties.size());
+    }
+
+    @Test
+    public void testGetConfigValuesClassLoader_trim() {
+        MpConfigProxyServiceImpl mpConfigProxyServiceImpl = new MpConfigProxyServiceImplDouble();
+        Class CLAZZ = String.class;
+
+        mockery.checking(new Expectations() {
+            {
+                one(configCL).getOptionalValue(MpConfigProperties.ISSUER, CLAZZ);
+                will(returnValue(Optional.of("value_" + MpConfigProperties.ISSUER + "         ")));
+                one(configCL).getOptionalValue(MpConfigProperties.PUBLIC_KEY, CLAZZ);
+                will(returnValue(Optional.of("value_" + MpConfigProperties.PUBLIC_KEY + "\t\t\t\n")));
+                one(configCL).getOptionalValue(MpConfigProperties.KEY_LOCATION, CLAZZ);
+                will(returnValue(Optional.of("     ")));
+            }
+        });
+
+        MpConfigProperties configProperties = mpConfigProxyServiceImpl.getConfigProperties(cl);
+        assertEquals("the list should be 2 items.", 2, configProperties.size());
+        assertTrue("the map should contain value_" + MpConfigProperties.ISSUER, configProperties.get(MpConfigProperties.ISSUER).equals("value_" + MpConfigProperties.ISSUER));
+        assertTrue("the map should contain value_" + MpConfigProperties.PUBLIC_KEY, configProperties.get(MpConfigProperties.PUBLIC_KEY).equals("value_" + MpConfigProperties.PUBLIC_KEY));
+
     }
 
     class MpConfigProxyServiceImplDouble extends MpConfigProxyServiceImpl {
         @Override
-        protected Config getConfig(ClassLoader cl) {
+        public MpConfigProxy getConfigProxy(ClassLoader cl) {
             if (cl != null) {
                 return configCL;
             } else {

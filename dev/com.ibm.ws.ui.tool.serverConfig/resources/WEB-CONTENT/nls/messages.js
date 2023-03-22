@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ var editorMessages = {
 "ADD_CHILD": "Add child",
 "REMOVE": "Remove",
 "TEST" : "Test",
-"TEST_CONNECTION": "Test Connection",
+"TEST_CONNECTION": "Connection Test",
+"TEST_CONNECTION_DESCRIPTION": "Test the connection",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "Save the changes to test the connection",
 "DESCRIPTION": "Description",
 "PREVIOUS": "Previous",
 "NEXT": "Next",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "Remove element dialog",
 "VALIDATE_DATASOURCE_DIALOG": "Validate datasource connection dialog",
 "VALIDATE_DATASOURCE": "Testing datasource connection",
+"VALIDATE_CONNECTION_DIALOG":"Validate connection dialog",
+"DEFAULT_AUTHENTICATION_ALIAS":"Default authentication",
+"SPECIFY_AUTHENTICATION_ALIAS":"Specify authentication alias",
+"LOGIN_CONFIG":"Login config",
+"LOGIN_CONFIG_ID":"Login config id",
+"ADD_LOGIN_CONFIG_PROPERTY":"Add login config property",
+"KEY":"Key",
+"CHOOSE_AN_OPTION":"Choose an option",
 "ENUMERATION_SELECTION_DIALOG": "Enumeration selection dialog",
 "SAVE_BEFORE_CLOSING_DIALOG": "Save before closing dialog",
 "ERROR_SAVING_FILE_DIALOG": "Error saving file dialog",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "Authentication alias (Optional)",
 "AUTH_ALIAS": "Authentication alias",
 "CONTAINER_AUTHENTICATION": "Container authentication",
+"RESOURCE_REFERENCE": "Resource reference",
 "NO_RESOURCE_REFERENCE": "No resource reference",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "Test the connection by using a resource reference that authenticates with application authentication.",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "Test the connection by using a resource reference that authenticates with container authentication.",
+"RESOURCE_REFERENCE_IN_USE": "Container authentication for direct lookups is enabled. The connection test uses the configured default container authentication data.",
+"NO_RESOURCE_REFERENCE_IN_USE": "Test the connection without using a resource reference.",
 "APPLICATION_AUTHENTICATION": "Application authentication",
 "CUSTOM_LOGIN_MODULE": "Custom login module (Optional)",
 "LOGIN_PROPERTIES": "Login properties (Optional)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "Select a feature to view its description.",
 "SUPPORT_MESSAGE" : "Server Config is not available for Node.js servers nor servers in a Docker container accessed through the collective controller.",
 "NO_ROLE_MESSAGE": "The user is not in a role that has permission to make configuration changes. Files are available in read-only mode.",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "REQUIRED ACTIONS FOR COLLECTIVE MEMBERS:",
 "RUN_UPDATE_HOST" : "Run 'collective updateHost' or 'collective registerHost' with '--hostWritePath' specifying a path to which the rpcUser has write permissions to.  Valid host credentials must be provided as well.",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "Create a link to JAVA in /usr/bin. e.g. /usr/bin/java -> [pathToJAVA]",
 "JAVA_ON_PATH" : "Add JAVA to the PATH environment variable.  Exporting the PATH should be done in .bashrc on Linux.", 
 "MORE_INFORMATION" : "For more information see: "
-
 };

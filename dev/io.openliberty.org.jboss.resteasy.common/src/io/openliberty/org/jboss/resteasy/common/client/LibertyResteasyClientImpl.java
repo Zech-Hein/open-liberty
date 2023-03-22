@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,6 +15,7 @@ package io.openliberty.org.jboss.resteasy.common.client;
 import java.net.URI;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
@@ -29,16 +32,19 @@ public class LibertyResteasyClientImpl extends ResteasyClientImpl {
     private final LibertyResteasyClientBuilderImpl builder;
     private Supplier<ClientHttpEngine> httpEngineSupplier;
     private AtomicReference<ClientHttpEngine> httpEngine = new AtomicReference<>();
+    private final List<Runnable> closeActions;
 
     protected LibertyResteasyClientImpl(final Supplier<ClientHttpEngine> httpEngine,
                                         final ExecutorService asyncInvocationExecutor,
                                         final boolean cleanupExecutor,
                                         final ScheduledExecutorService scheduledExecutorService,
                                         final ClientConfiguration configuration,
+                                        final List<Runnable> closeActions,
                                         final LibertyResteasyClientBuilderImpl builder) {
        super(null, asyncInvocationExecutor, cleanupExecutor, scheduledExecutorService, configuration);
        this.builder = builder;
        this.httpEngineSupplier = httpEngine;
+       this.closeActions = closeActions;
     }
 
     @Override
@@ -100,6 +106,13 @@ public class LibertyResteasyClientImpl extends ResteasyClientImpl {
                             return null;
                         }
                     });
+                }
+            }
+            for (Runnable r : closeActions) {
+                try {
+                    r.run();
+                } catch (Throwable t) {
+                    //Auto FFDC
                 }
             }
         } catch (Exception e) {

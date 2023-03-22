@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -94,7 +96,7 @@ define(['dojo/_base/declare', 'dojo/_base/lang', 'dojo/dom', 'dojo/has', 'jsExpl
     },
 
     postCreate: function() {
-      this.iconNode.innerHTML = imgUtils.getSVG(getResourceIcon(this.resource));
+      this.iconNode.innerHTML = imgUtils.getSVGWithAriaLabelledBy(getResourceIcon(this.resource), '', this.resourceId + "-ResourceName");
 
       /* Set the StateIcon if needed */
       if ((this.resource.type !== 'host') && (this.resource.type !== 'standaloneServer') && (this.resource.type !== 'runtime')) {
@@ -568,10 +570,10 @@ define(['dojo/_base/declare', 'dojo/_base/lang', 'dojo/dom', 'dojo/has', 'jsExpl
         // If server running and apiDiscovery enabled, enable button
         // If a standAlone server, the feature is enabled since we don't track the state of
         // a standAlone server.  It is assumed to be up.
-        enableServerApiButton(serverApiButton, apiDefIcon, explorerURL);
+        enableServerApiButton(serverApiButton, apiDefIcon, explorerURL, id);
       } else {
         // If server not started and apiDiscovery enabled, grey out button
-        disableServerApiButton(serverApiButton, apiDefIcon);
+        disableServerApiButton(serverApiButton, apiDefIcon, id);
       }
     } else {
       // If no apiDiscovery, don't display.
@@ -579,9 +581,9 @@ define(['dojo/_base/declare', 'dojo/_base/lang', 'dojo/dom', 'dojo/has', 'jsExpl
     }
   }
 
-  function disableServerApiButton(element, apiDefIcon) {
+  function disableServerApiButton(element, apiDefIcon, containerId) {
     // Set image
-    apiDefIcon.innerHTML = imgUtils.getSVGSmall('apiDefDisabled');
+    apiDefIcon.innerHTML = imgUtils.getSVGWithAriaLabelledBy('apiDefDisabled', 'small', containerId + "UrlDisabled");
 
     // Disable link
     var link = element.getElementsByTagName("a")[0];
@@ -594,9 +596,9 @@ define(['dojo/_base/declare', 'dojo/_base/lang', 'dojo/dom', 'dojo/has', 'jsExpl
     element.style.display = "inline-block";
   }
 
-  function enableServerApiButton(element, apiDefIcon, explorerURL) {
+  function enableServerApiButton(element, apiDefIcon, explorerURL, containerId) {
     // Set image
-    apiDefIcon.innerHTML = imgUtils.getSVGSmall('apiDefEnabled');
+    apiDefIcon.innerHTML = imgUtils.getSVGWithAriaLabelledBy('apiDefEnabled', 'small', containerId + "UrlEnabled");
 
     // Disable span
     var span = element.getElementsByTagName("span")[0];
@@ -628,12 +630,13 @@ define(['dojo/_base/declare', 'dojo/_base/lang', 'dojo/dom', 'dojo/has', 'jsExpl
       if (server.cluster) {
         server.getCluster().then(function(cluster) {
           var clusterButton;
+          var clusterButtonLabel = ResourceButton.getResourceButtonLabelId([ 'AppInst', appOnServer.id, cluster.name, 'Cluster']);
           if (cluster.scalingPolicy) {
             // Set icon to scalingPolicy cluster one.
-            iconPane.innerHTML = imgUtils.getSVGSmall("cluster-autoscaled-OVHP");
+            iconPane.innerHTML = imgUtils.getSVGWithAriaLabelledBy("cluster-autoscaled-OVHP", "small", clusterButtonLabel);
           } else {
             // Set icon to normal cluster one.
-            iconPane.innerHTML = imgUtils.getSVG("cluster-dashboard");
+            iconPane.innerHTML = imgUtils.getSVGWithAriaLabelledBy("cluster-dashboard", "", clusterButtonLabel);
           }
           clusterButton = ResourceButton.createResourceButton([ 'AppInst', appOnServer.id, cluster.name, 'Cluster']);
 
@@ -654,12 +657,13 @@ define(['dojo/_base/declare', 'dojo/_base/lang', 'dojo/dom', 'dojo/has', 'jsExpl
     if (server.cluster) {
       var clusterName = server.cluster;
       var clusterButton;
+      var clusterButtonLabel = ResourceButton.getResourceButtonLabelId([ 'Server', server.id, clusterName, 'Cluster']);
       if (server.scalingPolicy) {
         // Set icon to scalingPolicy cluster one.
-        iconPane.innerHTML = imgUtils.getSVGSmall("cluster-autoscaled-OVHP");
+        iconPane.innerHTML = imgUtils.getSVGWithAriaLabelledBy("cluster-autoscaled-OVHP", "small", clusterButtonLabel);
       } else {
         // Set icon to normal cluster one.
-        iconPane.innerHTML = imgUtils.getSVG("cluster-dashboard");
+        iconPane.innerHTML = imgUtils.getSVGWithAriaLabelledBy("cluster-dashboard", "", clusterButtonLabel);
       }
       clusterButton = ResourceButton.createResourceButton([ 'Server', server.id, clusterName, 'Cluster']);
 
@@ -725,7 +729,7 @@ define(['dojo/_base/declare', 'dojo/_base/lang', 'dojo/dom', 'dojo/has', 'jsExpl
     if (resource.tags) {
       var tags = resource.tags;
       if (tags.length > 0) {
-        tagIcon.set('content', imgUtils.getSVGSmall('metadata-tag'));
+        tagIcon.set('content', imgUtils.getSVGSmall('metadata-tag', null, i18n.TAGS, true));
       }
       for (var i=0; i < tags.length; i++) {
         tagPane.addChild(TagButton.createTagButton(['objectView', resource.type, resource.id, 'tag', tags[i]]));
@@ -733,13 +737,13 @@ define(['dojo/_base/declare', 'dojo/_base/lang', 'dojo/dom', 'dojo/has', 'jsExpl
       tagPane.addChild(TagButton.createTagButton(['objectView', resource.type, resource.id, 'expand-tag', 'more']));
     }
     if (resource.owner) {
-      ownerIcon.set('content', imgUtils.getSVGSmall('metadata-user'));
+      ownerIcon.set('content', imgUtils.getSVGSmall('metadata-user', null, i18n.OWNER, true));
       ownerTagPane.addChild(TagButton.createTagButton(['objectView', resource.type, resource.id, 'owner', resource.owner]));
     }
     if (resource.contacts) {
       var contactTags = resource.contacts;
       if (contactTags.length > 0) {
-        contactIcon.set('content', imgUtils.getSVGSmall('metadata-contacts'));
+        contactIcon.set('content', imgUtils.getSVGSmall('metadata-contacts', null, i18n.CONTACTS, true));
       }
       for (var i=0; i < contactTags.length; i++) {
         contactTagPane.addChild(TagButton.createTagButton(['objectView', resource.type, resource.id, 'contact', contactTags[i]]));
@@ -748,7 +752,7 @@ define(['dojo/_base/declare', 'dojo/_base/lang', 'dojo/dom', 'dojo/has', 'jsExpl
     }
     if (resource.ports) {
       var ports = resource.ports;
-        portIcon.set('content', imgUtils.getSVGSmall('metadata-port'));
+        portIcon.set('content', imgUtils.getSVGSmall('metadata-port', null, i18n.PORTS, true));
         var list = formatPorts(resource, ports);
         serverPortsPane.set('content', list);
         serverPortsPane.set('aria-label', lang.replace(i18n.PORTS, [ports]));
@@ -756,7 +760,7 @@ define(['dojo/_base/declare', 'dojo/_base/lang', 'dojo/dom', 'dojo/has', 'jsExpl
     if (resource.note) {
       var exp = /(\bhttps?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/i;
       var note = resource.note;
-      notesIcon.set('content', imgUtils.getSVGSmall('metadata-notes'));
+      notesIcon.set('content', imgUtils.getSVGSmall('metadata-notes', null, i18n.NOTES, true));
       resourceNotePane.set('content', "<span dir='" + utils.getStringTextDirection(note) + "'>" + note.replace(exp,"<a href='$1' target=_blank' rel='noreferrer'>$1</a>") + "</span>");
       resourceNotePane.set('aria-label', lang.replace(i18n.NOTE_LABEL, [note]));
       resourceNotePane.domNode.style.display = 'inline-block';

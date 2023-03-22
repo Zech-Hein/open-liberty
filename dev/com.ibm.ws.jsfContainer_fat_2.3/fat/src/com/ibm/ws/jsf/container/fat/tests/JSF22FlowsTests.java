@@ -1,12 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 package com.ibm.ws.jsf.container.fat.tests;
 
@@ -30,6 +29,7 @@ import com.ibm.ws.jsf.container.fat.FATSuite;
 
 import componenttest.annotation.ExpectedFFDC;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.impl.LibertyServerFactory;
 import componenttest.topology.utils.FATServletClient;
@@ -55,10 +55,15 @@ public class JSF22FlowsTests extends FATServletClient {
     private static final String MOJARRA_APP = "JSF22FacesFlows";
     private static final String MYFACES_APP = "JSF22FacesFlows_MyFaces";
 
+    private static boolean isEE10;
+
     public static LibertyServer server = LibertyServerFactory.getLibertyServer("jsf.container.2.3_fat");
 
     @BeforeClass
     public static void setup() throws Exception {
+
+        isEE10 = JakartaEE10Action.isActive();
+
         server.removeAllInstalledAppsForValidation();
 
         JavaArchive facesFlowJar = ShrinkWrap.create(JavaArchive.class, "JSF22FacesFlows.jar");
@@ -66,7 +71,7 @@ public class JSF22FlowsTests extends FATServletClient {
 
         WebArchive mojarraApp = ShrinkWrap.create(WebArchive.class, MOJARRA_APP + ".war")
                         .addAsLibrary(facesFlowJar)
-                        .addPackage("jsf.flow.beans");
+                        .addPackage(isEE10 ? "jsf.flow.beans.faces40" : "jsf.flow.beans.jsf22");
         mojarraApp = FATSuite.addMojarra(mojarraApp);
         mojarraApp = (WebArchive) ShrinkHelper.addDirectory(mojarraApp, "publish/files/permissions");
         mojarraApp = (WebArchive) ShrinkHelper.addDirectory(mojarraApp, "test-applications/JSF22FacesFlows/resources/war");
@@ -75,7 +80,7 @@ public class JSF22FlowsTests extends FATServletClient {
 
         WebArchive myfacesApp = ShrinkWrap.create(WebArchive.class, MYFACES_APP + ".war")
                         .addAsLibrary(facesFlowJar)
-                        .addPackage("jsf.flow.beans");
+                        .addPackage(isEE10 ? "jsf.flow.beans.faces40" : "jsf.flow.beans.jsf22");
         myfacesApp = FATSuite.addMyFaces(myfacesApp);
         myfacesApp = (WebArchive) ShrinkHelper.addDirectory(myfacesApp, "publish/files/permissions");
         myfacesApp = (WebArchive) ShrinkHelper.addDirectory(myfacesApp, "test-applications/JSF22FacesFlows/resources/war");

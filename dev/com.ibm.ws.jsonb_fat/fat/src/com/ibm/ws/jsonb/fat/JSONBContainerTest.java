@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,8 +14,6 @@ package com.ibm.ws.jsonb.fat;
 
 import static com.ibm.ws.jsonb.fat.FATSuite.CDI_APP;
 import static com.ibm.ws.jsonb.fat.FATSuite.JSONB_APP;
-import static com.ibm.ws.jsonb.fat.FATSuite.PROVIDER_JOHNZON;
-import static componenttest.annotation.SkipForRepeat.EE9_FEATURES;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -25,57 +25,59 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.config.ServerConfiguration;
+import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.annotation.Server;
-import componenttest.annotation.SkipForRepeat;
 import componenttest.annotation.TestServlet;
 import componenttest.annotation.TestServlets;
 import componenttest.custom.junit.runner.FATRunner;
-import componenttest.custom.junit.runner.Mode;
-import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
 import jsonb.cdi.web.JsonbCDITestServlet;
 import web.jsonbtest.JSONBTestServlet;
-import web.jsonbtest.JohnzonTestServlet;
 
 @RunWith(FATRunner.class)
-@Mode(TestMode.FULL)
 public class JSONBContainerTest extends FATServletClient {
 
     @Server("com.ibm.ws.jsonb.container.fat")
     @TestServlets({
                     @TestServlet(servlet = JSONBTestServlet.class, contextRoot = JSONB_APP),
-                    @TestServlet(servlet = JohnzonTestServlet.class, contextRoot = JSONB_APP),
                     @TestServlet(servlet = JsonbCDITestServlet.class, contextRoot = CDI_APP)
     })
     public static LibertyServer server;
 
     @BeforeClass
     public static void setUp() throws Exception {
+        Log.info(JSONBContainerTest.class, "setUp", "=====> Start JSONBContainerTest");
+
+        FATSuite.configureImpls(server);
         FATSuite.jsonbApp(server);
         FATSuite.cdiApp(server);
+
         server.startServer();
+
+        if (JakartaEE10Action.isActive()) { //TODO possibly back port this info message to EE9 and EE8
+            assertTrue(!server.findStringsInLogsAndTrace("CWWKJ0350I").isEmpty());
+        }
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
         server.stopServer();
+        Log.info(JSONBContainerTest.class, "tearDown", "<===== Stop JSONBContainerTest");
     }
 
     // Test a user feature with a service component that injects JsonbProvider (from the bell)
-    // as a declarative service. Validate the expected provider is used, and that it can succesfully
+    // as a declarative service. Validate the expected provider is used, and that it can successfully
     // marshall/unmarshall to/from classes from the bundle.
     @Test
-    @SkipForRepeat(EE9_FEATURES)
-    //Skipping the test for jakartaee testing since it is beyond the scope of what is needed
-    //TODO for jakartaee testing: Transform the johnzon jars in AUTO_FVT/publish/shared/resources folder, solve the classloader problems with yasson and jonhzon provider impls
     public void testUserFeature() throws Exception {
         String found;
         server.resetLogMarks();
         assertNotNull(found = server.waitForStringInLogUsingMark("TEST1: JsonbProvider obtained from declarative services"));
-        assertTrue(found, found.contains(PROVIDER_JOHNZON));
+        assertTrue(found, found.contains(FATSuite.getJsonbProviderClassName()));
         assertNotNull(found = server.waitForStringInLogUsingMark("TEST2"));
         assertTrue(found, found.contains("success"));
         assertTrue(found, found.contains("\"Rochester\""));
@@ -85,19 +87,50 @@ public class JSONBContainerTest extends FATServletClient {
     }
 
     @Test
-    // Verify that the jsonb-1.0 and jsonbContainer-1.0/ jsonb-2.0 and jsonbContainer-2.0 features can be used together to to specify Yasson
+    // Verify that the jsonb-x.x and jsonbContainer-x.x features can be used together to specify Yasson
     public void testJsonAndYasson() throws Exception {
-        // Add the jsonb-1.0 for ee8 and jsonb-2.0 for ee9 feature to server.xml
         ServerConfiguration config = server.getServerConfiguration();
-        if (JakartaEE9Action.isActive()) {
+        ServerConfiguration configClone = config.clone();
+
+        if (JakartaEE10Action.isActive()) {
+            config.getFeatureManager().getFeatures().add("jsonb-3.0");
+        } else if (JakartaEE9Action.isActive()) {
             config.getFeatureManager().getFeatures().add("jsonb-2.0");
         } else {
             config.getFeatureManager().getFeatures().add("jsonb-1.0");
         }
+
         server.updateServerConfiguration(config);
         server.waitForConfigUpdateInLogUsingMark(Collections.singleton(JSONB_APP));
 
         // Run a test to verify that jsonb is still usable
-        runTest(server, JSONB_APP + "/JSONBTestServlet", "testJsonbDeserializer&JsonbProvider=" + PROVIDER_JOHNZON);
+        runTest(server, JSONB_APP + "/JSONBTestServlet", "testJsonbDeserializer");
+
+        server.updateServerConfiguration(configClone);
+    }
+
+    @Test
+    public void testApplicationClasses() throws Exception {
+        runTest(server, JSONB_APP + "/JSONBTestServlet", getTestMethodSimpleName() + "&JsonbProvider=" + FATSuite.getJsonbProviderClassName());
+    }
+
+    @Test
+    public void testJsonbAdapter() throws Exception {
+        runTest(server, JSONB_APP + "/JSONBTestServlet", getTestMethodSimpleName() + "&JsonbProvider=" + FATSuite.getJsonbProviderClassName());
+    }
+
+    @Test
+    public void testJsonbProviderAvailable() throws Exception {
+        runTest(server, JSONB_APP + "/JSONBTestServlet", getTestMethodSimpleName() + "&JsonbProvider=" + FATSuite.getJsonbProviderClassName());
+    }
+
+    @Test
+    public void testJsonbProviderNotAvailable() throws Exception {
+        runTest(server, JSONB_APP + "/JSONBTestServlet", getTestMethodSimpleName() + "&JsonbProvider=" + FATSuite.getJsonbProviderClassName(false));
+    }
+
+    @Test
+    public void testThreadContextClassLoader() throws Exception {
+        runTest(server, JSONB_APP + "/JSONBTestServlet", getTestMethodSimpleName() + "&JsonbProvider=" + FATSuite.getJsonbProviderClassName());
     }
 }

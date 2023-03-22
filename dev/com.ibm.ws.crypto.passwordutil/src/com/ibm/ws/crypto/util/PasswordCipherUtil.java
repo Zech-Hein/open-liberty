@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2016 IBM Corporation and others.
+ * Copyright (c) 2007, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +44,7 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 import com.ibm.websphere.crypto.PasswordUtil;
 import com.ibm.websphere.crypto.UnsupportedCryptoAlgorithmException;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.crypto.util.custom.CustomManifest;
 import com.ibm.ws.crypto.util.custom.CustomUtils;
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
@@ -76,6 +79,8 @@ public class PasswordCipherUtil {
 
     static final String KEY_ENCRYPTION_SERVICE = "customPasswordEncryption";
     private static AtomicServiceReference<CustomPasswordEncryption> customPasswordEncryption = new AtomicServiceReference<CustomPasswordEncryption>(KEY_ENCRYPTION_SERVICE);
+
+    private static final String HW_PROVIDER = "IBMJCECCA";
 
     private static CustomPasswordEncryption cpeImpl = null;
     private static List<CustomManifest> cms = null;
@@ -384,13 +389,11 @@ public class PasswordCipherUtil {
             if (algorithm == null) {
                 algorithm = properties.get(PasswordUtil.PROPERTY_HASH_ALGORITHM);
             }
-            if (algorithm == null) {
-                algorithm = PasswordHashGenerator.getDefaultAlgorithm();
-            }
 
             if (!saltSet) {
                 saltString = properties.get(PasswordUtil.PROPERTY_HASH_SALT);
                 salt = PasswordHashGenerator.generateSalt(saltString);
+                saltSet = true;
             }
 
             if (iteration < 0) {
@@ -399,9 +402,6 @@ public class PasswordCipherUtil {
                     iteration = Integer.parseInt(value);
                 }
             }
-            if (iteration < 0) {
-                iteration = PasswordHashGenerator.getDefaultIteration();
-            }
 
             if (length < 0) {
                 String value = properties.get(PasswordUtil.PROPERTY_HASH_LENGTH);
@@ -409,9 +409,25 @@ public class PasswordCipherUtil {
                     length = Integer.parseInt(value);
                 }
             }
-            if (length < 0) {
-                length = PasswordHashGenerator.getDefaultOutputLength();
-            }
+        }
+
+        // If there were no properties or only a partial set of properties provided to fill in information need to hash
+        // the data then fill in the missing information with the defaults.
+
+        if (algorithm == null) {
+            algorithm = PasswordHashGenerator.getDefaultAlgorithm();
+        }
+
+        if (!saltSet) {
+            salt = PasswordHashGenerator.generateSalt(saltString);
+        }
+
+        if (iteration < 0) {
+            iteration = PasswordHashGenerator.getDefaultIteration();
+        }
+
+        if (length < 0) {
+            length = PasswordHashGenerator.getDefaultOutputLength();
         }
 
         try {
@@ -440,8 +456,16 @@ public class PasswordCipherUtil {
      */
     private static EncryptedInfo aesEncipher(byte[] decrypted_bytes, String cryptoKey, EncryptedInfo info,
                                              byte[] encrypted_bytes) throws UnsupportedCryptoAlgorithmException, InvalidPasswordCipherException {
+        byte[] seed = null;
         SecureRandom rand = new SecureRandom();
-        byte[] seed = rand.generateSeed(20);
+        Provider provider = rand.getProvider();
+        String providerName = provider.getName();
+        if (providerName.equals(HW_PROVIDER)) {
+            seed = new byte[20];
+            rand.nextBytes(seed);
+        } else {
+            seed = rand.generateSeed(20);
+        }
         byte[] preEncrypted = new byte[decrypted_bytes.length + 21];
         preEncrypted[0] = 20; // how many seed bytes there are.
         System.arraycopy(seed, 0, preEncrypted, 1, 20);

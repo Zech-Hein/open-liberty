@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017,2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,6 +23,7 @@ import java.util.List;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -40,7 +43,7 @@ public abstract class BasicValidation_Common extends FATServletClient {
         WebArchive beanvalidation_10War = buildDefaultApp("beanvalidation_10.war", "beanvalidation10.*");
         WebArchive beanvalidation_11War = buildDefaultApp("beanvalidation_11.war", "beanvalidation11.*");
 
-        if (JakartaEE9Action.isActive()) {
+        if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
             beanvalidation_10War.move("/WEB-INF/constraints-house_EE9.xml", "/WEB-INF/constraints-house.xml");
             beanvalidation_11War.move("/WEB-INF/constraints-house_EE9.xml", "/WEB-INF/constraints-house.xml");
         }
@@ -63,7 +66,7 @@ public abstract class BasicValidation_Common extends FATServletClient {
 
     protected void run(String war, String servlet) throws Exception {
         String originalTestName = testName.getMethodName();
-        originalTestName = originalTestName.replace("_EE9_FEATURES", "");
+        originalTestName = removeEETag(originalTestName);
         String servletTest = originalTestName.substring(0, originalTestName.length() - 2);
         run(war, servlet, servletTest);
     }
@@ -74,6 +77,14 @@ public abstract class BasicValidation_Common extends FATServletClient {
      */
     protected void run(String war, String servlet, String testMethod) throws Exception {
         FATServletClient.runTest(getServer(), war + "/" + servlet, testMethod);
+    }
+
+    /**
+     * Removes the _EEXX_FEATURES tag appended to test names.
+     * For example: testName_EE9_FEATURES -> testName
+     */
+    public static String removeEETag(String s) {
+        return s.replaceAll("_EE\\d*_FEATURES", "");
     }
 
     /**

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,11 +18,6 @@ import static com.ibm.ws.microprofile.reactive.messaging.fat.suite.ConnectorProp
 import static com.ibm.ws.microprofile.reactive.messaging.fat.suite.KafkaUtils.kafkaClientLibs;
 import static com.ibm.ws.microprofile.reactive.messaging.fat.suite.KafkaUtils.kafkaPermissions;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import org.apache.kafka.common.config.SaslConfigs;
-import org.apache.kafka.common.config.SslConfigs;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
@@ -32,8 +29,10 @@ import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.ws.microprofile.reactive.messaging.fat.apps.kafka.BasicMessagingBean;
 import com.ibm.ws.microprofile.reactive.messaging.fat.kafka.common.KafkaTestConstants;
 import com.ibm.ws.microprofile.reactive.messaging.fat.kafka.framework.AbstractKafkaTestServlet;
+import com.ibm.ws.microprofile.reactive.messaging.fat.kafka.framework.KafkaTestClientProvider;
 import com.ibm.ws.microprofile.reactive.messaging.fat.suite.ConnectorProperties;
 import com.ibm.ws.microprofile.reactive.messaging.fat.suite.ConnectorProperties.Direction;
+import com.ibm.ws.microprofile.reactive.messaging.fat.suite.KafkaUtils;
 import com.ibm.ws.microprofile.reactive.messaging.fat.suite.SaslPlainTests;
 
 import componenttest.annotation.Server;
@@ -57,29 +56,15 @@ public class KafkaSaslPlainTest {
     @BeforeClass
     public static void setup() throws Exception {
 
-        String bootstrapServers = SaslPlainTests.kafkaContainer.getBootstrapServers();
-        String keystorePassword = SaslPlainTests.kafkaContainer.getKeystorePassword();
-        String testUser = SaslPlainTests.kafkaContainer.getTestUser();
-        String testSecret = SaslPlainTests.kafkaContainer.getTestSecret();
+        ConnectorProperties outgoingProperties = simpleOutgoingChannel(null, BasicMessagingBean.CHANNEL_OUT);
 
-        ConnectorProperties outgoingProperties = simpleOutgoingChannel(bootstrapServers, BasicMessagingBean.CHANNEL_OUT);
-
-        ConnectorProperties incomingProperties = simpleIncomingChannel(bootstrapServers, BasicMessagingBean.CHANNEL_IN, APP_GROUP_ID);
+        ConnectorProperties incomingProperties = simpleIncomingChannel(null, BasicMessagingBean.CHANNEL_IN, APP_GROUP_ID);
 
         ConnectorProperties connectorProperties = new ConnectorProperties(Direction.CONNECTOR, "liberty-kafka")
-                        .addProperty(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, KafkaSaslTestServlet.TRUSTSTORE_FILENAME)
-                        .addProperty(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, keystorePassword)
-                        .addProperty("security.protocol", "SASL_SSL")
-                        .addProperty(SaslConfigs.SASL_MECHANISM, "PLAIN")
-                        .addProperty(SaslConfigs.SASL_JAAS_CONFIG,
-                                     "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + testUser + "\" password=\""
-                                                                   + testSecret + "\";");
+                        .addAll(SaslPlainTests.connectionProperties());
 
         PropertiesAsset appConfig = new PropertiesAsset()
-                        .addProperty(AbstractKafkaTestServlet.KAFKA_BOOTSTRAP_PROPERTY, bootstrapServers)
-                        .addProperty(KafkaSaslTestServlet.TRUSTSTORE_PASSWORD_PROPERTY, keystorePassword)
-                        .addProperty(KafkaSaslTestServlet.TEST_USER_PROPERTY, testUser)
-                        .addProperty(KafkaSaslTestServlet.TEST_SECRET_PROPERTY, testSecret)
+                        .addProperty(KafkaTestClientProvider.CONNECTION_PROPERTIES_KEY, KafkaTestClientProvider.encodeProperties(SaslPlainTests.connectionProperties()))
                         .include(incomingProperties)
                         .include(outgoingProperties)
                         .include(connectorProperties);
@@ -95,9 +80,7 @@ public class KafkaSaslPlainTest {
 
         ShrinkHelper.exportDropinAppToServer(server, war, SERVER_ONLY);
 
-        // Copy the file so it's where copyFileToLibertyServerRoot wants it to be...
-        Files.copy(SaslPlainTests.kafkaContainer.getKeystoreFile().toPath(), Paths.get(server.pathToAutoFVTTestFiles, KafkaSaslTestServlet.TRUSTSTORE_FILENAME));
-        server.copyFileToLibertyServerRoot(KafkaSaslTestServlet.TRUSTSTORE_FILENAME);
+        KafkaUtils.copyTrustStore(SaslPlainTests.kafkaContainer, server);
 
         server.startServer();
     }

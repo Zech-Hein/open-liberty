@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015,2021 IBM Corporation and others.
+ * Copyright (c) 2015,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -91,8 +93,11 @@ public class ApplicationTracker {
         }
 
         if (tasks != null)
-            for (Runnable task : tasks)
+            for (Runnable task : tasks) {
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                    Tr.debug(this, tc, "resubmitting " + task);
                 executor.submit(task);
+            }
     }
 
     /**
@@ -143,8 +148,11 @@ public class ApplicationTracker {
         }
 
         // No need to defer, the app has started
-        if (state == ApplicationState.STARTED)
+        if (state == ApplicationState.STARTED) {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                Tr.debug(this, tc, "App has started - resubmitting task");
             executor.submit(task);
+        }
     }
 
     /**

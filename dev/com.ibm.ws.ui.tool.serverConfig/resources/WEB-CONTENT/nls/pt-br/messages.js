@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ var editorMessages = {
 "ADD_CHILD": "Incluir filho",
 "REMOVE": "Remover",
 "TEST" : "Test",
-"TEST_CONNECTION": "Testar Conexão",
+"TEST_CONNECTION": "Teste de conexão",
+"TEST_CONNECTION_DESCRIPTION": "Testar a conexão",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "Salve as mudanças para testar a conexão",
 "DESCRIPTION": "Descrição",
 "PREVIOUS": "Frontal",
 "NEXT": "Avançar",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "Remover diálogo de elemento",
 "VALIDATE_DATASOURCE_DIALOG": "Validar caixa de diálogo de conexão com a origem de dados",
 "VALIDATE_DATASOURCE": "Testando a conexão com a origem de dados",
+"VALIDATE_CONNECTION_DIALOG":"Validar diálogo de conexão",
+"DEFAULT_AUTHENTICATION_ALIAS":"Autenticação padrão",
+"SPECIFY_AUTHENTICATION_ALIAS":"Especificar alias de autenticação",
+"LOGIN_CONFIG":"Configuração de login",
+"LOGIN_CONFIG_ID":"ID de configuração de login",
+"ADD_LOGIN_CONFIG_PROPERTY":"Incluir propriedade de configuração de login",
+"KEY":"Chave",
+"CHOOSE_AN_OPTION":"Escolha uma opção",
 "ENUMERATION_SELECTION_DIALOG": "Diálogo de seleção de enumeração",
 "SAVE_BEFORE_CLOSING_DIALOG": "Salvar antes de fechar diálogo",
 "ERROR_SAVING_FILE_DIALOG": "Erro ao salvar diálogo do arquivo",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "Alias de autenticação (opcional)",
 "AUTH_ALIAS": "Alias de Autenticação",
 "CONTAINER_AUTHENTICATION": "Autenticação do contêiner",
+"RESOURCE_REFERENCE": "Referência de recurso",
 "NO_RESOURCE_REFERENCE": "Nenhuma referência de recurso",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "Teste a conexão usando uma referência de recurso que se autentica com a autenticação do aplicativo.",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "Teste a conexão usando uma referência de recurso que se autentica com a autenticação do contêiner.",
+"RESOURCE_REFERENCE_IN_USE": "A autenticação de contêiner para consultas diretas está ativada. O teste de conexão usa os dados de autenticação de contêiner padrão configurados.",
+"NO_RESOURCE_REFERENCE_IN_USE": "Teste a conexão sem usar uma referência de recurso.",
 "APPLICATION_AUTHENTICATION": "Autenticação do aplicativo",
 "CUSTOM_LOGIN_MODULE": "Módulo de login customizado (opcional)",
 "LOGIN_PROPERTIES": "Propriedades de login (opcional)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "Selecione um recurso para visualizar sua descrição.",
 "SUPPORT_MESSAGE" : "A Configuração do servidor não está disponível para servidores Node.js nem servidores em um contêiner do Docker acessado por meio do controlador coletivo.",
 "NO_ROLE_MESSAGE": "O usuário não tem uma função com permissão para fazer mudanças na configuração. Os arquivos estão disponíveis em modo de somente leitura.",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "AÇÕES NECESSÁRIAS PARA MEMBROS COLETIVOS:",
 "RUN_UPDATE_HOST" : "Execute 'collective updateHost' ou 'collective registerHost' com '--hostWritePath', especificando um caminho para o qual o rpcUser tem permissões de gravação.  As credenciais válidas de host também devem ser fornecidas.",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "Crie um link para JAVA em /usr/bin. por ex.: /usr/bin/java -> [pathToJAVA]",
 "JAVA_ON_PATH" : "Inclua o JAVA para a variável de ambiente PATH.  A exportação de PATH deve ser feita em .bashrc no Linux.", 
 "MORE_INFORMATION" : "Para informações adicionais, confira: "
-
 };

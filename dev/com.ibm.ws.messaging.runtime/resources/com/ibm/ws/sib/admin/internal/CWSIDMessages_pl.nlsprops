@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2012, 2013 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -74,12 +76,6 @@
 #NLS_ENCODING=UNICODE
  
 ### Search on "TBD" for messages that need information from other components ###
- 
-# -------------------------------------------------------------------------------------------------
-# {0} Messaging engine name
-ME_INITIALIZING_SIAS0001=CWSID0001I: Trwa inicjowanie mechanizmu przesy\u0142ania komunikat\u00f3w {0}.
-ME_INITIALIZING_SIAS0001.explanation=Podany mechanizm przesy\u0142ania komunikat\u00f3w rozpoczyna proces inicjowania.
-ME_INITIALIZING_SIAS0001.useraction=Nie jest wymagana \u017cadna czynno\u015b\u0107.
  
 # -------------------------------------------------------------------------------------------------
 # {0} Internal reason string
@@ -252,7 +248,7 @@ NO_ID_PROVIDED_SIAS0102.explanation=Nie podano identyfikatora dla miejsca docelo
 NO_ID_PROVIDED_SIAS0102.useraction=Podaj identyfikator dla miejsca docelowego.
 
 # -------------------------------------------------------------------------------------------------
-NO_FILESTOR_DEFINED_SIAS0104=CWSID0104I:  W pliku konfiguracyjnym serwera nie zdefiniowano znacznika fileStore. Zostan\u0105 u\u017cyte warto\u015bci domy\u015blne.
+NO_FILESTOR_DEFINED_SIAS0104=CWSID0104I: \ W pliku konfiguracyjnym serwera nie zdefiniowano znacznika fileStore. Zostan\u0105 u\u017cyte warto\u015bci domy\u015blne.
 NO_FILESTOR_DEFINED_SIAS0104.explanation=Nie podano znacznika fileStore, dlatego podczas tworzenia sk\u0142adnicy plik\u00f3w zostan\u0105 u\u017cyte warto\u015bci domy\u015blne.   
 NO_FILESTOR_DEFINED_SIAS0104.useraction=Nie jest wymagana \u017cadna czynno\u015b\u0107.
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -105,7 +107,7 @@ public interface JMFMessage extends JMFNativePart {
    *  Return the 'lock artefact' for the JMF message:
    *    For a top-level message, the value returned is the message instance itself.
    *    For a lower-level message (i.e. one representing a Dynamic field) the value
-   *    returned is the 'master' message instance.
+   *    returned is the 'primary' message instance.
    *  The method is provided on the interface so that a caller can make state
    *  transition assumptions across calls.
    *  Added for d364050, specifically for use across  getEncodedLength() & toByteArray()

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2020 IBM Corporation and others.
+ * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,7 +15,6 @@ package com.ibm.ws.javaee.ddmodel.client;
 import java.util.Collections;
 import java.util.List;
 
-import com.ibm.ws.javaee.dd.DeploymentDescriptor;
 import com.ibm.ws.javaee.dd.client.ApplicationClient;
 import com.ibm.ws.javaee.dd.common.Description;
 import com.ibm.ws.javaee.dd.common.DisplayName;
@@ -299,13 +300,24 @@ public class ApplicationClientType extends JNDIEnvironmentRefsGroup implements A
     @Override
     public void finish(DDParser parser) throws ParseException {
         super.finish(parser);
-        if (version == null) {
-            if (parser.version < 14) {
-                version = parser.parseToken(parser.version == 12 ? "1.2" : "1.3");
-            } else {
-                throw new ParseException(parser.requiredAttributeMissing("version"));
-            }
+
+        if ( version == null ) {
+            // In all cases, not just for 1.0 and 1.1, 
+            // ensure that the local version variable is
+            // assigned.
+            //
+            // Previously, only the two DTD based formats
+            // might be missing a version attribute.
+            // Changes to enable more descriptor deviations
+            // mean that other cases might also be missing
+            // a version attribute.
+
+            // The version text is text of the version as
+            // it appears in the XML text.
+
+            version = parser.parseToken( parser.getVersionText() );
         }
+    
         this.versionId = parser.version;
         this.idMap = parser.idMap;
     }

@@ -1,15 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.cdi.impl.weld;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -23,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.inject.spi.Extension;
@@ -31,9 +37,9 @@ import org.jboss.weld.bootstrap.WeldBootstrap;
 import org.jboss.weld.bootstrap.api.ServiceRegistry;
 import org.jboss.weld.bootstrap.api.helpers.SimpleServiceRegistry;
 import org.jboss.weld.bootstrap.spi.BeanDeploymentArchive;
+import org.jboss.weld.bootstrap.spi.BeansXml;
 import org.jboss.weld.bootstrap.spi.Metadata;
 import org.jboss.weld.manager.api.ExecutorServices;
-import org.jboss.weld.probe.ProbeExtension;
 import org.jboss.weld.security.spi.SecurityServices;
 import org.jboss.weld.serialization.spi.ProxyServices;
 import org.jboss.weld.transaction.spi.TransactionServices;
@@ -52,11 +58,13 @@ import com.ibm.ws.cdi.internal.interfaces.CDIUtils;
 import com.ibm.ws.cdi.internal.interfaces.TransactionService;
 import com.ibm.ws.cdi.internal.interfaces.WebSphereBeanDeploymentArchive;
 import com.ibm.ws.cdi.internal.interfaces.WebSphereCDIDeployment;
+import com.ibm.ws.cdi.internal.interfaces.WeldDevelopmentMode;
 import com.ibm.ws.cdi.liberty.ExtensionMetaData;
 import com.ibm.wsspi.injectionengine.InjectionException;
 import com.ibm.wsspi.injectionengine.ReferenceContext;
 
 public class WebSphereCDIDeploymentImpl implements WebSphereCDIDeployment {
+
     private static final TraceComponent tc = Tr.register(WebSphereCDIDeploymentImpl.class);
 
     private final String id;
@@ -175,7 +183,7 @@ public class WebSphereCDIDeploymentImpl implements WebSphereCDIDeployment {
     }
 
     /**
-     * Get all BDAs relating only to this application. i.e. not Shared Libs or internal Runtime Extensions
+     * Get all BDAs which belong to this application. i.e. not internal Runtime Extensions
      *
      * @return all application BDAs
      */
@@ -292,9 +300,13 @@ public class WebSphereCDIDeploymentImpl implements WebSphereCDIDeployment {
      * Create the ordered list for the bdas - extension bdas first and then followed by the application bdas
      *
      */
+    @Trivial
     public void initializeOrderedBeanDeploymentArchives() {
         orderedBDAs.addAll(extensionBDAs.values());
         orderedBDAs.addAll(applicationBDAs);
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.debug(this, tc, "initializeOrderedBeanDeploymentArchives", orderedBDAs);
+        }
     }
 
     /** {@inheritDoc} */
@@ -490,43 +502,33 @@ public class WebSphereCDIDeploymentImpl implements WebSphereCDIDeployment {
                 }
             }
             //if the probe is enabled, add the probe extension
-
-            if (CDIUtils.isDevelopementMode()) {
-                extensionSet.add(getProbeExtension());
-                WebSphereBeanDeploymentArchive bda = getBeanDeploymentArchive(ProbeExtension.class);
+            WeldDevelopmentMode devMode = this.cdiRuntime.getWeldDevelopmentMode();
+            if (devMode != null) {
+                extensionSet.add(devMode.getProbeExtension());
+                WebSphereBeanDeploymentArchive bda = devMode.getProbeBDA(this);
                 extensionBDAs.put(bda.getId(), bda);
             }
 
             //Now add the extensions from the SPI.
             //Because these are not in a META-INF Service file we have to construct instances
-            //to pass to weld. 
-            Set<String> spiExtensions = new HashSet<String>();
+            //to pass to weld.
 
             for (WebSphereBeanDeploymentArchive deploymentBDA : deploymentDBAs.values()) {
-                Set<String> spiExtensionClassNames = deploymentBDA.getSPIExtensionClassNames();
+                Set<Supplier<Extension>> spiExtensionSuppliers = deploymentBDA.getSPIExtensionSuppliers();
 
-                if (spiExtensionClassNames.isEmpty()) {
+                if (spiExtensionSuppliers.isEmpty()) {
                     continue;
                 }
 
                 extensionBDAs.put(deploymentBDA.getId(), deploymentBDA);
 
-                for (String spiExtensionClazzName : spiExtensionClassNames) {
-                    Extension spiExtension = null;
-    
+                for (Supplier<Extension> spiExtensionSupplier : spiExtensionSuppliers) {
                     try {
-                        Class spiExtensionClazz = Class.forName(spiExtensionClazzName, true, deploymentBDA.getClassLoader());
-                    
-                        if (!Extension.class.isAssignableFrom(spiExtensionClazz)) {
-                            throw new IllegalArgumentException(spiExtensionClazz.getCanonicalName()
-                                                       + " was registered as an extension via the WebSphereCDIExtensionMetaData interface. But it does not implement javax.enterprise.inject.spi.Extension");
-                        }
-                    
-                        spiExtension = (Extension) spiExtensionClazz.getDeclaredConstructor().newInstance();
-                        ExtensionMetaData metaData = new ExtensionMetaData(spiExtension);
+                        Extension extension = spiExtensionSupplier.get();
+                        ExtensionMetaData metaData = new ExtensionMetaData(extension);
                         extensionSet.add(metaData);
                     } catch (Exception e) {
-                        Tr.error(tc, "spi.extension.failed.to.construct.CWOWB1010E", spiExtensionClazzName, e.toString());
+                        Tr.error(tc, "exception.creating.extensions.CWOWB1012E", deploymentBDA.toString(), e.toString());
                     }
                 }
             }
@@ -536,12 +538,6 @@ public class WebSphereCDIDeploymentImpl implements WebSphereCDIDeployment {
             extensions = extensionSet;
         }
         return extensions;
-    }
-
-    private Metadata<Extension> getProbeExtension() {
-
-        return CDIUtils.loadExtension(ProbeExtension.class.getName(), ProbeExtension.class.getClassLoader());
-
     }
 
     /** {@inheritDoc} */
@@ -602,8 +598,7 @@ public class WebSphereCDIDeploymentImpl implements WebSphereCDIDeployment {
         deploymentDBAs.put(bda.getId(), bda);
         extensionClassLoaders.add(bda.getClassLoader());
         ArchiveType type = bda.getType();
-        if (type != ArchiveType.SHARED_LIB &&
-            type != ArchiveType.RUNTIME_EXTENSION) {
+        if (type != ArchiveType.RUNTIME_EXTENSION) {
             applicationBDAs.add(bda);
         }
     }
@@ -658,7 +653,8 @@ public class WebSphereCDIDeploymentImpl implements WebSphereCDIDeployment {
         //first we need to initialize the injection service and collect the reference contexts and the injection classes
         for (WebSphereBeanDeploymentArchive bda : getApplicationBDAs()) {
             // Don't initialize child libraries, instead aggregate for the whole module
-            if (bda.getType() != ArchiveType.MANIFEST_CLASSPATH && bda.getType() != ArchiveType.WEB_INF_LIB) {
+            // No reference context for shared libs either
+            if (bda.getType() != ArchiveType.MANIFEST_CLASSPATH && bda.getType() != ArchiveType.WEB_INF_LIB && bda.getType() != ArchiveType.SHARED_LIB) {
                 ReferenceContext referenceContext = bda.initializeInjectionServices();
                 cdiReferenceContexts.add(referenceContext);
             }
@@ -726,4 +722,87 @@ public class WebSphereCDIDeploymentImpl implements WebSphereCDIDeployment {
         return this.cdi;
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public Collection<URL> getUnversionedBeansXmlURLs() {
+        Collection<URL> unversionedBeansXmlURLs = new ArrayList<URL>();
+        for (WebSphereBeanDeploymentArchive bda : getWebSphereBeanDeploymentArchives()) {
+            BeansXml beansXml = bda.getBeansXml();
+            if (beansXml == null) { //check that there is a beans.xml file
+                continue; //if there isn't then just move on to the next archive
+            }
+
+            //we're only looking for non-empty beans.xml file that do not have a version set
+            if (!isEmpty(beansXml)) {
+                //if the beans.xml was not an empty file then check if the version was set or not
+                boolean unversionedBeansXml = beansXml.getVersion() == null;
+                if (unversionedBeansXml) {
+                    URL unversionedBeansXmlURL = bda.getBeansXmlResourceURL();
+                    unversionedBeansXmlURLs.add(unversionedBeansXmlURL);
+                }
+            }
+        }
+        return unversionedBeansXmlURLs;
+    }
+
+    /**
+     * Does the given BeansXml object represent an empty file?
+     *
+     * Returns true if the given BeansXml
+     * - is the EMPTY_BEANS_XML instance
+     * OR
+     * - has a null URL
+     * OR
+     * - contains zero bytes
+     *
+     * Will return false if the file has any content, even if that content is not valid for a beans.xml file.
+     * Validity of the content is checked by Weld.
+     *
+     * @param beansXml the BeansXml instance to check
+     * @return true is it represents an empty file
+     */
+    public static boolean isEmpty(BeansXml beansXml) {
+        boolean empty = false;
+
+        //check if it was an empty beans.xml file
+        //note that this is not a well documented "feature" of the Weld SPI but it is the most direct check
+        if (beansXml == BeansXml.EMPTY_BEANS_XML) {
+            empty = true;
+        }
+
+        if (!empty) {
+            URL parsedURL = beansXml.getUrl();
+            //if the URL is null then this may mean it was an empty beans.xml file
+            //note that this may be an undocumented "feature" of the Weld SPI but if the URL is null we can't look in the original file anyway
+            if (parsedURL == null) {
+                empty = true;
+            }
+
+            if (!empty) {
+                //this is the most expensive check
+                //check if the file is really empty (zero bytes) ... just whitespace like a single space would cause Weld to complain anyway
+                InputStream is = null;
+                try {
+                    is = parsedURL.openStream();
+                    if (is.available() == 0) {
+                        //file is empty
+                        empty = true;
+                    }
+                } catch (IOException e) {
+                    //could not read the file, assume it is empty
+                    empty = true;
+                } finally {
+                    if (is != null) {
+                        try {
+                            is.close();
+                        } catch (IOException e1) {
+                            //FFDC and ignore
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty;
+    }
 }

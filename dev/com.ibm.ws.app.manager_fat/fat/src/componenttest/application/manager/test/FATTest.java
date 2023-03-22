@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018-2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -187,8 +189,11 @@ public class FATTest extends AbstractAppManagerTest {
     @Mode(TestMode.FULL)
     public void testSymbolicLinkInLooseApp() throws Exception {
         File link = new File("/bin/ln");
-        if (link.exists() && link.canExecute()) {
+        File unlink = new File("/bin/unlink");
+        if (link.exists() && link.canExecute() && unlink.exists() && unlink.canExecute()) {
             String serverRoot = server.getServerRoot();
+            String hardPath = serverRoot + "/symbolicLink/somethingelse/Classes";
+            String symPath = serverRoot + "/testWarApplication/WEB-INF/classes";
             try {
                 final String method = testName.getMethodName();
                 Log.info(c, method, "Starting test " + method);
@@ -216,8 +221,6 @@ public class FATTest extends AbstractAppManagerTest {
                                                                 serverRoot + "/symbolicLink/somethingelse"));
                 server.copyFileToLibertyServerRoot(DROPINS_FISH_DIR, "looseApplication/testWarApplication.war.xml");
 
-                String hardPath = serverRoot + "/symbolicLink/somethingelse/Classes";
-                String symPath = serverRoot + "/testWarApplication/WEB-INF/classes";
                 String[] execParameters = new String[] { "/bin/ln", "-s", hardPath, symPath };
                 Process process = Runtime.getRuntime().exec(execParameters);
                 assertEquals("Creating symbolic link didn't return 0.", 0, process.waitFor());
@@ -243,6 +246,11 @@ public class FATTest extends AbstractAppManagerTest {
                            line.contains(UPDATED_MESSAGE));
                 con.disconnect();
             } finally {
+                // Try unlinking the file. Simplicity seems to have issues with symbolic links.
+                String[] execParameters = new String[] { "/bin/unlink", symPath };
+                Process process = Runtime.getRuntime().exec(execParameters);
+                assertEquals("Removing symbolic link didn't return 0.", 0, process.waitFor());
+
                 // manually do this clean up because the stopServer command will try
                 // to collect the server as is, and will break upon looking at the
                 // symbolic links created...

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019,2020 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -47,7 +49,6 @@ import com.ibm.wsspi.uow.UOWManager;
  */
 public class TranManagerImpl {
 
-    private static final String CLASS_NAME = TranManagerImpl.class.getName();
     private static final TraceComponent TC = Tr.register(TranManagerImpl.class);
 
     private static final TranManagerImpl INSTANCE = new TranManagerImpl();
@@ -259,6 +260,22 @@ public class TranManagerImpl {
     @FFDCIgnore(SystemException.class)
     public Vote prepareTransaction(String globalId) throws WSATException {
         try {
+
+            /*
+             *
+             * Uncomment to recreate 286979
+             *
+             * Also uncomment similar code in ProtocolImpl, MultiServerTest, EndToEndClientServlet & TransactionImpl
+             *
+             * try {
+             * Thread.sleep(2000);
+             * } catch (InterruptedException e) {
+             * if (TC.isDebugEnabled()) {
+             * Tr.debug(TC, "SLEEPING IN PREPARETRANSACTION");
+             * }
+             * e.printStackTrace();
+             * }
+             */
             return getRemoteTranMgr().prepare(globalId);
         } catch (SystemException e) {
             throw new WSATException(Tr.formatMessage(TC, "TRAN_MGR_ERROR_CWLIB0205"), e);
@@ -295,7 +312,11 @@ public class TranManagerImpl {
         } catch (HeuristicHazardException e) {
             // Don't support heuristics yet
         } catch (HeuristicCommitException e) {
-            // Don't support heuristics yet
+            /*
+             * We can get here if we're in a subordinate server which has just been prepared but had no resources enlisted.
+             * Under those circumstances the transaction state is set to STATE_COMMITTED and that causes this
+             * HeuristicCommitException on rollback. We can safely ignore it. WSATRE013FVT can show this sometimes.
+             */
         } catch (HeuristicMixedException e) {
             // Don't support heuristics yet
         }

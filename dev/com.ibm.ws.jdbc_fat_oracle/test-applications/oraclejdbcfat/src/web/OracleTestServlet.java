@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2021 IBM Corporation and others.
+ * Copyright (c) 2016, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,11 +18,14 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
+import java.io.InputStream;
+import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 
@@ -31,6 +36,8 @@ import javax.transaction.UserTransaction;
 
 import org.junit.Test;
 
+import componenttest.annotation.ExpectedFFDC;
+import componenttest.annotation.SkipIfSysProp;
 import componenttest.app.FATServlet;
 import oracle.jdbc.OracleCallableStatement;
 import oracle.jdbc.OracleConnection;
@@ -69,6 +76,7 @@ public class OracleTestServlet extends FATServlet {
 
     // Verify that connections are/are not castable to OracleConnection based on whether enableConnectionCasting=true/false.
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testConnectionCasting() throws Exception {
         OracleConnection ocon = (OracleConnection) ds_casting.getConnection();
         try {
@@ -105,6 +113,7 @@ public class OracleTestServlet extends FATServlet {
     // Test for oracle.jdbc.OracleCallableStatement.getCursor.  Should be able to execute a procedure that returns a cursor
     // and use getCursor to obtain a result set.  The parent statement of the result set should be the WAS statement wrapper.
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testCursor() throws Exception {
         Connection con = ds.getConnection();
         try {
@@ -135,6 +144,7 @@ public class OracleTestServlet extends FATServlet {
     // In this test we cover specifying multiple onConnect SQL commands on a single data source,
     // the use of transactional onConnect commands, as well as the use of Liberty variables in the onConnect SQL.
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testOnConnectSQL() throws Exception {
         Connection con = ds_casting.getConnection();
         try {
@@ -157,9 +167,28 @@ public class OracleTestServlet extends FATServlet {
         }
     }
 
+    // Ensure that readOnly true throws an exception
+    @Test
+    @ExpectedFFDC({ "java.sql.SQLException" })
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
+    public void testReadOnlyException() throws Exception {
+        try (Connection con = ds.getConnection(); PreparedStatement ps = con.prepareStatement("INSERT INTO MYTABLE VALUES(?,?)");) {
+            con.setReadOnly(true);
+            ps.setInt(1, 4);
+            ps.setString(2, "four");
+            ps.executeUpdate();
+
+            fail("Should not have been able to executeUpdate with read only set to true");
+        } catch (SQLException e) {
+            assertTrue("SQLException should have contained DSRA9010E", e.getMessage().toUpperCase().contains("DSRA9010E"));
+        }
+
+    }
+
     // Test for JDBC 4.2 ref cursors.  Should be able to execute a procedure that returns a cursor
     // and use getObject to obtain a result set.  The parent statement of the result set should be the WAS statement wrapper.
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testRefCursor() throws Exception {
         Connection con = ds.getConnection();
         try {
@@ -193,6 +222,7 @@ public class OracleTestServlet extends FATServlet {
     // that returns values, obtain the return result set and use it.  The parent statement of the result set should
     // be the WAS statement wrapper.
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testReturnResultSet() throws Exception {
         Connection con = ds.getConnection();
         try {
@@ -221,6 +251,7 @@ public class OracleTestServlet extends FATServlet {
 
     // Test configured value of newly supported roleName data source property for Oracle.
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testRoleName() throws Exception {
         // First determine if we can run this test. Oracle driver for JDBC 4.2 is not compatible with Java 9+
         boolean atLeastJava9;
@@ -264,6 +295,7 @@ public class OracleTestServlet extends FATServlet {
     //Test that a datasource backed by Driver can be used with both the generic properties element and properties.oracle
     //element when type="java.sql.Driver"
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testDSUsingDriver() throws Exception {
         Connection conn = driver_ds.getConnection();
         assertFalse("driver_ds should not wrap OracleCommonDataSource", driver_ds.isWrapperFor(OracleCommonDataSource.class));
@@ -294,6 +326,7 @@ public class OracleTestServlet extends FATServlet {
     //Test that the proper implementation classes are used for the various datasources configured in this test bucket
     //since the JDBC Driver used is named so as not to be recognized by the built-in logic
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testInferOracleDataSource() throws Exception {
         //The default datasource should continue to be inferred as an XADataSource, since it has properties.oracle configured
         assertTrue("default datasource should wrap OracleXADataSource",
@@ -334,6 +367,7 @@ public class OracleTestServlet extends FATServlet {
      * Confirm that locks are not shared between transaction branches that are loosely coupled.
      */
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testTransactionBranchesLooselyCoupled() throws Exception {
         tx.begin();
         try {
@@ -355,6 +389,7 @@ public class OracleTestServlet extends FATServlet {
      * Confirm that locks are shared between transaction branches that are tightly coupled.
      */
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testTransactionBranchesTightlyCoupled() throws Exception {
         tx.begin();
         try {
@@ -370,6 +405,39 @@ public class OracleTestServlet extends FATServlet {
             }
         } finally {
             tx.commit();
+        }
+    }
+
+    @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to Db2 native driver in JDK
+    public void testBlobCreation() throws Exception {
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("/data/myDataFile.txt");) {
+
+            //First try to use setBlob
+            try (Connection con1 = ds.getConnection();
+                            PreparedStatement ps = con1.prepareStatement("INSERT INTO BLOBTABLE VALUES (?, ?)");) {
+
+                byte[] byteData = new byte[inputStream.available()];
+                inputStream.read(byteData);
+
+                Blob blob = con1.createBlob();
+                blob.setBytes(1, byteData);
+
+                ps.setInt(1, 1);
+                ps.setBlob(2, blob);
+                ps.executeUpdate();
+
+                blob.free();
+            }
+
+            //Next try to use setBinaryStream
+            try (Connection con1 = ds.getConnection();
+                            PreparedStatement ps = con1.prepareStatement("INSERT INTO BLOBTABLE VALUES (?, ?)");) {
+
+                ps.setInt(1, 2);
+                ps.setBinaryStream(2, inputStream);
+                ps.executeUpdate();
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011, 2020 IBM Corporation and others.
+# Copyright (c) 2011, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
@@ -116,11 +116,11 @@ MESSAGES_CONFIGURED_HIDDEN_2=TRAS3001I: N\u00e1sleduj\u00edc\u00ed zpr\u00e1vy j
 MESSAGES_CONFIGURED_HIDDEN_2.explanation=Zpr\u00e1vy, kter\u00e9 jsou nakonfigurovan\u00e9 jako skryt\u00e9, se nezap\u00ed\u0161\u00ed do soubor\u016f console.log a messages.log. Zap\u00ed\u0161\u00ed se do souboru trace.log. 
 MESSAGES_CONFIGURED_HIDDEN_2.useraction=Nen\u00ed pot\u0159eba \u017e\u00e1dn\u00e1 akce.
 
-MESSAGE_FORMAT_UPDATED=TRAS3002I: V\u00fdstupn\u00ed form\u00e1t souboru messages.log byl nyn\u00ed aktualizov\u00e1n na ''{0}''.
+MESSAGE_FORMAT_UPDATED=TRAS3002I: V\u00fdstupn\u00ed form\u00e1t souboru messages.log byl nyn\u00ed aktualizov\u00e1n na '{0}'.
 MESSAGE_FORMAT_UPDATED.explanation=V\u00fdstupn\u00ed form\u00e1t souboru messages.log byl nyn\u00ed aktualizov\u00e1n.
 MESSAGE_FORMAT_UPDATED.useraction=Nen\u00ed pot\u0159eba \u017e\u00e1dn\u00e1 akce.
 
-CONSOLE_FORMAT_UPDATED=TRAS3003I: V\u00fdstupn\u00ed form\u00e1t konzoly byl nyn\u00ed aktualizov\u00e1n na ''{0}''.
+CONSOLE_FORMAT_UPDATED=TRAS3003I: V\u00fdstupn\u00ed form\u00e1t konzoly byl nyn\u00ed aktualizov\u00e1n na '{0}'.
 CONSOLE_FORMAT_UPDATED.explanation=V\u00fdstupn\u00ed form\u00e1t pro konzolu byl nyn\u00ed aktualizov\u00e1n.
 CONSOLE_FORMAT_UPDATED.useraction=Nen\u00ed pot\u0159eba \u017e\u00e1dn\u00e1 akce.
 
@@ -156,9 +156,21 @@ JSON_FIELDS_INVALID_CHARACHTER=TRAS3011W: Ve vlastnosti mapov\u00e1n\u00ed n\u00
 JSON_FIELDS_INVALID_CHARACHTER.explanation= Ve vlastnosti mapov\u00e1n\u00ed n\u00e1zv\u016f pol\u00ed protokolov\u00e1n\u00ed JSON lze pou\u017e\u00edvat pouze p\u00edsmena, \u010d\u00edslice a dvojte\u010dku.
 JSON_FIELDS_INVALID_CHARACHTER.useraction= Zm\u011b\u0148te hodnotu vlastnosti mapov\u00e1n\u00ed n\u00e1zv\u016f pol\u00ed protokolov\u00e1n\u00ed JSON, aby neobsahovala neplatn\u00fd znak.
 
+LOG_ROLLOVER_START_TIME_FORMAT_WARNING=TRAS3015W: Vlastnost pro \u010das spu\u0161t\u011bn\u00ed p\u0159eto\u010den\u00ed protokolu m\u00e1 chybn\u00fd form\u00e1t. V d\u016fsledku toho je hodnota nastavena na v\u00fdchoz\u00ed hodnotu '00:00', kter\u00e1 p\u0159edstavuje p\u016flnoc.
+LOG_ROLLOVER_START_TIME_FORMAT_WARNING.explanation=Vlastnost pro \u010das spu\u0161t\u011bn\u00ed p\u0159eto\u010den\u00ed mus\u00ed b\u00fdt ve form\u00e1tu HH:MM, p\u0159i\u010dem\u017e 00:00 p\u0159edstavuje p\u016flnoc.
+LOG_ROLLOVER_START_TIME_FORMAT_WARNING.useraction=Ujist\u011bte se, \u017ee hodnota vlastnosti \u010dasu spu\u0161t\u011bn\u00ed p\u0159eto\u010den\u00ed je \u0159\u00e1dn\u011b naform\u00e1tov\u00e1na ve 24hodinov\u00e9 notaci HH:MM, kde 00:00 p\u0159edstavuje p\u016flnoc.
+
+LOG_ROLLOVER_INTERVAL_TOO_SHORT_WARNING=TRAS3013W: Interval p\u0159eto\u010den\u00ed protokolu nesm\u00ed b\u00fdt krat\u0161\u00ed ne\u017e 1 minuta. Je-li uvedena hodnota men\u0161\u00ed ne\u017e 1 minuta, interval p\u0159eto\u010den\u00ed protokolu je nastaven na v\u00fdchoz\u00ed hodnotu 1 den.
+LOG_ROLLOVER_INTERVAL_TOO_SHORT_WARNING.explanation=Interval p\u0159eto\u010den\u00ed protokolu nesm\u00ed b\u00fdt krat\u0161\u00ed ne\u017e 1 minuta.
+LOG_ROLLOVER_INTERVAL_TOO_SHORT_WARNING.useraction=Zadejte interval p\u0159eto\u010den\u00ed protokolu, kter\u00fd se rovn\u00e1 nebo je del\u0161\u00ed ne\u017e 1 minuta.
+
 JSON_ACCESS_LOG_NO_HEADER_NAME_SPECIFIED=TRAS3012W: Chyb\u00ed n\u00e1zev z\u00e1hlav\u00ed pro jedno nebo v\u00edce pol\u00ed accessLogging logFormat: {0}.
 JSON_ACCESS_LOG_NO_HEADER_NAME_SPECIFIED.explanation=Protokolov\u00e1n\u00ed JSON pou\u017e\u00edv\u00e1 atribut logFormat z accessLogging pro v\u00fdb\u011br toho, jak\u00e1 pole zpr\u00e1v http_access.log se maj\u00ed zahrnout. P\u0159i pou\u017eit\u00ed pol\u00ed %i nebo %o v atributu accessLogging logFormat mus\u00ed b\u00fdt zad\u00e1n n\u00e1zev z\u00e1hlav\u00ed.
 JSON_ACCESS_LOG_NO_HEADER_NAME_SPECIFIED.useraction=Zadejte n\u00e1zev z\u00e1hlav\u00ed pro pole v atributu accessLogging logFormat.
+
+FFDC_FILE_DELETION=TRAS3014I: Odstran\u011bno {0} soubor\u016f FFDC na z\u00e1klad\u011b konfigurovan\u00e9 hodnoty maxFfdcAge.
+FFDC_FILE_DELETION.explanation=Po\u010det soubor\u016f FFDC, kter\u00e9 byly odstran\u011bny b\u011bhem \u010di\u0161t\u011bn\u00ed FFDC.
+FFDC_FILE_DELETION.useraction=Nen\u00ed pot\u0159eba \u017e\u00e1dn\u00e1 akce.
 
 # Note: no 9999 message kept here because saving footprint space is more important
 

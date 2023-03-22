@@ -1,15 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2020 IBM Corporation and others.
+ * Copyright (c) 2009, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.ssl.internal;
 
+import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -32,6 +35,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ReferencePolicyOption;
+import org.osgi.service.component.propertytypes.SatisfyingConditionTarget;
+import org.osgi.service.condition.Condition;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
@@ -51,6 +56,8 @@ import com.ibm.ws.ssl.provider.AbstractJSSEProvider;
 import com.ibm.wsspi.kernel.service.location.WsLocationAdmin;
 import com.ibm.wsspi.kernel.service.location.WsLocationConstants;
 
+import io.openliberty.checkpoint.spi.CheckpointPhase;
+
 /**
  * Component for the SSL configuration bundle.
  */
@@ -58,6 +65,7 @@ import com.ibm.wsspi.kernel.service.location.WsLocationConstants;
            configurationPid = "com.ibm.ws.ssl.default",
            configurationPolicy = ConfigurationPolicy.REQUIRE,
            property = "service.vendor=IBM")
+@SatisfyingConditionTarget("(" + Condition.CONDITION_ID + "=" + CheckpointPhase.CONDITION_PROCESS_RUNNING_ID + ")")
 public class SSLComponent extends GenericSSLConfigService implements SSLSupportOptional {
 
     static final SecureAction priv = AccessController.doPrivileged(SecureAction.get());
@@ -93,6 +101,7 @@ public class SSLComponent extends GenericSSLConfigService implements SSLSupportO
      */
     @Activate
     protected synchronized void activate(ComponentContext ctx, Map<String, Object> properties) {
+        setTheSocketFactoryClass(LibertySSLSocketFactory.class);
         if (TraceComponent.isAnyTracingEnabled() && tc.isEventEnabled()) {
             Tr.event(tc, "Activated: " + properties);
         }
@@ -140,7 +149,25 @@ public class SSLComponent extends GenericSSLConfigService implements SSLSupportO
         AbstractJSSEProvider.clearSSLContextCache();
         processConfig(true);
         this.componentContext = null;
+        setTheSocketFactoryClass(null);
+    }
 
+    /**
+     *
+     */
+    private void setTheSocketFactoryClass(Class<?> theClazz) {
+        try {
+            Class<?> theProxyClass = ClassLoader.getSystemClassLoader().loadClass(SSLConfigManager.SOCKET_FACTORY_CLASS);
+            Field theFactoryClassField = theProxyClass.getDeclaredField("theFactoryClass");
+            theFactoryClassField.setAccessible(true);
+            theFactoryClassField.set(null, theClazz);
+        } catch (ClassNotFoundException e) {
+        } catch (NoSuchFieldException e) {
+        } catch (IllegalArgumentException e) {
+        } catch (IllegalAccessException e) {
+        }
+        // Auto FFDC is fine here
+        // TODO decide if you want to have an error message.
     }
 
     @Modified
@@ -269,7 +296,8 @@ public class SSLComponent extends GenericSSLConfigService implements SSLSupportO
      * Remove the reference to the location manager:
      * required service, do nothing.
      */
-    protected void unsetLocMgr(ServiceReference<WsLocationAdmin> ref) {}
+    protected void unsetLocMgr(ServiceReference<WsLocationAdmin> ref) {
+    }
 
     @Reference(service = FeatureProvisioner.class)
     protected synchronized void setKernelProvisioner(FeatureProvisioner provisionerService) {

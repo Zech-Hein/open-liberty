@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2003, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,6 +24,7 @@ import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.sib.exception.SIException;
 import com.ibm.websphere.sib.exception.SIResourceException;
 import com.ibm.ws.ffdc.FFDCFilter;
+import com.ibm.ws.sib.comms.server.GenericTransportAcceptListener;
 import com.ibm.ws.sib.jfapchannel.AcceptListener;
 import com.ibm.ws.sib.jfapchannel.Conversation;
 import com.ibm.ws.sib.jfapchannel.ConversationMetaData;
@@ -133,8 +136,7 @@ public class JFapInboundConnLink extends InboundApplicationLink implements MetaD
         if (acceptListener == null) {
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
                 SibTr.debug(this, tc, "null accept listener - obtaining one from factory");
-            acceptListener =
-                            ServerConnectionManagerImpl.getAcceptListenerFactory().manufactureAcceptListener();
+            acceptListener = new GenericTransportAcceptListener();
         }
 
         // begin F196678.10

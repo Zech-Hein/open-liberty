@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2011, 2021 IBM Corporation and others.
+    Copyright (c) 2011, 2023 IBM Corporation and others.
     All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
+    are made available under the terms of the Eclipse Public License 2.0
     which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    http://www.eclipse.org/legal/epl-2.0/
+    
+    SPDX-License-Identifier: EPL-2.0
    
     Contributors:
         IBM Corporation - initial API and implementation
@@ -79,11 +81,9 @@
    <Option value="rollback"                       label="%commitRollbk.rollback.desc"/>
   </AD>
   <AD id="enableBeginEndRequest"                  name="internal"      description="internal use only"  ibmui:group="Advanced" required="false" type="Boolean"/>
-  <AD id="enableBranchCouplingExtension"          name="internal"      description="internal use only"  ibmui:group="Advanced" required="false" type="Boolean"/>
   <AD id="enableConnectionCasting"                name="%enblConCast"  description="%enblConCast.desc"  ibmui:group="Advanced" type="Boolean" default="false"/>
   <AD id="heritage"                               name="internal"      description="internal use only"  ibmui:group="Advanced" required="false" type="String"  cardinality="1" ibm:type="pid" ibm:reference="com.ibm.ws.jdbc.dataSource.heritage" ibm:flat="true"/>
-  <AD id="identifyException"                      ibm:beta="true"                                       ibmui:group="Advanced" required="false" type="String"  cardinality="1000" ibm:type="pid" ibm:reference="com.ibm.ws.jdbc.dataSource.identifyException" ibm:flat="true"/>
-  <!-- TODO remove enableBranchCouplingExtension. It is temporarily used internally to switch on code path for a test case -->
+  <AD id="identifyException"                      name="%identifyException" description="%identifyException.desc" ibmui:group="Advanced" required="false" type="String"  cardinality="1000" ibm:type="pid" ibm:reference="com.ibm.ws.jdbc.dataSource.identifyException" ibm:flat="true"/>
   <AD id="onConnect"                              name="%onConnect"    description="%onConnect.desc"    ibmui:group="Advanced" required="false" type="String"  cardinality="1000"/>
   <AD id="queryTimeout"                           name="%qryTimeout"   description="%qryTimeout.desc"   ibmui:group="Advanced" required="false" type="String"  ibm:type="duration(s)"/>
   <AD id="recoveryAuthDataRef"                    name="%recoveryAuth" description="%recoveryAuth.desc" ibmui:group="Advanced" required="false" type="String"  cardinality="1" ibm:type="pid" ibm:reference="com.ibm.ws.security.jca.internal.authdata.config"/>
@@ -108,7 +108,7 @@
   <Object ocdref="com.ibm.ws.jdbc.dataSource.identifyException"/>
  </Designate>
 
- <OCD id="com.ibm.ws.jdbc.dataSource.identifyException" name="internal" description="internal use only" ibmui:localization="OSGI-INF/l10n/metatype">
+ <OCD id="com.ibm.ws.jdbc.dataSource.identifyException" name="%identifyException" description="%identifyException.desc" ibmui:localization="OSGI-INF/l10n/metatype">
   <AD id="sqlState"  required="false" type="String"  name="%identifyException.sqlState"  description="%identifyException.sqlState.desc"/>
   <AD id="errorCode" required="false" type="Integer" name="%identifyException.errorCode" description="%identifyException.errorCode.desc"/>
   <AD id="as"        required="true"  type="String"  name="%identifyException.as"        description="%identifyException.as.desc"/>
@@ -800,7 +800,7 @@
    <Option value="1" label="QUERY_CLOSE_IMPLICIT_YES"/>
    <Option value="2" label="QUERY_CLOSE_IMPLICIT_NO"/>
   </AD>
-  <AD id="queryDataSize"                          ibmui:group="Advanced" required="false" type="Integer" min="4096" max="65535" name="%queryDataSize" description="%queryDataSize.desc"/>
+  <AD id="queryDataSize"                          ibmui:group="Advanced" required="false" type="Integer" min="4096" max="10485760" name="%queryDataSize" description="%queryDataSize.desc"/>
   <AD id="queryTimeoutInterruptProcessingMode"    ibmui:group="Advanced" required="false" type="Integer" name="%queryTimeoutInterruptProcessingMode" description="%queryTimeoutInterruptProcessingMode.desc">
     <Option value="1" label="INTERRUPT_PROCESSING_MODE_STATEMENT_CANCEL"/>
     <Option value="2" label="INTERRUPT_PROCESSING_MODE_CLOSE_SOCKET"/>
@@ -1214,6 +1214,7 @@
   <AD id="authenticationScheme"               ibmui:group="Advanced" required="false" type="String"  name="%authenticationScheme" description="%authenticationScheme.desc">
    <Option value="JavaKerberos"         label="JavaKerberos"/>
    <Option value="NativeAuthentication" label="NativeAuthentication"/>
+   <Option value="NTLM"                 label="NTLM"/>
   </AD>
   <AD id="columnEncryptionSetting"            ibmui:group="Advanced" required="false" type="String"  name="%columnEncryptionSetting" description="%columnEncryptionSetting.desc">
    <Option value="Disabled" label="Disabled"/>

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c)  2020 IBM Corporation and others.
+ * Copyright (c)  2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,6 @@ import static org.junit.Assert.fail;
 import javax.annotation.PostConstruct;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.rmi.PortableRemoteObject;
 import javax.servlet.annotation.WebServlet;
 
 import com.ibm.ws.ejbcontainer.bindings.configtests.ejb.ConfigTestsLocalEJB;
@@ -142,8 +143,7 @@ public class DisableShortBndServlet extends FATServlet {
 
     private ConfigTestsRemoteEJB lookupRemoteShort(boolean shouldWork) throws Exception {
         try {
-            Object lookup = ctx.lookup("com.ibm.ws.ejbcontainer.bindings.configtests.ejb.ConfigTestsRemoteHome");
-            ConfigTestsRemoteHome home = (ConfigTestsRemoteHome) PortableRemoteObject.narrow(lookup, ConfigTestsRemoteHome.class);
+            ConfigTestsRemoteHome home = (ConfigTestsRemoteHome) ctx.lookup("com.ibm.ws.ejbcontainer.bindings.configtests.ejb.ConfigTestsRemoteHome");
             return home.create();
         } catch (NamingException e) {
             if (shouldWork) {
@@ -162,8 +162,7 @@ public class DisableShortBndServlet extends FATServlet {
     }
 
     private ConfigTestsRemoteEJB lookupRemoteLong() throws Exception {
-        Object lookup = ctx.lookup("ejb/ConfigTestsTestApp/ConfigTestsEJB.jar/ConfigTestsTestBean#com.ibm.ws.ejbcontainer.bindings.configtests.ejb.ConfigTestsRemoteHome");
-        ConfigTestsRemoteHome home = (ConfigTestsRemoteHome) PortableRemoteObject.narrow(lookup, ConfigTestsRemoteHome.class);
+        ConfigTestsRemoteHome home = (ConfigTestsRemoteHome) ctx.lookup("ejb/ConfigTestsTestApp/ConfigTestsEJB.jar/ConfigTestsTestBean#com.ibm.ws.ejbcontainer.bindings.configtests.ejb.ConfigTestsRemoteHome");
         return home.create();
     }
 

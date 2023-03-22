@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2021 IBM Corporation and others.
+ * Copyright (c) 2019, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,6 +28,7 @@ import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
+import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.ejbcontainer.remote.enventry.web.EnvEntryServlet;
 
 import componenttest.annotation.ExpectedFFDC;
@@ -38,6 +41,7 @@ import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.custom.junit.runner.RepeatTestFilter;
 import componenttest.rules.repeater.EE8FeatureReplacementAction;
 import componenttest.rules.repeater.FeatureReplacementAction;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
@@ -56,13 +60,13 @@ public class BadApplicationTests extends AbstractTest {
     }
 
     @ClassRule
-    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.remote.fat.BadAppServer")).andWith(FeatureReplacementAction.EE8_FEATURES().forServers("com.ibm.ws.ejbcontainer.remote.fat.BadAppServer")).andWith(FeatureReplacementAction.EE9_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.remote.fat.BadAppServer"));
+    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.remote.fat.BadAppServer")).andWith(FeatureReplacementAction.EE8_FEATURES().forServers("com.ibm.ws.ejbcontainer.remote.fat.BadAppServer")).andWith(FeatureReplacementAction.EE9_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.remote.fat.BadAppServer")).andWith(FeatureReplacementAction.EE10_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.remote.fat.BadAppServer"));
 
     private static Set<String> installedApps;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        eeVersion = JakartaEE9Action.isActive() ? "EE9" : RepeatTestFilter.isRepeatActionActive(EE8FeatureReplacementAction.ID) ? "EE8" : "";
+        eeVersion = JakartaEE10Action.isActive() ? "EE10" : JakartaEE9Action.isActive() ? "EE9" : RepeatTestFilter.isRepeatActionActive(EE8FeatureReplacementAction.ID) ? "EE8" : "";
 
         // Use ShrinkHelper to build the Ears & Wars
 
@@ -192,13 +196,20 @@ public class BadApplicationTests extends AbstractTest {
                     "javax.ejb.EJBException", "com.ibm.ejs.container.ContainerException",
                     "com.ibm.ejs.container.EJBConfigurationException", "com.ibm.ws.container.service.state.StateChangeException" })
     public void testApplicationExceptionExtendsThrowable() throws Exception {
+        Log.info(this.getClass(), "testApplicationExceptionExtendsThrowable", "os.name : " + System.getProperty("os.name", "unknown").toLowerCase());
         server.setMarkToEndOfLog();
         server.saveServerConfiguration();
         server.setServerConfigurationFile("ExtendsThrowable" + eeVersion + ".xml");
         server.waitForStringInLogUsingMark("CWWKG0016I", 240 * 1000); // Starting server configuration update.
         server.waitForConfigUpdateInLogUsingMark(installedApps);
-        assertNotNull(server.waitForStringInLogUsingMark("CNTR5107E"));
-        assertNotNull(server.waitForStringInLogUsingMark("CWWKZ0106E"));
+        assertNotNull(server.waitForStringInLogUsingMark("CNTR5107E")); // must subclass exception
+        assertNotNull(server.waitForStringInLogUsingMark("CNTR0075E")); // class (wrapper) not loaded
+        assertNotNull(server.waitForStringInLogUsingMark("CNTR4006E")); // bean failed to start
+        assertNotNull(server.waitForStringInLogUsingMark("CNTR0190E")); // startup singleton failed to initialize
+        assertNotNull(server.waitForStringInLogUsingMark("CWWKZ0106E")); // could not start web application
+        assertNotNull(server.waitForStringInLogUsingMark("CWWKZ0002E")); // exception starting application
+        // Generating this file on some windows systems can take awhile; wait for it before restoring configuration
+        assertNotNull(server.waitForStringInLogUsingMark("SRVE9103I"), 240 * 1000); // config file for web server plugin generated
         server.setMarkToEndOfLog();
         server.restoreServerConfiguration();
         server.waitForStringInLogUsingMark("CWWKG0016I", 240 * 1000); // Starting server configuration update.

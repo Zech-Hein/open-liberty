@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,6 +20,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -33,6 +37,7 @@ import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.FeatureSet;
 import componenttest.rules.repeater.MicroProfileActions;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
@@ -45,8 +50,16 @@ public class ConfiguredJAXRSCDITest {
 
     private static final String SERVER_NAME = "MPServer";
 
+    //Get a RepeatTests instance for all MP versions that have mpConfig. MP41 will be run in LITE mode. The others will be run in FULL.
+    public static RepeatTests repeatAllWithConfig() {
+        Set<FeatureSet> others = new HashSet<>(MicroProfileActions.ALL);
+        others.remove(MicroProfileActions.MP41);
+        others.remove(MicroProfileActions.MP10); //Does not contain mpConfig
+        return MicroProfileActions.repeat(SERVER_NAME, MicroProfileActions.MP41, others);
+    }
+
     @ClassRule
-    public static RepeatTests r = MicroProfileActions.repeatAllWithConfig(SERVER_NAME);
+    public static RepeatTests r = repeatAllWithConfig();
 
     @Server(SERVER_NAME)
     public static LibertyServer server;

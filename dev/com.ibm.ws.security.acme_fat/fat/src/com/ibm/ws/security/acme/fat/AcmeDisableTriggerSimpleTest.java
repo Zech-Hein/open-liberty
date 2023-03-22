@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -59,7 +61,7 @@ import componenttest.topology.impl.LibertyServer;
  */
 @RunWith(FATRunner.class)
 @Mode(TestMode.FULL)
-@SkipForRepeat(SkipForRepeat.EE9_FEATURES) // No value added
+@SkipForRepeat({SkipForRepeat.EE9_FEATURES, SkipForRepeat.EE10_FEATURES}) // No value added
 public class AcmeDisableTriggerSimpleTest {
 	
 	@Server("com.ibm.ws.security.acme.fat.trigger")
@@ -244,7 +246,7 @@ public class AcmeDisableTriggerSimpleTest {
 			 * Start the server. The domain2.com domain will fail to validate.
 			 * 
 			 **********************************************************************/
-			Log.info(AcmeSimpleTest.class, testName.getMethodName(), "Starting server.");
+			Log.info(AcmeDisableTriggerSimpleTest.class, testName.getMethodName(), "Starting server.");
 			server.startServer();
 			server.waitForStringInLog("CWPKI2001E.*authorization challenge failed for the domain2.com domain");
 			AcmeFatUtils.waitForSslEndpoint(server);

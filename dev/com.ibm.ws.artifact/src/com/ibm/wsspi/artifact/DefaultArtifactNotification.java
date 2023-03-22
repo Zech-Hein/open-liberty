@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,19 +34,19 @@ public class DefaultArtifactNotification implements ArtifactNotification {
      * <li> !/META-INF <em>(the /META-INF directory and its immediate children)</em>
      * <li> !/ <em>(the container itself, and entries directly on its root.)</em>
      * </ul>
-     * 
-     * @param root the container to check the paths against. Must not be null.
+     *
+     * @param root  the container to check the paths against. Must not be null.
      * @param paths the collection of paths to check. Must not be null.
      * @throws IllegalArgumentException if either argument is null.
      */
     public DefaultArtifactNotification(ArtifactContainer root, Collection<String> paths) {
         super();
         if (root == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Null root");
         }
         this.root = root;
         if (paths == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Null paths");
         }
         this.paths = paths;
     }

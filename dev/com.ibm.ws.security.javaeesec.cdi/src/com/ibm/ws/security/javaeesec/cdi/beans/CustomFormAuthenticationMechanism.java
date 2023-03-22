@@ -1,16 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.security.javaeesec.cdi.beans;
 
-import java.util.Hashtable;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -32,8 +33,6 @@ import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.security.javaeesec.JavaEESecConstants;
-import com.ibm.ws.webcontainer.security.WebAppSecurityConfig;
-import com.ibm.wsspi.security.token.AttributeNameConstants;
 
 @Default
 @ApplicationScoped
@@ -84,8 +83,7 @@ public class CustomFormAuthenticationMechanism implements HttpAuthenticationMech
                     status = AuthenticationStatus.SEND_CONTINUE;
                 }
             } else {
-                boolean newAuth = authParams.isNewAuthentication();
-                status = handleFormLogin(cred, newAuth == true ? null : httpMessageContext.getResponse(), clientSubject, httpMessageContext);
+                status = handleFormLogin(cred, clientSubject, httpMessageContext);
             }
         }
         return status;
@@ -106,7 +104,7 @@ public class CustomFormAuthenticationMechanism implements HttpAuthenticationMech
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private AuthenticationStatus handleFormLogin(@Sensitive Credential credential, HttpServletResponse rsp, Subject clientSubject,
+    private AuthenticationStatus handleFormLogin(@Sensitive Credential credential, Subject clientSubject,
                                                  HttpMessageContext httpMessageContext) throws AuthenticationException {
         AuthenticationStatus status = utils.handleAuthenticate(getCDI(), JavaEESecConstants.DEFAULT_REALM, credential, clientSubject, httpMessageContext);
         int rspStatus;
@@ -119,12 +117,11 @@ public class CustomFormAuthenticationMechanism implements HttpAuthenticationMech
             // set SC_OK, since if the target is not protected, it'll be processed.
             rspStatus = HttpServletResponse.SC_OK;
         } else {
+            httpMessageContext.responseUnauthorized();
             rspStatus = HttpServletResponse.SC_UNAUTHORIZED;
             // TODO: Audit invalid user or password
         }
-        if (rsp != null) {
-            rsp.setStatus(rspStatus);
-        }
+        httpMessageContext.getResponse().setStatus(rspStatus);
         return status;
     }
 

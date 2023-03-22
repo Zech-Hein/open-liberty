@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2021 IBM Corporation and others.
+ * Copyright (c) 2012, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -172,6 +174,8 @@ import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 import com.ibm.wsspi.kernel.service.utils.OnErrorUtil.OnError;
 import com.ibm.wsspi.kernel.service.utils.ServerQuiesceListener;
 
+import io.openliberty.checkpoint.spi.CheckpointPhase;
+
 @Component(service = { ApplicationStateListener.class, DeferredMetaDataFactory.class, EJBRuntimeImpl.class, ServerQuiesceListener.class },
            configurationPid = "com.ibm.ws.ejbcontainer.runtime",
            configurationPolicy = ConfigurationPolicy.REQUIRE,
@@ -254,6 +258,33 @@ public class EJBRuntimeImpl extends AbstractEJBRuntime implements ApplicationSta
     private static final String BIND_TO_JAVA_GLOBAL = "bindToJavaGlobal";
     private static final String DISABLE_SHORT_DEFAULT_BINDINGS = "disableShortDefaultBindings";
     private static final String CUSTOM_BINDINGS_ON_ERROR = "customBindingsOnError";
+
+    private final CheckpointPhase checkpointPhase;
+
+    public EJBRuntimeImpl() {
+        checkpointPhase = CheckpointPhase.getPhase();
+
+        // For any Checkpoint phase, pause all non-persistent timers until checkpoint restored
+        if (!checkpointPhase.restored()) {
+            TimerNpRunnable.pause();
+        }
+    }
+
+    @Reference(service = CheckpointPhase.class, //
+               target = "(" + CheckpointPhase.CHECKPOINT_RESTORED_PROPERTY + "=true)", //
+               cardinality = ReferenceCardinality.OPTIONAL, //
+               policy = ReferencePolicy.DYNAMIC, //
+               unbind = "ignoreCheckpointRestored")
+    protected final void checkpointRestored(ServiceReference<?> checkpoint) {
+        // Resume all non-persistent timers on checkpoint restore
+        if (checkpointPhase != CheckpointPhase.INACTIVE) {
+            TimerNpRunnable.resume();
+        }
+    }
+
+    protected final void ignoreCheckpointRestored(ServiceReference<?> checkpoint) {
+        // we really don't care about this, but needed to avoid compile errors
+    }
 
     @Override
     public void serverStopping() {
@@ -1681,6 +1712,28 @@ public class EJBRuntimeImpl extends AbstractEJBRuntime implements ApplicationSta
                 remoteLatch.countDown();
             }
         }
+    }
+
+    /**
+     * Determines if application start should optimize for checkpoint after all configured applications
+     * have been identified, but before any application code has been called.
+     *
+     * @return true if application start should optimize for checkpoint deployment; false otherwise.
+     */
+    @Override
+    public boolean isCheckpointDeployment() {
+        return CheckpointPhase.DEPLOYMENT == checkpointPhase;
+    }
+
+    /**
+     * Determines if application start should optimize for checkpoint after all configured applications
+     * have started.
+     *
+     * @return true if application start should optimize for checkpoint applications; false otherwise.
+     */
+    @Override
+    public boolean isCheckpointApplications() {
+        return CheckpointPhase.APPLICATIONS == checkpointPhase;
     }
 
     @Override

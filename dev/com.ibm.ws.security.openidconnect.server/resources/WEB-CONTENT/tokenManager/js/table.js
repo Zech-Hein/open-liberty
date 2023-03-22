@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -443,13 +445,13 @@ var table = (function() {
 
         // $.when executes a callback based on zero or more Thenable objects.  Pass all the deferreds
         // assembled above for each authentication deletion requested as an array to .when.  A
-        // "Master" deferred object will be created to track the state of all deferreds passed in the
-        // array.  The "Master" deferred resolves when all the deferreds in our delDeferreds
+        // "Primary" deferred object will be created to track the state of all deferreds passed in the
+        // array.  The "Primary" deferred resolves when all the deferreds in our delDeferreds
         // resolve, or fails as soon as ONE of the delDeferreds fails.  Therefore, any failures in
         // apiUtils.deleteSelectedAppPasswordsTokens() will be RESOLVED, not REJECTED, and an object
         // tracking which request failed will be returned with the response so a proper error message
         // can be returned.
-        // Create a "Master" deferred to track the the state of all the deferreds it was passed...
+        // Create a "Primary" deferred to track the the state of all the deferreds it was passed...
         $.when.apply($, delDeferreds).then(function() {
             // The args passed to the done callback provide the resolved values for each of the
             // deferreds and matches the order the deferreds were passed to .when().  A deferred

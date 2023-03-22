@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -16,10 +18,12 @@ import java.util.List;
 import org.joda.time.Instant;
 
 import com.ibm.websphere.simplicity.log.Log;
+import com.ibm.ws.security.fat.common.utils.AutomationTools;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.ValidationData.validationData;
 import com.meterware.httpunit.GetMethodWebRequest;
 import com.meterware.httpunit.HttpException;
 import com.meterware.httpunit.WebConversation;
+import com.meterware.httpunit.WebRequest;
 import com.meterware.httpunit.WebResponse;
 
 public class DiscoveryUtils {
@@ -32,7 +36,7 @@ public class DiscoveryUtils {
     public static CommonValidationTools validationTools = new CommonValidationTools();
 
     // wait up to 20 seconds for discovery to be ready
-    public static void waitForDiscoveryToBeReady(TestSettings settings) throws Exception {
+    public static void waitForOPDiscoveryToBeReady(TestSettings settings) throws Exception {
 
         msgUtils.printMethodName("waitForDiscoveryToBeReady");
 
@@ -50,6 +54,7 @@ public class DiscoveryUtils {
                 msg = "The discovery endpoint appears to be working properly";
             } catch (Exception e) {
                 Log.info(thisClass, "waitForDiscoveryToBeReady", e.toString());
+                helpers.testSleep(1);
             }
             nowTime = new Instant().getMillis();
         }
@@ -57,9 +62,34 @@ public class DiscoveryUtils {
         msgUtils.printMethodName("waitForDiscoveryToBeReady");
     }
 
+    public static void waitForRPDiscoveryToBeReady(TestSettings testSettings) throws Exception {
+
+        String thisMethod = "waitForRPDiscoveryToBeReady";
+        int maxAttempts = 5;
+        int tryNum = 1;
+
+        while (tryNum <= maxAttempts) {
+            WebConversation wc = new WebConversation();
+            WebRequest request = new GetMethodWebRequest(testSettings.getTestURL());
+            WebResponse response = wc.getResponse(request);
+            msgUtils.printResponseParts(response, thisMethod, "Response when trying to use Discovered Server settings: ");
+
+            int status = AutomationTools.getResponseStatusCode(response);
+            if (status == Constants.OK_STATUS) {
+                Log.info(thisClass, thisMethod, "Was able to to use one of the OpenidConnect clients discovery data");
+                break;
+            } else {
+                Log.info(thisClass, thisMethod, "Discovery does not appear to be ready yet - try #" + tryNum);
+                helpers.testSleep(5); // sleep 5 seconds before the next attempt
+                tryNum++;
+            }
+        }
+
+    }
+
     public static void invokeDiscovery(WebConversation wc, TestSettings settings, String action, List<validationData> expectations) throws Exception {
 
-        com.meterware.httpunit.WebRequest request = null;
+        WebRequest request = null;
         WebResponse response = null;
         String thisMethod = "invokeDiscovery";
 

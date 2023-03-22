@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -44,7 +46,7 @@ public class SessionIdleTimeout implements Runnable {
         //no action. session timeout is infinite. 
         if (maxIdleTimeout < 1) {
             if (tc.isDebugEnabled()) {
-                Tr.debug(tc, "Session idle timeout is default which is no time out");
+                Tr.debug(tc, "Session timeout " + maxIdleTimeout + " is less than 1. No timeout enabled.");
             }
             return;
         }

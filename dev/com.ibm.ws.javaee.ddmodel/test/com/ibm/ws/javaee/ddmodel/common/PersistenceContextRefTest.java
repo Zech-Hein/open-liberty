@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,11 +24,11 @@ import com.ibm.ws.javaee.dd.common.PersistenceContextRef;
 import com.ibm.ws.javaee.dd.common.Property;
 import com.ibm.ws.javaee.ddmodel.DDParser;
 
-public class PersistenceContextRefTest extends JNDIEnvironmentRefsTestBase {
+public class PersistenceContextRefTest extends CommonTestBase {
     @Test
     public void testDefault() throws Exception {
         String xml = "<persistence-context-ref>" +
-                     "  <persistence-context-ref-name>name0</persistence-context-ref-name>" +
+                         "<persistence-context-ref-name>name0</persistence-context-ref-name>" +
                      "</persistence-context-ref>";
         PersistenceContextRef o = parse(xml).getPersistenceContextRefs().get(0);
         Assert.assertEquals(Arrays.asList(), o.getDescriptions());
@@ -42,41 +44,41 @@ public class PersistenceContextRefTest extends JNDIEnvironmentRefsTestBase {
     @Test(expected = DDParser.ParseException.class)
     public void testSynchronizationEJB31() throws Exception {
         parseEJB31("<persistence-context-ref>" +
-                   "  <persistence-context-ref-name>name0</persistence-context-ref-name>" +
-                   "  <persistence-context-synchronization>Synchronized</persistence-context-synchronization>" +
+                       "<persistence-context-ref-name>name0</persistence-context-ref-name>" +
+                       "<persistence-context-synchronization>Synchronized</persistence-context-synchronization>" +
                    "</persistence-context-ref>");
     }
 
     @Test
     public void testAll() throws Exception {
         String xml = "<persistence-context-ref>" +
-                     "  <description>desc0</description>" +
-                     "  <description>desc1</description>" +
-                     "  <persistence-context-ref-name>name0</persistence-context-ref-name>" +
-                     "  <persistence-context-type>Transaction</persistence-context-type>" +
-                     "  <persistence-context-synchronization>Synchronized</persistence-context-synchronization>" +
-                     "  <persistence-property>" +
-                     "    <name>prop0</name>" +
-                     "    <value>value0</value>" +
-                     "  </persistence-property>" +
-                     "  <persistence-property>" +
-                     "    <name>prop1</name>" +
-                     "    <value>value1</value>" +
-                     "  </persistence-property>" +
-                     "  <mapped-name>mn0</mapped-name>" +
-                     "  <injection-target>" +
-                     "    <injection-target-class>itc0</injection-target-class>" +
-                     "    <injection-target-name>itn0</injection-target-name>" +
-                     "  </injection-target>" +
-                     "  <injection-target>" +
-                     "    <injection-target-class>itc1</injection-target-class>" +
-                     "    <injection-target-name>itn1</injection-target-name>" +
-                     "  </injection-target>" +
+                         "<description>desc0</description>" +
+                         "<description>desc1</description>" +
+                         "<persistence-context-ref-name>name0</persistence-context-ref-name>" +
+                         "<persistence-context-type>Transaction</persistence-context-type>" +
+                         "<persistence-context-synchronization>Synchronized</persistence-context-synchronization>" +
+                         "<persistence-property>" +
+                             "<name>prop0</name>" +
+                             "<value>value0</value>" +
+                         "</persistence-property>" +
+                         "<persistence-property>" +
+                             "<name>prop1</name>" +
+                             "<value>value1</value>" +
+                         "</persistence-property>" +
+                         "<mapped-name>mn0</mapped-name>" +
+                         "<injection-target>" +
+                             "<injection-target-class>itc0</injection-target-class>" +
+                             "<injection-target-name>itn0</injection-target-name>" +
+                         "</injection-target>" +
+                         "<injection-target>" +
+                             "<injection-target-class>itc1</injection-target-class>" +
+                             "<injection-target-name>itn1</injection-target-name>" +
+                         "</injection-target>" +
                      "</persistence-context-ref>" +
                      "<persistence-context-ref>" +
-                     "  <persistence-context-ref-name>name0</persistence-context-ref-name>" +
-                     "  <persistence-context-type>Extended</persistence-context-type>" +
-                     "  <persistence-context-synchronization>Unsynchronized</persistence-context-synchronization>" +
+                         "<persistence-context-ref-name>name0</persistence-context-ref-name>" +
+                         "<persistence-context-type>Extended</persistence-context-type>" +
+                         "<persistence-context-synchronization>Unsynchronized</persistence-context-synchronization>" +
                      "</persistence-context-ref>";
         List<PersistenceContextRef> os = parse(xml).getPersistenceContextRefs();
         PersistenceContextRef o = os.get(0);

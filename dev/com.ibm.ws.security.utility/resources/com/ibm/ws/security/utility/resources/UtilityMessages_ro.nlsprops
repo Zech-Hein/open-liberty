@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2010 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -87,6 +89,17 @@ encode.option-desc.custom.description=\n\
 # The following message is shown when there is no custom password
 # encryption is enabled.
 no.custom.encyption=Criptarea de parol\u0103 personalizat\u0103 nu este detectat\u0103.
+
+# The following messages are for retrieving an encryption key from a 
+# SAF keyring.
+saf.label.does.not.exist=Eticheta {0} nu exist\u0103 \u00een inelul de chei {1}. Nu s-a putut g\u0103si o cheie valid\u0103 pentru criptarea parolei AES.
+saf.cert.is.not.key=Certificatul {0} nu este o intrare de cheie. Certificatul trebuie s\u0103 fie o intrare de cheie pentru a-l putea folosi ca o cheie de criptare parol\u0103 AES.
+saf.cert.expired=Certificatul {0} a expirat \u015fi nu poate fi folosit ca o cheie de criptare parol\u0103 AES.
+saf.keyring.does.not.exist=Depozitul de chei {0} nu exist\u0103. Nu poate fi extras niciun certificat din depozitul de chei pentru a fi folosit ca \u015fi cheia de criptare parol\u0103 AES.
+saf.arg.not.onZ=Argumentele --keyring, --keyringType \u015fi --keyLabel pot fi folosite doar pe z/OS.
+saf.arg.not.aes=Argumentele --keyring, --keyringType \u015fi --keyLabel pot fi folosite doar cu codificarea AES. 
+
+
 
 
 #------------------------------\n at 72 chars -- leading tab-----------\n\#

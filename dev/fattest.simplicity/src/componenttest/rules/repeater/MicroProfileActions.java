@@ -1,22 +1,29 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package componenttest.rules.repeater;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import componenttest.custom.junit.runner.Mode.TestMode;
-import componenttest.rules.repeater.EERepeatTests.EEVersion;
+import componenttest.rules.repeater.RepeatActions.EEVersion;
+import componenttest.topology.impl.JavaInfo;
 
 public class MicroProfileActions {
 
@@ -201,14 +208,29 @@ public class MicroProfileActions {
                                                           "restfulWSClient-3.0",
                                                           "jsonb-2.0",
                                                           "jsonp-2.0",
-                                                          "mpConfig-3.0" };
-//                                                          "mpFaultTolerance-4.0",
-//                                                          "mpHealth-4.0",
-//                                                          "mpJwt-2.0",
-//                                                          "mpMetrics-4.0",
-//                                                          "mpOpenAPI-3.0",
-//                                                          "mpOpenTracing-3.0",
-//                                                          "mpRestClient-3.0" };
+                                                          "mpConfig-3.0",
+                                                          "mpFaultTolerance-4.0",
+                                                          "mpHealth-4.0",
+                                                          "mpJwt-2.0",
+                                                          "mpOpenAPI-3.0",
+                                                          "mpMetrics-4.0",
+                                                          "mpOpenTracing-3.0",
+                                                          "mpRestClient-3.0" };
+
+    private static final String[] MP60_FEATURES_ARRAY = { "microProfile-6.0",
+                                                          "cdi-4.0",
+                                                          "restfulWS-3.1",
+                                                          "restfulWSClient-3.1",
+                                                          "jsonb-3.0",
+                                                          "jsonp-2.1",
+                                                          "mpConfig-3.0",
+                                                          "mpFaultTolerance-4.0",
+                                                          "mpHealth-4.0",
+                                                          "mpJwt-2.1",
+                                                          "mpOpenAPI-3.1",
+                                                          "mpMetrics-5.0",
+                                                          "mpTelemetry-1.0",
+                                                          "mpRestClient-3.0" };
 
     private static final Set<String> MP10_FEATURE_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(MP10_FEATURES_ARRAY)));
     private static final Set<String> MP12_FEATURE_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(MP12_FEATURES_ARRAY)));
@@ -223,6 +245,7 @@ public class MicroProfileActions {
     private static final Set<String> MP40_FEATURE_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(MP40_FEATURES_ARRAY)));
     private static final Set<String> MP41_FEATURE_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(MP41_FEATURES_ARRAY)));
     private static final Set<String> MP50_FEATURE_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(MP50_FEATURES_ARRAY)));
+    private static final Set<String> MP60_FEATURE_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(MP60_FEATURES_ARRAY)));
 
     //The FeatureSet IDs. Since these will be used as the RepeatAction IDs, they can also be used in annotations such as @SkipForRepeat
     public static final String MP10_ID = EE7FeatureReplacementAction.ID + "_MicroProfile_10";
@@ -238,6 +261,7 @@ public class MicroProfileActions {
     public static final String MP40_ID = EE8FeatureReplacementAction.ID + "_MicroProfile_40";
     public static final String MP41_ID = EE8FeatureReplacementAction.ID + "_MicroProfile_41";
     public static final String MP50_ID = JakartaEE9Action.ID + "_MicroProfile_50";
+    public static final String MP60_ID = JakartaEE10Action.ID + "_MicroProfile_60";
 
     //The MicroProfile FeatureSets
     public static final FeatureSet MP10 = new FeatureSet(MP10_ID, MP10_FEATURE_SET, EEVersion.EE7);
@@ -253,13 +277,13 @@ public class MicroProfileActions {
     public static final FeatureSet MP40 = new FeatureSet(MP40_ID, MP40_FEATURE_SET, EEVersion.EE8);
     public static final FeatureSet MP41 = new FeatureSet(MP41_ID, MP41_FEATURE_SET, EEVersion.EE8);
     public static final FeatureSet MP50 = new FeatureSet(MP50_ID, MP50_FEATURE_SET, EEVersion.EE9);
+    public static final FeatureSet MP60 = new FeatureSet(MP60_ID, MP60_FEATURE_SET, EEVersion.EE10);
 
-    //The FeatureSet for the latest MicrotProfile version
-    public static final FeatureSet LATEST = MP41;
-
-    //All MicroProfile FeatureSets
-    private static final FeatureSet[] ALL_SETS_ARRAY = { MP10, MP12, MP13, MP14, MP20, MP21, MP22, MP30, MP32, MP33, MP40, MP41, MP50 };
+    //All MicroProfile FeatureSets, needs to be in order for repeat(String, TestMode, Set, FeatureSet, Set)
+    private static final FeatureSet[] ALL_SETS_ARRAY = { MP10, MP12, MP13, MP14, MP20, MP21, MP22, MP30, MP32, MP33, MP40, MP41, MP50, MP60 };
     public static final Set<FeatureSet> ALL = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(ALL_SETS_ARRAY)));
+
+    //TODO: These feature sets are only used by the EE Compatibility Tests and don't make sense in other contexts. We should move them to those tests.
 
     private static final String[] STANDALONE8_FEATURES_ARRAY = { "mpContextPropagation-1.0",
                                                                  "mpContextPropagation-1.2",
@@ -269,50 +293,27 @@ public class MicroProfileActions {
                                                                  "mpReactiveMessaging-1.0",
                                                                  "mpReactiveStreams-1.0" };
 
-    private static final String[] STANDALONE9_FEATURES_ARRAY = { "mpContextPropagation-1.3" };
-//                                                                 "mpGraphQL-2.0",
-//                                                                 "mpLRA-2.0",
-//                                                                 "mpLRACoordinator-2.0",
-//                                                                 "mpReactiveMessaging-3.0",
-//                                                                 "mpReactiveStreams-2.0" };
+    private static final String[] STANDALONE9_FEATURES_ARRAY = { "mpContextPropagation-1.3",
+                                                                 "mpGraphQL-2.0" };
+
+    private static final String[] STANDALONE10_FEATURES_ARRAY = { "mpContextPropagation-1.3",
+                                                                  "mpGraphQL-2.0" };
 
     private static final Set<String> STANDALONE8_FEATURE_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(STANDALONE8_FEATURES_ARRAY)));
     private static final Set<String> STANDALONE9_FEATURE_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(STANDALONE9_FEATURES_ARRAY)));
+    private static final Set<String> STANDALONE10_FEATURE_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(STANDALONE10_FEATURES_ARRAY)));
 
     public static final String STANDALONE8_ID = EE8FeatureReplacementAction.ID + "_STANDALONE";
     public static final String STANDALONE9_ID = JakartaEE9Action.ID + "_STANDALONE";
+    public static final String STANDALONE10_ID = JakartaEE10Action.ID + "_STANDALONE";
 
     public static final FeatureSet MP_STANDALONE8 = new FeatureSet(STANDALONE8_ID, STANDALONE8_FEATURE_SET, EEVersion.EE8);
     public static final FeatureSet MP_STANDALONE9 = new FeatureSet(STANDALONE9_ID, STANDALONE9_FEATURE_SET, EEVersion.EE9);
+    public static final FeatureSet MP_STANDALONE10 = new FeatureSet(STANDALONE10_ID, STANDALONE10_FEATURE_SET, EEVersion.EE10);
 
     //All MicroProfile Standalone FeatureSets
-    private static final FeatureSet[] ALL_STANDALONE_SETS_ARRAY = { MP_STANDALONE8, MP_STANDALONE9 };
+    private static final FeatureSet[] ALL_STANDALONE_SETS_ARRAY = { MP_STANDALONE8, MP_STANDALONE9, MP_STANDALONE10 };
     public static final Set<FeatureSet> STANDALONE_ALL = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(ALL_STANDALONE_SETS_ARRAY)));
-
-    /**
-     * Get a RepeatTests instance for all MP versions. The LATEST will be run in LITE mode. The others will be run in FULL.
-     *
-     * @param  server The server to repeat on
-     * @return        a RepeatTests instance
-     */
-    public static RepeatTests repeatAll(String server) {
-        Set<FeatureSet> others = new HashSet<>(ALL);
-        others.remove(LATEST);
-        return repeat(server, TestMode.FULL, ALL, LATEST, others);
-    }
-
-    /**
-     * Get a RepeatTests instance for all MP versions that have mpConfig. The LATEST will be run in LITE mode. The others will be run in FULL.
-     *
-     * @param  server The server to repeat on
-     * @return        a RepeatTests instance
-     */
-    public static RepeatTests repeatAllWithConfig(String server) {
-        Set<FeatureSet> others = new HashSet<>(ALL);
-        others.remove(LATEST);
-        others.remove(MP10); //Does not contain mpConfig
-        return repeat(server, TestMode.FULL, ALL, LATEST, others);
-    }
 
     /**
      * Get a RepeatTests instance for the given FeatureSets. The first FeatureSet will be run in LITE mode. The others will be run in FULL.
@@ -367,15 +368,12 @@ public class MicroProfileActions {
      * @return                          A RepeatTests instance
      */
     public static RepeatTests repeat(String server, TestMode otherFeatureSetsTestMode, FeatureSet firstFeatureSet, FeatureSet... otherFeatureSets) {
-        return repeat(server, otherFeatureSetsTestMode, ALL, firstFeatureSet, otherFeatureSets);
+        return repeat(server, otherFeatureSetsTestMode, ALL, firstFeatureSet, Arrays.asList(otherFeatureSets));
     }
 
     /**
-     * Get a RepeatTests instance for the given FeatureSets. The first FeatureSet will be run in LITE mode. The others will be run in the mode specified by
-     * otherFeatureSetsTestMode.
-     *
-     * This method is only intended to be used when extending MicroProfileActions to add in additional FeatureSets. Those additional FeatureSets should be
-     * combined with the ALL set and passed in as allFeatureSets.
+     * As {@link RepeatActions#repeat(String, TestMode, Set, FeatureSet, Set)} except that if {@code firstFeatureSet} isn't compatible with the current Java version, we try to
+     * replace it with the newest set from {@code otherFeatureSets} that is compatible.
      *
      * @param  server                   The server to repeat on
      * @param  otherFeatureSetsTestMode The test mode to run the otherFeatureSets
@@ -384,69 +382,31 @@ public class MicroProfileActions {
      * @param  otherFeatureSets         The other FeatureSets to repeat with. These are in the mode specified by otherFeatureSetsTestMode
      * @return                          A RepeatTests instance
      */
-    public static RepeatTests repeat(String server, TestMode otherFeatureSetsTestMode, Set<FeatureSet> allFeatureSets, FeatureSet firstFeatureSet, FeatureSet... otherFeatureSets) {
-        Set<FeatureSet> others = new HashSet<>(Arrays.asList(otherFeatureSets));
-        return repeat(server, otherFeatureSetsTestMode, allFeatureSets, firstFeatureSet, others);
-    }
+    private static RepeatTests repeat(String server, TestMode otherFeatureSetsTestMode, Set<FeatureSet> allFeatureSets, FeatureSet firstFeatureSet,
+                                      Collection<FeatureSet> otherFeatureSets) {
 
-    /**
-     * Get a RepeatTests instance for the given FeatureSets. The first FeatureSet will be run in LITE mode. The others will be run in the mode specified by
-     * otherFeatureSetsTestMode.
-     *
-     * This method is only intended to be used when extending MicroProfileActions to add in additional FeatureSets. Those additional FeatureSets should be
-     * combined with the ALL set and passed in as allFeatureSets.
-     *
-     * @param  server                   The server to repeat on
-     * @param  otherFeatureSetsTestMode The test mode to run the otherFeatureSets
-     * @param  allFeatureSets           All known FeatureSets. The features not in the current FeatureSet are removed from the repeat
-     * @param  firstFeatureSet          The first FeatureSet to repeat with. This is run in LITE mode.
-     * @param  otherFeatureSets         The other FeatureSets to repeat with. These are in the mode specified by otherFeatureSetsTestMode
-     * @return                          A RepeatTests instance
-     */
-    public static RepeatTests repeat(String server, TestMode otherFeatureSetsTestMode, Set<FeatureSet> allFeatureSets, FeatureSet firstFeatureSet,
-                                     Set<FeatureSet> otherFeatureSets) {
-        RepeatTests r = RepeatTests.with(forFeatureSet(allFeatureSets, firstFeatureSet, server, TestMode.LITE));
-        for (FeatureSet other : otherFeatureSets) {
-            r = r.andWith(forFeatureSet(allFeatureSets, other, server, otherFeatureSetsTestMode));
-        }
-        return r;
-    }
+        // If the firstFeatureSet requires a Java level higher than the one we're running, try to find a suitable replacement so we don't end up not running the test at all in LITE mode
+        int currentJavaLevel = JavaInfo.forCurrentVM().majorVersion();
+        if (currentJavaLevel < firstFeatureSet.getEEVersion().getMinJavaLevel()) {
 
-    /**
-     * Get a FeatureReplacementAction instance for a given FeatureSet. It will be run in the mode specified.
-     *
-     * @param  allFeatureSets All known FeatureSets. The features not in the specified FeatureSet are removed from the repeat action
-     * @param  featureSet     The first FeatureSet to repeat with. This is run in LITE mode.
-     * @param  server         The server to repeat on
-     * @param  testMode       The test mode to run the FeatureSet
-     * @return                A FeatureReplacementAction instance
-     */
-    public static FeatureReplacementAction forFeatureSet(Set<FeatureSet> allFeatureSets, FeatureSet featureSet, String server, TestMode testMode) {
-        FeatureReplacementAction action = null;
-        EEVersion eeVersion = featureSet.getEEVersion();
-        if (eeVersion == EEVersion.EE7)
-            action = new EE7FeatureReplacementAction();
-        else if (eeVersion == EEVersion.EE8)
-            action = new EE8FeatureReplacementAction();
-        else if (eeVersion == EEVersion.EE9)
-            action = new JakartaEE9Action();
-        else
-            action = new FeatureReplacementAction();
-        action.addFeatures(featureSet.getFeatures());
-        for (FeatureSet featureSetToRemove : allFeatureSets) {
-            if (!featureSetToRemove.equals(featureSet)) {
-                action.removeFeatures(featureSetToRemove.getFeatures());
+            List<FeatureSet> allSetsList = new ArrayList<>(Arrays.asList(ALL_SETS_ARRAY));
+            Collections.reverse(allSetsList); // Reverse list so newest MP version is first in list
+
+            Collection<FeatureSet> candidateFeatureSets = otherFeatureSets;
+
+            // Find the newest MP feature set that's in otherFeatureSets and is compatible with the current java version
+            Optional<FeatureSet> newestSupportedSet = allSetsList.stream()
+                            .filter(s -> candidateFeatureSets.contains(s))
+                            .filter(s -> s.getEEVersion().getMinJavaLevel() <= currentJavaLevel)
+                            .findFirst();
+
+            if (newestSupportedSet.isPresent()) {
+                firstFeatureSet = newestSupportedSet.get();
+                otherFeatureSets = new ArrayList<>(otherFeatureSets);
+                otherFeatureSets.remove(newestSupportedSet.get());
             }
         }
-        action.forceAddFeatures(false);
-        action.withID(featureSet.getID());
-
-        if (server != null) {
-            action.forServers(server);
-        }
-        if (testMode != null) {
-            action.withTestMode(testMode);
-        }
-        return action;
+        return RepeatActions.repeat(server, otherFeatureSetsTestMode, allFeatureSets, firstFeatureSet, otherFeatureSets);
     }
+
 }

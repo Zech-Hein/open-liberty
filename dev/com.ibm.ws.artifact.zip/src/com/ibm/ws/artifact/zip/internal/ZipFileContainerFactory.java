@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011,2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -66,7 +68,7 @@ public class ZipFileContainerFactory implements ArtifactContainerFactoryHelper, 
     public synchronized BundleContext getBundleContext() {
         if ( bundleContext == null ) {
             // TODO: Why throw this?
-            throw new IllegalStateException();
+            throw new IllegalStateException("Null bundle context");
         }
         return bundleContext;
     }
@@ -110,7 +112,7 @@ public class ZipFileContainerFactory implements ArtifactContainerFactoryHelper, 
     @Override
     public synchronized ArtifactContainerFactory getContainerFactory() {
         if ( rootContainerFactory == null ) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Null root container factory");
         }
         return rootContainerFactory;
     }
@@ -167,7 +169,7 @@ public class ZipFileContainerFactory implements ArtifactContainerFactoryHelper, 
     @Override
     public ZipCachingService getZipCachingService() {
         if ( zipCachingService == null ) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Null zip caching service");
         }
         return zipCachingService;
     }
@@ -458,7 +460,7 @@ public class ZipFileContainerFactory implements ArtifactContainerFactoryHelper, 
             }
 
         } catch ( FileNotFoundException e ) {
-            Tr.error(tc, "Missing zip file " + file.getAbsolutePath());
+            Tr.error(tc, "missing.zip.file", file.getAbsolutePath());
             return false;
 
         } finally {

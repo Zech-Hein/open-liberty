@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2019 IBM Corporation and others.
+ * Copyright (c) 2011, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -80,7 +82,7 @@ public class TokenManagerImpl implements TokenManager {
     public SingleSignonToken createSSOToken(Map<String, Object> tokenData) throws TokenCreationFailedException {
         try {
             TokenService tokenService = getTokenServiceForType(ssoTokenType);
-            SingleSignonTokenImpl ssoToken = new SingleSignonTokenImpl(tokenService);
+            SingleSignonTokenImpl ssoToken = new SingleSignonTokenImpl(tokenService, ssoTokenType);
             Token ssoLtpaToken = tokenService.createToken(tokenData);
             ssoToken.initializeToken(ssoLtpaToken);
             return ssoToken;
@@ -94,7 +96,7 @@ public class TokenManagerImpl implements TokenManager {
     public SingleSignonToken createSSOToken(Token token) throws TokenCreationFailedException {
         try {
             TokenService tokenService = getTokenServiceForType(ssoTokenType);
-            SingleSignonTokenImpl ssoToken = new SingleSignonTokenImpl(tokenService);
+            SingleSignonTokenImpl ssoToken = new SingleSignonTokenImpl(tokenService, ssoTokenType);
             ssoToken.initializeToken(token);
             return ssoToken;
         } catch (IllegalArgumentException e) {

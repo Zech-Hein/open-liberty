@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -123,10 +125,8 @@ public class ApacheKDCforSPNEGO extends ApacheDSandKDC {
         String methodName = "createSpnegoSPNEntry";
         Log.info(c, methodName, "Creating KDC user entries");
 
-        session = kdcServer.getDirectoryService().getAdminSession();
-
         // spnego HTTP service
-        Entry entry = new DefaultEntry(session.getDirectoryService().getSchemaManager());
+        Entry entry = new DefaultEntry(getDirectoryService().getSchemaManager());
         entry.setDn(spnegoUserDN);
         entry.add("objectClass", "top", "person", "inetOrgPerson", "krb5principal", "krb5kdcentry");
         entry.add("cn", "HTTP");
@@ -135,7 +135,7 @@ public class ApacheKDCforSPNEGO extends ApacheDSandKDC {
         entry.add("userPassword", SPN_PASSWORD);
         entry.add("krb5PrincipalName", SPN);
         entry.add("krb5KeyVersionNumber", "0");
-        session.add(entry);
+        getDirectoryService().getAdminSession().add(entry);
 
         Log.info(c, methodName, "Created " + entry.getDn());
     }

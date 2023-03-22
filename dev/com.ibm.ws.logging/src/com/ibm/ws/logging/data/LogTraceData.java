@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -46,8 +48,8 @@ public class LogTraceData extends GenericData {
                                                 LogFieldConstants.PRODUCT,
                                                 LogFieldConstants.COMPONENT,
                                                 LogFieldConstants.IBM_SEQUENCE,
-                                                LogFieldConstants.THROWABLE,
-                                                LogFieldConstants.THROWABLE_LOCALIZED,
+                                                LogFieldConstants.IBM_STACKTRACE,
+                                                LogFieldConstants.IBM_STACKTRACE_LOCALIZED,
                                                 LogFieldConstants.MESSAGE,
                                                 LogFieldConstants.FORMATTEDMSG,
                                                 LogFieldConstants.EXTENSIONS_KVPL,
@@ -55,7 +57,8 @@ public class LogTraceData extends GenericData {
                                                 LogFieldConstants.HOST,
                                                 LogFieldConstants.IBM_USERDIR,
                                                 LogFieldConstants.IBM_SERVERNAME,
-                                                LogFieldConstants.TYPE
+                                                LogFieldConstants.TYPE,
+                                                LogFieldConstants.IBM_EXCEPTIONNAME
     };
 
     private final static String[] NAMES_LC = {
@@ -74,8 +77,8 @@ public class LogTraceData extends GenericData {
                                                LogFieldConstants.PRODUCT,
                                                LogFieldConstants.COMPONENT,
                                                LogFieldConstants.SEQUENCE,
-                                               LogFieldConstants.THROWABLE,
-                                               LogFieldConstants.THROWABLE_LOCALIZED,
+                                               LogFieldConstants.STACKTRACE,
+                                               LogFieldConstants.STACKTRACE_LOCALIZED,
                                                LogFieldConstants.MESSAGE,
                                                LogFieldConstants.FORMATTEDMSG,
                                                LogFieldConstants.EXTENSIONS_KVPL,
@@ -83,7 +86,8 @@ public class LogTraceData extends GenericData {
                                                LogFieldConstants.HOSTNAME,
                                                LogFieldConstants.WLPUSERDIR,
                                                LogFieldConstants.SERVERNAME,
-                                               LogFieldConstants.TYPE
+                                               LogFieldConstants.TYPE,
+                                               LogFieldConstants.EXCEPTIONNAME
     };
 
     public static String[] MESSAGE_NAMES_JSON = {
@@ -102,8 +106,8 @@ public class LogTraceData extends GenericData {
                                                   LogFieldConstants.PRODUCT,
                                                   LogFieldConstants.COMPONENT,
                                                   LogFieldConstants.IBM_SEQUENCE,
-                                                  LogFieldConstants.THROWABLE,
-                                                  LogFieldConstants.THROWABLE_LOCALIZED,
+                                                  LogFieldConstants.IBM_STACKTRACE,
+                                                  LogFieldConstants.IBM_STACKTRACE_LOCALIZED,
                                                   LogFieldConstants.MESSAGE,
                                                   LogFieldConstants.FORMATTEDMSG,
                                                   LogFieldConstants.EXTENSIONS_KVPL,
@@ -111,7 +115,8 @@ public class LogTraceData extends GenericData {
                                                   LogFieldConstants.HOST,
                                                   LogFieldConstants.IBM_USERDIR,
                                                   LogFieldConstants.IBM_SERVERNAME,
-                                                  LogFieldConstants.TYPE
+                                                  LogFieldConstants.TYPE,
+                                                  LogFieldConstants.IBM_EXCEPTIONNAME
     };
 
     public static String[] TRACE_NAMES_JSON = {
@@ -130,8 +135,8 @@ public class LogTraceData extends GenericData {
                                                 LogFieldConstants.PRODUCT,
                                                 LogFieldConstants.COMPONENT,
                                                 LogFieldConstants.IBM_SEQUENCE,
-                                                LogFieldConstants.THROWABLE,
-                                                LogFieldConstants.THROWABLE_LOCALIZED,
+                                                LogFieldConstants.IBM_STACKTRACE,
+                                                LogFieldConstants.IBM_STACKTRACE_LOCALIZED,
                                                 LogFieldConstants.MESSAGE,
                                                 LogFieldConstants.FORMATTEDMSG,
                                                 LogFieldConstants.EXTENSIONS_KVPL,
@@ -139,7 +144,8 @@ public class LogTraceData extends GenericData {
                                                 LogFieldConstants.HOST,
                                                 LogFieldConstants.IBM_USERDIR,
                                                 LogFieldConstants.IBM_SERVERNAME,
-                                                LogFieldConstants.TYPE
+                                                LogFieldConstants.TYPE,
+                                                LogFieldConstants.IBM_EXCEPTIONNAME
     };
 
     private static NameAliases jsonLoggingNameAliasesMessages = new NameAliases(MESSAGE_NAMES_JSON);
@@ -170,7 +176,7 @@ public class LogTraceData extends GenericData {
     }
 
     public LogTraceData() {
-        super(21);
+        super(26);
     }
 
     private void setPair(int index, String s) {
@@ -205,12 +211,13 @@ public class LogTraceData extends GenericData {
     public void setProduct(String s)                 { setPair(12, s);    }
     public void setComponent(String s)               { setPair(13, s);    }
     public void setSequence(String s)                { setPair(14, s);    }
-    public void setThrowable(String s)               { setPair(15, s);    }
-    public void setThrowableLocalized(String s)      { setPair(16, s);    }
+    public void setStackTrace(String s)              { setPair(15, s);    }
+    public void setStackTraceLocalized(String s)     { setPair(16, s);    }
     public void setMessage(String s)                 { setPair(17, s);    }
     public void setFormattedMsg(String s)            { setPair(18, s);    }
     public void setExtensions(KeyValuePairList kvps) { setPair(19, kvps); }
     public void setObjectId(int i)                   { setPair(20, i);    }
+    public void setExceptionName(String s)           { setPair(25, s);    }
     //@formatter:on
 
     public static String getDatetimeKey(int format, boolean isMessageEvent) {
@@ -273,11 +280,11 @@ public class LogTraceData extends GenericData {
         return isMessageEvent ? nameAliasesMessages[format].aliases[14] : nameAliasesTrace[format].aliases[14];
     }
 
-    public static String getThrowableKey(int format, boolean isMessageEvent) {
+    public static String getStackTraceKey(int format, boolean isMessageEvent) {
         return isMessageEvent ? nameAliasesMessages[format].aliases[15] : nameAliasesTrace[format].aliases[15];
     }
 
-    public static String getThrowableLocalizedKey(int format, boolean isMessageEvent) {
+    public static String getStackTraceLocalizedKey(int format, boolean isMessageEvent) {
         return isMessageEvent ? nameAliasesMessages[format].aliases[16] : nameAliasesTrace[format].aliases[16];
     }
 
@@ -325,6 +332,10 @@ public class LogTraceData extends GenericData {
 
     }
 
+    public static String getExceptionNameKey(int format, boolean isMessageEvent) {
+        return isMessageEvent ? nameAliasesMessages[format].aliases[25] : nameAliasesTrace[format].aliases[25];
+    }
+
     //@formatter:off
     public long getDatetime() { return getLongValue(0); }
     public String getMessageId() {
@@ -367,6 +378,7 @@ public class LogTraceData extends GenericData {
     public String getFormattedMsg()         { return getStringValue(18); }
     public KeyValuePairList getExtensions() { return getValues(19);      }
     public int getObjectId()                { return getIntValue(20);    }
+    public String getExceptionName()        { return getStringValue(25);    }
     //@formatter:on
 
     public void setRawSequenceNumber(long l) {

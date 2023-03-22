@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,10 +21,10 @@ import javax.el.ELContext;
 import javax.el.ELResolver;
 import javax.inject.Inject;
 
-import com.ibm.ws.jsf23.fat.cdi.common.beans.TestCustomBean;
 import com.ibm.ws.jsf23.fat.cdi.common.beans.injected.FieldBean;
 import com.ibm.ws.jsf23.fat.cdi.common.beans.injected.ManagedBeanType;
 import com.ibm.ws.jsf23.fat.cdi.common.beans.injected.MethodBean;
+import com.ibm.ws.jsf23.fat.cdi.common.beans.jsf23.TestCustomBean;
 
 /**
  * Custom EL resolver that tests field and method injection. No constructor injection.
@@ -67,9 +69,17 @@ public class CustomELResolver extends ELResolver {
     @Override
     public Object getValue(ELContext context, Object base, Object property) {
         System.out.println("CustomELResolver:getValue() base = " + base + ", property = " + property);
+
+        boolean className40Found = false;
         String outcome = null;
+        String className = "com.ibm.ws.jsf23.fat.cdi.common.beans.jsf23.TestCustomBean";
+        String classNameFaces40 = "com.ibm.ws.jsf23.fat.cdi.common.beans.faces40.TestCustomBean";
+
         if (base != null) {
-            if (base != null && base.getClass().getName().equals("com.ibm.ws.jsf23.fat.cdi.common.beans.TestCustomBean")) {
+            String baseClassName = base.getClass().getName();
+            className40Found = baseClassName.equals(classNameFaces40);
+
+            if (baseClassName.equals(className) || className40Found) {
                 //System.out.println("CustomELResolver:getValue() match found");
 
                 outcome = ":CustomELResolver:";
@@ -80,14 +90,23 @@ public class CustomELResolver extends ELResolver {
                     outcome += ":FieldInjectionFailed:";
                 }
 
-                if (_methodBean == null)
+                if (_methodBean == null) {
                     outcome += ":MethodInjectionFailed:";
-                else
+                } else {
                     outcome += _methodBean.getData();
+                }
 
-                ((TestCustomBean) base).setData(outcome);
+                if (className40Found) {
+                    ((com.ibm.ws.jsf23.fat.cdi.common.beans.faces40.TestCustomBean) base).setData(outcome);
+                } else {
+                    ((TestCustomBean) base).setData(outcome);
+                }
 
-                outcome = ((TestCustomBean) base).getData();
+                if (className40Found) {
+                    outcome = ((com.ibm.ws.jsf23.fat.cdi.common.beans.faces40.TestCustomBean) base).getData();
+                } else {
+                    outcome = ((TestCustomBean) base).getData();
+                }
 
                 context.setPropertyResolved(true);
             }

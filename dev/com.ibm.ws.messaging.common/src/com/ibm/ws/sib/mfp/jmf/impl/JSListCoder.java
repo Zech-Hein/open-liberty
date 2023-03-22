@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -168,7 +170,7 @@ public final class JSListCoder implements JSCoder {
   }
 
   /**
-   * A method to sanity check a 32 bit length value read from the message prior to allocating
+   * A method to evaluate a 32 bit length value read from the message prior to allocating
    * storage based on the value.  The length is not allowed to be negative or to exceed
    * the length of the remaining portion of the message's frame, assuming that the length
    * field is immediately followed by the data whose length it is.
@@ -178,13 +180,13 @@ public final class JSListCoder implements JSCoder {
    * @param offset the offset in the frame at which the length value was read.  This is
    * assumed to be four bytes long and immediately followed by the data whose length is
    * supposedly given by the length parameter.
-   * @exception MessageCorruptionException if the sanity check fails
+   * @exception MessageCorruptionException if the evaluation fails
    */
-  public static void sanityCheck(int length, byte[] frame, int offset) throws JMFMessageCorruptionException {
+  public static void evaluateMessageLength(int length, byte[] frame, int offset) throws JMFMessageCorruptionException {
     if (length < 0 || offset + 4 + length > frame.length) {
       JMFMessageCorruptionException jmce =  new JMFMessageCorruptionException(
           "Bad length: " + HexUtil.toString(new int[] { length }) + " at offset " + offset);
-      FFDCFilter.processException(jmce, "com.ibm.ws.sib.mfp.jmf.impl.JSListCoder.sanityCheck", "160", Integer.valueOf(length),
+      FFDCFilter.processException(jmce, "com.ibm.ws.sib.mfp.jmf.impl.JSListCoder.consistencyCheck", "160", Integer.valueOf(length),
           new Object[] { MfpConstants.DM_BUFFER, frame, Integer.valueOf(0), Integer.valueOf(frame.length) });
       throw jmce;
     }

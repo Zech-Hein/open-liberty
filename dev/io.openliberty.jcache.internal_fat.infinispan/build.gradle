@@ -1,0 +1,232 @@
+/*******************************************************************************
+ * Copyright (c) 2021, 2022 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *******************************************************************************/
+
+apply from: '../wlp-gradle/subprojects/maven-central-mirror.gradle'
+
+/*
+ * The Infinispan version should match that in InfinispanContainer.
+ */
+def infinispanVersion = '13.0.10.Final'      
+
+/* 
+ * This is where all application JARs will be built.
+ */
+def appBuildDir = "${buildDir}/test-application"
+
+configurations {
+  infinispan_jcache_remote
+  infinispan_client_hotrod
+}
+
+dependencies {
+  requiredLibs project(':com.ibm.ws.com.meterware.httpunit.1.7'),
+               project(':com.ibm.ws.org.apache.httpcomponents'),
+               project(':com.ibm.ws.security.common'),
+               project(':com.ibm.ws.webcontainer.security_test.servlets'),
+               project(':io.openliberty.jcache.internal_fat.hazelcast'),
+               project(':io.openliberty.org.apache.commons.codec'),
+               project(':io.openliberty.org.apache.commons.logging'),
+               project(':com.ibm.ws.security.wim.adapter.ldap_fat.krb5.1'),
+               project(':com.ibm.ws.security.spnego.fat.common'),
+               project(':com.ibm.ws.security.jaas.common'),
+               'jtidy:jtidy:4aug2000r7-dev',
+               'rhino:js:1.6R5',
+               'net.sourceforge.htmlunit:htmlunit:2.59.0'
+
+  infinispan_jcache_remote "org.infinispan:infinispan-jcache-remote:${infinispanVersion}"
+  infinispan_client_hotrod "org.infinispan:infinispan-client-hotrod:${infinispanVersion}"
+}
+
+addRequiredLibraries.dependsOn copyTestContainers
+addRequiredLibraries.dependsOn addJakartaTransformer
+
+task addInfinispanToSharedDir(type: Copy) {
+  from configurations.infinispan_jcache_remote
+  into new File(autoFvtDir, 'publish/shared/resources/infinispan')
+}
+
+
+/******************************************************************
+ ******************************************************************
+ **
+ ** providerinapp.war
+ **
+ ******************************************************************
+ ******************************************************************/
+task ProviderInApp_WAR(type: War, dependsOn: classes) {
+  destinationDir file("${appBuildDir}")
+  archiveName "providerinapp.war"
+  
+  from('test-applications/providerinapp/resources') {
+    include '**/*'
+  }
+  
+  webInf {
+  	from ('build/classes/java/main') {
+    	include 'web/providerinapp/*.class' 
+    	into 'classes'
+    }
+  }
+
+  webInf {
+    from configurations.infinispan_client_hotrod {
+      into 'lib'
+    }
+  }
+  
+  manifest {
+    attributes("Class-Path": configurations.infinispan_client_hotrod.collect { it.getName() }.join(' '))
+  }
+}
+
+/******************************************************************
+ ******************************************************************
+ **
+ ** Assemble all of the custom build artifacts.
+ **
+ ******************************************************************
+ ******************************************************************/
+assemble {
+
+  dependsOn ProviderInApp_WAR
+    
+}
+
+addRequiredLibraries {
+  dependsOn addInfinispanToSharedDir
+}
+
+
+autoFVT.dependsOn ':com.ibm.ws.webcontainer.security_test.servlets:assemble'
+autoFVT.dependsOn ':io.openliberty.jcache.internal_fat.hazelcast:assemble'
+autoFVT.dependsOn ':com.ibm.ws.security.saml.sso_fat.common:samlclient_WAR'
+autoFVT.dependsOn ':com.ibm.ws.security.oauth.oidc_fat.common:helloworld_war_ZIP'
+autoFVT.doLast {
+  /*
+   * Copy the basicauth.war into test servers.
+   */
+  def servers = [
+    'io.openliberty.jcache.internal.fat.auth.cache.1',
+    'io.openliberty.jcache.internal.fat.auth.cache.2',
+    'io.openliberty.jcache.internal.fat.auth.cache.failure.1',
+    'io.openliberty.jcache.internal.fat.auth.cache.failure.2',
+    'io.openliberty.jcache.internal.fat.delete.auth.cache.1',
+    'io.openliberty.jcache.internal.fat.delete.auth.cache.2',
+    'io.openliberty.jcache.internal.fat.jwt.auth.cache.1',
+    'io.openliberty.jcache.internal.fat.jwt.auth.cache.2',
+    'io.openliberty.jcache.internal.fat.spnego.auth.cache.1',
+    'io.openliberty.jcache.internal.fat.auth.cache.restart.1',
+    'io.openliberty.jcache.internal.fat.auth.cache.restart.2',
+    'io.openliberty.jcache.internal.fat.dynamicupdate.1',
+  ]
+  servers.each { server ->
+    copy { 
+      from new File(project(':com.ibm.ws.webcontainer.security_test.servlets').buildDir, 'test-application/basicauth.zip')
+      into new File(autoFvtDir, 'publish/servers/' + server + '/apps')
+      rename 'basicauth.zip', 'basicauth.war'
+    }
+  }
+  
+  /*
+   * Copy the formlogin.war into test servers.
+   */
+  servers = [
+    'io.openliberty.jcache.internal.fat.jwt.cookie.cache.1',
+    'io.openliberty.jcache.internal.fat.jwt.cookie.cache.2',
+    'io.openliberty.jcache.internal.fat.ltpa.cookie.cache.1',
+    'io.openliberty.jcache.internal.fat.ltpa.cookie.cache.2',
+    'io.openliberty.jcache.internal.fat.ltpa.cookie.cache.restart.1',
+    'io.openliberty.jcache.internal.fat.ltpa.cookie.cache.restart.2',
+  ]
+  servers.each { server ->    copy { 
+      from new File(project(':com.ibm.ws.webcontainer.security_test.servlets').buildDir, 'test-application/formlogin.zip')
+      into new File(autoFvtDir, 'publish/servers/' + server + '/apps')
+      rename 'formlogin.zip', 'formlogin.war'
+    }
+  }
+  
+  /*
+   * Copy the subjectcast.war into test servers.
+   */
+  servers = [
+    'io.openliberty.jcache.internal.fat.auth.cache.casting.1',
+    'io.openliberty.jcache.internal.fat.auth.cache.casting.2'
+  ]
+  servers.each { server ->
+    copy { 
+      from new File(project(':io.openliberty.jcache.internal_fat.hazelcast').buildDir, 'test-application/subjectcast.war')
+      into new File(autoFvtDir, 'publish/servers/' + server + '/apps')
+    }
+  }
+  
+  /*
+   * Copy the CustomLoginModule.jar into the shared resources directory.
+   */
+  copy { 
+    from new File(project(':io.openliberty.jcache.internal_fat.hazelcast').buildDir, 'test-application/CustomLoginModule.jar')
+    into new File(autoFvtDir, 'publish/shared/resources/libs/')
+  }
+  
+  /*
+   * Copy the samlclient.war into test servers.
+   */
+  servers = [
+    'io.openliberty.jcache.internal.fat.saml.auth.cache.1',
+    'io.openliberty.jcache.internal.fat.saml.auth.cache.2',
+  ]
+  servers.each { server ->
+    copy { 
+      from new File(project(':com.ibm.ws.security.saml.sso_fat.common').buildDir, 'test-application/samlclient.war')
+      into new File(autoFvtDir, 'publish/servers/' + server + '/apps')
+    }
+  }
+  
+  /*
+   * Copy the helloworld.war into test servers.
+   */
+  servers = [
+    'io.openliberty.jcache.internal.fat.oauth20.auth.cache.1',
+    'io.openliberty.jcache.internal.fat.oauth20.auth.cache.2',
+    'io.openliberty.jcache.internal.fat.oidcclient.auth.cache.1',
+    'io.openliberty.jcache.internal.fat.oidcclient.auth.cache.2',
+    'io.openliberty.jcache.internal.fat.oidclogin.auth.cache.1',
+    'io.openliberty.jcache.internal.fat.oidclogin.auth.cache.2',
+  ]
+  servers.each { server ->
+    copy { 
+      from new File(project(':com.ibm.ws.security.oauth.oidc_fat.common').buildDir, "test-application/helloworld.war.zip")
+      into new File(autoFvtDir, "publish/servers/" + server + '/apps')
+      rename 'helloworld.war.zip', 'helloworld.war'
+    }
+  }
+  
+  /*
+   * Copy the providerinapp.war into test servers.
+   */
+  servers = [
+    'io.openliberty.jcache.internal.fat.provider.in.app.1'
+  ]
+  servers.each { server ->
+    copy { 
+      from new File(buildDir, 'test-application/providerinapp.war')
+      into new File(autoFvtDir, 'publish/servers/' + server + '/apps')
+    }
+  }
+
+  /*
+   * htmlunit-2.44.0 is packaged automatically, we need to remove it so we can use
+   * htmlunit-2.59.0 as it contains a fix for "SameSite" cookies.
+   */
+  delete new File(autoFvtDir, 'lib/htmlunit-2.44.0.jar')
+  delete new File(autoFvtDir, 'lib/com.ibm.ws.org.apache.commons.lang3.jar')
+}

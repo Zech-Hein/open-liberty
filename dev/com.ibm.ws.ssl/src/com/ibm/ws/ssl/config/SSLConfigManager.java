@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2021 IBM Corporation and others.
+ * Copyright (c) 2007, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -67,8 +69,8 @@ public class SSLConfigManager {
         static final SSLConfigManager INSTANCE = new SSLConfigManager();
     }
 
-    private final String SOCKET_FACTORY_PROP = "ssl.SocketFactory.provider";
-    private final String SOCKET_FACTORY_CLASS = "com.ibm.ws.kernel.boot.security.SSLSocketFactoryProxy";
+    private static final String SOCKET_FACTORY_PROP = "ssl.SocketFactory.provider";
+    public static final String SOCKET_FACTORY_CLASS = "com.ibm.ws.kernel.boot.security.SSLSocketFactoryProxy";
 
     private boolean isServerProcess = false;
     private boolean transportSecuritySet = false;
@@ -85,6 +87,13 @@ public class SSLConfigManager {
     private final OutboundSSLSelections outboundSSL = new OutboundSSLSelections();
 
     private Map<String, String> aliasPIDs = null; // map LDAP ssl ref, example com.ibm.ws.ssl.repertoire_102 to LDAPSettings. Issue 876
+
+    //get the protocolHelper
+    private final ProtocolHelper protocolHelper = new ProtocolHelper();
+
+    // Unsaved cfgs due to error
+    private static final List<String> unSavedCfgs = new ArrayList<>();
+    private static boolean messageIssued = false;
 
     /**
      * Private constructor, use getInstance().
@@ -164,18 +173,26 @@ public class SSLConfigManager {
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
             Tr.debug(tc, "initializeSSL on " + alias, properties);
 
-        SSLConfig config = parseSSLConfig(properties, true);
+        try {
+            SSLConfig config = parseSecureSocketLayer(properties, true);
 
-        if (config != null && config.requiredPropertiesArePresent()) {
-            config.setProperty(Constants.SSLPROP_ALIAS, alias);
-            config.decodePasswords();
+            if (config != null && config.requiredPropertiesArePresent()) {
+                config.setProperty(Constants.SSLPROP_ALIAS, alias);
+                config.decodePasswords();
 
-            addSSLConfigToMap(alias, config);
-        }
+                addSSLConfigToMap(alias, config);
+                if (unSavedCfgs.contains(alias))
+                    unSavedCfgs.remove(alias);
+            }
 
-        if (transportSecurityEnabled) {
-            Set<String> newConnectionInfo = new HashSet<String>(); // will remove later
-            outboundSSL.loadOutboundConnectionInfo(alias, properties, newConnectionInfo);
+            if (transportSecurityEnabled) {
+                Set<String> newConnectionInfo = new HashSet<String>(); // will remove later
+                outboundSSL.loadOutboundConnectionInfo(alias, properties, newConnectionInfo);
+            }
+        } catch (Exception e) {
+            unSavedCfgs.add(alias);
+            Tr.error(tc, "ssl.protocol.error.CWPKI0833E", new Object[] { alias });
+            throw e;
         }
 
     }
@@ -215,6 +232,11 @@ public class SSLConfigManager {
         if (defaultSSLConfig != null)
             JSSEProviderFactory.getInstance(null).setServerDefaultSSLContext(defaultSSLConfig);
         else {
+            String defaultAlias = getGlobalProperty(Constants.SSLPROP_DEFAULT_ALIAS);
+            if (unSavedCfgs.contains(defaultAlias) && !messageIssued) {
+                Tr.error(tc, "ssl.config.error.CWPKI0834E", defaultAlias);
+                messageIssued = true;
+            }
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
                 Tr.debug(tc, "There is no default SSLConfig.");
         }
@@ -282,10 +304,14 @@ public class SSLConfigManager {
             Tr.entry(tc, "keyStoreModified");
 
         String ksPropValue = defaultSSLConfig.getProperty(Constants.SSLPROP_KEY_STORE, null);
+        boolean ksFileBased = Boolean.parseBoolean(defaultSSLConfig.getProperty(Constants.SSLPROP_KEY_STORE_FILE_BASED));
+        String ksProp = WSKeyStore.getCannonicalPath(ksPropValue, ksFileBased);
         String tsPropValue = defaultSSLConfig.getProperty(Constants.SSLPROP_TRUST_STORE, null);
+        boolean tsFileBased = Boolean.parseBoolean(defaultSSLConfig.getProperty(Constants.SSLPROP_TRUST_STORE_FILE_BASED));
+        String tsProp = WSKeyStore.getCannonicalPath(ksPropValue, tsFileBased);
 
-        if ((ksPropValue != null && ksPropValue.equals(modifiedFile)) ||
-            (tsPropValue != null && tsPropValue.equals(modifiedFile))) {
+        if ((ksProp != null && ksProp.equals(modifiedFile)) ||
+            (tsProp != null && tsProp.equals(modifiedFile))) {
             if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
                 Tr.exit(tc, "keyStoreModified true");
             return true;
@@ -303,21 +329,6 @@ public class SSLConfigManager {
                 return System.getProperty(key);
             }
         });
-    }
-
-    /**
-     * Helper method to build the SSLConfig properties from the SSLConfig model
-     * object.
-     */
-    private SSLConfig parseSSLConfig(Map<String, Object> properties, boolean reinitialize) throws Exception {
-        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
-            Tr.entry(tc, "parseSSLConfig: " + properties.get(LibertyConstants.KEY_ID), properties);
-
-        SSLConfig rc = parseSecureSocketLayer(properties, reinitialize);
-
-        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
-            Tr.exit(tc, "parseSSLConfig");
-        return rc;
     }
 
     /**
@@ -468,8 +479,14 @@ public class SSLConfigManager {
 
         // MISCELLANEOUS ATTRIBUTES
         String sslProtocol = (String) map.get("sslProtocol");
-        if (sslProtocol != null && !sslProtocol.isEmpty())
-            sslprops.setProperty(Constants.SSLPROP_PROTOCOL, sslProtocol);
+        if (sslProtocol != null && !sslProtocol.isEmpty()) {
+            try {
+                protocolHelper.checkProtocolValueGood(sslProtocol);
+                sslprops.setProperty(Constants.SSLPROP_PROTOCOL, sslProtocol);
+            } catch (Exception e) {
+                throw e;
+            }
+        }
 
         String contextProvider = (String) map.get("jsseProvider");
         if (contextProvider != null && !contextProvider.isEmpty()) {
@@ -1384,7 +1401,7 @@ public class SSLConfigManager {
                 if (securityLevel == null)
                     securityLevel = "HIGH";
 
-                ciphers = adjustSupportedCiphersToSecurityLevel(socket.getEnabledCipherSuites(), securityLevel);
+                ciphers = adjustSupportedCiphersToSecurityLevel(socket.getSupportedCipherSuites(), securityLevel);
 
             }
         } catch (Exception e) {

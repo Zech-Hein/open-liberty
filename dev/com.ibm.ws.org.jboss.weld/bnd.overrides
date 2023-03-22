@@ -10,7 +10,8 @@ Implementation-Version: 2.4.8.Final
 Embed-Dependency: *; scope=compile; inline=true
 Specification-Title: JSR-346 Contexts and Dependency Injection for the
   Java EE platform
-Export-Package: org.jboss.*;version="2.4.8.Final", \
+Export-Package: !org.jboss.classfilewriter.* , \
+ org.jboss.*;version="2.4.8.Final", \
  org.jboss.weld.context.beanstore;version="2.4.8.Final", \
  org.jboss.weldx.transaction;version="1.0.16"
 DynamicImport-Package: *
@@ -73,5 +74,8 @@ Service-Component: \
         |org.jboss.weld.util.bean"
 
 Include-Resource: \
-  @${repo;org.jboss.weld:weld-osgi-bundle;[2.4.8.Final,3)}!/!META-INF/maven/*
+  @${repo;org.jboss.weld:weld-osgi-bundle;[2.4.8.Final,3)}!/!META-INF/maven/*, \
+  org/jboss/weld/config=${bin}/org/jboss/weld/config, \
+  org/jboss/weld/context=${bin}/org/jboss/weld/context, \
+  org/jboss/weld/bean/proxy=${bin}/org/jboss/weld/bean/proxy
 

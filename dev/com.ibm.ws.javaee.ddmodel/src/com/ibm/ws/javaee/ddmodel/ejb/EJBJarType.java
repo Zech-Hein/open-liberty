@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2021 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.ibm.ws.javaee.dd.DeploymentDescriptor;
 import com.ibm.ws.javaee.dd.common.Description;
 import com.ibm.ws.javaee.dd.common.DisplayName;
 import com.ibm.ws.javaee.dd.common.Icon;
@@ -150,7 +151,7 @@ import com.ibm.ws.javaee.ddmodel.common.XSDTokenType;
  type="xsd:ID"/>
  </xsd:complexType>
  */
-public class EJBJarType extends DescriptionGroup implements DeploymentDescriptor, EJBJar, DDParser.RootParsable {
+public class EJBJarType extends DescriptionGroup implements EJBJar, DDParser.RootParsable {
     public EJBJarType(String path) {
         this.path = path;
     }
@@ -282,13 +283,20 @@ public class EJBJarType extends DescriptionGroup implements DeploymentDescriptor
     @Override
     public void finish(DDParser parser) throws ParseException {
         super.finish(parser);
-        if (version == null) {
-            if (parser.version < 21) {
-                version = parser.parseToken(parser.version == 11 ? "1.1" : "2.0");
-            } else {
-                throw new ParseException(parser.requiredAttributeMissing("version"));
-            }
+
+        if ( version == null ) {
+            // In all cases, not just for 1.0 and 1.1, 
+            // ensure that the local version variable is
+            // assigned.
+            //
+            // Previously, only the two DTD based formats
+            // might be missing a version attribute.
+            // Changes to enable more descriptor deviations
+            // mean that other cases might also be missing
+            // a version attribute.
+            version = parser.parseToken( parser.getDottedVersionText() );
         }
+
         this.versionId = parser.version;
         this.idMap = parser.idMap;
     }
@@ -3452,16 +3460,26 @@ public class EJBJarType extends DescriptionGroup implements DeploymentDescriptor
                 StringType destination_type = new StringType();
                 parser.parse(destination_type);
 
-                String type_queue = MessageDriven.ACTIVATION_CONFIG_PROPERTY_DESTINATION_TYPE_JAKARTA_QUEUE;
-                String type_topic = MessageDriven.ACTIVATION_CONFIG_PROPERTY_DESTINATION_TYPE_JAKARTA_TOPIC;
-                if (parser.runtimeVersion < 90) {
-                    // Runtime versions prior to 9.0 use javax versions of classes
+                // The destination type must be javax.jms.Queue or javax.jms.Topic,
+                // or, jakarta.jms.Queue or jakarta.jms.Topic, depending on whether
+                // jakarta is provisioned.  That is, whether the maximum EJB
+                // specification version is 4.0 or higher.
+                //
+                // Note that this is a validation of the element value,
+                // not of the XML structure!
+
+                String type_queue;
+                String type_topic;
+                if ( parser.maxVersion >= EJBJar.VERSION_4_0 ) {
+                    type_queue = MessageDriven.ACTIVATION_CONFIG_PROPERTY_DESTINATION_TYPE_JAKARTA_QUEUE;
+                    type_topic = MessageDriven.ACTIVATION_CONFIG_PROPERTY_DESTINATION_TYPE_JAKARTA_TOPIC;
+                } else {
                     type_queue = MessageDriven.ACTIVATION_CONFIG_PROPERTY_DESTINATION_TYPE_QUEUE;
                     type_topic = MessageDriven.ACTIVATION_CONFIG_PROPERTY_DESTINATION_TYPE_TOPIC;
                 }
 
                 String destination_type_value = destination_type.getValue();
-                if (type_queue.equals(destination_type_value) || type_topic.equals(destination_type_value)) {
+                if ( type_queue.equals(destination_type_value) || type_topic.equals(destination_type_value) ) {
                     activation_config.addActivationConfigProperty(parser, MessageDriven.ACTIVATION_CONFIG_PROPERTY_DESTINATION_TYPE, destination_type_value);
                 } else {
                     throw new ParseException(parser.invalidEnumValue(destination_type_value, type_queue, type_topic));

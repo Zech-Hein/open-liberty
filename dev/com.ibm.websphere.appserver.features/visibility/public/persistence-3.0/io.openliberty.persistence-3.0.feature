@@ -99,8 +99,6 @@ IBM-API-Package: org.eclipse.persistence.descriptors.changetracking; type="inter
  org.eclipse.persistence.internal.libraries.asm.signature; type="third-party", \
  org.eclipse.persistence.internal.libraries.asm.tree.analysis; type="third-party", \
  org.eclipse.persistence.internal.libraries.asm.tree; type="third-party", \
- org.eclipse.persistence.internal.libraries.asm.util; type="third-party", \
- org.eclipse.persistence.internal.libraries.asm.xml; type="third-party", \
  org.eclipse.persistence.internal.libraries.asm; type="third-party", \
  org.eclipse.persistence.internal.localization.i18n; type="third-party", \
  org.eclipse.persistence.internal.localization; type="third-party", \
@@ -231,6 +229,7 @@ Subsystem-Name: Jakarta Persistence 3.0
   com.ibm.websphere.appserver.transaction-2.0
 -bundles=io.openliberty.persistence.3.0.thirdparty; location:=dev/api/third-party/; mavenCoordinates="org.eclipse.persistence:eclipselink:3.0.0", \
  com.ibm.ws.jpa.container.eclipselink.jakarta
-kind=beta
+kind=ga
 edition=core
 WLP-Activation-Type: parallel
+WLP-InstantOn-Enabled: true

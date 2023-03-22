@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2010, 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -32,9 +34,9 @@
 copyright=\
 \nCopyright (c) 2010 IBM Corporation and others.\
 \nAll rights reserved. This program and the accompanying materials\
-\nare made available under the terms of the Eclipse Public License v1.0\
+\nare made available under the terms of the Eclipse Public License 2.0\
 \nwhich accompanies this distribution, and is available at\
-\nhttp://www.eclipse.org/legal/epl-v10.html
+\nhttp://www.eclipse.org/legal/epl-2.0/
 
 error.parse.server=CWWKG0001E: The configuration parser detected an error while parsing the root of the configuration and the referenced configuration documents. Error: {0}
 error.parse.server.explanation=The server configuration could not be read because there is an error in one of the configuration files.
@@ -480,6 +482,17 @@ error.bad.variable.file=CWWKG0106E: The {0} file can not be read.
 error.bad.variable.file.explanation=The file can not be loaded as a variable because it can not be read. 
 error.bad.variable.file.useraction=Verify that the file contains text content and check the operating system permissions for the file.
 
+error.unknownOutputVersion=CWWKG0107E: The output version, {0}, is not supported.
+error.unknownOutputVersion.explanation=The value supplied with the "--ouputVersion" option is not valid.
+error.unknownOutputVersion.useraction=To see valid options enter the "./schemaGen --help" command.
+
+error.unknownSchemaVersion=CWWKG0108E: The schema version, {0}, is not supported.
+error.unknownSchemaVersion.explanation=The value supplied with the "--schemaVersion" option is not valid.
+error.unknownSchemaVersion.useraction=To see valid options enter the "./schemaGen --help" command.
+
+schemagen.info.schema.file.created=CWWKG0109I: The schema was created in the [{0}] file.
+schemagen.info.schema.file.created.explanation=The command completed successfully.
+schemagen.info.schema.file.created.useraction=No action is required.
 
 # Non-TR message
 error.invalidOCDRef=ERROR: Metatype PID [{0}] specifies non-existent object class definition ID [{1}]

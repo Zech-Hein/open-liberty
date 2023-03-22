@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -337,7 +339,7 @@ public class FeatureResolverImpl implements FeatureResolver {
         if (lastDash >= 0) {
             // remove the version part of the symbolic name
             version = feature.substring(lastDash + 1);
-            // sanity check for the version syntax
+            // Validate the version syntax
             try {
                 Version.parseVersion(version);
                 baseName = feature.substring(0, lastDash);
@@ -360,7 +362,7 @@ public class FeatureResolverImpl implements FeatureResolver {
         if (selectionContext.isBlocked(baseFeatureName)) {
             return;
         }
-        // sanity check to make sure this feature is selected; this is really just to check bugs in the resolver
+        // Validation to make sure this feature is selected; this is really just to check bugs in the resolver
         if (selectedFeature.isSingleton() && !!!selectionContext.allowMultipleVersions(baseFeatureName)) {
             Chain existingSelection = selectionContext.getSelected(baseFeatureName);
             String selectedFeatureName = existingSelection == null ? null : existingSelection.getCandidates().get(0);

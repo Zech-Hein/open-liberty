@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -29,6 +31,7 @@ import com.ibm.websphere.simplicity.ShrinkHelper;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 
@@ -104,7 +107,14 @@ public class HelloWorldTest {
         if (JakartaEE9Action.isActive()) {
             assertEquals(400, status);
         } else {
-            assertEquals(415, status);
+            // The 3.1 specification introduces a defaultExceptionmapper with the following:
+            // "A JAX-RS implementation MUST include a default exception mapping provider that
+            // implements ExceptionMapper<Throwable> and which SHOULD set the response status to 500."
+            if (JakartaEE10Action.isActive()) {
+                assertEquals(500, status);
+            } else {
+                assertEquals(415, status);
+            }
         }
     }
 

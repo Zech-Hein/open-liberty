@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,9 +13,6 @@
 package mpRestClient11.produceConsume;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.net.URI;
 import java.util.logging.Logger;
@@ -65,7 +64,7 @@ public class ProduceConsumeTestServlet extends FATServlet {
                                            .build(MyClient.class);
         
         _log.info(m + " @Produce(application/json) @Consume(application/xml)");
-        Response r = client.produceJSONConsumeXML();
+        Response r = client.produceJSONConsumeXML(new Widget("foo", 1));
         String acceptHeader = r.getHeaderString("Sent-Accept");
         _log.info(m + "Sent-Accept: " + acceptHeader);
         String contentTypeHeader = r.getHeaderString("Sent-ContentType");
@@ -74,7 +73,7 @@ public class ProduceConsumeTestServlet extends FATServlet {
         assertEquals(MediaType.APPLICATION_XML, contentTypeHeader);
         
         _log.info(m + " @Produce(application/xml) @Consume(application/json)");
-        r = client.produceXMLConsumeJSON();
+        r = client.produceXMLConsumeJSON(new Widget("bar", 2));
         acceptHeader = r.getHeaderString("Sent-Accept");
         _log.info(m + "Sent-Accept: " + acceptHeader);
         contentTypeHeader = r.getHeaderString("Sent-ContentType");
@@ -99,7 +98,7 @@ public class ProduceConsumeTestServlet extends FATServlet {
                                            .build(MyClient.class);
         
         _log.info(m + " @Produce(text/html) @Consume(text/plain)");
-        Response r = client.produceHTMLConsumeTEXT();
+        Response r = client.produceHTMLConsumeTEXT(new Widget("baz", 3));
         String acceptHeader = r.getHeaderString("Sent-Accept");
         _log.info(m + "Sent-Accept: " + acceptHeader);
         String contentTypeHeader = r.getHeaderString("Sent-ContentType");

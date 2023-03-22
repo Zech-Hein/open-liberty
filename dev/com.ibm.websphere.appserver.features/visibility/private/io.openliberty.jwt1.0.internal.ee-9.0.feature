@@ -3,13 +3,10 @@ symbolicName = io.openliberty.jwt1.0.internal.ee-9.0
 singleton=true
 visibility = private
 -features=\
-  com.ibm.websphere.appserver.servlet-5.0
+  io.openliberty.servlet.internal-5.0; ibm.tolerates:="6.0"
 -bundles=\
   io.openliberty.security.jwt.internal, \
-  io.openliberty.security.common.internal
--jars=\
-  io.openliberty.jwt; location:=dev/api/ibm/
--files=\
-  dev/api/ibm/javadoc/com.ibm.websphere.appserver.api.jwt_1.1-javadoc.zip
-kind=beta
+  io.openliberty.security.common.internal, \
+  io.openliberty.security.common.jwt.internal
+kind=ga
 edition=core

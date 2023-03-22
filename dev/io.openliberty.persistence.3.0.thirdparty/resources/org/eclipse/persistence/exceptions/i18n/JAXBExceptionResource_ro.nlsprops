@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -153,7 +155,7 @@
 
 50063=A survenit p excep\u0163ie la \u00eencercarea  de instan\u0163iere XmlAdapterClass [{0}]. O cauz\u0103 posibil\u0103 este aceea c\u0103 clasa adaptor nu are un constructor de argument zero.
 
-50064=XmlAdapterClass [{0}] nu extinde "javax.xml.bind.annotation.adapters.XmlAdapter" a\u015fa cum era a\u015fteptat.  Este necesar ca clasa adaptor a extins "javax.xml.bind.annotation.adapters.XmlAdapter" \u015fi a declarat metodele "public abstract BoundType unmarshal(ValueType v)" \u015fi "public abstract ValueType marshal(BoundType v)".
+50064=XmlAdapterClass [{0}] nu extinde "jakarta.xml.bind.annotation.adapters.XmlAdapter" a\u0219a cum era a\u0219teptat.  Clasa de adaptor trebuie s\u0103 extind\u0103 "jakarta.xml.bind.annotation.adapters.XmlAdapter" \u0219i s\u0103 declare metode "public abstract BoundType unmarshal (ValueType v)" \u0219i "public abstract ValueType marshal (BoundType v)".
 
 50065=Un XmlJavaTypeAdapter invalid [{0}] a fost specificat pentru pachetul [{1}]. Cauzele posibile sunt un nume de clas\u0103 adaptor incorect sau a fost setat \u00eenc\u0103rc\u0103torul gre\u015fit.
 

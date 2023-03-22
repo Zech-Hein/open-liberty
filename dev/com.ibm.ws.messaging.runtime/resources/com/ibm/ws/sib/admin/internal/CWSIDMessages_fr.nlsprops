@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2012, 2013 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -74,12 +76,6 @@
 #NLS_ENCODING=UNICODE
  
 ### Search on "TBD" for messages that need information from other components ###
- 
-# -------------------------------------------------------------------------------------------------
-# {0} Messaging engine name
-ME_INITIALIZING_SIAS0001=CWSID0001I: Le moteur de messagerie {0} est en cours d''initialisation.
-ME_INITIALIZING_SIAS0001.explanation=L'initialisation du moteur de messagerie sp\u00e9cifi\u00e9 commence.
-ME_INITIALIZING_SIAS0001.useraction=Aucune action n'est requise.
  
 # -------------------------------------------------------------------------------------------------
 # {0} Internal reason string
@@ -252,7 +248,7 @@ NO_ID_PROVIDED_SIAS0102.explanation=L'ID n'est pas sp\u00e9cifi\u00e9 pour la de
 NO_ID_PROVIDED_SIAS0102.useraction=Indiquez l'ID pour la destination.
 
 # -------------------------------------------------------------------------------------------------
-NO_FILESTOR_DEFINED_SIAS0104=CWSID0104I:  La balise fileStore n'a pas \u00e9t\u00e9 d\u00e9finie dans le fichier de configuration du serveur ; les valeurs par d\u00e9faut seront utilis\u00e9es.
+NO_FILESTOR_DEFINED_SIAS0104=CWSID0104I: \ La balise fileStore n'a pas \u00e9t\u00e9 d\u00e9finie dans le fichier de configuration du serveur ; les valeurs par d\u00e9faut seront utilis\u00e9es.
 NO_FILESTOR_DEFINED_SIAS0104.explanation=La balise fileStore n'a pas \u00e9t\u00e9 fournie et les valeurs par d\u00e9faut seront par cons\u00e9quent utilis\u00e9es pour la cr\u00e9ation du magasin de fichiers.   
 NO_FILESTOR_DEFINED_SIAS0104.useraction=Aucune action n'est requise.
 

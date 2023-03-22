@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -124,7 +126,7 @@ public final class JSBaseTypes {
       int len = ArrayUtil.readInt(frame, offset);
       if (len == -1)
         return null;
-      JSListCoder.sanityCheck(len, frame, offset);
+      JSListCoder.evaluateMessageLength(len, frame, offset);
       offset += 4;
       String ans = Utf8Codec.decode(frame, offset, len);
       return ans;
@@ -192,7 +194,7 @@ public final class JSBaseTypes {
       int len = ArrayUtil.readInt(frame, offset);
       if (len == -1)
         return null;
-      JSListCoder.sanityCheck(len, frame, offset);
+      JSListCoder.evaluateMessageLength(len, frame, offset);
       byte[] bval = new byte[len];
       System.arraycopy(frame, offset + 4, bval, 0, len);
       return bval;
@@ -320,7 +322,7 @@ public final class JSBaseTypes {
 
     public Object decode(byte[] frame, int offset, int indirect, JMFMessageData msg) throws JMFMessageCorruptionException {
       int len = ArrayUtil.readInt(frame, offset);
-      JSListCoder.sanityCheck(len, frame, offset);
+      JSListCoder.evaluateMessageLength(len, frame, offset);
       int scale = ArrayUtil.readInt(frame, offset + 4);
       len -= 4;  // original length included the scale
       byte[] unscaled = new byte[len];
@@ -440,7 +442,7 @@ public final class JSBaseTypes {
 
     public Object decode(byte[] frame, int offset, int indirect, JMFMessageData msg) throws JMFMessageCorruptionException {
       int len = ArrayUtil.readInt(frame, offset);
-      JSListCoder.sanityCheck(len, frame, offset);
+      JSListCoder.evaluateMessageLength(len, frame, offset);
       byte[] byteForm = new byte[len];
       System.arraycopy(frame, offset + 4, byteForm, 0, len);
       return new BigInteger(byteForm);

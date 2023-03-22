@@ -1,9 +1,11 @@
 <!--
     Copyright (c) 2021 IBM Corporation and others.
     All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
+    are made available under the terms of the Eclipse Public License 2.0
     which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    http://www.eclipse.org/legal/epl-2.0/
+    
+    SPDX-License-Identifier: EPL-2.0
    
     Contributors:
         IBM Corporation - initial API and implementation
@@ -28,10 +30,10 @@
 	  <properties.postgresql URL="${env.PS_URL}" user="${env.PS_USER}" password="${env.PS_PASSWORD}"/>
 	</dataSource>
     
-    <application location="containerApp.war" />
+    <application location="app.war" />
     
     <!-- Depending on the container, you might need certain java permissions -->
     <javaPermission codeBase="${shared.resource.dir}/jdbc/postgresql.jar" className="java.security.AllPermission"/>
-    <javaPermission codeBase="${server.config.dir}/apps/containerApp.war" className="java.util.PropertyPermission" name="org.postgresql.forceBinary" actions="read"/>
+    <javaPermission codeBase="${server.config.dir}/apps/app.war" className="java.util.PropertyPermission" name="org.postgresql.forceBinary" actions="read"/>
 
 </server>

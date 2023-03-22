@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,7 +14,6 @@
 package com.ibm.ws.webcontainer31.osgi.webapp;
 
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
@@ -29,7 +30,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSessionAttributeListener;
 import javax.servlet.http.HttpSessionIdListener;
 import javax.servlet.http.HttpSessionListener;
@@ -40,7 +40,6 @@ import com.ibm.websphere.csi.J2EENameFactory;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.container.service.metadata.MetaDataService;
-import com.ibm.ws.http2.upgrade.H2UpgradeHandler;
 import com.ibm.ws.managedobject.ManagedObject;
 import com.ibm.ws.managedobject.ManagedObjectService;
 import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
@@ -53,7 +52,6 @@ import com.ibm.ws.webcontainer31.osgi.listener.RegisterEventListenerProvider;
 import com.ibm.ws.webcontainer31.osgi.osgi.WebContainerConstants;
 import com.ibm.ws.webcontainer31.session.IHttpSessionContext31;
 import com.ibm.ws.webcontainer31.upgrade.H2HandlerImpl;
-import com.ibm.ws.webcontainer31.upgrade.H2UpgradeHandlerWrapper;
 import com.ibm.wsspi.injectionengine.InjectionException;
 import com.ibm.wsspi.injectionengine.ReferenceContext;
 
@@ -146,7 +144,7 @@ public class WebApp31 extends com.ibm.ws.webcontainer.osgi.webapp.WebApp
     
     @Override
     public String getVirtualServerName() {
-        if (withinContextInitOfProgAddListener) {
+        if (withinContextInitOfProgAddListener && (WebContainer.getServletContainerSpecLevel() < WebContainer.SPEC_LEVEL_60)) {
             throw new UnsupportedOperationException(MessageFormat.format(
             		servlet31NLS.getString("Unsupported.op.from.servlet.context.listener.31"),
             		new Object[] {"getVirtualServerName", lastProgAddListenerInitialized, getApplicationName()}));  // 130165, PI41941            
@@ -179,7 +177,7 @@ public class WebApp31 extends com.ibm.ws.webcontainer.osgi.webapp.WebApp
      */
     @Override
     public ClassLoader getClassLoader() {
-        if (withinContextInitOfProgAddListener) {
+        if (withinContextInitOfProgAddListener && (WebContainer.getServletContainerSpecLevel() < WebContainer.SPEC_LEVEL_60)) {
             throw new UnsupportedOperationException(MessageFormat.format(
                     servlet31NLS.getString("Unsupported.op.from.servlet.context.listener.31"),
                     new Object[] {"getClassLoader", lastProgAddListenerInitialized, getApplicationName()}));  // 130165, PI41941
@@ -189,7 +187,7 @@ public class WebApp31 extends com.ibm.ws.webcontainer.osgi.webapp.WebApp
     
     @Override
     public int getEffectiveMajorVersion() throws UnsupportedOperationException {
-        if (withinContextInitOfProgAddListener) {
+        if (withinContextInitOfProgAddListener && (WebContainer.getServletContainerSpecLevel() < WebContainer.SPEC_LEVEL_60)) {
             throw new UnsupportedOperationException(MessageFormat.format(
                     servlet31NLS.getString("Unsupported.op.from.servlet.context.listener.31"),
                     new Object[] {"getEffectiveMajorVersion", lastProgAddListenerInitialized, getApplicationName()}));  // 130165, PI41941
@@ -199,7 +197,7 @@ public class WebApp31 extends com.ibm.ws.webcontainer.osgi.webapp.WebApp
 
     @Override
     public int getEffectiveMinorVersion() throws UnsupportedOperationException {
-        if (withinContextInitOfProgAddListener) {
+        if (withinContextInitOfProgAddListener && (WebContainer.getServletContainerSpecLevel() < WebContainer.SPEC_LEVEL_60)) {
             throw new UnsupportedOperationException(MessageFormat.format(
                     servlet31NLS.getString("Unsupported.op.from.servlet.context.listener.31"),
                     new Object[] {"getEffectiveMinorVersion", lastProgAddListenerInitialized, getApplicationName()}));  // 130165, PI41941

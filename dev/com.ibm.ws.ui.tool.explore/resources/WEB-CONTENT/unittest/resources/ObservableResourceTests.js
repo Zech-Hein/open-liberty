@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -196,7 +198,7 @@ define([
               observable1._notifyObservers('onMultiChange', ['multi2', 'multi1']);
               observable2._notifyObservers('onStateChange', ['STARTED', 'STOPPED']);
   
-              // Sanity check to ensure that the Observers were not affected by the previous _notifyObservers calls
+              // Test to ensure that the Observers were not affected by the previous _notifyObservers calls
               assert.equal(observer1a.newState,        null,  'Observer 1a should not have detected a changed value for "newState"');
               assert.equal(observer1a.oldState,        null,  'Observer 1a should not have detected a changed value for "oldState"');
               assert.equal(observer1a.unobservedMulti, null,  'Observer 1b should not have detected a changed value for "unobservedMulti"');

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,6 +27,8 @@ import com.ibm.ws.kernel.boot.LaunchException;
 import com.ibm.ws.kernel.boot.internal.BootstrapConstants;
 import com.ibm.ws.kernel.boot.internal.KernelUtils;
 
+import io.openliberty.checkpoint.spi.CheckpointPhase;
+
 /**
  * The framework configurator takes care of property customizations required to
  * launch a framework.
@@ -41,8 +45,8 @@ public class FrameworkConfigurator {
      * allow sub-classes to further massage framework initialization properties.
      *
      * @param config
-     *            BootstrapConfig object containing the active set of properties
-     *            that will be used to initialize the framework.
+     *                   BootstrapConfig object containing the active set of properties
+     *                   that will be used to initialize the framework.
      */
     public static void configure(BootstrapConfig config) {
         extraBootDelegationPackages(config);
@@ -62,7 +66,7 @@ public class FrameworkConfigurator {
      * <li>osgi.user.area -- set to the server directory (parent of workarea)
      * <li>osgi.framework.activeThreadType -- none; prevent equinox from
      * spawning a thread to prevent framework from stopping
-     * <li>osgi.checkConfiguration -- true; ensure equinox checks for updates to
+     * <li>osgi.checkConfiguration -- false; Avoid equinox timestamp check on
      * referenced jars
      * <li>osgi.compatibility.eagerStart.LazyActivation -- false; do not
      * auto-start bundles with Bundle-ActivationPolicy: lazy
@@ -96,11 +100,10 @@ public class FrameworkConfigurator {
         // equinox to do that.
         config.put("osgi.framework.activeThreadType", "none");
 
-        // Use an equinox property to ensure that equinox checks whether or not
-        // the jar files we're installing (for file:// URLs) have changed if
-        // osgi is not starting clean. If the bundle jar has changed, associated
-        // cached data is tossed.
-        config.putIfAbsent("osgi.checkConfiguration", "true");
+        // No longer check timestamps of JARs from Equinox
+        // on restart.  It is assumed any new Liberty bundles
+        // will use a different location on disk
+        config.putIfAbsent("osgi.checkConfiguration", "false");
 
         // We do not want Bundle-ActivationPolicy: lazy to cause bundle
         // resolution to automatically start bundles.
@@ -177,6 +180,12 @@ public class FrameworkConfigurator {
 
         config.put("ds.global.extender", "true");
         config.putIfAbsent("ds.cache.metadata", "true");
+
+        if (CheckpointPhase.getPhase() != CheckpointPhase.INACTIVE) {
+            // For checkpoint we disable the bundle file closer to
+            // workaround a Java bug for now.
+            config.putIfAbsent("osgi.bundlefile.limit", "0");
+        }
     }
 
     /**
@@ -196,7 +205,8 @@ public class FrameworkConfigurator {
         final String defaultDelegation = "com.ibm.ws.kernel.boot.jmx.internal," +
                                          "sun.*,com.sun.*,com.ibm.lang.management,com.ibm.ws.boot.delegated.*," +
                                          "org.apache.xml.*,org.apache.xerces.*,com.ibm.xylem.*,com.ibm.xml.*," +
-                                         "com.ibm.xtq.*,com.ibm.net.ssl.*,com.ibm.crypto.*,com.ibm.security.*,jdk.*";
+                                         "com.ibm.xtq.*,com.ibm.net.ssl.*,com.ibm.crypto.*,com.ibm.security.*,jdk.*," +
+                                         "org.eclipse.openj9.criu";
 
         String osgiDelegationPackages = config.get(org.osgi.framework.Constants.FRAMEWORK_BOOTDELEGATION);
         if (osgiDelegationPackages == null)
@@ -221,7 +231,7 @@ public class FrameworkConfigurator {
      *
      * @return non-null instance of the framework factory.
      * @throws LaunchException
-     *             if Factory can not be found or instantiated.
+     *                             if Factory can not be found or instantiated.
      * @see {@link KernelUtils#getServiceClass(BufferedReader)}
      */
     public static FrameworkFactory getFrameworkFactory(ClassLoader loader) {

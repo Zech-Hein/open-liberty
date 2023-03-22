@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2007 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -44,7 +46,7 @@ public class TraceConfigClassVisitor extends ClassVisitor {
     protected TraceObjectFieldAnnotationVisitor traceObjectFieldAnnotationVisitor;
 
     public TraceConfigClassVisitor(ClassVisitor cv) {
-        super(Opcodes.ASM8, cv);
+        super(Opcodes.ASM9, cv);
     }
 
     @Override
@@ -92,7 +94,7 @@ public class TraceConfigClassVisitor extends ClassVisitor {
         private final MethodInfo methodInfo;
 
         private MethodInfoMethodVisitor(MethodVisitor mv, MethodInfo methodInfo) {
-            super(Opcodes.ASM8, mv);
+            super(Opcodes.ASM9, mv);
             this.methodInfo = methodInfo;
         }
 
@@ -113,7 +115,7 @@ public class TraceConfigClassVisitor extends ClassVisitor {
             private final MethodInfo methodInfo;
 
             private FFDCIgnoreAnnotationVisitor(AnnotationVisitor av, MethodInfo methodInfo) {
-                super(Opcodes.ASM8, av);
+                super(Opcodes.ASM9, av);
                 this.methodInfo = methodInfo;
             }
 
@@ -131,7 +133,7 @@ public class TraceConfigClassVisitor extends ClassVisitor {
             private final MethodInfo methodInfo;
 
             private FFDCIgnoreValueArrayVisitor(AnnotationVisitor av, MethodInfo methodInfo) {
-                super(Opcodes.ASM8, av);
+                super(Opcodes.ASM9, av);
                 this.methodInfo = methodInfo;
             }
 

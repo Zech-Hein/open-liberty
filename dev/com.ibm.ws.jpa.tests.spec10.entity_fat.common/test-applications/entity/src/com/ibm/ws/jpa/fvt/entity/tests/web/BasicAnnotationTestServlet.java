@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,21 +28,21 @@ import com.ibm.ws.jpa.fvt.entity.testlogic.BasicAnnotationTestLogic;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext.PersistenceContextType;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext.PersistenceInjectionType;
-import com.ibm.ws.testtooling.vehicle.web.JPATestServlet;
+import com.ibm.ws.testtooling.vehicle.web.JPADBTestServlet;
 
 @SuppressWarnings("serial")
 @WebServlet(urlPatterns = "/BasicAnnotationTestServlet")
-public class BasicAnnotationTestServlet extends JPATestServlet {
+public class BasicAnnotationTestServlet extends JPADBTestServlet {
     // Container Managed Transaction Scope
-    @PersistenceContext(unitName = "Entity_JTA")
+    @PersistenceContext(unitName = "ENTITY_JTA")
     private EntityManager cmtsEm;
 
     // Application Managed JTA
-    @PersistenceUnit(unitName = "Entity_JTA")
+    @PersistenceUnit(unitName = "ENTITY_JTA")
     private EntityManagerFactory amjtaEmf;
 
     // Application Managed Resource-Local
-    @PersistenceUnit(unitName = "Entity_RL")
+    @PersistenceUnit(unitName = "ENTITY_RL")
     private EntityManagerFactory amrlEmf;
 
     @PostConstruct
@@ -64,7 +66,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -77,7 +78,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -90,7 +90,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -103,7 +102,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -116,7 +114,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -129,7 +126,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -142,7 +138,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -155,7 +150,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -168,7 +162,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -181,7 +174,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -194,7 +186,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -207,7 +198,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -220,7 +210,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -233,7 +222,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -246,7 +234,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -259,7 +246,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -272,7 +258,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -285,7 +270,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -298,7 +282,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -311,7 +294,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -324,7 +306,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -337,7 +318,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -350,7 +330,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -363,7 +342,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -376,7 +354,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -389,7 +366,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -402,7 +378,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -415,7 +390,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -428,7 +402,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -441,7 +414,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -454,7 +426,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -467,7 +438,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -480,7 +450,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -493,7 +462,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -506,7 +474,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -519,7 +486,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -532,7 +498,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -545,7 +510,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -558,7 +522,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -571,7 +534,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -584,7 +546,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -597,7 +558,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -610,7 +570,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -623,7 +582,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -636,7 +594,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -649,7 +606,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -662,7 +618,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -675,7 +630,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -688,7 +642,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -701,7 +654,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -714,7 +666,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -727,7 +678,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -740,7 +690,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "AttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -753,7 +702,6 @@ public class BasicAnnotationTestServlet extends JPATestServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLAttrConfigFieldEntity");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 }

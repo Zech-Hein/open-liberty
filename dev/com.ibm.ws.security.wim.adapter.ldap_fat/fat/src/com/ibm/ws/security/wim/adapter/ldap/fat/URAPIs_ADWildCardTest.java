@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -102,8 +104,11 @@ public class URAPIs_ADWildCardTest {
         String user = "vmmtestuser";
         String password = "vmmtestuserpwd";
         Log.info(c, "checkPassword", "Checking good credentials");
+
+        String userReturned = servlet.checkPassword(user, password);
+        assertNotNull("Authentication should succeed.", userReturned);
         assertEquals("Authentication should succeed.",
-                     "cn=vmmtestuser,cn=users,dc=secfvt2,dc=austin,dc=ibm,dc=com", servlet.checkPassword(user, password).toLowerCase());
+                     "cn=vmmtestuser,cn=users,dc=secfvt2,dc=austin,dc=ibm,dc=com", userReturned.toLowerCase());
         passwordChecker.checkForPasswordInAnyFormat(password);
     }
 

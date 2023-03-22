@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -105,11 +107,11 @@ public class TestUtils {
     /**
      * Copy the file to server, rename if the targetFileName is not equal to srcFileName.
      *
-     * @param server,                   the LibertyServer
-     * @param srcPathFromPubishFolder,  the folder path relative to publish folder
-     * @param srcFileName,              the source file name to copy
+     * @param server, the LibertyServer
+     * @param srcPathFromPubishFolder, the folder path relative to publish folder
+     * @param srcFileName, the source file name to copy
      * @param targetPathFromServerRoot, the target path relative to server root
-     * @param targetFileName,           the target file name
+     * @param targetFileName, the target file name
      * @throws Exception
      */
     public static void publishFileToServer(LibertyServer server, String srcPathFromPubishFolder, String srcFileName, String targetPathFromServerRoot,
@@ -123,10 +125,10 @@ public class TestUtils {
     /**
      * Replace the string in a server file.
      *
-     * @param server,                 the LibertyServer
+     * @param server, the LibertyServer
      * @param filePathFromServerRoot, the file path relative to server root
-     * @param fromStr,                the string that need replace in the file.
-     * @param toStr,                  the string to replace the original one.
+     * @param fromStr, the string that need replace in the file.
+     * @param toStr, the string to replace the original one.
      * @throws Exception
      */
     public static void replaceServerFileString(LibertyServer server, String filePathFromServerRoot, String fromStr, String toStr) throws Exception {

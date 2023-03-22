@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,6 +35,7 @@ import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.custom.junit.runner.RepeatTestFilter;
 import componenttest.rules.repeater.EE8FeatureReplacementAction;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import junit.framework.Assert;
@@ -55,7 +58,10 @@ public class JSF22BeanValidationTests {
 
     @BeforeClass
     public static void setup() throws Exception {
-        ShrinkHelper.defaultDropinApp(jsf22beanvalServer, "BeanValidationTests.war", "com.ibm.ws.jsf22.fat.beanvalidation");
+        boolean isEE10 = JakartaEE10Action.isActive();
+
+        ShrinkHelper.defaultDropinApp(jsf22beanvalServer, "BeanValidationTests.war",
+                                      isEE10 ? "com.ibm.ws.jsf22.fat.beanvalidation.faces40" : "com.ibm.ws.jsf22.fat.beanvalidation.jsf22");
 
         jsf22beanvalServer.startServer(JSF22BeanValidationTests.class.getSimpleName() + ".log");
     }
@@ -90,7 +96,7 @@ public class JSF22BeanValidationTests {
             Log.info(c, name.getMethodName(), "Navigating to: /BeanValidationTests/BeanValidation.jsf");
 
             String logMessage;
-            if (JakartaEE9Action.isActive() || RepeatTestFilter.isRepeatActionActive(EE8FeatureReplacementAction.ID)) {
+            if (JakartaEE10Action.isActive() || JakartaEE9Action.isActive() || RepeatTestFilter.isRepeatActionActive(EE8FeatureReplacementAction.ID)) {
                 Log.info(c, name.getMethodName(), "Looking for message " + msgToSearchForMyFaces30 + " in the logs");
                 logMessage = jsf22beanvalServer.waitForStringInLog(msgToSearchForMyFaces30);
             } else {

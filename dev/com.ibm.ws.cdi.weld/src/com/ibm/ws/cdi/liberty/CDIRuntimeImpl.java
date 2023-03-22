@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,7 @@
 package com.ibm.ws.cdi.liberty;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +39,6 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 import com.ibm.ejs.util.Util;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-import com.ibm.ws.cdi.CDIContainerConfig;
 import com.ibm.ws.cdi.CDIException;
 import com.ibm.ws.cdi.CDIService;
 import com.ibm.ws.cdi.extension.WebSphereCDIExtension;
@@ -44,14 +46,20 @@ import com.ibm.ws.cdi.impl.AbstractCDIRuntime;
 import com.ibm.ws.cdi.impl.CDIContainerImpl;
 import com.ibm.ws.cdi.internal.archive.liberty.CDILibertyRuntime;
 import com.ibm.ws.cdi.internal.archive.liberty.RuntimeFactory;
+import com.ibm.ws.cdi.internal.config.CDIConfiguration;
 import com.ibm.ws.cdi.internal.interfaces.Application;
 import com.ibm.ws.cdi.internal.interfaces.ArchiveType;
+import com.ibm.ws.cdi.internal.interfaces.BeansXmlParser;
+import com.ibm.ws.cdi.internal.interfaces.BuildCompatibleExtensionFinder;
 import com.ibm.ws.cdi.internal.interfaces.CDIArchive;
+import com.ibm.ws.cdi.internal.interfaces.CDIContainerEventManager;
 import com.ibm.ws.cdi.internal.interfaces.CDIUtils;
 import com.ibm.ws.cdi.internal.interfaces.EjbEndpointService;
 import com.ibm.ws.cdi.internal.interfaces.ExtensionArchive;
+import com.ibm.ws.cdi.internal.interfaces.ExtensionArchiveProvider;
 import com.ibm.ws.cdi.internal.interfaces.TransactionService;
 import com.ibm.ws.cdi.internal.interfaces.WebSphereCDIDeployment;
+import com.ibm.ws.cdi.internal.interfaces.WeldDevelopmentMode;
 import com.ibm.ws.cdi.proxy.ProxyServicesImpl;
 import com.ibm.ws.container.service.app.deploy.ApplicationInfo;
 import com.ibm.ws.container.service.metadata.MetaDataSlotService;
@@ -105,10 +113,27 @@ public class CDIRuntimeImpl extends AbstractCDIRuntime implements ApplicationSta
     private final AtomicServiceReference<ExecutorService> executorServiceRef = new AtomicServiceReference<ExecutorService>("executorService");
     private final AtomicServiceReference<ExecutorService> managedExecutorServiceRef = new AtomicServiceReference<ExecutorService>("managedExecutorService");
 
-    private final AtomicServiceReference<CDIContainerConfig> containerConfigRef = new AtomicServiceReference<CDIContainerConfig>("containerConfig");
     private final AtomicServiceReference<ResourceRefConfigFactory> resourceRefConfigFactoryRef = new AtomicServiceReference<ResourceRefConfigFactory>("resourceRefConfigFactory");
 
     private final AtomicServiceReference<DeferredMetaDataFactory> deferredMetaDataFactoryRef = new AtomicServiceReference<DeferredMetaDataFactory>("cdiDeferredMetaDataFactoryImpl");
+
+    @Reference
+    private BeansXmlParser beansXmlParser;
+
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY)
+    private volatile BuildCompatibleExtensionFinder bceFinder;
+
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY)
+    private volatile CDIContainerEventManager cdiContainerEventManager;
+
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY)
+    private volatile WeldDevelopmentMode weldDevelopmentMode;
+
+    @Reference
+    private CDIConfiguration cdiContainerConfig;
+
+    @Reference(policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY)
+    private volatile List<ExtensionArchiveProvider> extensionArchiveProviders;
 
     private MetaDataSlot applicationSlot;
     private boolean isClientProcess;
@@ -117,7 +142,6 @@ public class CDIRuntimeImpl extends AbstractCDIRuntime implements ApplicationSta
     private final Map<String, ClassLoader> appTccls = new ConcurrentHashMap<>();
 
     public void activate(ComponentContext cc) {
-        containerConfigRef.activate(cc);
         metaDataSlotServiceSR.activate(cc);
         ejbEndpointServiceSR.activate(cc);
         classLoadingSRRef.activate(cc);
@@ -160,19 +184,9 @@ public class CDIRuntimeImpl extends AbstractCDIRuntime implements ApplicationSta
         executorServiceRef.deactivate(cc);
         adaptableModuleFactorySRRef.deactivate(cc);
         injectionEngineServiceRef.deactivate(cc);
-        containerConfigRef.deactivate(cc);
         resourceRefConfigFactoryRef.deactivate(cc);
         managedExecutorServiceRef.deactivate(cc);
         deferredMetaDataFactoryRef.deactivate(cc);
-    }
-
-    @Reference(name = "containerConfig", service = CDIContainerConfig.class)
-    protected void setContainerConfig(ServiceReference<CDIContainerConfig> ref) {
-        containerConfigRef.setReference(ref);
-    }
-
-    protected void unsetContainerConfig(ServiceReference<CDIContainerConfig> ref) {
-        containerConfigRef.unsetReference(ref);
     }
 
     @Reference(name = "cdiDeferredMetaDataFactoryImpl", service = DeferredMetaDataFactory.class, target = "(deferredMetaData=CDI)")
@@ -536,6 +550,14 @@ public class CDIRuntimeImpl extends AbstractCDIRuntime implements ApplicationSta
             Tr.debug(tc, Util.identity(this), "applicationStarted", appInfo);
         }
 
+        try {
+            Application application = this.runtimeFactory.newApplication(appInfo);
+            if (application != null) {
+                getCDIContainer().applicationStarted(application);
+            }
+        } catch (CDIException e) {
+            //FFDC and carry on
+        }
     }
 
     @Override
@@ -543,13 +565,20 @@ public class CDIRuntimeImpl extends AbstractCDIRuntime implements ApplicationSta
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, Util.identity(this), "applicationStopping", appInfo);
         }
+        try {
+            Application application = this.runtimeFactory.newApplication(appInfo);
+            if (application != null) {
+                getCDIContainer().applicationStopping(application);
+            }
+        } catch (CDIException e) {
+            //FFDC and carry on
+        }
     }
 
     /** {@inheritDoc} */
     @Override
     public boolean isImplicitBeanArchivesScanningDisabled(CDIArchive archive) {
-        //TODO check this per archive rather than for the whole server
-        return this.containerConfigRef.getService().isImplicitBeanArchivesScanningDisabled();
+        return this.cdiContainerConfig.isImplicitBeanArchivesScanningDisabled();
     }
 
     /** {@inheritDoc} */
@@ -650,6 +679,44 @@ public class CDIRuntimeImpl extends AbstractCDIRuntime implements ApplicationSta
     @Override
     public boolean isWeldProxy(Object obj) {
         return CDIUtils.isWeldProxy(obj);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public BeansXmlParser getBeansXmlParser() {
+        return this.beansXmlParser;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public CDIContainerEventManager getCDIContainerEventManager() {
+        return this.cdiContainerEventManager;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Collection<ExtensionArchiveProvider> getExtensionArchiveProviders() {
+        return extensionArchiveProviders;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public BuildCompatibleExtensionFinder getBuildCompatibleExtensionFinder() {
+        return bceFinder;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public WeldDevelopmentMode getWeldDevelopmentMode() {
+        //Given that this.weldDevelopmentMode is volatile and could change value while this code is running,
+        //copy it to a local variable before checking for null and enablement.
+        WeldDevelopmentMode devMode = this.weldDevelopmentMode;
+        if (devMode != null) {
+            if (!devMode.enabled()) {
+                devMode = null; // if it wasn't enabled then we'll return null
+            }
+        }
+        return devMode;
     }
 
 }

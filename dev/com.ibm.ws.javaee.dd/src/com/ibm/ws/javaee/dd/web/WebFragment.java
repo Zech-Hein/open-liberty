@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,36 +16,21 @@ import com.ibm.ws.javaee.dd.DeploymentDescriptor;
 import com.ibm.ws.javaee.dd.web.common.Ordering;
 import com.ibm.ws.javaee.dd.web.common.WebCommon;
 
-/**
- *
- */
-public interface WebFragment
-                extends DeploymentDescriptor, WebCommon {
-    static final String DD_NAME = "META-INF/web-fragment.xml";
+public interface WebFragment extends DeploymentDescriptor, WebCommon {
+    String DD_SHORT_NAME = "web-fragment.xml";
+    String DD_NAME = "META-INF/web-fragment.xml";
 
-    /**
-     * @return version="..." attribute value
-     */
+    int[] VERSIONS = {
+        WebApp.VERSION_3_0, WebApp.VERSION_3_1, WebApp.VERSION_4_0,
+        WebApp.VERSION_5_0, WebApp.VERSION_6_0
+    };
+    
     String getVersion();
 
-    /**
-     * @return true if metadata-complete="..." attribute is specified
-     */
     boolean isSetMetadataComplete();
-
-    /**
-     * @return metadata-complete="..." attribute value if specified
-     */
     boolean isMetadataComplete();
 
-    /**
-     * @return &lt;name>, or null if unspecified
-     */
     String getName();
 
-    /**
-     * @return &lt;ordering>, or null if unspecified
-     */
     Ordering getOrdering();
-
 }

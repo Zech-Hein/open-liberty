@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -194,6 +196,7 @@ public class SecurityContextImpl implements ThreadContext {
 
     /** {@inheritDoc} */
     @Override
+    @Trivial
     public ThreadContext clone() {
         try {
             SecurityContextImpl copy = (SecurityContextImpl) super.clone();
@@ -209,20 +212,24 @@ public class SecurityContextImpl implements ThreadContext {
      * Push the subjects associated with this security context onto the thread.
      */
     @Override
+    @Trivial // this method name is misleading in trace
     public void taskStarting() {
         final boolean trace = TraceComponent.isAnyTracingEnabled();
 
         prevInvocationSubject = subjectManager.getInvocationSubject();
         prevCallerSubject = subjectManager.getCallerSubject();
 
-        if (trace && tc.isEntryEnabled())
-            Tr.entry(this, tc, "taskStarting", "previous caller/invocation subjects", prevCallerSubject, prevInvocationSubject);
+        if (trace && tc.isDebugEnabled())
+            Tr.debug(this, tc, "previous caller/invocation subjects", prevCallerSubject, prevInvocationSubject);
 
         subjectManager.setInvocationSubject(invocationSubject);
         subjectManager.setCallerSubject(callerSubject);
 
-        if (trace && tc.isEntryEnabled())
-            Tr.exit(this, tc, "taskStarting", new Object[] { "new caller/invocation subjects", callerSubject, invocationSubject });
+        if (trace && tc.isDebugEnabled())
+            if (callerSubject == null && invocationSubject == null)
+                Tr.debug(this, tc, "clear");
+            else
+                Tr.debug(this, tc, "propagate caller/invocation subjects", callerSubject, invocationSubject);
     }
 
     /**
@@ -230,16 +237,14 @@ public class SecurityContextImpl implements ThreadContext {
      * security context.
      */
     @Override
+    @Trivial // this method name is misleading in trace
     public void taskStopping() {
         final boolean trace = TraceComponent.isAnyTracingEnabled();
-        if (trace && tc.isEntryEnabled())
-            Tr.entry(this, tc, "taskStopping", "restore caller/invocation subjects", prevCallerSubject, prevInvocationSubject);
+        if (trace && tc.isDebugEnabled())
+            Tr.debug(this, tc, "restore   caller/invocation subjects", prevCallerSubject, prevInvocationSubject);
 
         subjectManager.setCallerSubject(prevCallerSubject);
         subjectManager.setInvocationSubject(prevInvocationSubject);
-
-        if (trace && tc.isEntryEnabled())
-            Tr.exit(this, tc, "taskStopping");
     }
 
     /**

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2021 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -25,7 +27,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.ibm.websphere.simplicity.log.Log;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.security.fat.common.jwt.JwtConstants;
 import com.ibm.ws.security.fat.common.jwt.actions.JwtTokenActions;
 import com.ibm.ws.security.fat.common.mp.jwt.MPJwtFatConstants;
@@ -42,6 +44,9 @@ public class MpJwtFatActions extends JwtTokenActions {
     protected final String defaultPassword = MPJwtFatConstants.TESTUSERPWD;
 
     public String getJwtFromTokenEndpoint(String testName, String builderId, String builderUrlBase, String user, String pw) throws MalformedURLException, Exception {
+        // Sleep for 1 second to ensure created JWTs are unique; the iat claim for JWTs only has a granularity of seconds
+        Thread.sleep(1200);
+
         WebRequest request = buildJwtTokenEndpointRequest(builderId, builderUrlBase, user, pw);
 
         Log.info(thisClass, "getJwtFromTokenEndpoint", "Request: " + request.toString());

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,6 +28,7 @@ import org.junit.runner.RunWith;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.ibm.websphere.simplicity.ShrinkHelper;
+import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
 import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.jsf23.fat.JSFUtils;
 
@@ -33,6 +36,7 @@ import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 
@@ -48,20 +52,20 @@ public class JSF23FaceletVDLTests {
     @Rule
     public TestName name = new TestName();
 
-    @Server("jsf23Server")
-    public static LibertyServer jsf23Server;
+    @Server("jsf23FaceletVDLServer")
+    public static LibertyServer server;
 
     @BeforeClass
     public static void setup() throws Exception {
-        ShrinkHelper.defaultDropinApp(jsf23Server, "ImportConstantsTag.war", "com.ibm.ws.jsf23.fat.constants");
-        jsf23Server.startServer();
+        ShrinkHelper.defaultDropinApp(server, "ImportConstantsTag.war", "com.ibm.ws.jsf23.fat.constants");
+        server.startServer();
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
         // Stop the server
-        if (jsf23Server != null && jsf23Server.isStarted()) {
-            jsf23Server.stopServer();
+        if (server != null && server.isStarted()) {
+            server.stopServer();
         }
     }
 
@@ -80,7 +84,7 @@ public class JSF23FaceletVDLTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "");
 
             HtmlPage testImportConstantsTagPage = (HtmlPage) webClient.getPage(url);
 
@@ -174,36 +178,38 @@ public class JSF23FaceletVDLTests {
         String contextRoot = "FaceletRefreshPeriodProductionProjectStage";
         String appName = contextRoot + ".war";
 
-        jsf23Server.setMarkToEndOfLog();
-        jsf23Server.saveServerConfiguration();
-        ShrinkHelper.defaultApp(jsf23Server, appName);
-        jsf23Server.setServerConfigurationFile(contextRoot + ".xml");
+        server.setMarkToEndOfLog();
+        server.saveServerConfiguration();
+        DeployOptions[] options = new DeployOptions[] { DeployOptions.DISABLE_VALIDATION };
+        ShrinkHelper.defaultApp(server, appName, options);
+        server.setServerConfigurationFile(contextRoot + ".xml");
+        server.addInstalledAppForValidation(contextRoot);
 
         // Ensure the application was installed successfully.
         assertNotNull("The application " + appName + " did not appear to have been installed.",
-                      jsf23Server.waitForStringInLog("CWWKZ0001I.* " + appName.substring(0, appName.indexOf("."))));
+                      server.waitForStringInLog("CWWKZ0001I.* " + appName.substring(0, appName.indexOf("."))));
 
-        if(JakartaEE9Action.isActive()){
-          String result = jsf23Server.waitForStringInLogUsingMark(".*No context init parameter 'jakarta\\.faces\\.FACELETS_REFRESH_PERIOD' found, using default value '-1'.*");
-          String result2 = jsf23Server.waitForStringInLogUsingMark(".*No context init parameter 'jakarta\\.faces\\.STATE_SAVING_METHOD' found, using default value 'server'*");
+        if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
+            String result = server.waitForStringInLogUsingMark(".*No context init parameter 'jakarta\\.faces\\.FACELETS_REFRESH_PERIOD' found, using default value '-1'.*");
+            String result2 = server.waitForStringInLogUsingMark(".*No context init parameter 'jakarta\\.faces\\.STATE_SAVING_METHOD' found, using default value 'server'*");
 
-          // Verify that the correct values of the context parameters were found.
-          assertNotNull("The correct value of the jakarta.faces.FACELETS_REFRESH_PERIOD context parameter was not found", result);
-          assertNotNull("The correct value of the jakarta.faces.STATE_SAVING_METHOD context parameter was not found", result2);
+            // Verify that the correct values of the context parameters were found.
+            assertNotNull("The correct value of the jakarta.faces.FACELETS_REFRESH_PERIOD context parameter was not found", result);
+            assertNotNull("The correct value of the jakarta.faces.STATE_SAVING_METHOD context parameter was not found", result2);
         } else {
-          String result = jsf23Server.waitForStringInLogUsingMark(".*No context init parameter 'javax\\.faces\\.FACELETS_REFRESH_PERIOD' found, using default value '-1'.*");
-          String result2 = jsf23Server.waitForStringInLogUsingMark(".*No context init parameter 'javax\\.faces\\.STATE_SAVING_METHOD' found, using default value 'server'*");
+            String result = server.waitForStringInLogUsingMark(".*No context init parameter 'javax\\.faces\\.FACELETS_REFRESH_PERIOD' found, using default value '-1'.*");
+            String result2 = server.waitForStringInLogUsingMark(".*No context init parameter 'javax\\.faces\\.STATE_SAVING_METHOD' found, using default value 'server'*");
 
-          // Verify that the correct values of the context parameters were found.
-          assertNotNull("The correct value of the javax.faces.FACELETS_REFRESH_PERIOD context parameter was not found", result);
-          assertNotNull("The correct value of the javax.faces.STATE_SAVING_METHOD context parameter was not found", result2);
+            // Verify that the correct values of the context parameters were found.
+            assertNotNull("The correct value of the javax.faces.FACELETS_REFRESH_PERIOD context parameter was not found", result);
+            assertNotNull("The correct value of the javax.faces.STATE_SAVING_METHOD context parameter was not found", result2);
         }
 
         // Drive a request to the context root and ensure it contains the correct text
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -214,9 +220,9 @@ public class JSF23FaceletVDLTests {
             assertTrue("The page did not contain the Original Facelet text.", page.asText().contains("Original Facelet"));
 
             // Perform a hot replace and ensure the facelet does not update on the next request;
-            String appPath = jsf23Server.getServerRoot() + "/apps/expanded/" + appName;
+            String appPath = server.getServerRoot() + "/apps/expanded/" + appName;
             new File(appPath).mkdirs();
-            jsf23Server.copyFileToLibertyInstallRoot("/usr/servers/jsf23Server/apps/expanded/" + appName, "index.xhtml");
+            server.copyFileToLibertyInstallRoot("/usr/servers/jsf23Server/apps/expanded/" + appName, "index.xhtml");
 
             // Drive another request to ensure the facelet was not refreshed
             page = (HtmlPage) webClient.getPage(url);
@@ -229,14 +235,14 @@ public class JSF23FaceletVDLTests {
         }
         // Move the mark to the end of the log so we can ensure we wait for the correct server
         // configuration message to be output before uninstalling the application
-        jsf23Server.setMarkToEndOfLog();
+        server.setMarkToEndOfLog();
 
         // restore the original server configuration and uninstall the application
-        jsf23Server.restoreServerConfiguration();
+        server.restoreServerConfiguration();
 
-        // Ensure that the server configuration has completed before uninstalling the application
-        jsf23Server.waitForConfigUpdateInLogUsingMark(null);
+        // Ensure that the server configuration has completed and that the app then stops
+        server.waitForConfigUpdateInLogUsingMark(null);
 
-        jsf23Server.removeInstalledAppForValidation(contextRoot);
+        server.removeInstalledAppForValidation(contextRoot);
     }
 }

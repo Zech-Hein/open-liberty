@@ -1,28 +1,33 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2021 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.jsp23.fat.tests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
 import java.util.logging.Logger;
 
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -42,6 +47,7 @@ import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 
@@ -58,6 +64,9 @@ public class JSPTests {
     private static final String PI44611_APP_NAME = "PI44611";
     private static final String PI59436_APP_NAME = "PI59436";
     private static final String TestEDR_APP_NAME = "TestEDR";
+    private static final String TestJDT_APP_NAME = "TestJDT";
+    private static final String OLGH20509_APP_NAME1 = "OLGH20509jar";
+    private static final String OLGH20509_APP_NAME2 = "OLGH20509TDfalse";
 
     @Server("jspServer")
     public static LibertyServer server;
@@ -78,7 +87,17 @@ public class JSPTests {
 
         ShrinkHelper.defaultDropinApp(server, PI59436_APP_NAME + ".war");
 
+        ShrinkHelper.defaultDropinApp(server, TestJDT_APP_NAME + ".war");
+
         ShrinkHelper.defaultDropinApp(server, TestEDR_APP_NAME + ".war");
+
+        JavaArchive jspJar = ShrinkWrap.create(JavaArchive.class, "OLGH20509Include.jar");
+        jspJar = (JavaArchive) ShrinkHelper.addDirectory(jspJar, "test-applications/includejar/resources");
+        WebArchive war = ShrinkHelper.buildDefaultApp(OLGH20509_APP_NAME1 + ".war");
+        war.addAsLibraries(jspJar);
+        ShrinkHelper.exportDropinAppToServer(server, war);
+
+        ShrinkHelper.defaultDropinApp(server, OLGH20509_APP_NAME2 + ".war");
 
         server.startServer(JSPTests.class.getSimpleName() + ".log");
     }
@@ -94,9 +113,11 @@ public class JSPTests {
         //      No matching public static method named [nonStaticMethod] found on
         //      class [com.ibm.ws.jsp23.fat.testjsp23.beans.EL30StaticFieldsAndMethodsBean]
         // SRVE8094W and SRVE8115W...Response already committed...
-        //      Caused by testEL30ReservedWords();
+        //      Caused by testEL30ReservedWords()
+        // JSPG0077E: End of file reached while processing scripting element xxxxxxx
+        //      Caused by test0077()
         if (server != null && server.isStarted()) {
-            server.stopServer("SRVE0315E", "SRVE0777E", "SRVE8094W", "SRVE8115W");
+            server.stopServer("SRVE0315E", "SRVE0777E", "SRVE8094W", "SRVE8115W", "JSPG0077E");
         }
     }
 
@@ -244,6 +265,7 @@ public class JSPTests {
      */
     @Test
     @ExpectedFFDC("javax.el.PropertyNotWritableException")
+
     @Mode(TestMode.FULL)
     public void testEL30AssignmentOperatorException() throws Exception {
         WebConversation wc = new WebConversation();
@@ -355,6 +377,7 @@ public class JSPTests {
      * @throws Exception
      */
     @Test
+
     public void testEL22Operators() throws Exception {
         // Each entry in the array is an expected output in the response
         String[] expectedInResponse = {
@@ -426,6 +449,7 @@ public class JSPTests {
      * @throws Exception
      */
     @Test
+
     public void testEL30LambdaExpressions() throws Exception {
         // Each entry in the array is an expected output in the response
         String[] expectedInResponse = {
@@ -505,6 +529,7 @@ public class JSPTests {
      */
     @Test
     @Mode(TestMode.FULL)
+
     public void testOperatorPrecedence() throws Exception {
         String[] expectedInResponse = { "<b>Test 1:</b> EL 3.0 [] and . operators left-to-right (Expected:true): true",
                                         "<b>Test 2:</b> EL 3.0 [] and . operators left-to-right (Expected:true): true",
@@ -543,6 +568,7 @@ public class JSPTests {
      *                       if something goes wrong
      */
     @Test
+
     public void testEL30CoercionRules() throws Exception {
         String[] expectedInResponse = { "Testing Coercion of a Value X to Type Y.",
                                         "Test if X is null and Y is not a primitive type and also not a String, return null (Expected:true): true" };
@@ -735,7 +761,7 @@ public class JSPTests {
                                         "Testing StreamELResolver with distinct method (Expected: [1, 4, 3, 2, 5]): [1, 4, 3, 2, 5]",
                                         "Testing StreamELResolver with filter method (Expected: [4, 3, 5, 3]): [4, 3, 5, 3]" };
 
-        if (JakartaEE9Action.isActive()) {
+        if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
             for (int i = 0; i < expectedInResponse.length; i++) {
                 expectedInResponse[i] = expectedInResponse[i].replace("javax.el", "jakarta.el");
             }
@@ -752,6 +778,7 @@ public class JSPTests {
      */
     @Mode(TestMode.FULL)
     @Test
+
     public void testPI44611() throws Exception {
         this.verifyStringInResponse(PI44611_APP_NAME, "PI44611.jsp", "Test passed!");
     }
@@ -764,8 +791,45 @@ public class JSPTests {
      */
     @Mode(TestMode.FULL)
     @Test
+
     public void testPI59436() throws Exception {
         this.verifyStringInResponse(PI59436_APP_NAME, "PI59436.jsp", "Test passed.");
+    }
+
+    /**
+     * Verify TLD file check per issue 18411.
+     * Run with applicationManager autoExpand="false" (default)
+     *
+     * @throws Exception
+     */
+    @Test
+    @Mode(TestMode.FULL)
+    public void testTLD() throws Exception {
+        // Use TestEDR app but just call index.jsp twice.
+        // 2nd call should not have SRVE0253I message if issue 18411 is fixed
+        // and no other files included in the JSP are updated.
+        String orgEdrFile = "headerEDR1.jsp";
+        String relEdrPath = "../../shared/config/ExtendedDocumentRoot/";
+        server.copyFileToLibertyServerRoot(relEdrPath, orgEdrFile);
+        // Hit the TestEDR app again so its index.jsp has a newer
+        // last modified timestamp than headerEDR1.jsp.
+        ShrinkHelper.defaultDropinApp(server, TestEDR_APP_NAME + ".war");
+        Thread.sleep(5000L); // sleep to insure sufficient time for app restart
+        String url = JSPUtils.createHttpUrlString(server, TestEDR_APP_NAME, "index.jsp");
+        LOG.info("url: " + url);
+        WebConversation wc1 = new WebConversation();
+        WebRequest request1 = new GetMethodWebRequest(url);
+        wc1.getResponse(request1);
+
+        server.setMarkToEndOfLog(); // mark after 1st call to index.jsp since it might have compiled and caused a SRVE0253I
+        Thread.sleep(5000L);
+        WebConversation wc2 = new WebConversation();
+        WebRequest request2 = new GetMethodWebRequest(url);
+        wc2.getResponse(request2);
+        assertNull("Log should not contain SRVE0253I: Destroy successful.",
+                   server.verifyStringNotInLogUsingMark("SRVE0253I", 1200));
+        server.deleteFileFromLibertyServerRoot(relEdrPath + orgEdrFile); // cleanup testTLD's edr file
+        Thread.sleep(500L); // ensure file is deleted
     }
 
     /**
@@ -777,7 +841,7 @@ public class JSPTests {
     @Mode(TestMode.FULL)
     @Test
     public void testEDR() throws Exception {
-        // Tests on index page    
+        // Tests on index page
         String url = JSPUtils.createHttpUrlString(server, TestEDR_APP_NAME, "index.jsp");
         LOG.info("url: " + url);
 
@@ -785,19 +849,99 @@ public class JSPTests {
     }
 
     /**
-     * Same test as above, but this test verifies that the dependentsList 
-     * is populated when proccessing multiple requests concurrently. 
+     * This test verifies compile works without ClassCastException,
+     * per issue 19197.
+     *
+     * @throws Exception
+     */
+    @Mode(TestMode.FULL)
+    @Test
+    public void TestJDT() throws Exception {
+        this.verifyStringInResponse(TestJDT_APP_NAME, "index.jsp", "Test passed.");
+    }
+
+    /**
+     * Same test as above, but this test verifies that the dependentsList
+     * is populated when processing multiple requests concurrently.
      *
      * @throws Exception
      */
     @Test
     @Mode(TestMode.FULL)
     public void testConcurrentRequestsForTrackDependencies() throws Exception {
-        // Tests on trackDependencies page     
+        // Tests on trackDependencies page
         String url = JSPUtils.createHttpUrlString(server, TestEDR_APP_NAME, "trackDependencies.jsp");
         LOG.info("url: " + url);
 
         runEDR(url, true);
+    }
+
+    /**
+     * This test verifies no destroy/init cycles, i.e.,
+     * JSP recompiles, occur after 2nd attempt,
+     * while using jsp within a jar under WEB-INF,
+     * trackDependencies=true, per issue 20509.
+     *
+     * @throws Exception
+     */
+    @Mode(TestMode.FULL)
+    @Test
+    public void testTrackDependenciesTrue() throws Exception {
+        server.setMarkToEndOfLog();
+        this.verifyStringInResponse(OLGH20509_APP_NAME1, "index.jsp", "Test Passed!");
+        Thread.sleep(5100L);
+        this.verifyStringInResponse(OLGH20509_APP_NAME1, "index.jsp", "Test Passed!");
+        assertNull("Log should not contain SRVE0253I: Destroy successful.",
+                   server.verifyStringNotInLogUsingMark("SRVE0253I.*OLGH20509jar.*index.jsp.*Destroy successful", 1200));
+    }
+
+    /**
+     * This test verifies no NPE occurs after 2nd attempt,
+     * trackDependencies=false, per issue 20509.
+     *
+     * @throws Exception
+     */
+    @Mode(TestMode.FULL)
+    @Test
+    public void testTrackDependenciesFalse() throws Exception {
+        this.verifyStringInResponse(OLGH20509_APP_NAME2, "index.jsp", "Test Passed!");
+        Thread.sleep(5100L);
+        this.verifyStringInResponse(OLGH20509_APP_NAME2, "index.jsp", "Test Passed!");
+    }
+
+    /**
+     * Test for JSPG0077E
+     *
+     * @throws Exception
+     *                       if something goes wrong
+     */
+    @Test
+    @Mode(TestMode.FULL)
+    @AllowedFFDC("java.security.PrivilegedActionException")
+    @AllowedFFDC("com.ibm.ws.jsp.JspCoreException")
+    public void test0077() throws Exception {
+        String e77 = "JSPG0077E";
+        server.setMarkToEndOfLog();
+
+        WebConversation wc = new WebConversation();
+        wc.setExceptionsThrownOnErrorStatus(false);
+
+        String url = JSPUtils.createHttpUrlString(server, TestServlet_APP_NAME, "error0077.jsp");
+        LOG.info("url: " + url);
+
+        WebRequest request = new GetMethodWebRequest(url);
+        WebResponse response = wc.getResponse(request);
+        LOG.info("Response: " + response.getText());
+        //error0077.jsp contains a JSP syntax error, therefore verify the following:
+        //   response code is 500
+        //   response text includes the JSPG0077E message
+        //   messages.log has the JSPG0077E message
+        assertEquals("Expected " + 500 + " status code was not returned!",
+                     500, response.getResponseCode());
+        assertTrue("Response should contain " + e77 + ".",
+                   response.getText().contains(e77));
+        assertTrue("Log should contain " + e77 + ".",
+                   null != server.waitForStringInLogUsingMark(e77));
     }
 
     private void runEDR(String url, boolean makeConcurrentRequests) throws Exception {
@@ -813,8 +957,8 @@ public class JSPTests {
         WebConversation wc1 = new WebConversation();
         WebRequest request1 = new GetMethodWebRequest(url);
 
-        if(makeConcurrentRequests) {
-            // Make 2 requests. 
+        if (makeConcurrentRequests) {
+            // Make 2 requests.
             makeConcurrentRequests(wc1, request1, 2);
         }
 
@@ -822,7 +966,7 @@ public class JSPTests {
         LOG.info("Servlet response : " + response1.getText());
         assertTrue("The response did not contain: " + expect1, response1.getText().contains(expect1));
 
-        Thread.sleep(5000L); // delay a bit to be ensure noticeable time diff on updated EDR file
+        Thread.sleep(5000L); // delay a bit to ensure a noticeable time diff on updated EDR file
         server.copyFileToLibertyServerRoot(relEdrPath, updEdrFile);
         server.deleteFileFromLibertyServerRoot(relEdrPath + orgEdrFile);
         server.renameLibertyServerRootFile(relEdrPath + updEdrFile, relEdrPath + orgEdrFile);
@@ -854,7 +998,7 @@ public class JSPTests {
                 }
             }));
         }
-        
+
         // check runs completed successfully
         for (Future<Boolean> task : tasks) {
             try {
@@ -901,7 +1045,7 @@ public class JSPTests {
     }
 
     private void verifyExceptionInResponse(String expectedException, String responseText) throws Exception {
-        if (JakartaEE9Action.isActive()) {
+        if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
             expectedException = "jakarta." + expectedException;
         } else {
             expectedException = "javax." + expectedException;

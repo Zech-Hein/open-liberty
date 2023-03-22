@@ -1,9 +1,11 @@
 <!--
-    Copyright (c) 2017 IBM Corporation and others.
+    Copyright (c) 2017, 2022 IBM Corporation and others.
     All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
+    are made available under the terms of the Eclipse Public License 2.0
     which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    http://www.eclipse.org/legal/epl-2.0/
+    
+    SPDX-License-Identifier: EPL-2.0
    
     Contributors:
         IBM Corporation - initial API and implementation
@@ -15,6 +17,7 @@
 		<property name="inited-test-tasks" value="true" />
 		<path id="test-buildtasks-autowas">
 			<fileset dir="./build/lib/" includes="infra.buildtasks*.jar" />
+			<fileset dir="./build/lib/" includes="jsch*.jar" />
 		</path>
 		<taskdef resource="com/ibm/aries/componenttest/buildtasks/buildtasks.properties" classpathref="test-buildtasks-autowas" loaderref="test-buildtasks-autowas_ldr" />
 		<taskdef resource="com/ibm/aries/buildtasks/buildtasks.properties" classpathref="test-buildtasks-autowas" loaderref="test-buildtasks-autowas_ldr" />
@@ -93,7 +96,6 @@
 			<not>
 				<or>
 					<equals arg1="11" arg2="${java.specification.version}"/>
-					<equals arg1="1.7" arg2="${java.specification.version}"/>
 					<equals arg1="1.8" arg2="${java.specification.version}"/>
 				</or>
 		    </not>
@@ -107,6 +109,19 @@
 			<istrue value="${is.java15.orHigher}"/>
 		</condition>
 		<property name="illegal.access.permit" value=""/>
+		
+		
+		<!-- Java 17 began the security manager's deprecation process (https://openjdk.java.net/jeps/411).
+			     In Java 18, the `java.security.manager` system property's default changed from `allow` to `disallow`, which causes our build process to fail.  
+				 Setting up a gated property (use.java.security.manager) so that any builds that take place on Java 15+ use the JVM override 
+				 -Djava.security.manager=allow which is needed for our build process, but older versions will be skipped --> 
+		<condition property="use.java.security.manager" value="-Djava.security.manager=allow">
+			<and>
+				<istrue value="${is.java15.orHigher}"/>
+				<not><istrue value="${supports.framework.java}"/></not>
+			</and>
+		</condition>
+		<property name="use.java.security.manager" value=""/>
 		
 		<tstamp>
 			<format property="today.day" pattern="EEEE" />
@@ -349,20 +364,45 @@
 					<!-- embedded trace conditionals -->
 					<jvmarg value="${framework.debug.embed.jvmarg1}" /> 
 					<jvmarg line="${illegal.access.permit}" />
+					<!-- Override default value of the security manager for Java 18+ -->
+					<jvmarg line="${use.java.security.manager}" />
 				</junit>
 			</sequential>
 			<finally>
-				<!-- If the tests timeout, attempt to copy logs from zombie servers -->
+				<!-- If the tests timeout, wait 30 seconds for leaked servers to finish starting/stopping -->
 				<fileset dir="${basedir}/output" includes="*.mrk" id="markfiles" />
 				<foreach param="serverFile" in="markfiles">
-					<echo>Failure running ${test.bucket.name}, attempting to copy logs from servers that did not stop properly : ${serverFile}</echo>
-					<local name="serverDir"/>
+					<echo>Waiting 30 seconds in case the server has not finished starting or stopping : ${serverFile}</echo>
+					<sleep seconds="30"/>
+				</foreach>
+				
+				<!-- If the tests timeout, attempt to stop and copy logs from zombie/leaked servers -->
+				<!-- Obtain the set of mark files again, in case any servers stopped during above wait -->
+				<fileset dir="${basedir}/output" includes="*.mrk" id="markfiles" />
+				<foreach param="serverFile" in="markfiles">
+					<echo>Failure running ${test.bucket.name}, attempting to stop servers that did not stop properly : ${serverFile}</echo>
+					<local name="serverDir" />
 					<basename property="serverDir" file="${serverFile}" suffix=".mrk" />
+					<condition property="script.exec" value="cmd" else="sh">
+						<istrue value="${is.windows.platform}" />
+					</condition>
+					<condition property="script.cmd" value="/c server.bat" else="server">
+						<istrue value="${is.windows.platform}" />
+					</condition>
+
+					<echo>Executing ${libertyInstallPath}/bin/${script.exec} ${script.cmd} stop ${serverDir}</echo>
+					<exec failonerror="false" executable="${script.exec}" dir="${libertyInstallPath}/bin" timeout="300000">
+						<arg line="${script.cmd}" />
+						<arg line="stop" />
+						<arg line="${serverDir}" />
+					</exec>
+
+					<echo>Failure running ${test.bucket.name}, attempting to copy logs from servers that did not stop properly : ${serverFile}</echo>
 					<tstamp>
 						<format property="copyTime" pattern="dd-MM-yyyy-HH-mm-ss" />
 					</tstamp>
 
-					<copy failonerror="false" todir="${basedir}/output/servers/${serverDir}-${copyTime}">
+					<copy failonerror="false" todir="${basedir}/output/servers/${serverDir}-LEAKED-${copyTime}">
 						<fileset dir="${libertyInstallPath}/usr/servers/${serverDir}" />
 					</copy>
 				</foreach>

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,12 +13,10 @@
 package com.ibm.ws.security.javaeesec.cdi.beans;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -48,19 +48,15 @@ import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
 import com.ibm.ws.cdi.CDIService;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.security.javaeesec.CDIHelperTestWrapper;
 import com.ibm.ws.webcontainer.security.WebAppSecurityConfig;
-
-import test.common.SharedOutputManager;
 
 public class CustomFormAuthenticationMechanismTest {
 
@@ -187,7 +183,7 @@ public class CustomFormAuthenticationMechanismTest {
     @Test
     public void testValidateRequestValidIdAndPWIdentityStoreHandler() throws Exception {
         IdentityStoreHandler mish = new MyIdentityStoreHandler();
-        withMessageContext(ap).withIsNewAuthentication(false).withGetResponse().withMessageInfo();
+        withMessageContext(ap).withMessageInfo();
         withUsernamePassword(USER1, PASSWORD1).withIDSBeanInstance(ids, false, false).withIDSHandlerBeanInstance(mish).withSetStatusToResponse(HttpServletResponse.SC_OK);
 
         AuthenticationStatus status = cfam.validateRequest(request, res, hmc);
@@ -197,8 +193,9 @@ public class CustomFormAuthenticationMechanismTest {
     @Test
     public void testValidateRequestInvalidIdAndPWIdentityStoreHandler() throws Exception {
         IdentityStoreHandler mish = new MyIdentityStoreHandler();
-        withMessageContext(ap).withIsNewAuthentication(false).withGetResponse();
-        withUsernamePassword(USER1, "invalid").withIDSBeanInstance(ids, false, false).withIDSHandlerBeanInstance(mish).withSetStatusToResponse(HttpServletResponse.SC_UNAUTHORIZED);
+        withMessageContext(ap);
+        withUsernamePassword(USER1, "invalid").withIDSBeanInstance(ids, false, false).withIDSHandlerBeanInstance(mish);
+        withResponseUnauthorized().withSetStatusToResponse(HttpServletResponse.SC_UNAUTHORIZED);
 
         AuthenticationStatus status = cfam.validateRequest(request, res, hmc);
         assertEquals("The result should be SEND_FAILURE", AuthenticationStatus.SEND_FAILURE, status);
@@ -207,7 +204,7 @@ public class CustomFormAuthenticationMechanismTest {
     @Test
     public void testValidateRequestValidIdAndPWNoIdentityStoreHandlerCallbackHandler() throws Exception {
         final MyCallbackHandler mch = new MyCallbackHandler();
-        withMessageContext(ap).withIsNewAuthentication(false).withGetResponse().withMessageInfo().withHandler(mch);
+        withMessageContext(ap).withMessageInfo().withHandler(mch);
         withUsernamePassword(USER1, PASSWORD1).withIDSBeanInstance(null, true, false).withSetStatusToResponse(HttpServletResponse.SC_OK);
 
         AuthenticationStatus status = cfam.validateRequest(request, res, hmc);
@@ -216,7 +213,7 @@ public class CustomFormAuthenticationMechanismTest {
 
     @Test
     public void testValidateRequestValidIdAndPWNoIdentityStoreHandlerNoUserRegistry() throws Exception {
-        withMessageContext(ap).withIsNewAuthentication(false).withGetResponse();
+        withMessageContext(ap);
         withUsernamePassword(USER1, PASSWORD1).withIDSBeanInstance(null, true, false).withSetStatusToResponse(HttpServletResponse.SC_OK);
         isRegistryAvailable = false;
         AuthenticationStatus status = cfam.validateRequest(request, res, hmc);
@@ -227,8 +224,9 @@ public class CustomFormAuthenticationMechanismTest {
     @Test
     public void testValidateRequestInvalidIdAndPWNoIdentityStoreHandlerCallbackHandler() throws Exception {
         final MyCallbackHandler mch = new MyCallbackHandler();
-        withMessageContext(ap).withIsNewAuthentication(false).withGetResponse().withHandler(mch);
-        withUsernamePassword(USER1, "invalid").withIDSBeanInstance(null, false, true).withSetStatusToResponse(HttpServletResponse.SC_UNAUTHORIZED);
+        withMessageContext(ap).withHandler(mch);
+        withUsernamePassword(USER1, "invalid").withIDSBeanInstance(null, false, true);
+        withResponseUnauthorized().withSetStatusToResponse(HttpServletResponse.SC_UNAUTHORIZED);
 
         AuthenticationStatus status = cfam.validateRequest(request, res, hmc);
         assertEquals("The result should be SEND_FAILURE", AuthenticationStatus.SEND_FAILURE, status);
@@ -238,7 +236,7 @@ public class CustomFormAuthenticationMechanismTest {
     public void testValidateRequestValidIdAndPWNoIdentityStoreHandlerCallbackHandlerException() throws Exception {
         final String msg = "An Exception by CallbackHandler";
         IOException ex = new IOException(msg);
-        withMessageContext(ap).withIsNewAuthentication(false).withGetResponse().withHandler(ch);
+        withMessageContext(ap).withHandler(ch);
         withUsernamePassword(USER1, PASSWORD1).withIDSBeanInstance(null, true, false).withCallbackHandlerException(ex);
 
         try {
@@ -253,7 +251,7 @@ public class CustomFormAuthenticationMechanismTest {
     @Test
     public void testValidateRequestInvalidCredential() throws Exception {
         CallerOnlyCredential coc = new CallerOnlyCredential(USER1);
-        withMessageContext(ap).withIsNewAuthentication(false).withGetResponse().withHandler(ch);
+        withMessageContext(ap).withHandler(ch);
         withCredential(coc).withIDSBeanInstance(null, false, true);
 
         try {
@@ -305,6 +303,7 @@ public class CustomFormAuthenticationMechanismTest {
         IdentityStoreHandler mish = new MyIdentityStoreHandler();
         withMessageContext(ap).withNewAuthenticate(baCred).withMessageInfo();
         withIDSBeanInstance(ids, false, false).withIDSHandlerBeanInstance(mish);
+        withSetStatusToResponse(HttpServletResponse.SC_OK);
 
         AuthenticationStatus status = cfam.validateRequest(request, res, hmc);
         assertEquals("The result should be SUCCESS", AuthenticationStatus.SUCCESS, status);
@@ -315,6 +314,7 @@ public class CustomFormAuthenticationMechanismTest {
         IdentityStoreHandler mish = new MyIdentityStoreHandler();
         withMessageContext(ap).withNewAuthenticate(upCred).withMessageInfo();
         withIDSBeanInstance(ids, false, false).withIDSHandlerBeanInstance(mish);
+        withSetStatusToResponse(HttpServletResponse.SC_OK);
 
         AuthenticationStatus status = cfam.validateRequest(request, res, hmc);
         assertEquals("The result should be SUCCESS", AuthenticationStatus.SUCCESS, status);
@@ -324,6 +324,7 @@ public class CustomFormAuthenticationMechanismTest {
     public void testValidateRequestNewAuthenticateInvalidUsernamePasswordCredFailure() throws Exception {
         IdentityStoreHandler mish = new MyIdentityStoreHandler();
         withMessageContext(ap).withNewAuthenticate(invalidUpCred);
+        withResponseUnauthorized().withSetStatusToResponse(HttpServletResponse.SC_UNAUTHORIZED);
         withIDSBeanInstance(ids, false, false).withIDSHandlerBeanInstance(mish);
 
         AuthenticationStatus status = cfam.validateRequest(request, res, hmc);
@@ -334,6 +335,7 @@ public class CustomFormAuthenticationMechanismTest {
     public void testValidateRequestNewAuthenticateInvalidCredentialFailure() throws Exception {
         IdentityStoreHandler mish = new MyIdentityStoreHandler();
         withMessageContext(ap).withNewAuthenticate(coCred);
+        withResponseUnauthorized().withSetStatusToResponse(HttpServletResponse.SC_UNAUTHORIZED);
         withIDSBeanInstance(ids, false, false).withIDSHandlerBeanInstance(mish);
 
         AuthenticationStatus status = cfam.validateRequest(request, res, hmc);
@@ -386,16 +388,6 @@ public class CustomFormAuthenticationMechanismTest {
                 will(returnValue(ap));
                 allowing(hmc).getRequest();
                 will(returnValue(request));
-            }
-        });
-        return this;
-    }
-
-    private CustomFormAuthenticationMechanismTest withIsNewAuthentication(final boolean value) throws Exception {
-        mockery.checking(new Expectations() {
-            {
-                one(ap).isNewAuthentication();
-                will(returnValue(value));
             }
         });
         return this;
@@ -488,14 +480,23 @@ public class CustomFormAuthenticationMechanismTest {
     private CustomFormAuthenticationMechanismTest withSetStatusToResponse(final int value) {
         mockery.checking(new Expectations() {
             {
-                one(res).setStatus(value);
+                one(hmc).getResponse().setStatus(value);
+            }
+        });
+        return this;
+    }
+
+    private CustomFormAuthenticationMechanismTest withResponseUnauthorized() {
+        mockery.checking(new Expectations() {
+            {
+                one(hmc).responseUnauthorized();
             }
         });
         return this;
     }
 
     private CustomFormAuthenticationMechanismTest withNewAuthenticate(Credential cred) {
-        setNewAuthenticateExpectations().withAuthParamsExpectations(ap).withCredentialExpectations(cred);
+        setNewAuthenticateExpectations().withCredentialExpectations(cred);
         return this;
     }
 
@@ -503,16 +504,6 @@ public class CustomFormAuthenticationMechanismTest {
         mockery.checking(new Expectations() {
             {
                 never(hmc).getResponse();
-            }
-        });
-        return this;
-    }
-
-    private CustomFormAuthenticationMechanismTest withAuthParamsExpectations(final AuthenticationParameters ap) {
-        mockery.checking(new Expectations() {
-            {
-                one(ap).isNewAuthentication();
-                will(returnValue(true));
             }
         });
         return this;

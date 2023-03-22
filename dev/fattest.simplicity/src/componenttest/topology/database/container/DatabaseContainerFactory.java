@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2021 IBM Corporation and others.
+ * Copyright (c) 2019, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,6 +19,7 @@ import java.util.function.Consumer;
 
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.output.OutputFrame;
+import org.testcontainers.utility.DockerImageName;
 
 import com.ibm.websphere.simplicity.log.Log;
 
@@ -34,8 +37,8 @@ import componenttest.custom.junit.runner.FATRunner;
  * <br> Container Information: <br>
  * Derby: Uses a derby no-op test container <br>
  * DerbyClient: Uses a derby no-op test container <br>
- * DB2: Uses <a href="https://hub.docker.com/r/ibmcom/db2">Offical DB2 Container</a> <br>
- * Oracle: TODO replace this container with the official oracle-xe container if/when it is available without a license. <br>
+ * DB2: Uses <a href="https://hub.docker.com/repository/docker/kyleaure/db2">Custom DB2 container</a> <br>
+ * Oracle: Uses <a href="https://hub.docker.com/r/gvenzl/oracle-xe">Offical Oracle container</a> <br>
  * Postgres: Uses <a href="https://hub.docker.com/_/postgres">Offical Postgres Container</a> <br>
  * MS SQL Server: Uses <a href="https://hub.docker.com/_/microsoft-mssql-server">Offical Microsoft SQL Container</a> <br>
  *
@@ -107,28 +110,30 @@ public class DatabaseContainerFactory {
         Class<?> clazz = dbContainerType.getContainerClass();
 
         try {
+            cont = (JdbcDatabaseContainer<?>) clazz.getConstructor(DockerImageName.class).newInstance(dbContainerType.getImageName());
+
             switch (dbContainerType) {
                 case DB2:
-                    cont = (JdbcDatabaseContainer<?>) clazz.getConstructor().newInstance();
                     //Accept License agreement
                     Method acceptDB2License = cont.getClass().getMethod("acceptLicense");
                     acceptDB2License.invoke(cont);
                     //Add startup timeout since DB2 tends to take longer than the default 3 minutes on build machines.
-                    Method withStartupTimeout = cont.getClass().getMethod("withStartupTimeout", Duration.class);
-                    withStartupTimeout.invoke(cont, Duration.ofMinutes(FATRunner.FAT_TEST_LOCALRUN ? 5 : 15));
+                    Method withStartupTimeoutDB2 = cont.getClass().getMethod("withStartupTimeout", Duration.class);
+                    withStartupTimeoutDB2.invoke(cont, Duration.ofMinutes(FATRunner.FAT_TEST_LOCALRUN && !FATRunner.ARM_ARCHITECTURE ? 5 : 15));
                     break;
                 case Derby:
-                    cont = (JdbcDatabaseContainer<?>) clazz.getConstructor().newInstance();
                     break;
                 case DerbyClient:
-                    cont = (JdbcDatabaseContainer<?>) clazz.getConstructor().newInstance();
                     break;
                 case Oracle:
-                    cont = (JdbcDatabaseContainer<?>) clazz.getConstructor(String.class).newInstance("kyleaure/oracle-18.4.0-xe-prebuilt:2.0");
-                    cont.withExposedPorts(1521, 5500, 8080); // need to manually expose ports due to regression in 1.14.0
+                    //Keep behavior the same as we did before by using a SID instead of pluggable db
+                    Method usingSid = cont.getClass().getMethod("usingSid");
+                    usingSid.invoke(cont);
+                    //Add startup timeout since Oracle tends to take longer than the default 3 minutes on build machines.
+                    Method withStartupTimeoutOracle = cont.getClass().getMethod("withStartupTimeout", Duration.class);
+                    withStartupTimeoutOracle.invoke(cont, Duration.ofMinutes(FATRunner.FAT_TEST_LOCALRUN ? 3 : 25));
                     break;
                 case Postgres:
-                    cont = (JdbcDatabaseContainer<?>) clazz.getConstructor(String.class).newInstance("postgres");
                     //This allows postgres by default to participate in XA transactions (2PC).
                     //Documentation on the Prepare Transaction action in postgres: https://www.postgresql.org/docs/9.3/sql-prepare-transaction.html
 
@@ -139,13 +144,12 @@ public class DatabaseContainerFactory {
                     withCommand.invoke(cont, "postgres -c max_prepared_transactions=5");
                     break;
                 case SQLServer:
-                    cont = (JdbcDatabaseContainer<?>) clazz.getConstructor(String.class).newInstance("mcr.microsoft.com/mssql/server:2019-CU10-ubuntu-16.04");
                     //Accept license agreement
                     Method acceptSQLServerLicense = cont.getClass().getMethod("acceptLicense");
                     acceptSQLServerLicense.invoke(cont);
                     //Init Script
                     Method initScript = cont.getClass().getMethod("withInitScript", String.class);
-                    initScript.invoke(cont, "resources/init-sqlserver.sql");
+                    initScript.invoke(cont, "init-sqlserver.sql");
                     break;
                 default:
                     break;

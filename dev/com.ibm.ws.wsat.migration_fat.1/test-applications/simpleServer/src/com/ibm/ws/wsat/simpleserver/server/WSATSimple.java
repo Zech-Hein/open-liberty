@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2020 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -196,7 +198,7 @@ public class WSATSimple {
 	}
 	
 	public String sleep(int seconds, int expectedDirection) {
-		System.out.println("========== enlistTwoXAResources(" + seconds + ", " + expectedDirection + ") Starting... ==========");
+		System.out.println("========== sleep(" + seconds + ", " + expectedDirection + ") Starting... ==========");
 		XAResourceImpl.clear();
 		final ExtendedTransactionManager TM = TransactionManagerFactory
 				.getTransactionManager();
@@ -230,7 +232,7 @@ public class WSATSimple {
 			xaRes2.setExpectedDirection(expectedDirection);
 			result1 = TM.enlist(xaRes1, recoveryId1);
 			result2 = TM.enlist(xaRes2, recoveryId2);
-			System.out.println(">>>>>>>>>Thread is hanging for " + seconds + "seconds!");
+			System.out.println(">>>>>>>>>Thread is hanging for " + seconds + " seconds!");
 		  	Thread.sleep(seconds * 1000);
 		  	System.out.println(">>>>>>>>>Woken up!");
 		} catch (Exception e) {

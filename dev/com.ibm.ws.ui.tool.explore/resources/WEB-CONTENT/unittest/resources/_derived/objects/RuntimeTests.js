@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -505,7 +507,7 @@ define([
   
            runtime.subscribe(observer);
   
-           // Initial sanity check
+           // Initial test
            assert.equal(runtime.id,                  'localhost,/wlp', 'Runtime.id did not have the correct initialized value');
            assert.equal(runtime.name,                i18n.RUNTIME_LIBERTY, 'Runtime.name did not have the correct initialized value');
            assert.equal(runtime.state,           'PARTIALLY_STARTED',  'Runtime.state did not have the correct initialized value');
@@ -608,7 +610,7 @@ define([
            var runtime = new Runtime({host: host, path: '/wlp', servers: [server], runtimeType: "Liberty"});
            var observer = new RuntimeObserver();
   
-           // Sanity check, make sure we start with alerts
+           // Test, make sure we start with alerts
            assert.isNotNull(runtime.alerts,                                 'Runtime.alerts should have been set as the Runtime was constructed with servers with alerts');
   
            runtime.subscribe(observer);
@@ -634,7 +636,7 @@ define([
            var runtime = new Runtime({host: host, path: '/wlp', servers: [server], runtimeType: "Liberty"});
            var observer = new RuntimeObserver();
   
-           // Sanity check, make sure we start with alerts
+           // Test, make sure we start with alerts
            assert.notOk(runtime.alerts,                                'Runtime.alerts should not be set as the Runtime was constructed with servers without alerts');
   
            runtime.subscribe(observer);
@@ -668,7 +670,7 @@ define([
            var runtime = new Runtime({host: host, path: '/wlp', servers: [server], runtimeType: "Liberty"});
            var observer = new RuntimeObserver();
   
-           // Sanity check, make sure we start with alerts
+           // Test, make sure we start with alerts
            assert.isNotNull(runtime.alerts,                                 'Runtime.alerts should have been set as the Runtime was constructed with servers with alerts');
   
            runtime.subscribe(observer);

@@ -1,18 +1,22 @@
 #*******************************************************************************
-# Copyright (c) 2020, 2021 IBM Corporation and others.
+# Copyright (c) 2020, 2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/rejar.props
 
+-sub: *.bnd
+
+
 bVersion=1.0
 
-Bundle-SymbolicName: io.openliberty.io.smallrye.config; singleton:=true
 
 WS-TraceGroup: APPCONFIG
 
@@ -36,19 +40,17 @@ Service-Component: \
 Include-Resource: \
   META-INF=resources/META-INF
 
-Private-Package: \
-	io.openliberty.microprofile.config.internal.extension
+Private-Package: io.openliberty.microprofile.config.internal.extension,io.openliberty.io.smallrye.config.resources.*
 
 Export-Package: \
-        io.smallrye.config.*;version="2.0.0"
+        io.smallrye.config.*;version="2.5.1"
 
-jakartaeeMe: true
 
 -buildpath: \
   io.openliberty.io.smallrye.common;version=latest, \
-  io.smallrye.config:smallrye-config;version=2.1.0, \
-  io.smallrye.config:smallrye-config-common;version=2.1.0, \
-  io.smallrye.config:smallrye-config-core;version=2.1.0, \
+  io.smallrye.config:smallrye-config;version=latest, \
+  io.smallrye.config:smallrye-config-common;version=latest, \
+  io.smallrye.config:smallrye-config-core;version=latest, \
   com.ibm.websphere.javaee.cdi.2.0;version=latest, \
   com.ibm.websphere.javaee.annotation.1.3;version=latest, \
   io.openliberty.org.eclipse.microprofile.config.2.0;version=latest, \
@@ -60,4 +62,5 @@ jakartaeeMe: true
   com.ibm.websphere.org.osgi.service.component;version=latest,\
   com.ibm.ws.org.jboss.logging;version=latest,\
   com.ibm.ws.logging;version=latest,\
-  com.ibm.ws.container.service;version=latest
+  com.ibm.ws.container.service;version=latest,\
+  com.ibm.ws.kernel.boot.common;version=latest

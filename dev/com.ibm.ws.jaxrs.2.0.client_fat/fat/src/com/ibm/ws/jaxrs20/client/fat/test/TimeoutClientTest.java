@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2021 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,9 +27,12 @@ import com.ibm.websphere.simplicity.ShrinkHelper;
 import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.custom.junit.runner.Mode;
+import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.topology.impl.LibertyServer;
- 
+
 @RunWith(FATRunner.class)
+@Mode(TestMode.FULL)
 public class TimeoutClientTest extends AbstractTest {
 
     @Server("jaxrs20.client.TimeoutClientTest")
@@ -54,7 +59,7 @@ public class TimeoutClientTest extends AbstractTest {
     @AfterClass
     public static void tearDown() throws Exception {
         if (server != null) {
-            server.stopServer("CWWKW0700E", "CWWKW1302W");
+            server.stopServer("CWWKW0700E", "CWWKW1306W");
         }
     }
 
@@ -73,7 +78,7 @@ public class TimeoutClientTest extends AbstractTest {
         Map<String, String> p = new HashMap<String, String>();
         p.put("param", "timeoutWork");
         p.put("timeout", "1000"); //Return time specified on server side is 2000
-        this.runTestOnServer(target, "testTimeout", p, 
+        this.runTestOnServer(target, "testTimeout", p,
                              "[Timeout Error]:javax.ws.rs.ProcessingException: java.net.SocketTimeoutException: SocketTimeoutException", //CXF
                              "[Timeout Error]:jakarta.ws.rs.ProcessingException: RESTEASY004655"); //RESTEasy
     }

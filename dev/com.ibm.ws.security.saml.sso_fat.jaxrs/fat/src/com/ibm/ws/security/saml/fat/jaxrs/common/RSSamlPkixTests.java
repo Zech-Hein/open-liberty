@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2016, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -205,9 +207,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * The default trustStoreRef is serverStore which points to sslServerTrust.jks
      * This jks file does NOT have the self-signed certificates from the tfim IdP. So, the test fails
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_defaultTrustAnchorTest() throws Exception {
 
@@ -237,9 +237,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * as serverSToreMissingSAMl. This trust store does NOT contain the cert for the IDP server.
      * So, the test fails
      */
-    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException" })
-    @ExpectedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @ExpectedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Mode(TestMode.LITE)
     @Test
     public void RSSamlPkixTests_badTrustAnchorTest() throws Exception {
@@ -253,9 +251,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * as missingJKSFil. This jks file for this trust configuration does not exist
      * So, the test fails
      */
-    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @ExpectedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException"}, repeatAction = {EmptyAction.ID})
-    @ExpectedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_badTrustAnchorReference() throws Exception {
 
@@ -297,9 +293,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * NOT have the IDP's certificate
      */
     @Mode(TestMode.LITE)
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_noTrustAnchor_badX509Certificate() throws Exception {
 
@@ -314,9 +308,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * The certificate is found
      * So, the test passes
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_noTrustAnchor_multipleX509Certificates_1bad1good() throws Exception {
 
@@ -331,9 +323,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * The certificate is found
      * So, the test passes
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_noTrustAnchor_multipleX509Certificates_1good1bad() throws Exception {
 
@@ -350,9 +340,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * Extended by PkixJaxrsWithoutCertInServerIDPInitiatedTests, the tests should fail as the default server truststore does
      * NOT have the IDP's certificate
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_noTrustAnchor_multipleX509Certificates_2bad() throws Exception {
 
@@ -384,9 +372,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * The certificate is found
      * So, the test passes
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_goodTrustAnchor_badX509Certificate() throws Exception {
 
@@ -402,9 +388,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * The certificate is found
      * So, the test passes
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_goodTrustAnchor_multipleX509Certificates_1bad1good() throws Exception {
 
@@ -420,9 +404,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * The certificate is found
      * So, the test passes
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_goodTrustAnchor_multipleX509Certificates_1good1bad() throws Exception {
 
@@ -438,9 +420,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * The certificate is found
      * So, the test passes
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_goodTrustAnchor_multipleX509Certificates_2bad() throws Exception {
 
@@ -472,9 +452,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * The certificate is NOT found
      * So, the test fails
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_badTrustAnchor_badX509Certificate() throws Exception {
 
@@ -490,9 +468,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * The certificate is found
      * So, the test passes
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_badTrustAnchor_multipleX509Certificates_1bad1good() throws Exception {
 
@@ -508,9 +484,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * The certificate is found
      * So, the test passes
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_badTrustAnchor_multipleX509Certificates_1good1bad() throws Exception {
 
@@ -526,9 +500,7 @@ public class RSSamlPkixTests extends SAMLCommonTest {
      * The certificate is NOT found
      * So, the test fails
      */
-    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException" })
-    @AllowedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @AllowedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @AllowedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "java.security.KeyStoreException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlPkixTests_badTrustAnchor_multipleX509Certificates_2bad() throws Exception {
 

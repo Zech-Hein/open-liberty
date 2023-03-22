@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2002, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,7 @@
 
 package com.ibm.ws.recoverylog.spi;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 import com.ibm.tx.TranConstants;
@@ -59,10 +62,10 @@ import com.ibm.websphere.ras.TraceComponent;
  * "Magic Number" ("RCRD") byte[] 4
  * Record Sequence Number long 8
  * Recovery Length int 4
- * 
+ *
  * < other record data, the structure of >
  * < which is not defined by this class >
- * 
+ *
  * Record Sequence Number Repeat long 8
  * </p>
  *
@@ -93,7 +96,7 @@ public abstract class LogRecord {
     /**
      * The mapped buffer into which the log record will be written.
      */
-    protected ByteBuffer _buffer = null;
+    protected ByteBuffer _buffer;
 
     /**
      * The absolute position of the ByteBuffer view in the entire ByteBuffer from which this
@@ -130,11 +133,11 @@ public abstract class LogRecord {
      *                   that this log records byte cursor is isolated from other
      *                   log records.
      */
-    protected LogRecord(ByteBuffer buffer, int absolutePosition) {
+    protected LogRecord(Buffer buffer, int absolutePosition) {
         if (tc.isEntryEnabled())
             Tr.entry(tc, "LogRecord", buffer, absolutePosition);
 
-        _buffer = buffer;
+        _buffer = (ByteBuffer) buffer;
         _absolutePosition = absolutePosition;
 
         if (tc.isEntryEnabled())

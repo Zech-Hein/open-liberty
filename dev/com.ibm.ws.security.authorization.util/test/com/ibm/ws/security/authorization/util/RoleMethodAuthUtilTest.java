@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
 import java.security.Principal;
+import java.util.function.Supplier;
 
 import org.junit.Test;
 
@@ -46,7 +49,7 @@ public class RoleMethodAuthUtilTest {
     public void unauthenticated_PermitAllOnClass_noAnnotationOnMethod() throws Exception {
         // @PermitAll on class / no annotations on method
         assertTrue(RoleMethodAuthUtil.parseMethodSecurity(method(PERMITALL_ON_CLASS, "unannotated"),
-                                                          null,
+                                                          principal(null),
                                                           s -> {
                                                               return true;
                                                           }));
@@ -61,9 +64,9 @@ public class RoleMethodAuthUtilTest {
     public void nullPrincipal_RolesAllowedOnClass_noAnnotationOnMethod() throws Exception {
         // @PermitAll on class / no annotations on method
         RoleMethodAuthUtil.parseMethodSecurity(method(ROLESALLOWED_ON_CLASS, "unannotated"),
-                                               null,
+                                               principal(null),
                                                s -> {
-                                                   return true;
+                                                   return false; // change to false because "unannotated" is protected by "role3" and "role4"
                                                });
     }
 
@@ -72,7 +75,7 @@ public class RoleMethodAuthUtilTest {
         assertFalse(RoleMethodAuthUtil.parseMethodSecurity(method(ROLESALLOWED_ON_CLASS, "unannotated"),
                                                            principal("UNAUTHENTICATED"),
                                                            s -> {
-                                                               return true;
+                                                               return false; // change to false because "unannotated" is protected by "role3" and "role4"
                                                            }));
     }
 
@@ -273,7 +276,17 @@ public class RoleMethodAuthUtilTest {
         return clazz.getMethod(methodName);
     }
 
-    private Principal principal(String name) {
-        return new PrincipalImpl(name);
+    private Supplier<Principal> principal(String name) {
+
+        return new Supplier<Principal>() {
+            @Override
+            public Principal get() {
+                if (name == null) {
+                  return null;
+                } else {
+                  return new PrincipalImpl(name);
+                }
+            }
+        };
     }
 }

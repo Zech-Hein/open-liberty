@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,10 +22,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
-
-import org.eclipse.transformer.jakarta.JakartaTransformer;
+import java.util.function.Predicate;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.log.Log;
@@ -46,6 +50,32 @@ public class JakartaEE9Action extends FeatureReplacementAction {
     private static final Class<?> c = JakartaEE9Action.class;
 
     public static final String ID = "EE9_FEATURES";
+
+    private static final String TRANSFORMER_RULES_APPEND_ROOT = System.getProperty("user.dir") + "/publish/rules/";
+    static final String TRANSFORMER_RULES_ROOT = System.getProperty("user.dir") + "/autoFVT-templates/";
+    private static final Map<String, String> DEFAULT_TRANSFORMATION_RULES = new HashMap();
+    private static final Map<String, String> TRANSFORMATION_RULES_APPEND = new HashMap();
+    private static boolean WIDEN = false;
+
+    static {
+        // Fill the default transformation rules for the transformer
+        // The rules are copied from 'open-liberty/dev/wlp-jakartaee-transform/rules' to
+        // the user 'autoFVT-templates' folder.
+        //
+        //   jakarta-selections.properties
+        //   jakarta-renames.properties
+        //   jakarta-versions.properties
+        //   jakarta-bundles.properties
+        //   jakarta-direct.properties
+        //   jakarta-text.properties
+        //   (other xml properties files as referenced by 'jakarta-text.properties'
+        DEFAULT_TRANSFORMATION_RULES.put("-tr", TRANSFORMER_RULES_ROOT + "jakarta-renames.properties"); // Package renames
+        DEFAULT_TRANSFORMATION_RULES.put("-ts", TRANSFORMER_RULES_ROOT + "jakarta-selections.properties"); // File selections and omissions
+        DEFAULT_TRANSFORMATION_RULES.put("-tv", TRANSFORMER_RULES_ROOT + "jakarta-versions-ee9.properties"); // Package version updates
+        DEFAULT_TRANSFORMATION_RULES.put("-tb", TRANSFORMER_RULES_ROOT + "jakarta-bundles.properties"); // bundle identity updates
+        DEFAULT_TRANSFORMATION_RULES.put("-td", TRANSFORMER_RULES_ROOT + "jakarta-direct.properties"); // exact java string constant updates
+        DEFAULT_TRANSFORMATION_RULES.put("-tf", TRANSFORMER_RULES_ROOT + "jakarta-text.properties"); // text updates
+    }
 
     // Point-in-time list of enabled JakartaEE9 features.
     // This list is of only the currently enabled features.
@@ -108,6 +138,7 @@ public class JakartaEE9Action extends FeatureReplacementAction {
         removeFeatures(EE6FeatureReplacementAction.EE6_FEATURE_SET);
         removeFeatures(EE7FeatureReplacementAction.EE7_FEATURE_SET);
         removeFeatures(EE8FeatureReplacementAction.EE8_FEATURE_SET);
+        removeFeatures(JakartaEE10Action.EE10_FEATURE_SET);
         forceAddFeatures(false);
         withID(ID);
     }
@@ -127,6 +158,11 @@ public class JakartaEE9Action extends FeatureReplacementAction {
     @Override
     public JakartaEE9Action fullFATOnly() {
         return (JakartaEE9Action) super.fullFATOnly();
+    }
+
+    @Override
+    public JakartaEE9Action conditionalFullFATOnly(Predicate<FeatureReplacementAction> conditional) {
+        return (JakartaEE9Action) super.conditionalFullFATOnly(conditional);
     }
 
     @Override
@@ -174,6 +210,88 @@ public class JakartaEE9Action extends FeatureReplacementAction {
         return (JakartaEE9Action) super.forClients(clientNames);
     }
 
+    /**
+     * Specifies which file in the rules directory of the FAT will be used for
+     * adding additional package transformations.
+     *
+     * @param fileName The file name in the publish/rules directory to use for appending
+     *
+     */
+    public JakartaEE9Action withLocalPackageTransformAppend(String fileName) {
+        TRANSFORMATION_RULES_APPEND.put("-tr", TRANSFORMER_RULES_APPEND_ROOT + fileName);
+        return this;
+    }
+
+    /**
+     * Specifies which file in the rules directory of the FAT will be used for
+     * adding additional selection transformations.
+     *
+     * @param fileName The file name in the publish/rules directory to use for appending
+     *
+     */
+    public JakartaEE9Action withLocalSelectionTransformAppend(String fileName) {
+        TRANSFORMATION_RULES_APPEND.put("-ts", TRANSFORMER_RULES_APPEND_ROOT + fileName);
+        return this;
+    }
+
+    /**
+     * Specifies which file in the rules directory of the FAT will be used for
+     * adding additional version transformations.
+     *
+     * @param fileName The file name in the publish/rules directory to use for appending
+     *
+     */
+    public JakartaEE9Action withLocalVersionTransformAppend(String fileName) {
+        TRANSFORMATION_RULES_APPEND.put("-tv", TRANSFORMER_RULES_APPEND_ROOT + fileName);
+        return this;
+    }
+
+    /**
+     * Specifies which file in the rules directory of the FAT will be used for
+     * adding additional bundle transformations.
+     *
+     * @param fileName The file name in the publish/rules directory to use for appending
+     *
+     */
+    public JakartaEE9Action withLocalBundleTransformAppend(String fileName) {
+        TRANSFORMATION_RULES_APPEND.put("-tb", TRANSFORMER_RULES_APPEND_ROOT + fileName);
+        return this;
+    }
+
+    /**
+     * Specifies which file in the rules directory of the FAT will be used for
+     * adding additional string transformations.
+     *
+     * @param fileName The file name in the publish/rules directory to use for appending
+     *
+     */
+    public JakartaEE9Action withLocalStringTransformAppend(String fileName) {
+        TRANSFORMATION_RULES_APPEND.put("-td", TRANSFORMER_RULES_APPEND_ROOT + fileName);
+        return this;
+    }
+
+    /**
+     * Specifies which file in the rules directory of the FAT will be used for
+     * adding additional xml transformations.
+     *
+     * @param fileName The file name in the publish/rules directory to use for appending
+     *
+     */
+    public JakartaEE9Action withLocalXMLTransformAppend(String fileName) {
+        TRANSFORMATION_RULES_APPEND.put("-tf", TRANSFORMER_RULES_APPEND_ROOT + fileName);
+        return this;
+    }
+
+    /**
+     * The widen option in the transformer enables the transformer to handle things like jars
+     * inside of other jars or zips inside of other zips. These are not the usual setup of
+     * of bundles and applications, so it is only enabled by an argument to the transformer.
+     */
+    public JakartaEE9Action withWiden() {
+        WIDEN = true;
+        return this;
+    }
+
     //
 
     @Override
@@ -209,6 +327,18 @@ public class JakartaEE9Action extends FeatureReplacementAction {
     }
 
     /**
+     * Invoke the Jakarta transformer on an application with added transformation rules.
+     *
+     * @param appPath                   The application path to be transformed to Jakarta
+     * @param newAppPath                The application path of the transformed file (or <code>null<code>)
+     * @param transformationRulesAppend The map with the additional transformation rules to add
+     */
+    public static void transformApp(Path appPath, Path newAppPath, Map<String, String> transformationRulesAppend) {
+        TRANSFORMATION_RULES_APPEND.putAll(transformationRulesAppend);
+        transformApp(appPath, newAppPath);
+    }
+
+    /**
      * Invoke the Jakarta transformer on an application (ear or war or jar).
      * to create a new transformed copy.
      *
@@ -222,27 +352,37 @@ public class JakartaEE9Action extends FeatureReplacementAction {
      * @param newAppPath The application path of the transformed file (or <code>null<code>)
      */
     public static void transformApp(Path appPath, Path newAppPath) {
+        transformApp(appPath, newAppPath, DEFAULT_TRANSFORMATION_RULES, TRANSFORMATION_RULES_APPEND, WIDEN);
+    }
+
+    protected static void transformApp(Path appPath, Path newAppPath, Map<String, String> defaultTransformationRules,
+                                       Map<String, String> transformationRulesAppend, boolean widen) {
         final String m = "transformApp";
         Log.info(c, m, "Transforming app: " + appPath);
 
+        // Capture stdout/stderr streams
+        final PrintStream originalOut = System.out;
+        final PrintStream originalErr = System.err;
         // Setup file output stream and only keep if we fail
-        FileOutputStream fos = null;
+        PrintStream ps = null;
         File outputLog = new File("results/transformer_" + appPath.getFileName() + ".log");
         try {
-            fos = new FileOutputStream(outputLog);
+            FileOutputStream fos = new FileOutputStream(outputLog);
+            ps = new PrintStream(fos);
         } catch (FileNotFoundException e1) {
             e1.printStackTrace();
         }
 
-        PrintStream ps = new PrintStream(fos);
-        System.setOut(ps);
-        System.setErr(ps);
+        if (ps != null) {
+            System.setOut(ps);
+            System.setErr(ps);
+        }
 
         try {
-            Class.forName("org.eclipse.transformer.jakarta.JakartaTransformer");
+            Class.forName("org.eclipse.transformer.cli.JakartaTransformerCLI");
         } catch (Throwable e) {
-            String mesg = "Unable to load the org.eclipse.transformer.jakarta.JakartaTransformer class. " +
-                          "Did you remember to include 'addRequiredLibraries.dependsOn addJakartaTransformer' in the FATs build.gradle file?";
+            String mesg = "Unable to load the org.eclipse.transformer.cli.JakartaTransformerCLI class. " +
+                          "Did you include 'addRequiredLibraries.dependsOn addJakartaTransformer' in the FAT's build.gradle file?";
             Log.error(c, m, e, mesg);
             throw new RuntimeException(mesg, e);
         }
@@ -251,61 +391,83 @@ public class JakartaEE9Action extends FeatureReplacementAction {
         Path backupPath = null;
         if (newAppPath == null) {
             outputPath = appPath.resolveSibling(appPath.getFileName() + ".jakarta");
-
-            backupPath = appPath.getParent().getParent().resolve("backup");
-            try {
-                if (!Files.exists(backupPath)) {
-                    Files.createDirectory(backupPath); // throws IOException
+            Path parent1 = appPath.toAbsolutePath().getParent();
+            if (parent1 != null) {
+                Path parent2 = parent1.getParent();
+                if (parent2 != null) {
+                    backupPath = parent2.resolve("backup");
+                    try {
+                        if (!Files.exists(backupPath)) {
+                            Files.createDirectory(backupPath); // throws IOException
+                        }
+                    } catch (IOException e) {
+                        Log.info(c, m, "Unable to create backup directory.");
+                        Log.error(c, m, e);
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    Log.info(c, m, "Unable to create backup directory.");
+                    FileNotFoundException fnfe = new FileNotFoundException("Parent path not found: " + parent1.toAbsolutePath().toString());
+                    Log.error(c, m, fnfe);
                 }
-            } catch (IOException e) {
+            } else {
                 Log.info(c, m, "Unable to create backup directory.");
-                Log.error(c, m, e);
-                throw new RuntimeException(e);
+                FileNotFoundException fnfe = new FileNotFoundException("Parent path not found: " + appPath.toAbsolutePath().toString());
+                Log.error(c, m, fnfe);
             }
         } else {
             outputPath = newAppPath;
         }
 
-        // The rules are copied from 'open-liberty/dev/wlp-jakartaee-transform/rules' to
-        // the user 'autoFVT-templates' folder.
-        //
-        //   jakarta-selections.properties
-        //   jakarta-renames.properties
-        //   jakarta-versions.properties
-        //   jakarta-bundles.properties
-        //   jakarta-direct.properties
-        //   jakarta-xml-master.properties
-        //   (other xml properties files as referenced by 'jakarta-xml-master.properties'
+        //Ensure previous transformed apps are cleared out
+        if (outputPath.toFile().exists()) {
+            if (outputPath.toFile().delete()) {
+                Log.info(c, m, "Removed existing transformed application: " + outputPath.toString());
+            } else {
+                Log.warning(c, "Tried to remove existing transformed application, but failed: " + outputPath.toString());
+            }
+        }
 
-        String transformerRulesRoot = System.getProperty("user.dir") + "/autoFVT-templates/";
         try {
             // Invoke the jakarta transformer
-            String[] args = new String[15];
+            String[] args = new String[(widen ? 15 : 14) + transformationRulesAppend.size() * 2];
 
             args[0] = appPath.toAbsolutePath().toString(); // input
             args[1] = outputPath.toAbsolutePath().toString(); // output
 
-            args[2] = "-q"; // quiet output
-
             // override jakarta default properties, which are
             // packaged in the transformer jar
-            args[3] = "-tr"; // package-renames
-            args[4] = transformerRulesRoot + "jakarta-renames.properties";
-            args[5] = "-ts"; // file selections and omissions
-            args[6] = transformerRulesRoot + "jakarta-selections.properties";
-            args[7] = "-tv"; // package version updates
-            args[8] = transformerRulesRoot + "jakarta-versions.properties";
-            args[9] = "-tb"; // bundle identity updates
-            args[10] = transformerRulesRoot + "jakarta-bundles.properties";
-            args[11] = "-td"; // exact java string constant updates
-            args[12] = transformerRulesRoot + "jakarta-direct.properties";
-            args[13] = "-tf"; // master xml subsitution file
-            args[14] = transformerRulesRoot + "jakarta-xml-master.properties";
+            args[2] = "-tr"; // package-renames
+            args[3] = defaultTransformationRules.get("-tr");
+            args[4] = "-ts"; // file selections and omissions
+            args[5] = defaultTransformationRules.get("-ts");
+            args[6] = "-tv"; // package version updates
+            args[7] = defaultTransformationRules.get("-tv");
+            args[8] = "-tb"; // bundle identity updates
+            args[9] = defaultTransformationRules.get("-tb");
+            args[10] = "-td"; // exact java string constant updates
+            args[11] = defaultTransformationRules.get("-td");
+            args[12] = "-tf"; // text updates
+            args[13] = defaultTransformationRules.get("-tf");
+            // The widen option handles jars inside of jars.
+            if (widen) {
+                args[14] = "-w";
+            }
 
-            // Note the use of 'com.ibm.ws.JakartaTransformer'.
-            // 'org.eclipse.transformer.Transformer' might also be used instead.
+            // Go through the additions
+            if (transformationRulesAppend.size() > 0) {
+                String[] additions = new String[transformationRulesAppend.size() * 2];
+                int index = 0;
+                for (Entry<String, String> addition : transformationRulesAppend.entrySet()) {
+                    additions[index++] = addition.getKey();
+                    additions[index++] = addition.getValue();
+                }
+                System.arraycopy(additions, 0, args, widen ? 15 : 14, transformationRulesAppend.size() * 2);
+            }
 
-            JakartaTransformer.main(args);
+            Log.info(c, m, "Initializing transformer with args: " + Arrays.toString(args));
+
+            TransformerHolder._INSTANCE.transform(args);
 
             if (outputPath.toFile().exists()) {
                 if (backupPath != null) {
@@ -340,11 +502,17 @@ public class JakartaEE9Action extends FeatureReplacementAction {
             Log.error(c, m, e);
             throw new RuntimeException(e);
         } finally {
-            try {
-                fos.close();
-            } catch (IOException e) {
+            if (ps != null) {
+                System.setOut(originalOut);
+                System.setErr(originalErr);
+                ps.close();
             }
             Log.info(c, m, "Transforming complete app: " + outputPath);
         }
+    }
+
+    // uses the initialisation-on-demand holder idiom to provide safe and fast lazy loading
+    private static class TransformerHolder {
+        public static final TransformSubAction _INSTANCE = new componenttest.rules.repeater.TransformSubActionImpl();
     }
 }

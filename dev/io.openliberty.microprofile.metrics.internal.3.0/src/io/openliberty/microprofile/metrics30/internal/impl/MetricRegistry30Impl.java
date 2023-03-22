@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -1337,19 +1339,18 @@ public class MetricRegistry30Impl implements MetricRegistry {
     @Override
     public <T, R extends Number> Gauge<R> gauge(MetricID metricID, T object, Function<T, R> func) {
         Metadata metadata = Metadata.builder().withName(metricID.getName()).withType(MetricType.GAUGE).build();
-        return gauge(metadata, object, func, null);
+        return gauge(metadata, object, func, metricID.getTagsAsList().toArray(new Tag[0]));
     }
 
     @Override
     public <T extends Number> Gauge<T> gauge(String name, Supplier<T> supplier, Tag... tags) {
-
         return gauge(new MetricID(name, tags), supplier);
     }
 
     @Override
     public <T extends Number> Gauge<T> gauge(MetricID metricID, Supplier<T> supplier) {
         Metadata metadata = Metadata.builder().withName(metricID.getName()).withType(MetricType.GAUGE).build();
-        return gauge(metadata, supplier, null);
+        return gauge(metadata, supplier, metricID.getTagsAsList().toArray(new Tag[0]));
     }
 
     private static class GaugeToDoubleFunction<T, R extends Number> implements Gauge<R> {

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2021 IBM Corporation and others.
+ * Copyright (c) 2015, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -121,7 +123,7 @@ public class RemoteTests extends AbstractTest {
     }
 
     @ClassRule
-    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteServer")).andWith(FeatureReplacementAction.EE8_FEATURES().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteServer")).andWith(FeatureReplacementAction.EE9_FEATURES().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteServer"));
+    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteServer")).andWith(FeatureReplacementAction.EE8_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteServer")).andWith(FeatureReplacementAction.EE9_FEATURES().conditionalFullFATOnly(FeatureReplacementAction.GREATER_THAN_OR_EQUAL_JAVA_11).forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteServer")).andWith(FeatureReplacementAction.EE10_FEATURES().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteServer"));
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -154,6 +156,16 @@ public class RemoteTests extends AbstractTest {
         CrossAppRemoteEJB.addAsLibrary(CrossAppRemoteSharedJar);
 
         ShrinkHelper.exportDropinAppToServer(server, CrossAppRemoteEJB, DeployOptions.SERVER_ONLY);
+
+        //#################### CrossApp2xTest.ear
+        JavaArchive CrossApp2xEJB = ShrinkHelper.buildJavaArchive("CrossApp2xEJB.jar", "com.ibm.ws.ejbcontainer.remote.fat.crossapp.home2x.ejb.");
+        CrossApp2xEJB = (JavaArchive) ShrinkHelper.addDirectory(CrossApp2xEJB, "test-applications/CrossApp2xEJB.jar/resources");
+
+        EnterpriseArchive CrossApp2xTest = ShrinkWrap.create(EnterpriseArchive.class, "CrossApp2xTest.ear");
+        CrossApp2xTest.addAsModule(CrossApp2xEJB).addAsLibraries(CrossAppRemoteSharedJar);
+        CrossApp2xTest = (EnterpriseArchive) ShrinkHelper.addDirectory(CrossApp2xTest, "test-applications/CrossApp2xTest.ear/resources");
+
+        ShrinkHelper.exportDropinAppToServer(server, CrossApp2xTest, DeployOptions.SERVER_ONLY);
 
         //#################### EJBHome2xTest.ear
         JavaArchive EJBHome2xTestEJB = ShrinkHelper.buildJavaArchive("EJBHome2xTestEJB.jar", "com.ibm.ws.ejbcontainer.remote.fat.home2x.ejb.");

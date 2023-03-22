@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *   IBM Corporation - initial API and implementation
@@ -82,6 +84,7 @@ public class DDLTest extends BatchFATHelper {
             Assert.assertTrue("DDL Generation did not produce a file", ddlFile.exists() && ddlFile.isFile());
             Assert.assertTrue("DDL Generation produced an empty file", ddlFile.length() > 0);
         } catch (Exception exception) {
+            Log.error(DDLTest.class, "testddlGenProducesOutput", exception);
             Assert.fail("An exception occurred while generating DDL file.");
         }
     }
@@ -108,6 +111,7 @@ public class DDLTest extends BatchFATHelper {
             Assert.assertTrue("DDL File is missing table JOBINSTANCE", sqlFromDDL.contains("CREATE TABLE JBATCH.JOBINSTANCE"));
 
         } catch (Exception exception) {
+            Log.error(DDLTest.class, "testddlGenContainsCorrectTables", exception);
             Assert.fail("Test failed due to an unexpected exception.");
         }
     }
@@ -222,6 +226,7 @@ public class DDLTest extends BatchFATHelper {
 
             Assert.assertTrue("Got a good return code when a bad return code was expected.", 200 != rc);
         } catch (Exception exception) {
+            Log.error(DDLTest.class, "testBadDDL", exception);
             Assert.fail("Encountered an unexpected exception.");
         }
     }

@@ -1,15 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.rest.handler.config.fat;
 
+import static com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions.SERVER_ONLY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -33,6 +36,7 @@ import com.ibm.websphere.simplicity.ShrinkHelper;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -49,7 +53,7 @@ public class ConfigRESTHandlerJMSTest extends FATServletClient {
                         .addAsLibraries(ShrinkWrap.create(JavaArchive.class)
                                         .addPackage("org.test.config.adapter")
                                         .addPackage("org.test.config.jmsadapter"));
-        ShrinkHelper.exportToServer(server, "connectors", rar);
+        ShrinkHelper.exportToServer(server, "connectors", rar, SERVER_ONLY);
 
         FATSuite.setupServerSideAnnotations(server);
 
@@ -95,7 +99,7 @@ public class ConfigRESTHandlerJMSTest extends FATServletClient {
         JsonObject props;
         assertNotNull(err, props = aspec.getJsonObject("properties.jmsra"));
         assertEquals(props.toString(), 2, props.size()); // increase this if we ever add additional configured values or default values
-        assertEquals(err, JakartaEE9Action.isActive() ? "jakarta.jms.Topic" : "javax.jms.Topic", props.getString("destinationType"));
+        assertEquals(err, JakartaEE9Action.isActive() || JakartaEE10Action.isActive() ? "jakarta.jms.Topic" : "javax.jms.Topic", props.getString("destinationType"));
 
         // jmsDestination
         JsonObject dest;
@@ -140,7 +144,7 @@ public class ConfigRESTHandlerJMSTest extends FATServletClient {
         JsonObject props;
         assertNotNull(err, props = aspec.getJsonObject("properties.jmsra"));
         assertEquals(err, 2, props.size()); // increase this if we ever add additional configured values or default values
-        assertEquals(err, JakartaEE9Action.isActive() ? "jakarta.jms.Topic" : "javax.jms.Topic", props.getString("destinationType"));
+        assertEquals(err, JakartaEE9Action.isActive() || JakartaEE10Action.isActive() ? "jakarta.jms.Topic" : "javax.jms.Topic", props.getString("destinationType"));
 
         // jmsTopic
         JsonObject dest;

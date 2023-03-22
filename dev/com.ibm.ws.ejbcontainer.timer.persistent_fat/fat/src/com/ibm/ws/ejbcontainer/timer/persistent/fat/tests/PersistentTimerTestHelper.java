@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -93,6 +95,13 @@ public class PersistentTimerTestHelper {
         // persistent.internal.InvokerTask run starts for a persistent timer during server shutdown,
         // but EJB timer service throws exception due to server stopping.
         ignoreList.add("CWWKC1503W.*server is stopping");
+
+        // J2CA0046E: Method reserve caught an exception during creation of the ManagedConnection for resource
+        //            dataSource[DefaultDataSource], throwing ResourceAllocationException. Original exception:
+        //            Pool requests blocked, connection pool is being shut down.
+        //
+        // fast server start and shutdown.
+        ignoreList.add("J2CA0046E:.*shut down");
 
         String[] stringArr = new String[ignoreList.size()];
         return ignoreList.toArray(stringArr);

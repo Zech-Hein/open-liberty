@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +21,8 @@ var editorMessages = {
 "REMOVE": "Odebrat",
 "TEST" : "Testovat",
 "TEST_CONNECTION": "Test připojení",
+"TEST_CONNECTION_DESCRIPTION": "Testovat připojení",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "Uložit změny testu připojení",
 "DESCRIPTION": "Popis",
 "PREVIOUS": "Předchozí",
 "NEXT": "Další",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "Dialogové okno Odebrat prvek",
 "VALIDATE_DATASOURCE_DIALOG": "Dialogové okno Ověřit připojení zdroje dat",
 "VALIDATE_DATASOURCE": "Testování připojení zdroje dat",
+"VALIDATE_CONNECTION_DIALOG":"Dialogové okno Ověřit připojení",
+"DEFAULT_AUTHENTICATION_ALIAS":"Výchozí ověření",
+"SPECIFY_AUTHENTICATION_ALIAS":"Určit alias ověření",
+"LOGIN_CONFIG":"Konfigurace přihlášení",
+"LOGIN_CONFIG_ID":"ID konfigurace přihlášení",
+"ADD_LOGIN_CONFIG_PROPERTY":"Přidat vlastnost konfigurace přihlášení",
+"KEY":"Klíč",
+"CHOOSE_AN_OPTION":"Zvolte volbu",
 "ENUMERATION_SELECTION_DIALOG": "Dialogové okno Výběr výčtu",
 "SAVE_BEFORE_CLOSING_DIALOG": "Dialogové okno Uložit před zavřením",
 "ERROR_SAVING_FILE_DIALOG": "Dialogové okno Chyba při ukládání souboru",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "Alias ověřování (volitelné)",
 "AUTH_ALIAS": "Alias ověřování",
 "CONTAINER_AUTHENTICATION": "Ověření kontejneru",
+"RESOURCE_REFERENCE": "Odkaz na prostředek",
 "NO_RESOURCE_REFERENCE": "Bez odkazu na prostředek",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "Otestujte připojení pomocí odkazu na prostředek, který provádí ověření s ověřením aplikace.",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "Otestujte připojení pomocí odkazu na prostředek, který provádí ověření s kontejnerem.",
+"RESOURCE_REFERENCE_IN_USE": "Ověření kontejneru pro přímá vyhledávání je povoleno. Test připojení používá nakonfigurovaná výchozí data ověření kontejneru.",
+"NO_RESOURCE_REFERENCE_IN_USE": "Otestujte připojení bez použití odkazu na prostředek.",
 "APPLICATION_AUTHENTICATION": "Ověření aplikace",
 "CUSTOM_LOGIN_MODULE": "Vlastní přihlašovací modul (volitelné)",
 "LOGIN_PROPERTIES": "Vlastnosti přihlášení (volitelné)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "Vybráním funkce zobrazíte její popis.",
 "SUPPORT_MESSAGE" : "Konfigurace serveru není dostupná pro servery Node.js ani servery v kontejneru Docker přístupné přes kolektivní řadič.",
 "NO_ROLE_MESSAGE": "Uživatel nemá roli, která má oprávnění provádět změny konfigurace. Soubory jsou k dispozici v režimu jen pro čtení.",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "NEZBYTNÉ AKCE PRO ČLENY KOLEKTIVU:",
 "RUN_UPDATE_HOST" : "Spusťte 'collective updateHost' nebo 'collective registerHost' s '--hostWritePath' určující cestu, ke které má rpcUser oprávnění k zápisu. Lze zadat i platná pověření hostitele.",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "Vytvořte odkaz na JAVA v /usr/bin. Např. /usr/bin/java -> [cesta_k_JAVA]",
 "JAVA_ON_PATH" : "Přidejte JAVA do proměnné prostředí PATH. V systému Linux by měl být export proměnné PATH proveden do souboru .bashrc.", 
 "MORE_INFORMATION" : "Další informace viz: "
-
 };

@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2020 IBM Corporation and others.
+# Copyright (c) 2020, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -38,6 +40,8 @@
 #ISMESSAGEFILE TRUE
 #NLS_MESSAGEFORMAT_VAR
 #NLS_ENCODING=UNICODE
+#RANGE 1300 - 1399 
+#Message range shared with io.openliberty.org.jboss.resteasy.common
 #
 #   Strings in this file which contain replacement variables are processed by the MessageFormat
 #   class (single quote must be coded as 2 consecutive single quotes ''). Strings in this file
@@ -60,4 +64,6 @@ MULTIPLE_REST_SERVLET_MAPPINGS_CWWKW1301W=CWWKW1301W: Multiple REST servlet mapp
 MULTIPLE_REST_SERVLET_MAPPINGS_CWWKW1301W.explanation=A REST servlet is only allowed to be configured with zero or one path mapping. A REST servlet is any servlet that uses one of the following class names: com.ibm.websphere.jaxrs.server.IBMRestServlet, org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher, or org.jboss.resteasy.plugins.server.servlet.HttpServlet30Dispatcher. This message indicates that more than one mapping is associated with a REST servlet in the web.xml. 
 MULTIPLE_REST_SERVLET_MAPPINGS_CWWKW1301W.useraction=Review the web.xml for the servlet-mappings that are associated with the REST servlet and remove all or all but one.
 
-
+UNMAPPED_APPLICATION_CWWKW1302W=CWWKW1302W: Web module {0} contains a JAX-RS application class, {1},  that is not mapped. The server will ignore it.
+UNMAPPED_APPLICATION_CWWKW1302W.explanation=The specified application class is not referenced in the web module's web.xml file. Nor is the class annotated with @ApplicationPath, so the server cannot determine its HTTP path and will ignore the class.
+UNMAPPED_APPLICATION_CWWKW1302W.useraction=Add an @ApplicationPath annotation that specifies the application's path or specify the path in the web.xml. Alternatively remove the application class if it is unused.

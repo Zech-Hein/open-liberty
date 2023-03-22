@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -170,14 +172,14 @@ define(['intern!tdd', 'intern/chai!assert', 'dojo/hash', 'js/toolbox/toolHash'],
            });
            
            /** These case should never happen, but check just in case! */
-           tdd.test('ToolHash.hasChanged() - sanity checks', function() {
+           tdd.test('ToolHash.hasChanged() - checks', function() {
              assert.isFalse(toolHash.hasChanged('', ''));
              assert.isFalse(toolHash.hasChanged('tool1', 'tool1'));
              assert.isFalse(toolHash.hasChanged('tool1/a', 'tool1/a'));
            });
            
-           /** A few sanity checks to quickly check the getName function */
-           tdd.test('ToolHash.getName() - sanity checks', function() {
+           /** A few tests to quickly check the getName function */
+           tdd.test('ToolHash.getName() - checks', function() {
              assert.equal(toolHash.getName(), '');
              assert.equal(toolHash.getName(''), '');
              assert.equal(toolHash.getName('name-version'), 'name');

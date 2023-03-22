@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2020 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -52,6 +54,7 @@ import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.websphere.security.oauth20.AuthnContext;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
+import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.security.common.claims.UserClaims;
 import com.ibm.ws.security.oauth20.ProvidersService;
 import com.ibm.ws.security.oauth20.api.Constants;
@@ -82,6 +85,8 @@ import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 import com.ibm.wsspi.kernel.service.utils.ConcurrentServiceReferenceMap;
 import com.ibm.wsspi.security.openidconnect.IDTokenMediator;
 import com.ibm.wsspi.security.openidconnect.UserinfoProvider;
+
+import io.openliberty.security.openidconnect.backchannellogout.BackchannelLogoutRequestHelper;
 
 @Component(service = { OidcEndpointServices.class }, name = "com.ibm.ws.security.openidconnect.web.OidcEndpointServices", immediate = true, configurationPolicy = ConfigurationPolicy.IGNORE, property = "service.vendor=IBM")
 public class OidcEndpointServices extends OAuth20EndpointServices {
@@ -378,9 +383,10 @@ public class OidcEndpointServices extends OAuth20EndpointServices {
         Principal user = request.getUserPrincipal();
         String idTokenString = request.getParameter(OIDCConstants.OIDC_LOGOUT_ID_TOKEN_HINT);
         String redirectUri = request.getParameter(OIDCConstants.OIDC_LOGOUT_REDIRECT_URI);
+        String clientId = request.getParameter(OIDCConstants.OIDC_LOGOUT_CLIENT_ID);
         OAuth20Token cachedIdToken = null;
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-            Tr.debug(tc, "id_token_hint : " + idTokenString + " post_logout_redirect_uri : " + redirectUri);
+            Tr.debug(tc, "id_token_hint : " + idTokenString + " post_logout_redirect_uri : " + redirectUri + " client_id : " + clientId);
         }
         if (idTokenString != null && idTokenString.length() == 0) {
             idTokenString = null;
@@ -408,7 +414,7 @@ public class OidcEndpointServices extends OAuth20EndpointServices {
 
         String userName = ((user == null) ? null : user.getName());
         String tokenUsername = ((cachedIdToken == null) ? null : cachedIdToken.getUsername());
-        String clientId = ((cachedIdToken == null) ? null : cachedIdToken.getClientId());
+        clientId = ((cachedIdToken == null) ? clientId : cachedIdToken.getClientId());
 
         if (idTokenString != null && cachedIdToken == null && continueLogoff) {
             // if it's not there parse the idTokenString and validate signature.
@@ -473,10 +479,11 @@ public class OidcEndpointServices extends OAuth20EndpointServices {
                     tokenCache.remove(refreshToken.getTokenString());
                 }
             }
-            if (user != null) {
-                // logout deletes ltpatoken cookie and oidc_bsc cookie.
-                request.logout();
-            }
+            //@AV999-092821
+//            if (user != null) {
+//                // logout deletes ltpatoken cookie and oidc_bsc cookie.
+//                request.logout();
+//            }
         }
 
         if (!continueLogoff) {
@@ -512,15 +519,40 @@ public class OidcEndpointServices extends OAuth20EndpointServices {
         if (oauth20provider.isTrackOAuthClients()) {
             redirectUri = updateRedirectUriWithTrackedOAuthClients(request, response, oauth20provider, redirectUri);
         }
-        if (tc.isDebugEnabled()) {
-            Tr.debug(tc, "OIDC _SSO OP redirecting to [" + redirectUri + "]");
+        //@AV999-092821
+        request.setAttribute("OIDC_END_SESSION_REDIRECT", redirectUri);
+        if (continueLogoff) {
+            if (user != null) {
+                // logout deletes ltpatoken cookie and oidc_bsc cookie.
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "save  OIDC_END_SESSION_REDIRECT uri in op end_session : " + redirectUri);
+                }
+                //if during the servlet request logout, if the other logouts are in play, then we may not want to redirect here in that case
+                request.logout();
+            } else {
+                // request.logout() will send back-channel logout requests via the LogoutService OSGi service. Since request.logout()
+                // is only called in the above block if user != null, we need to make sure back-channel logout requests are still sent
+                // based on the id_token_hint if a user Principal isn't available
+                sendBackchannelLogoutRequests(request, oidcServerConfig, userName, idTokenString);
+            }
         }
-        response.sendRedirect(redirectUri);
+        if (request.getAttribute("OIDC_END_SESSION_REDIRECT") != null) {
+            request.removeAttribute("OIDC_END_SESSION_REDIRECT");
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "OIDC _SSO OP redirecting to [" + redirectUri + "]");
+            }
+            response.sendRedirect(redirectUri);
+        }
     }
 
     String updateRedirectUriWithTrackedOAuthClients(HttpServletRequest request, HttpServletResponse response, OAuth20Provider provider, String redirectUri) {
         OAuthClientTracker clientTracker = new OAuthClientTracker(request, response, provider);
         return clientTracker.updateLogoutUrlAndDeleteCookie(redirectUri);
+    }
+
+    void sendBackchannelLogoutRequests(HttpServletRequest request, OidcServerConfig oidcServerConfig, String userName, String idTokenString) {
+        BackchannelLogoutRequestHelper bclRequestCreator = new BackchannelLogoutRequestHelper(request, oidcServerConfig);
+        bclRequestCreator.sendBackchannelLogoutRequests(userName, idTokenString);
     }
 
     /**

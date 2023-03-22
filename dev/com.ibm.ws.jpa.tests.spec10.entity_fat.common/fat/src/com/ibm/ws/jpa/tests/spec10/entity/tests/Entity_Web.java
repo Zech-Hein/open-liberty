@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,11 +22,14 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.config.Application;
+import com.ibm.websphere.simplicity.config.ClassloaderElement;
+import com.ibm.websphere.simplicity.config.ConfigElementList;
 import com.ibm.websphere.simplicity.config.ServerConfiguration;
 import com.ibm.ws.jpa.fvt.entity.tests.web.BasicAnnotationTestServlet;
 import com.ibm.ws.jpa.fvt.entity.tests.web.DatatypeSupportTestServlet;
@@ -37,6 +42,9 @@ import com.ibm.ws.jpa.fvt.entity.tests.web.PKGeneratorTestServlet;
 import com.ibm.ws.jpa.fvt.entity.tests.web.ReadOnlyTestServlet;
 import com.ibm.ws.jpa.fvt.entity.tests.web.SerializableTestServlet;
 import com.ibm.ws.jpa.fvt.entity.tests.web.VersioningTestServlet;
+import com.ibm.ws.testtooling.database.DatabaseVendor;
+import com.ibm.ws.testtooling.jpaprovider.JPAPersistenceProvider;
+import com.ibm.ws.testtooling.vehicle.web.JPAFATServletClient;
 
 import componenttest.annotation.Server;
 import componenttest.annotation.TestServlet;
@@ -52,6 +60,10 @@ import componenttest.topology.utils.PrivHelper;
 @RunWith(FATRunner.class)
 @Mode(TestMode.LITE)
 public class Entity_Web extends JPAFATServletClient {
+
+    @Rule
+    public static SkipRule skipRule = new SkipRule();
+
     private final static String CONTEXT_ROOT = "Entity10Web";
     private final static String RESOURCE_ROOT = "test-applications/entity/";
     private final static String appFolder = "web";
@@ -64,8 +76,8 @@ public class Entity_Web extends JPAFATServletClient {
     private static long timestart = 0;
 
     static {
-        dropSet.add("JPA10_ENTITY_DROP_${dbvendor}.ddl");
-        createSet.add("JPA10_ENTITY_CREATE_${dbvendor}.ddl");
+        dropSet.add("JPA10_ENTITY_${provider}_DROP_${dbvendor}.ddl");
+        createSet.add("JPA10_ENTITY_${provider}_CREATE_${dbvendor}.ddl");
     }
 
     @Server("JPA10WebEntityServer")
@@ -80,9 +92,7 @@ public class Entity_Web extends JPAFATServletClient {
                     @TestServlet(servlet = PKGeneratorTestServlet.class, path = CONTEXT_ROOT + "/" + "PKGeneratorTestServlet"),
                     @TestServlet(servlet = ReadOnlyTestServlet.class, path = CONTEXT_ROOT + "/" + "ReadOnlyTestServlet"),
                     @TestServlet(servlet = SerializableTestServlet.class, path = CONTEXT_ROOT + "/" + "SerializableTestServlet"),
-                    @TestServlet(servlet = VersioningTestServlet.class, path = CONTEXT_ROOT + "/" + "VersioningTestServlet"),
-
-    //
+                    @TestServlet(servlet = VersioningTestServlet.class, path = CONTEXT_ROOT + "/" + "VersioningTestServlet")
     })
     public static LibertyServer server;
 
@@ -104,6 +114,8 @@ public class Entity_Web extends JPAFATServletClient {
             server.setConfigUpdateTimeout(120 * 1000);
         }
 
+        server.addEnvVar("repeat_phase", AbstractFATSuite.repeatPhase);
+
         //Get driver name
         server.addEnvVar("DB_DRIVER", DatabaseContainerType.valueOf(testContainer).getDriverName());
 
@@ -118,19 +130,25 @@ public class Entity_Web extends JPAFATServletClient {
 
         System.out.println(Entity_Web.class.getName() + " Setting up database tables...");
 
+        DatabaseVendor database = getDbVendor();
+        JPAPersistenceProvider provider = AbstractFATSuite.provider;
+
         ddlSet.clear();
         for (String ddlName : dropSet) {
-            ddlSet.add(ddlName.replace("${dbvendor}", getDbVendor().name()));
+            ddlSet.add(ddlName.replace("${provider}", provider.name()).replace("${dbvendor}", database.name()));
         }
         executeDDL(server, ddlSet, true);
 
         ddlSet.clear();
         for (String ddlName : createSet) {
-            ddlSet.add(ddlName.replace("${dbvendor}", getDbVendor().name()));
+            ddlSet.add(ddlName.replace("${provider}", provider.name()).replace("${dbvendor}", database.name()));
         }
         executeDDL(server, ddlSet, false);
 
         setupTestApplication();
+
+        skipRule.setDatabase(database);
+        skipRule.setProvider(provider);
     }
 
     private static void setupTestApplication() throws Exception {
@@ -142,6 +160,15 @@ public class Entity_Web extends JPAFATServletClient {
         ShrinkHelper.addDirectory(webApp, RESOURCE_ROOT + appFolder + "/" + appName + ".war");
 
         final JavaArchive testApiJar = buildTestAPIJar();
+
+        /*
+         * Hibernate 5.2 (JPA 2.1) contains a bug that requires a dialect property to be set
+         * for Oracle platform detection: https://hibernate.atlassian.net/browse/HHH-13184
+         */
+        if (AbstractFATSuite.repeatPhase != null && AbstractFATSuite.repeatPhase.contains("21")
+            && DatabaseVendor.ORACLE.equals(getDbVendor())) {
+            webApp.move("/WEB-INF/classes/META-INF/persistence-oracle-21.xml", "/WEB-INF/classes/META-INF/persistence.xml");
+        }
 
         final EnterpriseArchive app = ShrinkWrap.create(EnterpriseArchive.class, appNameEar);
         app.addAsModule(webApp);
@@ -164,6 +191,32 @@ public class Entity_Web extends JPAFATServletClient {
         appRecord.setLocation(appNameEar);
         appRecord.setName(appName);
 
+        // setup the thirdparty classloader for Hibernate and OpenJPA
+        if (AbstractFATSuite.repeatPhase != null && AbstractFATSuite.repeatPhase.contains("hibernate")) {
+            ConfigElementList<ClassloaderElement> cel = appRecord.getClassloaders();
+            ClassloaderElement loader = new ClassloaderElement();
+            loader.getCommonLibraryRefs().add("HibernateLib");
+            cel.add(loader);
+        } else if (AbstractFATSuite.repeatPhase != null && AbstractFATSuite.repeatPhase.contains("openjpa")) {
+            ConfigElementList<ClassloaderElement> cel = appRecord.getClassloaders();
+            ClassloaderElement loader = new ClassloaderElement();
+            loader.getCommonLibraryRefs().add("OpenJPALib");
+            cel.add(loader);
+        } else if (AbstractFATSuite.repeatPhase != null && AbstractFATSuite.repeatPhase.contains("20") && DatabaseVendor.ORACLE.equals(getDbVendor())) {
+            /*
+             * TODO: OpenJPA 2.2.x (JPA 2.0) has hard dependencies on the Oracle JDBC driver classes and
+             * therefore requires the driver be added to the application classloader
+             *
+             * https://issues.apache.org/jira/projects/OPENJPA/issues/OPENJPA-2602
+             * https://issues.apache.org/jira/projects/OPENJPA/issues/OPENJPA-2690
+             */
+
+            ConfigElementList<ClassloaderElement> cel = appRecord.getClassloaders();
+            ClassloaderElement loader = new ClassloaderElement();
+            loader.getCommonLibraryRefs().add("AnonymousJDBCLib");
+            cel.add(loader);
+        }
+
         server.setMarkToEndOfLog();
         ServerConfiguration sc = server.getServerConfiguration();
         sc.getApplications().add(appRecord);
@@ -180,9 +233,10 @@ public class Entity_Web extends JPAFATServletClient {
         try {
             // Clean up database
             try {
+                JPAPersistenceProvider provider = AbstractFATSuite.provider;
                 final Set<String> ddlSet = new HashSet<String>();
                 for (String ddlName : dropSet) {
-                    ddlSet.add(ddlName.replace("${dbvendor}", getDbVendor().name()));
+                    ddlSet.add(ddlName.replace("${provider}", provider.name()).replace("${dbvendor}", getDbVendor().name()));
                 }
                 executeDDL(server, ddlSet, true);
             } catch (Throwable t) {

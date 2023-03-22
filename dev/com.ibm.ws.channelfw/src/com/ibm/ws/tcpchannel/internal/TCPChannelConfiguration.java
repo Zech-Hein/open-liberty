@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -23,6 +25,8 @@ import com.ibm.ws.ffdc.FFDCFilter;
 import com.ibm.ws.ffdc.FFDCSelfIntrospectable;
 import com.ibm.wsspi.channelfw.exception.ChannelException;
 import com.ibm.wsspi.tcpchannel.TCPConfigConstants;
+
+import io.openliberty.accesslists.AccessListKeysFacade;
 
 /**
  * Configuration object for an individual TCP channel instance.
@@ -126,7 +130,8 @@ public class TCPChannelConfiguration implements TCPConfigConstants, FFDCSelfIntr
                key.startsWith("service.") ||
                key.startsWith("component.") ||
                key.startsWith("config.") ||
-               key.startsWith("objectClass");
+               key.startsWith("objectClass") ||
+               key.startsWith("osgi.ds.");
     }
 
     private void setValues() throws ChannelException {
@@ -1256,6 +1261,57 @@ public class TCPChannelConfiguration implements TCPConfigConstants, FFDCSelfIntr
      */
     protected boolean getWaitToAccept() {
         return this.waitToAccept;
+    }
+
+    /**
+     * A method that can be used to pull out an access list
+     * from a TCPChannelConfiguration
+     *
+     * @return an object that can provide the access lists
+     */
+    public AccessListKeysFacade accessListKeys() {
+        return new AccessListKeysProvider(this);
+    }
+
+    /**
+     * This class is used to protect consumers of the access list keys from having
+     * visibility of this class, it collects together the methods required by the
+     * common access lists code without that code having to know about this consuming
+     * type.
+     */
+    private class AccessListKeysProvider implements AccessListKeysFacade {
+
+        TCPChannelConfiguration delegate;
+
+        AccessListKeysProvider(TCPChannelConfiguration config) {
+            delegate = config;
+        }
+
+        @Override
+        public String[] getAddressExcludeList() {
+            return delegate.getAddressExcludeList();
+        }
+
+        @Override
+        public String[] getHostNameExcludeList() {
+            return delegate.getHostNameExcludeList();
+        }
+
+        @Override
+        public String[] getAddressIncludeList() {
+            return delegate.getAddressIncludeList();
+        }
+
+        @Override
+        public String[] getHostNameIncludeList() {
+            return delegate.getHostNameIncludeList();
+        }
+
+        @Override
+        public boolean getCaseInsensitiveHostnames() {
+            return delegate.getCaseInsensitiveHostnames();
+        }
+
     }
 
 }

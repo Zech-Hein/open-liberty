@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -40,7 +42,8 @@ define([ "jsExplore/widgets/AppOnClusterCard",
           onClick : onclick,
           tabindex : 0,
           role : "button",
-          'aria-label' : label
+          //'aria-label' : label,
+          cardAltText : label
         }, "card");
         break;
       case "appOnServer":
@@ -53,7 +56,7 @@ define([ "jsExplore/widgets/AppOnClusterCard",
           onClick : onclick,
           tabindex : 0,
           role : "button",
-          'aria-label' : label
+          cardAltText : label
         }, "card");
         break;
       case "cluster":
@@ -66,7 +69,7 @@ define([ "jsExplore/widgets/AppOnClusterCard",
           onClick : onclick,
           tabindex : 0,
           role : "button",
-          'aria-label' : label
+          cardAltText : label
         }, "card");
         break;
       case "host":
@@ -79,7 +82,7 @@ define([ "jsExplore/widgets/AppOnClusterCard",
           onClick : onclick,
           tabindex : 0,
           role : "button",
-          'aria-label' : label
+          cardAltText : label
         }, "card");
         break;
       case "runtime":
@@ -92,7 +95,7 @@ define([ "jsExplore/widgets/AppOnClusterCard",
           onClick : onclick,
           tabindex : 0,
           role : "button",
-          'aria-label' : label
+          cardAltText : label
         }, "card");
         break;
       case "server":
@@ -105,7 +108,7 @@ define([ "jsExplore/widgets/AppOnClusterCard",
           onClick : onclick,
           tabindex : 0,
           role : "button",
-          'aria-label' : label
+          cardAltText : label
         }, "card");
         break;
       default:

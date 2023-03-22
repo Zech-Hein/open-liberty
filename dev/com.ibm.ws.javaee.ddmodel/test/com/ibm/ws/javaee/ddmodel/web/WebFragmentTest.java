@@ -1,111 +1,225 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2018 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.javaee.ddmodel.web;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
 
+import com.ibm.ws.javaee.dd.common.ContextService;
+import com.ibm.ws.javaee.dd.common.ManagedExecutor;
+import com.ibm.ws.javaee.dd.common.ManagedScheduledExecutor;
+import com.ibm.ws.javaee.dd.common.ManagedThreadFactory;
 import com.ibm.ws.javaee.dd.web.WebApp;
-import com.ibm.ws.javaee.ddmodel.DDParser;
+import com.ibm.ws.javaee.dd.web.WebFragment;
+import com.ibm.ws.javaee.ddmodel.DDJakarta10Elements;
 
 /**
  * Web fragment descriptor parsing unit tests.
  */
 public class WebFragmentTest extends WebFragmentTestBase {
 
-    // Servlet 3.0 cases ...
-
-    // Parse 3.0.  Do not parse 3.1 or 4.0.
-
     @Test
-    public void testEE6WebFragment30() throws Exception {
-        parse(webFragment30() + webFragmentTail());
-    }
+    public void testWebFragment() throws Exception {
+        for ( int schemaVersion : WebFragment.VERSIONS ) {
+            for ( int maxSchemaVersion : WebFragment.VERSIONS ) {
+                // The WebApp parser uses a maximum schema
+                // version of "max(version, WebApp.VERSION_3_0)".
+                // Adjust the message expectations accordingly.
+                //
+                // See: com.ibm.ws.javaee.ddmodel.web.WebAppDDParser
 
+                int effectiveMax;
+                if ( maxSchemaVersion < WebApp.VERSION_3_0 ) {
+                    effectiveMax = WebApp.VERSION_3_0;
+                } else {
+                    effectiveMax = maxSchemaVersion;
+                }
+
+                String altMessage;
+                String[] messages;
+                if ( schemaVersion > effectiveMax ) {
+                    altMessage = UNPROVISIONED_DESCRIPTOR_VERSION_ALT_MESSAGE;
+                    messages = UNPROVISIONED_DESCRIPTOR_VERSION_MESSAGES;
+                } else {
+                    altMessage = null;
+                    messages = null;
+                }
+
+                parse( webFragment( schemaVersion, WebAppTestBase.webAppBody() ),
+                       maxSchemaVersion,
+                       altMessage, messages );
+            }
+        }
+    }
+    
     @Test
     public void testEE6WebFragment30OrderingElement() throws Exception {
-        parse(webFragment30() +
-              "<ordering>" +
-              "</ordering>" +
-              webFragmentTail());
+        parse(webFragment30("<ordering/>"));
     }
 
     // The prohibition against having more than one ordering element
     // was added in JavaEE7.
     @Test
     public void testEE6WebFragment30OrderingDuplicates() throws Exception {
-        parse(webFragment30() +
-              "<ordering>" +
-              "</ordering>" +
-              "<ordering>" +
-              "</ordering>" +
-              webFragmentTail());
+        parse(webFragment30("<ordering/>" + "<ordering/>"));
     }
 
-    @Test(expected = DDParser.ParseException.class)
-    public void testEE6WebFragment31() throws Exception {
-        parse(webFragment31() + webFragmentTail());
-    }
-
-    @Test(expected = DDParser.ParseException.class)
-    public void testEE6WebFragment40() throws Exception {
-        parse(webFragment40() + webFragmentTail());
-    }
-
-    // Servlet 3.1 cases ...
-
-    // Parse 3.0 and 3.1.  Do not parse 4.0.
-
-    @Test()
-    public void testEE7WebFragment30() throws Exception {
-        parse(webFragment30() + webFragmentTail(), WebApp.VERSION_3_1);
-    }
-
-    @Test()
-    public void testEE7WebFragment31() throws Exception {
-        parse(webFragment31() + webFragmentTail(), WebApp.VERSION_3_1);
-    }
-
-    @Test(expected = DDParser.ParseException.class)
+    @Test
     public void testEE7WebFragment31OrderingDuplicates() throws Exception {
-        parse(webFragment31() +
-              "<ordering>" +
-              "</ordering>" +
-              "<ordering>" +
-              "</ordering>" +
-              webFragmentTail(), WebApp.VERSION_3_1);
+        parse(webFragment31("<ordering/>" + "<ordering/>"),
+                WebApp.VERSION_3_1,
+                "at.most.one.occurrence",
+                "CWWKC2266E", "ordering",
+                "MyWar.war : WEB-INF/lib/fragment1.jar : META-INF/web-fragment.xml" );        
+    }
+    
+    // EE10 element testing ...
+
+    @Test
+    public void testEE10ContextServiceWebFragment31() throws Exception {
+        parse( webFragment(WebApp.VERSION_3_1, DDJakarta10Elements.CONTEXT_SERVICE_XML),
+                WebApp.VERSION_3_1,
+                "unexpected.child.element",
+                "CWWKC2259E", "context-service",
+                "MyWar.war : WEB-INF/lib/fragment1.jar : META-INF/web-fragment.xml" );
     }
 
-    @Test(expected = DDParser.ParseException.class)
-    public void testEE7WebFragment40() throws Exception {
-        parse(webFragment40() + webFragmentTail(), WebApp.VERSION_3_1);
-    }
+    @Test
+    public void testEE10ManagedExecutorWebFragment31() throws Exception {
+        parse( webFragment( WebApp.VERSION_3_1, DDJakarta10Elements.MANAGED_EXECUTOR_XML),
+                WebApp.VERSION_3_1,
+                "unexpected.child.element",
+                "CWWKC2259E", "managed-executor",
+                "MyWar.war : WEB-INF/lib/fragment1.jar : META-INF/web-fragment.xml" );
+    }    
+    
+    @Test
+    public void testEE10ManagedScheduledExecutorWebFragment31() throws Exception {
+        parse( webFragment( WebApp.VERSION_3_1, DDJakarta10Elements.MANAGED_SCHEDULED_EXECUTOR_XML),
+                WebApp.VERSION_3_1,
+                "unexpected.child.element",
+                "CWWKC2259E", "managed-scheduled-executor",
+                "MyWar.war : WEB-INF/lib/fragment1.jar : META-INF/web-fragment.xml" );
+    }        
 
-    // Servlet 4.0 cases ...
+    @Test
+    public void testEE10ManagedThreadFactoryWebFragment31() throws Exception {
+        parse( webFragment( WebApp.VERSION_3_1, DDJakarta10Elements.MANAGED_THREAD_FACTORY_XML),
+                WebApp.VERSION_3_1,
+                "unexpected.child.element",
+                "CWWKC2259E", "managed-thread-factory",
+                "MyWar.war : WEB-INF/lib/fragment1.jar : META-INF/web-fragment.xml" );
+    }    
 
-    // Parse everything.
+    //
+    
+    @Test
+    public void testEE10ContextServiceWebFragment50() throws Exception {
+        parse( webFragment(WebApp.VERSION_5_0, DDJakarta10Elements.CONTEXT_SERVICE_XML),
+                WebApp.VERSION_5_0,
+                "unexpected.child.element",
+                "CWWKC2259E", "context-service",
+                "MyWar.war : WEB-INF/lib/fragment1.jar : META-INF/web-fragment.xml" );
+    }    
 
-    @Test()
-    public void testEE8WebFragment30() throws Exception {
-        parse(webFragment30() + webFragmentTail(), WebApp.VERSION_4_0);
-    }
+    @Test
+    public void testEE10ManagedExecutorWebFragment50() throws Exception {
+        parse( webFragment( WebApp.VERSION_5_0, DDJakarta10Elements.MANAGED_EXECUTOR_XML),
+                WebApp.VERSION_5_0,
+                "unexpected.child.element",
+                "CWWKC2259E", "managed-executor",
+                "MyWar.war : WEB-INF/lib/fragment1.jar : META-INF/web-fragment.xml" );
+    }    
 
-    @Test()
-    public void testEE8WebFragment31() throws Exception {
-        parse(webFragment31() + webFragmentTail(), WebApp.VERSION_4_0);
-    }
+    @Test
+    public void testEE10ManagedScheduledExecutorWebFragment50() throws Exception {
+        parse( webFragment( WebApp.VERSION_5_0, DDJakarta10Elements.MANAGED_SCHEDULED_EXECUTOR_XML),
+                WebApp.VERSION_5_0,
+                "unexpected.child.element",
+                "CWWKC2259E", "managed-scheduled-executor",
+                "MyWar.war : WEB-INF/lib/fragment1.jar : META-INF/web-fragment.xml" );
+    }        
 
-    @Test()
-    public void testEE8WebFragment40() throws Exception {
-        parse(webFragment40() + webFragmentTail(), WebApp.VERSION_4_0);
-    }
+    @Test
+    public void testEE10ManagedThreadFactoryWebFragment50() throws Exception {
+        parse( webFragment( WebApp.VERSION_5_0, DDJakarta10Elements.MANAGED_THREAD_FACTORY_XML),
+                WebApp.VERSION_5_0,
+                "unexpected.child.element",
+                "CWWKC2259E", "managed-thread-factory",
+                "MyWar.war : WEB-INF/lib/fragment1.jar : META-INF/web-fragment.xml" );
+    }    
 
-    // TODO: Other specific servlet 4.0 web fragment cases ...
+    //
+
+    @Test
+    public void testEE10ContextServiceWeb60() throws Exception {
+        WebFragment webFragment = parse(
+                webFragment( WebApp.VERSION_6_0, DDJakarta10Elements.CONTEXT_SERVICE_XML),
+                WebApp.VERSION_6_0);
+
+        List<String> names = new ArrayList<String>(5);
+        names.add("WebFragment");
+        names.add("contextServices");
+
+        List<ContextService> services = webFragment.getContextServices();
+        DDJakarta10Elements.verifySize(names, 1, services);
+        DDJakarta10Elements.verify(names, services.get(0));        
+    }   
+    
+    @Test
+    public void testEE10ManagedExecutorWebFragment60() throws Exception {
+        WebFragment webFragment = parse(
+                webFragment( WebApp.VERSION_6_0, DDJakarta10Elements.MANAGED_EXECUTOR_XML),
+                WebApp.VERSION_6_0);
+
+        List<String> names = new ArrayList<String>(5);
+        names.add("WebFragment");
+        names.add("managedExecutors");
+
+        List<ManagedExecutor> executors = webFragment.getManagedExecutors();
+        DDJakarta10Elements.verifySize(names, 1, executors);
+        DDJakarta10Elements.verify(names, executors.get(0));        
+    }    
+
+    @Test
+    public void testEE10ManagedScheduledExecutorWebFragment60() throws Exception {
+        WebFragment webFragment = parse(
+                webFragment( WebApp.VERSION_6_0, DDJakarta10Elements.MANAGED_SCHEDULED_EXECUTOR_XML),
+                WebApp.VERSION_6_0);
+
+        List<String> names = new ArrayList<String>(5);
+        names.add("WebFragment");
+        names.add("managedScheduledExecutors");
+        
+        List<ManagedScheduledExecutor> executors = webFragment.getManagedScheduledExecutors();
+        DDJakarta10Elements.verifySize(names, 1, executors);
+        DDJakarta10Elements.verify(names, executors.get(0));        
+    }        
+
+    @Test
+    public void testEE10ManagedThreadFactoryWebFragment60() throws Exception {
+        WebFragment webFragment = parse(
+                webFragment( WebApp.VERSION_6_0, DDJakarta10Elements.MANAGED_THREAD_FACTORY_XML),
+                WebApp.VERSION_6_0);
+
+        List<String> names = new ArrayList<String>(5);
+        names.add("WebFragment");
+        names.add("managedThreadFactories");
+        
+        List<ManagedThreadFactory> factories = webFragment.getManagedThreadFactories();
+        DDJakarta10Elements.verifySize(names, 1, factories);
+        DDJakarta10Elements.verify(names, factories.get(0));
+    }       
 }

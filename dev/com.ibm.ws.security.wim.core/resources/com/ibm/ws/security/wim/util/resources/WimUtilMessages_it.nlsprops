@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2012, 2021 IBM Corporation and others.
+# Copyright (c) 2012, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -32,9 +34,9 @@ INVALID_SUPPORTED_ENTITY_TYPE_DEFINITION=CWIMK0001E: Impossibile completare l''o
 INVALID_SUPPORTED_ENTITY_TYPE_DEFINITION.explanation= Il tipo di entit\u00e0 deve essere definito con un nome del tipo di entit\u00e0 e almeno una propriet\u00e0 RDN (Relative Distinguished Name) corrispondente.
 INVALID_SUPPORTED_ENTITY_TYPE_DEFINITION.useraction=Modificare e correggere la definizione del tipo di entit\u00e0 nel file server.xml.
 
-INVALID_BASE_ENTRY_DEFINITION=CWIMK0002E: Impossibile completare l''operazione registro utenti. La definizione della voce di base {0} non \u00e8 valida.  Correggere la definizione della voce di base nel file server.xml. Ad esempio, la sintassi \u00e8 <baseEntry name="..." baseDN="...."/>.
-INVALID_BASE_ENTRY_DEFINITION.explanation= La definizione specificata della voce di base non \u00e8 corretta. La sintassi per definire una voce di base \u00e8 <baseEntry name="..." baseDN="...."/>.
-INVALID_BASE_ENTRY_DEFINITION.useraction= Modificare e correggere la definizione della voce di base nel file server.xml.
+INVALID_BASE_ENTRY_DEFINITION=CWIMK0002E: Impossibile completare l''operazione registro utenti. La definizione della voce di base {0} non \u00e8 valida.  Correggere la definizione della voce di base nel file server.xml.
+INVALID_BASE_ENTRY_DEFINITION.explanation=La definizione della voce di base specificata non \u00e8 valida.
+INVALID_BASE_ENTRY_DEFINITION.useraction=Specificare una definizione della voce di base valida nel file server.xml.
 
 INVALID_REALM_DEFINITION=CWIMK0003E: Impossibile completare l''operazione registro utenti. La definizione di realm {0} non \u00e8 valida. Correggere la definizione di realm nel file server.xml.
 INVALID_REALM_DEFINITION.explanation= Il tag realm manca oppure non \u00e8 valido a causa di un attributo obbligatorio mancante.
@@ -71,6 +73,11 @@ FEDERATED_MANAGER_SERVICE_STOPPED.useraction=Non \u00e8 richiesta alcuna azione.
 MISSING_REGISTRY_DEFINITION=CWIMK0011E: Impossibile completare l'operazione registro utenti. Non \u00e8 stato trovato un registro utente valido. Aggiungere o correggere la definizione di registro nel file server.xml.
 MISSING_REGISTRY_DEFINITION.explanation=Non \u00e8 stato definito un registro utente o non \u00e8 stato possibile inizializzarlo a causa di errori di configurazione. Un registro utente valido include un registro LDAP o altri registri o repository supportati.
 MISSING_REGISTRY_DEFINITION.useraction=Se \u00e8 stato definito un registro utente nel file di configurazione, cercare nei log gli errori di configurazione durante l'avvio del server. Aggiungere o correggere la definizione del registro utente nel file server.xml.
+
+FAILED_LOGIN_DELAY_DISABLED=CWIMK0012W: Il ritardo dell''accesso non riuscito per i repository federati \u00e8 disabilitato. Questa disabilitazione espone il server ad attacchi di enumerazione degli utenti. Per abilitare il ritardo per i login non riusciti, rimuovere gli attributi del repository federato {0} e {1} in modo che vengano utilizzati i valori minimi e massimi predefiniti di 0 e 5000 millisecondi. In alternativa, impostare l''attributo del repository federato {1} su un valore maggiore di zero. 
+FAILED_LOGIN_DELAY_DISABLED.explanation=Quando il ritardo dell'accesso non riuscito \u00e8 disabilitato, il server \u00e8 vulnerabile a un attacco in stile enumerazione degli utenti.
+FAILED_LOGIN_DELAY_DISABLED.useraction=Abilitare il ritardo dell'accesso non riuscito rimuovendo gli attributi per utilizzare il ritardo minimo e massimo di riempimento di zero e 5000 millisecondi oppure impostare gli attributi con una configurazione personalizzata. 
+
 
 ENTITY_IDENTIFIER_NOT_SPECIFIED=CWIML1009E: Impossibile completare l'operazione registro utenti. Non \u00e8 stato trovato l'identificativo dell'entit\u00e0. Specificare l'identificativo corretto come parametro di input. 
 ENTITY_IDENTIFIER_NOT_SPECIFIED.explanation=Non \u00e8 stato specificato l'identificativo dell'entit\u00e0. Il sistema non \u00e8 in grado di trovare l'entit\u00e0. Impossibile proseguire l'operazione registro utenti senza trovare questa entit\u00e0. 
@@ -220,7 +227,7 @@ MISSING_REPOSITORIES_FOR_GROUPS_CONFIGURATION=CWIML1034E: Configurazione reposit
 MISSING_REPOSITORIES_FOR_GROUPS_CONFIGURATION.explanation=Per il repository non \u00e8 definita alcuna configurazione di gruppo a repository incrociato.
 MISSING_REPOSITORIES_FOR_GROUPS_CONFIGURATION.useraction=Fare riferimento al file di log per il motivo della mancata riuscita. Controllare la configurazione del repository.
 
-ENTITY_TYPE_NOT_SUPPORTED=CWIML0510W: Il tipo di entit\u00e0 specificato {0} non \u00e8 un tipo di entit\u00e0 valido per questa operazione.
+ENTITY_TYPE_NOT_SUPPORTED=CWIML0510W: Il tipo di entit\u00e0 specificato {0} non \u00e8 valido per questa operazione.
 ENTITY_TYPE_NOT_SUPPORTED.explanation=\u00c8 stata richiesta un'operazione su un'entit\u00e0, ma l'operazione non supporta il tipo di entit\u00e0 specificato.
 ENTITY_TYPE_NOT_SUPPORTED.useraction=Assicurarsi che le entit\u00e0 fornite nell'input siano di tipi supportati e rimuovere tutti i tipi non supportati dall'input.
 
@@ -252,8 +259,8 @@ ENTITY_SEARCH_FAILED=CWIML4506E: Impossibile completare l''operazione del regist
 ENTITY_SEARCH_FAILED.explanation=Non \u00e8 stato possibile ricercare nell'entit\u00e0 a causa della motivazione specificata dal registro sottostante.
 ENTITY_SEARCH_FAILED.useraction=Esaminare il messaggio di causa e il file di traccia per determinare la causa dell'errore. Correggere l'errore e tentare nuovamente.
 
-MISSING_OR_EMPTY_PASSWORD=CWIML4541E: Impossibile completare l'operazione di login poich\u00e9 la password manca o \u00e8 vuota.
-MISSING_OR_EMPTY_PASSWORD.explanation=Se durante il processo di login viene specificato il nome principal, la password non pu\u00f2 essere null o vuota.
+MISSING_OR_EMPTY_PASSWORD=CWIML4541E: Impossibile completare l'operazione di login poich\u00e9 la password \u00e8 mancante o vuota.
+MISSING_OR_EMPTY_PASSWORD.explanation=Se durante il collegamento viene specificato il nome principal, la password non pu\u00f2 essere null o vuota.
 MISSING_OR_EMPTY_PASSWORD.useraction=Specificare la password.
 
 CERTIFICATE_GENERATE_FAILED=CWIML3012E: Impossibile completare l'operazione di login poich\u00e9 la generazione del certificato non \u00e8 riuscita.

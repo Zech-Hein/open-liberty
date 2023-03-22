@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -69,7 +71,7 @@ public class WebAppTestBase {
 
                 allowing(rootOverlay).addToNonPersistentCache(with(any(String.class)), with(any(Class.class)), with(any(Object.class)));
 
-                allowing(versionRef).getProperty(ServletVersion.VERSION);
+                allowing(versionRef).getProperty("version");
                 will(returnValue(maxVersion));
             }
         });
@@ -122,7 +124,7 @@ public class WebAppTestBase {
 
                 allowing(rootOverlay).addToNonPersistentCache(with(any(String.class)), with(any(Class.class)), with(any(Object.class)));
 
-                allowing(versionRef).getProperty(ServletVersion.VERSION);
+                allowing(versionRef).getProperty("version");
                 will(returnValue(maxVersion));
             }
         });

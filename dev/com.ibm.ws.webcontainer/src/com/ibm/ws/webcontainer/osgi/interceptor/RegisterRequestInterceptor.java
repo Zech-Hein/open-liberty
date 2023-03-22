@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -135,21 +137,36 @@ public class RegisterRequestInterceptor {
                 
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                     Tr.debug(tc, "RegisterRequestInterceptor.notifyRequestInterceptors() afps.hasNext() : " + afps.hasNext());
-                }            
-                ArrayList<RequestInterceptor> reverseAfps = new ArrayList<RequestInterceptor>();
+                }  
                 
-                // reverse the order so highest ranked goes last
-                while (afps.hasNext()) {
-                   reverseAfps.add(0,afps.next());
+                RequestInterceptor first = afps.hasNext() ? afps.next() : null;
+                if (first != null) {
+                    // if there is only one interceptor no need to reverse the order
+                    if (!afps.hasNext()) {
+                        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                            Tr.debug(tc, "RegisterRequestInterceptor.notifyRequestInterceptors() notify after filter interceptor.");
+                         }            
+                        result = first.handleRequest(req, resp);
+                    } else {
+                        ArrayList<RequestInterceptor> reverseAfps = new ArrayList<RequestInterceptor>();
+
+                        // reverse the order so highest ranked goes last
+                        reverseAfps.add(0, first);
+                        
+                        do {
+                           reverseAfps.add(0,afps.next());
+                        } while (afps.hasNext());
+
+                        afps = reverseAfps.iterator();
+                        
+                        while (!result && afps.hasNext()) {
+                            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                               Tr.debug(tc, "RegisterRequestInterceptor.notifyRequestInterceptors() notify after filter interceptor.");
+                            }            
+                            result = afps.next().handleRequest(req, resp); 
+                        }    
+                    }
                 }
-                afps = reverseAfps.iterator();
-                  
-                while (afps.hasNext() && !result) {
-                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                       Tr.debug(tc, "RegisterRequestInterceptor.notifyRequestInterceptors() notify after filter interceptor.");
-                    }            
-                    result = afps.next().handleRequest(req, resp); 
-                }    
                 
             }  else if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "RegisterRequestInterceptor.notifyRequestInterceptors() no after filter interceptors.");

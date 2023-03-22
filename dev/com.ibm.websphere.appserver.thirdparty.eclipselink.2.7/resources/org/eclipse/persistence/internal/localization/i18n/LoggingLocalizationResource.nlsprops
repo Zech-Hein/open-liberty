@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2014 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -726,6 +728,14 @@ toplink_info=[EL Info]:
 toplink_severe=[EL Severe]: 
 
 toplink_warning=[EL Warning]: 
+
+unit_of_work_thread_info=Current unit of work in session ({0}) was created by another thread (id: {1} name: {2}), than current thread (id: {3} name: {4})
+
+unit_of_work_thread_info_thread_dump=Creation thread (id: {0} name: {1}) stack trace:
+{2}
+
+Current thread (id: {3} name: {4}) stack trace:
+{5}
 
 unitofwork_identity_hashcode={0}UnitOfWork identity hashcode: {1}
 

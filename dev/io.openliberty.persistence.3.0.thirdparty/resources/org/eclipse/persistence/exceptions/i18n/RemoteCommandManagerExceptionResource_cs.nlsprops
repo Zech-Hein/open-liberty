@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -62,4 +64,6 @@
 22117=T\u0159\u00edda RemoteCommandManager relace je zav\u0159en\u00e1 nebo nebyla p\u0159i zpracov\u00e1n\u00ed p\u0159\u00edchoz\u00edch zpr\u00e1v inicializov\u00e1na.
 
 22118=Nezda\u0159ilo se vytvo\u0159it p\u0159ipojen\u00ed JGroups pomoc\u00ed konfigura\u010dn\u00edho souboru: {0}
+
+22119=Chyba p\u0159i inicializaci {0}, p\u0159idejte soubor org.eclipse.persistence.corba.jar do cesty ke t\u0159\u00edd\u011b.
 

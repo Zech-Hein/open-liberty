@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ var editorMessages = {
 "ADD_CHILD": "Adăugare copil",
 "REMOVE": "Înlăturare",
 "TEST" : "Test",
-"TEST_CONNECTION": "Conexiune de test",
+"TEST_CONNECTION": "Test de conectare",
+"TEST_CONNECTION_DESCRIPTION": "Testare conexiune",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "Salvare modificări pentru testare conexiune",
 "DESCRIPTION": "Descriere",
 "PREVIOUS": "Anterior",
 "NEXT": "Următor",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "Dialog de înlăturare element",
 "VALIDATE_DATASOURCE_DIALOG": "Dialog de validare conexiune la sursa de date",
 "VALIDATE_DATASOURCE": "Testare conexiune la sursa de date",
+"VALIDATE_CONNECTION_DIALOG":"Validare dialog de conectare",
+"DEFAULT_AUTHENTICATION_ALIAS":"Autentificare implicită",
+"SPECIFY_AUTHENTICATION_ALIAS":"Specificare alias de autentificare",
+"LOGIN_CONFIG":"Configurare logare",
+"LOGIN_CONFIG_ID":"ID configurație de logare",
+"ADD_LOGIN_CONFIG_PROPERTY":"Adăugare proprietate de configurație logare",
+"KEY":"Cheie",
+"CHOOSE_AN_OPTION":"Alegeți o opțiune",
 "ENUMERATION_SELECTION_DIALOG": "Dialog selecţie enumerare",
 "SAVE_BEFORE_CLOSING_DIALOG": "Dialog de salvare înainte de închidere",
 "ERROR_SAVING_FILE_DIALOG": "Dialog de eroare salvare fişier",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "Alias de autentificare (Opţional)",
 "AUTH_ALIAS": "Alias de autentificare",
 "CONTAINER_AUTHENTICATION": "Autentificare container",
+"RESOURCE_REFERENCE": "Referință resursă",
 "NO_RESOURCE_REFERENCE": "Nici o referinţă de resursă",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "Testați conexiunea prin utilizarea unei referințe de resursă care autentifică cu autentificarea prin aplicație.",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "Testați conexiunea prin utilizarea unei referințe de resurse care autentifică cu autentificare prin container.",
+"RESOURCE_REFERENCE_IN_USE": "Autentificarea prin container pentru căutarea directă este activată. Testul de conectare utilizează datele de autentificare prin container implicite.",
+"NO_RESOURCE_REFERENCE_IN_USE": "Testați conexiunea fără a utiliza o referință de resursă.",
 "APPLICATION_AUTHENTICATION": "Autentificare aplicaţie",
 "CUSTOM_LOGIN_MODULE": "Modul de logare personalizat (Opţional)",
 "LOGIN_PROPERTIES": "Proprietăţi de logare (Opţional)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "Selectaţi o caracteristică pentru a-i vizualiza descrierea.",
 "SUPPORT_MESSAGE" : "Configuraţia serverului nu este disponibilă pentru serverele Node.js şi nici pentru serverele dintr-un container Docker accesate prin controlerul de colectiv.",
 "NO_ROLE_MESSAGE": "Utilizatorul nu este într-un rol care are permisiunea să facă modificări de configuraţie. Fişierele sunt accesibile doar în modul numai-citire.",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "ACŢIUNI NECESARE PENTRU MEMBRII COLECTIVULUI:",
 "RUN_UPDATE_HOST" : "Rulaţi 'collective updateHost' sau 'collective registerHost' cu '--hostWritePath' specificând o cale la care rpcUser are permisiuni de scriere.  Trebuie furnizate de asemenea acreditări valide pentru gazdă.",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "Creaţi o legătura la JAVA în /usr/bin. De ex. /usr/bin/java -> [pathToJAVA]",
 "JAVA_ON_PATH" : "Adăugaţi JAVA la variabila de mediu PATH.  Exportul PATH trebuie făcut în .bashrc pe Linux.", 
 "MORE_INFORMATION" : "Pentru informaţii suplimentare vedeţi: "
-
 };

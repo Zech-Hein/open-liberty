@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -24,7 +26,6 @@ import aQute.bnd.header.Parameters;
 import aQute.bnd.osgi.Builder;
 
 public class FeatureBuilder extends Builder {
-
 
     public Parameters getSubsystemContent() {
         Parameters p = getParameters("Subsystem-Content");
@@ -61,28 +62,28 @@ public class FeatureBuilder extends Builder {
     }
 
     public Set<String> getAutoFeatures() {
-    	Set<Entry<String, Attrs>> rawString = getContent(FeatureBnd.IBM_PROVISION_CAPABILITY);
-    	Set<String> processedAutoFeatures = new HashSet<String>();
-    	String OSGI_PREFIX = "osgi.identity=";
-    	Iterator<Entry<String, Attrs>> itr = rawString.iterator();
-    	String filterString = rawString.toString();
-		String[] messyAutoFeatures = filterString.split(OSGI_PREFIX);
-		for (String messyAutoFeature : messyAutoFeatures) {
-			if (!messyAutoFeature.startsWith("com") && !messyAutoFeature.startsWith("io.openliberty"))
-				continue;
+        Set<Entry<String, Attrs>> rawString = getContent(FeatureBnd.IBM_PROVISION_CAPABILITY);
+        Set<String> processedAutoFeatures = new HashSet<String>();
+        String OSGI_PREFIX = "osgi.identity=";
+        Iterator<Entry<String, Attrs>> itr = rawString.iterator();
+        String filterString = rawString.toString();
+        String[] messyAutoFeatures = filterString.split(OSGI_PREFIX);
+        for (String messyAutoFeature : messyAutoFeatures) {
+            if (!messyAutoFeature.startsWith("com") && !messyAutoFeature.startsWith("io.openliberty"))
+                continue;
 
-			processedAutoFeatures.add(trimAutofeatureString(messyAutoFeature));
-		}
+            processedAutoFeatures.add(trimAutofeatureString(messyAutoFeature));
+        }
 
-    	return processedAutoFeatures;
+        return processedAutoFeatures;
 
     }
 
     private String trimAutofeatureString(String autoFeature) {
-    	if (autoFeature.indexOf(")") > 0)
-    		return autoFeature.substring(0, autoFeature.indexOf(")"));
-    	else
-    		return autoFeature;
+        if (autoFeature.indexOf(")") > 0)
+            return autoFeature.substring(0, autoFeature.indexOf(")"));
+        else
+            return autoFeature;
 
     }
 

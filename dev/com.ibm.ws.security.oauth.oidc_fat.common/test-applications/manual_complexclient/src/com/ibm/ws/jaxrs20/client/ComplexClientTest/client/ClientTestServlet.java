@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -256,9 +258,7 @@ public class ClientTestServlet extends HttpServlet {
 	 */
 	private static void setupSSLClient() {
 	    String JKS_LOCATION = "/resources/security/commonSslClientDefault.jks";
-	    String protocols = "SSLv3,TLSv1";
-        if (!System.getProperty("java.specification.version").startsWith("1.7"))
-            protocols += ",TLSv1.1,TLSv1.2";
+	    String protocols = "SSLv3,TLSv1,TLSv1.1,TLSv1.2";
         System.setProperty("com.ibm.jsse2.disableSSLv3", "false");
         System.setProperty("https.protocols", protocols);
         Security.setProperty("jdk.tls.disabledAlgorithms", "");

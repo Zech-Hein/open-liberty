@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 - 2020 IBM Corporation and others.
+ * Copyright (c) 2017 - 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -107,6 +109,12 @@ public class MicroProfileJwtConfigImpl implements MicroProfileJwtConfig {
 
     public static final String CFG_KEY_CLOCK_SKEW = "clockSkew";
     private long clockSkewMilliSeconds;
+
+    public static final String CFG_KEY_TOKEN_AGE = "tokenAge";
+    private long tokenAgeMilliSeconds;
+
+    public static final String CFG_KEY_DECRYPT_KEY_ALGORITHM = "keyManagementKeyAlgorithm";
+    private String keyManagementKeyAlgorithm = null;
 
     public static final String CFG_KEY_IGNORE_APP_AUTH_METHOD = "ignoreApplicationAuthMethod";
     protected boolean ignoreApplicationAuthMethod = true;
@@ -223,6 +231,13 @@ public class MicroProfileJwtConfigImpl implements MicroProfileJwtConfig {
         // Ensure that for MP JWT 1.2 and above that "aud" claim is allowed in tokens even if audiences or
         // mp.jwt.verify.audiences are not configured
         ignoreAudClaimIfNotConfigured = true;
+
+        if (!isRuntimeVersionAtLeast(MpJwtRuntimeVersion.VERSION_2_1)) {
+            return;
+        }
+        this.tokenAgeMilliSeconds = configUtils.getLongConfigAttribute(props, CFG_KEY_TOKEN_AGE, tokenAgeMilliSeconds);
+        this.keyManagementKeyAlgorithm = configUtils.getConfigAttribute(props, CFG_KEY_DECRYPT_KEY_ALGORITHM);
+
     }
 
     boolean isRuntimeVersionAtLeast(Version minimumVersionRequired) {
@@ -562,6 +577,18 @@ public class MicroProfileJwtConfigImpl implements MicroProfileJwtConfig {
     @Override
     public long getClockSkew() {
         return clockSkewMilliSeconds;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public long getTokenAge() {
+        return tokenAgeMilliSeconds;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getKeyManagementKeyAlgorithm() {
+        return this.keyManagementKeyAlgorithm;
     }
 
     /** {@inheritDoc} */

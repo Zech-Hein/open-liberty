@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018,2021 IBM Corporation and others.
+ * Copyright (c) 2018,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,7 +21,8 @@ import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
-import componenttest.topology.utils.MvnUtils;
+import componenttest.topology.utils.tck.TCKResultsInfo.Type;
+import componenttest.topology.utils.tck.TCKRunner;
 
 @RunWith(FATRunner.class)
 public class MPContextPropagationTCKLauncher {
@@ -34,7 +37,7 @@ public class MPContextPropagationTCKLauncher {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        server.stopServer();
+        server.stopServer("CWWKZ0014W"); // Updates after the app is deleted. Can occur due to Arquillian use.
     }
 
     @AllowedFFDC({ "java.lang.IllegalStateException", // transaction cannot be propagated to 2 threads at the same time
@@ -45,6 +48,10 @@ public class MPContextPropagationTCKLauncher {
     public void launchMPContextPropagation_1_2_Tck() throws Exception {
         // TODO use this to only test with local build
         // if (FATRunner.FAT_TEST_LOCALRUN)
-        MvnUtils.runTCKMvnCmd(server, "com.ibm.ws.concurrency.mp.1.2_fat_tck", this.getClass() + ":launchMPContextPropagationTck");
+        String bucketName = "com.ibm.ws.concurrency.mp.1.2_fat_tck";
+        String testName = this.getClass() + ":launchMPContextPropagation_1_2_Tck";
+        Type type = Type.MICROPROFILE;
+        String specName = "Context Propogation";
+        TCKRunner.runTCK(server, bucketName, testName, type, specName);
     }
 }

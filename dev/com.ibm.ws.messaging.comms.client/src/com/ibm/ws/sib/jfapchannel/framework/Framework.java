@@ -1,24 +1,30 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.sib.jfapchannel.framework;
 
+import static com.ibm.ws.messaging.lifecycle.SingletonsReady.requireService;
+
 import java.net.InetAddress;
 import java.util.Map;
+
+import com.ibm.ejs.util.am.AlarmManager;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.sib.exception.SIErrorException;
 import com.ibm.ws.ffdc.FFDCFilter;
 import com.ibm.ws.sib.jfapchannel.JFapChannelConstants;
-import com.ibm.ejs.util.am.AlarmManager;
 import com.ibm.ws.sib.jfapchannel.approxtime.QuickApproxTime;
 import com.ibm.ws.sib.jfapchannel.impl.CommsClientServiceFacade;
+import com.ibm.ws.sib.jfapchannel.richclient.framework.impl.RichClientFramework;
 import com.ibm.ws.sib.jfapchannel.threadpool.ThreadPool;
 import com.ibm.ws.sib.utils.RuntimeInfo;
 import com.ibm.ws.sib.utils.ras.SibTr;
@@ -94,14 +100,13 @@ public abstract class Framework
          {
             try
             {
-               Class clazz = Class.forName(JFapChannelConstants.RICH_CLIENT_FRAMEWORK_CLASS);
-               instance = (Framework) clazz.newInstance();
+               instance = new RichClientFramework();
             }
             catch (Exception e)
             {
                FFDCFilter.processException(e, CLASS_NAME + ".getInstance",
                                            JFapChannelConstants.FRAMEWORK_GETINSTANCE_02,
-                                           JFapChannelConstants.RICH_CLIENT_FRAMEWORK_CLASS);
+                                           RichClientFramework.class.getName());
 
                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) SibTr.debug(tc, "Unable to instantiate rich client framework", e);
 
@@ -262,8 +267,8 @@ public abstract class Framework
          }
          else
          {
-            alarmManagerImpl = CommsClientServiceFacade.getAlarmManager();
-            
+            alarmManagerImpl = requireService(CommsClientServiceFacade.class).getAlarmManager();
+
                      }
       }
 
@@ -302,7 +307,7 @@ public abstract class Framework
     * pool is used before preparing the endpoint itself.
     *
     * @param endPoint
-    * 
+    *
     * @return a potentially modified endpoint.
     *
     * @throws FrameworkException if the prepare fails for some reason.

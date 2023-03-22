@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2020 IBM Corporation and others.
+# Copyright (c) 2020, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -30,6 +32,7 @@ src: \
     test-applications/JSF22InputFile.war/src,\
     test-applications/JSF22ComponentTester.war/src,\
     test-applications/JSF22ClientWindow.war/src,\
+    test-applications/JSF22ClientWindowFaces40.war/src,\
     test-applications/JSF22ComponentRenderer.war/src,\
     test-applications/JSF22FacesFlows.war/src,\
     test-applications/CDIFacesFlows.war/src,\
@@ -59,7 +62,8 @@ src: \
     test-applications/PH01566.war/src,\
     test-applications/JSF22LocalizationTester.war/src,\
     test-applications/JSF22ThirdPartyApi.war/src,\
-    test-applications/FunctionMapper.war/src
+    test-applications/FunctionMapper.war/src, \
+    test-applications/ViewScopeLeak.war/src
 
 fat.project: true
 
@@ -73,7 +77,12 @@ tested.features: \
     faces-3.0,\
     pages-3.0,\
     cdi-3.0,\
-    beanvalidation-3.0
+    beanvalidation-3.0,\
+    expressionlanguage-5.0,\
+    pages-3.1,\
+    servlet-6.0,\
+    faces-4.0,\
+    cdi-4.0
 
 
 -buildpath: \
@@ -96,5 +105,6 @@ tested.features: \
     com.ibm.ws.jsf.2.2;version=latest,\
     com.ibm.websphere.javaee.jsp.2.3;version=latest,\
     com.ibm.websphere.javaee.interceptor.1.2;version=latest,\
-        io.openliberty.org.apache.commons.logging;version=latest,\
-        io.openliberty.org.apache.commons.codec;version=latest
+    io.openliberty.org.apache.commons.logging;version=latest,\
+    io.openliberty.org.apache.commons.codec;version=latest,\
+    io.openliberty.org.apache.xercesImpl;version=latest

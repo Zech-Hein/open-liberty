@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2010, 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -76,6 +78,13 @@ encode.option-desc.listCustom=\tVisualizza le informazioni della codifica passwo
 \tname : il nome dell''algoritmo di codifica della password personalizzata\n\
 \tfeaturename : il nome della funzione\n\
 \tdescription : la descrizione della codifica password personalizzata
+encode.option-key.keyring=\ \ \ \ --keyring=[keyring]
+encode.option-desc.keyring=\tSpecificare il keyring SAF in cui \u00e8 ubicata la chiave di codifica AES.
+encode.option-key.keyringType=\ \ \ \ --keyringType=[keyringType]
+encode.option-desc.keyringType=\tSpecificare il tipo di keyring SAF in cui \u00e8 ubicata la\n\
+\tcodifica AES.
+encode.option-key.keyLabel=\ \ \ \ --keyLabel=[keyLabel]
+encode.option-desc.keyLabel=\tSpecificare l''etichetta del certificato SAF della chiave di codifica AES.
 
 
 

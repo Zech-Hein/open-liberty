@@ -1,20 +1,25 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.cdi.internal.interfaces;
 
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.enterprise.inject.spi.InjectionTarget;
 
@@ -287,15 +292,28 @@ public interface WebSphereBeanDeploymentArchive extends BeanDeploymentArchive {
     String getEEModuleDescriptorId();
 
     /**
-     * Get hold of the class names for extensions registered via the SPI
+     * Get hold of suppliers for extensions registered via the SPI
      *
-     * @return a set of extension class names. 
+     * @return a set of extension class names.
      */
-    Set<String> getSPIExtensionClassNames();
+    Set<Supplier<Extension>> getSPIExtensionSuppliers();
 
     /**
      * Register the extensions in this BDA that were aquired via the SPI.
      */
-    void setSPIExtensionClassNames(Set<String> spiExtensionsClassNames);
+    void setSPIExtensionSuppliers(Set<Supplier<Extension>> spiExtensionSuppliers);
 
+    /**
+     * Get the BCE class names from this archive
+     *
+     * @return the build compatible extension class names
+     */
+    Set<String> getBuildCompatibleExtensionClassNames();
+
+    /**
+     * The the resource URL of the beans.xml file within the archive, if one exists.
+     * 
+     * @return a URL which points to the beans.xml resource, or null if none exists
+     */
+    URL getBeansXmlResourceURL();
 }

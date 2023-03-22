@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2021 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -21,12 +23,13 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.log.Log;
+import com.ibm.ws.security.fat.common.actions.SecurityTestRepeatAction;
+import com.ibm.ws.security.fat.common.jwt.JwtConstants;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.Constants;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.EndpointSettings.endpointSettings;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.MessageConstants;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.TestSettings;
 import com.ibm.ws.security.openidconnect.client.fat.jaxrs.FATSuite;
-import com.ibm.ws.security.openidconnect.client.fat.jaxrs.OidcClientJaxrsRepeatAction;
 import com.ibm.ws.security.openidconnect.client.fat.jaxrs.CommonTests.JaxRSClientAPITests;
 
 import componenttest.annotation.AllowedFFDC;
@@ -76,9 +79,9 @@ public class OidcJaxRSClientAPITests extends JaxRSClientAPITests {
 
     @ClassRule
     public static RepeatTests repeat = RepeatTests
-            .with(new OidcClientJaxrsRepeatAction(Constants.OPAQUE_TOKEN_FORMAT))
-            .andWith(new OidcClientJaxrsRepeatAction(Constants.JWS_TOKEN_FORMAT))
-            .andWith(new OidcClientJaxrsRepeatAction(Constants.JWE_TOKEN_FORMAT));
+            .with(new SecurityTestRepeatAction(Constants.OPAQUE_TOKEN_FORMAT))
+            .andWith(new SecurityTestRepeatAction(Constants.JWS_TOKEN_FORMAT))
+            .andWith(new SecurityTestRepeatAction(Constants.JWE_TOKEN_FORMAT));
 
     @SuppressWarnings("serial")
     @BeforeClass
@@ -86,14 +89,17 @@ public class OidcJaxRSClientAPITests extends JaxRSClientAPITests {
 
         thisClass = OidcJaxRSClientAPITests.class;
 
-        List<String> apps = new ArrayList<String>() {
+        List<String> rs_apps = new ArrayList<String>() {
             {
                 add(Constants.HELLOWORLD_SERVLET);
             }
         };
-        List<String> rp_apps = new ArrayList<String>() {
+
+        // apps are taking too long to start up for the normal app check, but, we need to be sure that they're ready before we try to use them.
+        List<String> extraMsgs = new ArrayList<String>() {
             {
-                add(Constants.OPENID_APP);
+                add("CWWKZ0001I.*" + Constants.TOKEN_ENDPOINT_SERVLET);
+                add("CWWKZ0001I.*" + Constants.USERINFO_ENDPOINT_SERVLET);
             }
         };
 
@@ -160,12 +166,12 @@ public class OidcJaxRSClientAPITests extends JaxRSClientAPITests {
         setMiscBootstrapParms(validationSettings);
 
         // Start the Generic/App Server
-        genericTestServer = commonSetUp("com.ibm.ws.security.openidconnect.client-1.0_fat.jaxrs.rs", "rs_server_api_orig.xml", Constants.GENERIC_SERVER, apps, Constants.DO_NOT_USE_DERBY, Constants.NO_EXTRA_MSGS, Constants.OPENID_APP, Constants.IBMOIDC_TYPE, true, true, tokenType, Constants.X509_CERT);
+        genericTestServer = commonSetUp("com.ibm.ws.security.openidconnect.client-1.0_fat.jaxrs.rs", "rs_server_api_orig.xml", Constants.GENERIC_SERVER, rs_apps, Constants.DO_NOT_USE_DERBY, Constants.NO_EXTRA_MSGS, Constants.OPENID_APP, Constants.IBMOIDC_TYPE, true, true, tokenType, Constants.X509_CERT);
         genericTestServer.addIgnoredServerException(MessageConstants.CWWKG0032W_CONFIG_INVALID_VALUE);
         genericTestServer.addIgnoredServerException(MessageConstants.CWWKG0033W_CONFIG_REFERENCE_NOT_FOUND);
 
         // Start the OIDC OP server - tell it to generate JWT access tokens
-        testOPServer = commonSetUp("com.ibm.ws.security.openidconnect.client-1.0_fat.jaxrs.opWithStub", "op_server_encrypt.xml", Constants.OIDC_OP, Constants.NO_EXTRA_APPS, Constants.DO_NOT_USE_DERBY, Constants.NO_EXTRA_MSGS, null, null, true, true, tokenType, Constants.X509_CERT);
+        testOPServer = commonSetUp("com.ibm.ws.security.openidconnect.client-1.0_fat.jaxrs.opWithStub", "op_server_encrypt.xml", Constants.OIDC_OP, Constants.NO_EXTRA_APPS, Constants.DO_NOT_USE_DERBY, extraMsgs, null, null, true, true, tokenType, Constants.X509_CERT);
         //Start the OIDC RP server and setup default values
         testRPServer = commonSetUp("com.ibm.ws.security.openidconnect.client-1.0_fat.jaxrs.rp", "rp_server_api_orig.xml", Constants.OIDC_RP, Constants.NO_EXTRA_APPS, Constants.DO_NOT_USE_DERBY, Constants.NO_EXTRA_MSGS, Constants.OPENID_APP, Constants.IBMOIDC_TYPE, true, true, tokenType, Constants.X509_CERT);
         testRPServer.addIgnoredServerException(MessageConstants.CWWKG0033W_CONFIG_REFERENCE_NOT_FOUND);

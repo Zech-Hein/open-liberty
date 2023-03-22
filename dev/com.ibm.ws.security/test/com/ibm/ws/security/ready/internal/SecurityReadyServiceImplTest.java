@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -90,10 +92,23 @@ public class SecurityReadyServiceImplTest {
     @Test
     public void activate() {
         try {
+            final BundleContext bc = mock.mock(BundleContext.class);
+            final ServiceRegistration<SecurityReadyService> reg = mock.mock(ServiceRegistration.class);
+            mock.checking(new Expectations() {
+                {
+                    one(cc).getBundleContext();
+                    will(returnValue(bc));
+
+                    (allowing(bc)).registerService(with(SecurityReadyService.class), with(readyService), with(any(Dictionary.class)));
+                    will(returnValue(reg));
+                }
+            });
+
             readyService.activate(cc);
 
             assertTrue("Expected start message not output",
                        outputMgr.checkForMessages("CWWKS0007I: The security service is starting..."));
+
         } catch (Throwable t) {
             outputMgr.failWithThrowable(name.getMethodName(), t);
         }

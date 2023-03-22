@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,7 @@
 package com.ibm.ws.springboot.support.fat;
 
 import static componenttest.custom.junit.runner.Mode.TestMode.FULL;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -86,9 +89,8 @@ public class NonZipExtensionFilesInBootInfLibTests20 extends AbstractSpringTests
         }
 
         server.startServer(true);
-
-        server.setMarkToEndOfLog();
-
+        assertNotNull("No 'An exception occurred while starting the application' message",
+                      server.waitForStringInLog("CWWKZ0002E:"));
         stopServer(true, "CWWKZ0002E", "The entry BOOT-INF/lib/test.txt is not a valid zip.");
 
     }
@@ -116,7 +118,7 @@ public class NonZipExtensionFilesInBootInfLibTests20 extends AbstractSpringTests
 
         server.startServer(true);
 
-        server.setMarkToEndOfLog();
+        assertNotNull("No 'web application available' message", server.waitForStringInLog("CWWKT0016I:"));
 
         HttpUtils.findStringInUrl(server, "", "HELLO SPRING BOOT!!");
 

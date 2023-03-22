@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -24,7 +26,7 @@ import com.ibm.wsspi.artifact.ArtifactEntry;
 import com.ibm.wsspi.artifact.overlay.OverlayContainer;
 
 public final class WebAppEntryAdapter implements EntryAdapter<WebApp> {
-    private static final int DEFAULT_MAX_VERSION = WebApp.VERSION_3_0;
+    protected static final int DEFAULT_MAX_VERSION = WebApp.VERSION_3_0;
 
     private ServiceReference<ServletVersion> versionRef;
     private volatile int maxVersion = DEFAULT_MAX_VERSION;
@@ -50,7 +52,7 @@ public final class WebAppEntryAdapter implements EntryAdapter<WebApp> {
         OverlayContainer container,
         ArtifactEntry rawWebAppEntry,
         Entry webAppEntry) throws UnableToAdaptException {
-
+        
         String webAppPath = rawWebAppEntry.getPath();
         WebApp webAppDD = (WebApp) container.getFromNonPersistentCache(webAppPath, WebApp.class);
         if ( webAppDD == null ) {

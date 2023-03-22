@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -154,7 +156,7 @@ public class JsonBProvider implements MessageBodyWriter<Object>, MessageBodyRead
             CompletionStage.class.equals( ((ParameterizedType)genericType).getRawType())) {
             genericType = ((ParameterizedType)genericType).getActualTypeArguments()[0];
         }
-        Object obj = getJsonb().fromJson(entityStream, genericType);
+        Object obj = getJsonb(clazz).fromJson(entityStream, genericType);
 
         if (tc.isDebugEnabled()) {
             Tr.debug(tc, "object=" + obj);
@@ -199,7 +201,7 @@ public class JsonBProvider implements MessageBodyWriter<Object>, MessageBodyRead
     @Override
     public void writeTo(Object obj, Class<?> type, Type genericType, Annotation[] annotations,
                         MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-        String json = getJsonb().toJson(obj);
+        String json = getJsonb(type).toJson(obj);
         entityStream.write(json.getBytes(charset(httpHeaders))); // do not close entityStream
 
         if (tc.isDebugEnabled()) {
@@ -207,11 +209,11 @@ public class JsonBProvider implements MessageBodyWriter<Object>, MessageBodyRead
         }
     }
 
-    private Jsonb getJsonb() {
+    private Jsonb getJsonb(Class<?> clazz) {
         for (ProviderInfo<ContextResolver<?>> crPi : contextResolvers) {
             ContextResolver<?> cr = crPi.getProvider();
             InjectionUtils.injectContexts(cr, crPi, JAXRSUtils.getCurrentMessage());
-            Object o = cr.getContext(null);
+            Object o = cr.getContext(clazz);
             if (o instanceof Jsonb) {
                 return (Jsonb) o;
             }

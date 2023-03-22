@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,7 +14,6 @@
 package com.ibm.ws.fat.grpc;
 
 import static com.ibm.ws.fat.grpc.monitoring.GrpcMetricsTestUtils.checkMetric;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URL;
@@ -36,12 +37,10 @@ import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.annotation.Server;
-import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
 
-@SkipForRepeat(SkipForRepeat.EE9_FEATURES)
 @RunWith(FATRunner.class)
 public class GrpcMetricsTest extends FATServletClient {
 
@@ -56,7 +55,7 @@ public class GrpcMetricsTest extends FATServletClient {
     String clientContextRoot = "HelloWorldClient";
 
     // keep track of the number of client calls made, at the class level since the client server and app are never restarted
-    private static int clientCallCount = 0;
+    private static int clientCallCount;
 
     @Rule
     public TestName name = new TestName();
@@ -76,8 +75,8 @@ public class GrpcMetricsTest extends FATServletClient {
 
         // add the "service" app to the client server, to be used by testGrpcMetricsSingleServer()
         ShrinkHelper.defaultDropinApp(GrpcClientOnly, "HelloWorldService.war",
-                                    "com.ibm.ws.grpc.fat.helloworld.service",
-                                    "io.grpc.examples.helloworld");
+                                      "com.ibm.ws.grpc.fat.helloworld.service",
+                                      "io.grpc.examples.helloworld");
 
         LOG.info("GrpcMetricsTest : setUp() : add HelloWorldService app to GrpcServerOnly");
         ShrinkHelper.defaultDropinApp(GrpcServerOnly, "HelloWorldService.war",
@@ -88,6 +87,7 @@ public class GrpcMetricsTest extends FATServletClient {
         GrpcClientOnly.useSecondaryHTTPPort();
         GrpcClientOnly.startServer(GrpcMetricsTest.class.getSimpleName() + ".client.log");
         GrpcServerOnly.startServer(GrpcMetricsTest.class.getSimpleName() + ".server.log");
+        clientCallCount = 0;
     }
 
     @AfterClass
@@ -146,16 +146,16 @@ public class GrpcMetricsTest extends FATServletClient {
             assertTrue("the gRPC request did not complete correctly", page.asText().contains("us3r1"));
 
             // check the gRPC server-side metrics
-            checkMetric(GrpcServerOnly, "/metrics/vendor/grpc.server.rpcStarted.total", "1");
-            checkMetric(GrpcServerOnly, "/metrics/vendor/grpc.server.rpcCompleted.total", "1");
-            checkMetric(GrpcServerOnly, "/metrics/vendor/grpc.server.sentMessages.total", "1");
-            checkMetric(GrpcServerOnly, "/metrics/vendor/grpc.server.receivedMessages.total", "1");
+            checkMetric(GrpcServerOnly, "/metrics/vendor/grpc.server.rpcStarted.total", null, "1");
+            checkMetric(GrpcServerOnly, "/metrics/vendor/grpc.server.rpcCompleted.total", null, "1");
+            checkMetric(GrpcServerOnly, "/metrics/vendor/grpc.server.sentMessages.total", null, "1");
+            checkMetric(GrpcServerOnly, "/metrics/vendor/grpc.server.receivedMessages.total", null, "1");
 
             // check the gRPC client-side metrics
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.rpcStarted.total", String.valueOf(clientCallCount));
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.rpcCompleted.total", String.valueOf(clientCallCount));
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.sentMessages.total", String.valueOf(clientCallCount));
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.receivedMessages.total", String.valueOf(clientCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.rpcStarted.total", null, String.valueOf(clientCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.rpcCompleted.total", null, String.valueOf(clientCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.sentMessages.total", null, String.valueOf(clientCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.receivedMessages.total", null, String.valueOf(clientCallCount));
         }
     }
 
@@ -217,16 +217,16 @@ public class GrpcMetricsTest extends FATServletClient {
             assertTrue("the gRPC request did not complete correctly", page.asText().contains("us3r1"));
 
             // check the gRPC server-side metrics
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.server.rpcStarted.total", String.valueOf(serverCallCount));
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.server.rpcCompleted.total", String.valueOf(serverCallCount));
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.server.sentMessages.total", String.valueOf(serverCallCount));
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.server.receivedMessages.total", String.valueOf(serverCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.server.rpcStarted.total", null, String.valueOf(serverCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.server.rpcCompleted.total", null, String.valueOf(serverCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.server.sentMessages.total", null, String.valueOf(serverCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.server.receivedMessages.total", null, String.valueOf(serverCallCount));
 
             // check the gRPC client-side metrics
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.rpcStarted.total", String.valueOf(clientCallCount));
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.rpcCompleted.total", String.valueOf(clientCallCount));
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.sentMessages.total", String.valueOf(clientCallCount));
-            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.receivedMessages.total", String.valueOf(clientCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.rpcStarted.total", null, String.valueOf(clientCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.rpcCompleted.total", null, String.valueOf(clientCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.sentMessages.total", null, String.valueOf(clientCallCount));
+            checkMetric(GrpcClientOnly, "/metrics/vendor/grpc.client.receivedMessages.total", null, String.valueOf(clientCallCount));
         }
     }
 }

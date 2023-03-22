@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -84,6 +86,8 @@ public class MessageConstants extends com.ibm.ws.security.fat.common.MessageCons
 
     public static final String CWWKS1520E_MISSING_SAMESITE_COOKIE = "CWWKS1520E";
     public static final String CWWKS1532E_MALFORMED_URL_IN_COOKIE = "CWWKS1532E";
+    public static final String CWWKS1533E_SIGNATURE_MISMATCH = "CWWKS1533E";
+    public static final String CWWKS1534E_MISSING_AUTH_ENDPOINT = "CWWKS1534E";
     public static final String CWWKS1524E_DISCOVERY_FAILED_TO_RETURN_ENDPOINT = "CWWKS1524E";
     public static final String CWWKS1525E_SUCCESSFUL_RESPONSE_NOT_RETURNED = "CWWKS1525E";
 
@@ -92,6 +96,13 @@ public class MessageConstants extends com.ibm.ws.security.fat.common.MessageCons
     public static final String CWWKS1625E_FAILED_TO_VALIDATE_ID_TOKEN = "CWWKS1625E";
     public static final String CWWKS1631I_OIDC_ENDPOINT_SERVICE_ACTIVATED = "CWWKS1631I";
     public static final String CWWKS1633E_USERINFO_UNSUPPORTED_PARAM = "CWWKS1633E";
+    public static final String CWWKS1636E_POST_LOGOUT_REDIRECT_MISMATCH = "CWWKS1636E";
+
+    public static final String CWWKS1642E_BACK_CHANNEL_LOGOUT_FAILURE_BUILDING_LOGOUT_TOKEN = "CWWKS1642E";
+    public static final String CWWKS1643E_BACK_CHANNEL_LOGOUT_CANNOT_EXTRACT_CLAIMS = "CWWKS1643E";
+    public static final String CWWKS1646E_BACK_CHANNEL_LOGOUT_ISSUER_MISMATCH = "CWWKS1646E";
+    public static final String CWWKS1648E_BACK_CHANNEL_LOGOUT_INVALID_URI = "CWWKS1648E";
+    public static final String CWWKS1649E_BACK_CHANNEL_LOGOUT_TIMEOUT = "CWWKS1649E";
 
     public static final String CWWKS1703E_CLIENT_REQUIRES_HTTPS = "CWWKS1703E";
     public static final String CWWKS1704E_STATE_MISMATCH = "CWWKS1704E";
@@ -115,6 +126,7 @@ public class MessageConstants extends com.ibm.ws.security.fat.common.MessageCons
     public static final String CWWKS1741W_OIDC_CLIENT_NONE_ALG = "CWWKS1741W";
     public static final String CWWKS1743E_REUSED_JTI = "CWWKS1743E";
     public static final String CWWKS1747E_JWK_RETRIEVE_FAILED = "CWWKS1747E";
+    public static final String CWWKS1749E_SUB_DID_NOT_MATCH_ID_TOKEN = "CWWKS1749E";
     public static final String CWWKS1756E_OIDC_IDTOKEN_SIGNATURE_VERIFY_ERR = "CWWKS1756E";
     public static final String CWWKS1761E_SIG_ALG_MISMATCH = "CWWKS1761E";
     public static final String CWWKS1768E_BAD_JWT_FORMAT = "CWWKS1768E";
@@ -128,6 +140,8 @@ public class MessageConstants extends com.ibm.ws.security.fat.common.MessageCons
     public static final String CWWKS1781E_TOKEN_ISSUER_NOT_TRUSTED = "CWWKS1781E";
     public static final String CWWKS1783W_DISALLOWED_FORWARD_AUTHZ_PARAMS_CONFIGURED = "CWWKS1783W";
 
+    public static final String CWWKS1951E_FAILURE_SENDING_BCL_REQUEST = "CWWKS1951E";
+
     public static final String CWWKS4358I_AUTH_FILTER_PROCESSED = "CWWKS4358I";
 
     public static final String CWWKS1722E_UNABLE_TO_AUTHENTICATE_BADCLAIM = "CWWKS1722E";
@@ -139,7 +153,32 @@ public class MessageConstants extends com.ibm.ws.security.fat.common.MessageCons
 
     public static final String CWWKS5000I_SAML_CONFIG_PROCESSED = "CWWKS5000I";
     public static final String CWWKS5002I_SAML_SERVICE_ACTIVATED = "CWWKS5002I";
+
+    public static final String CWWKS1536E_TOKEN_IS_NOT_A_JWS = "CWWKS1536E";
+    public static final String CWWKS1537E_JWE_IS_NOT_VALID = "CWWKS1537E";
+    public static final String CWWKS1538E_CONTENT_NOT_JSON = "CWWKS1538E";
+    public static final String CWWKS1539E_CONTENT_NOT_JWT = "CWWKS1539E";
+
+    public static final String CWWKS1540E_CANNOT_RETRIEVE_DATA_FROM_USERINFO = "CWWKS1540E";
+    public static final String CWWKS1541E_BACK_CHANNEL_LOGOUT_ERROR = "CWWKS1541E";
+    public static final String CWWKS1542E_BACK_CHANNEL_MISSING_LOGOUT_TOKEN = "CWWKS1542E";
+    public static final String CWWKS1543E_BACK_CHANNEL_LOGOUT_REQUEST_VALIDATION_ERROR = "CWWKS1543E";
+    public static final String CWWKS1545E_BACK_CHANNEL_LOGOUT_MISSING_REQUIRED_CLAIM = "CWWKS1545E";
+    public static final String CWWKS1546E_BACK_CHANNEL_LOGOUT_MISSING_SUB_AND_SID_CLAIMS = "CWWKS1546E";
+    public static final String CWWKS1547E_EVENTS_CLAIM_NOT_JSON = "CWWKS1547E";
+    public static final String CWWKS1548E_EVENTS_CLAIM_MISSING_REQUIRED_MEMBER = "CWWKS1548E";
+    public static final String CWWKS1549E_BACK_CHANNEL_LOGOUT_NONCE_CLAIM = "CWWKS1549E";
+
+    public static final String CWWKS1551E_LOGOUT_TOKEN_DUP_JTI = "CWWKS1551E";
+    public static final String CWWKS1552E_NO_RECENT_SESSIONS_WITH_CLAIMS = "CWWKS1552E";
+
+    public static final String CWWKS2300E_HTTP_WITH_PUBLIC_CLIENT = "CWWKS2300E";
+
     public static final String CWWKS5207W_SAML_CONFIG_IGNORE_ATTRIBUTES = "CWWKS5207W";
+
+    public static final String CWWKS5453E_CANNOT_CREATE_JWT_FROM_ID_TOKEN = "CWWKS5453E";
+    public static final String CWWKS5498E_CANNOT_CREATE_JWT_USING_CONFIG = "CWWKS5498E";
+    public static final String CWWKS6064E_TOKEN_IS_NOT_A_JWE = "CWWKS6064E";
 
     public static final String CWWKS6005E_BAD_CONFIG_ID = "CWWKS6005E";
     public static final String CWWKS6007E_BAD_KEY_ALIAS = "CWWKS6007E";

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -42,7 +44,7 @@ public class AccountsPayableService {
     
     static final Map<String,AccountInfo> accountInfos = new ConcurrentHashMap<>();
     static final Map<String,Double> accountBalances = new ConcurrentHashMap<>();
-    static final BankAccountClient bankAccountClient;
+    final BankAccountClient bankAccountClient;
     
     static {
         accountInfos.put("12300567", new AccountInfo("abc123", "12300567"));
@@ -57,10 +59,7 @@ public class AccountsPayableService {
         accountBalances.put("12300444", 250.00);
         accountBalances.put("12300963", 2287.35);
         
-        bankAccountClient = RestClientBuilder.newBuilder()
-                                             .baseUri(URI.create(AsyncTestServlet.URI_CONTEXT_ROOT))
-                                             .executorService(App.executorService.get())
-                                             .build(BankAccountClient.class);
+        
     }
     
     private static final boolean isZOS() {
@@ -78,7 +77,14 @@ public class AccountsPayableService {
         }
         return false;
     }
-    
+
+    public AccountsPayableService() {
+        bankAccountClient = RestClientBuilder.newBuilder()
+                                             .baseUri(URI.create(AsyncTestServlet.URI_CONTEXT_ROOT))
+                                             .executorService(App.executorService.get())
+                                             .build(BankAccountClient.class);
+    }
+
     @GET
     @Path("/accounts")
     public List<AccountInfo> getAllAccounts() {

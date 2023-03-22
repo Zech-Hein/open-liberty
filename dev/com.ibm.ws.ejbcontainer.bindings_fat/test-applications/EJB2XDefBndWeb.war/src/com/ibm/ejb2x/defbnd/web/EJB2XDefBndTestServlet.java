@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,7 +16,6 @@ import static org.junit.Assert.fail;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.rmi.PortableRemoteObject;
 import javax.servlet.annotation.WebServlet;
 
 import org.junit.Test;
@@ -86,8 +87,7 @@ public class EJB2XDefBndTestServlet extends FATServlet {
 
     @Test
     public void test2XRemoteDefault() throws Exception {
-        Object lookup = new InitialContext().lookup("ejb/Test2XDefBndBean");
-        EJB2XDefBndRemoteHome beanHome = (EJB2XDefBndRemoteHome) PortableRemoteObject.narrow(lookup, EJB2XDefBndRemoteHome.class);
+        EJB2XDefBndRemoteHome beanHome = (EJB2XDefBndRemoteHome) new InitialContext().lookup("ejb/Test2XDefBndBean");
         if (beanHome == null) {
             fail("lookup ejb/Test2XDefBndBean should have worked");
         }

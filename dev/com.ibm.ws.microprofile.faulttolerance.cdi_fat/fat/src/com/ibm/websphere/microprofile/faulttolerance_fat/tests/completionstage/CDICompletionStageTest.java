@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,7 +22,6 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
-import com.ibm.ws.microprofile.faulttolerance.fat.repeat.RepeatFaultTolerance;
 
 import componenttest.annotation.Server;
 import componenttest.annotation.TestServlet;
@@ -34,11 +35,13 @@ import componenttest.topology.utils.FATServletClient;
 @RunWith(FATRunner.class)
 public class CDICompletionStageTest extends FATServletClient {
 
-    @ClassRule
-    public static RepeatTests r = RepeatFaultTolerance.repeat("FaultToleranceMultiModule", TestMode.FULL, MicroProfileActions.LATEST, MicroProfileActions.MP22);
-
     private static final String SERVER_NAME = "FaultToleranceMultiModule";
     private static final String APP_NAME = "ftCompletionStage";
+
+    @ClassRule
+    public static RepeatTests r = MicroProfileActions.repeat(SERVER_NAME, TestMode.FULL, MicroProfileActions.MP60,
+                                                             MicroProfileActions.MP41,
+                                                             MicroProfileActions.MP22);
 
     @Server(SERVER_NAME)
     @TestServlet(servlet = CDICompletionStageServlet.class, contextRoot = APP_NAME)

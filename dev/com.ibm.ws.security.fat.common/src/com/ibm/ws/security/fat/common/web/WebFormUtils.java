@@ -2,7 +2,9 @@ package com.ibm.ws.security.fat.common.web;
 
 import java.util.List;
 
+import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -13,6 +15,7 @@ public class WebFormUtils {
     public static Class<?> thisClass = WebFormUtils.class;
 
     public static final String DEFAULT_LOGIN_SUBMIT_BUTTON_VALUE = "Login";
+    public static final String DEFAULT_LOGIN_SUBMIT_BUTTON_NAME = "submitButton";
 
     /**
      * Fills out the first form found in the provided login page with the specified credentials and submits the form. An exception
@@ -78,8 +81,28 @@ public class WebFormUtils {
         if (submitButtonValue == null) {
             throw new Exception("Cannot submit HTML form because the provided submit button value is null.");
         }
-        HtmlInput submitButton = form.getInputByValue(submitButtonValue);
-        return submitButton.click();
+        try {
+            HtmlInput submitButton = form.getInputByValue(submitButtonValue);
+            return submitButton.click();
+        } catch (ElementNotFoundException e) {
+            HtmlButton submitButton = form.getButtonByName(DEFAULT_LOGIN_SUBMIT_BUTTON_NAME);
+            return submitButton.click();
+        }
+    }
+    
+    public Page getAndSubmitConsentForm(HtmlPage consentPage, String selection) throws Exception {
+        if (consentPage == null) {
+            throw new Exception("Cannot submit consent form because the provided HtmlPage object is null.");
+        }
+        HtmlForm form = getConsentForm(consentPage);
+        return submitForm(form, selection);
+    }
+    
+    HtmlForm getConsentForm(HtmlPage consentPage) throws Exception {
+        List<HtmlForm> forms = consentPage.getForms();
+        assertPageContainsAtLeastOneForm(forms);
+        HtmlForm form = forms.get(0);
+        return form;
     }
 
 }

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2021 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -162,6 +164,28 @@ public class RepeatTestFilter {
             while (iter.hasNext()) {
                 if (iter.next().startsWith(action)) {
                     return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Is any repeat action currently active?
+     *
+     * @param  actions The repeat actions to check.
+     * @return         True if any of the repeat actions (or subclass) is active.
+     */
+    public static boolean isAnyRepeatActionActive(String... actions) {
+        // Action subclasses are supported by adding a suffix to the ID
+        if (!REPEAT_ACTION_STACK.isEmpty()) {
+            Iterator<String> iter = REPEAT_ACTION_STACK.descendingIterator();
+            while (iter.hasNext()) {
+                String currentAction = iter.next();
+                for (String action : actions) {
+                    if (currentAction.startsWith(action)) {
+                        return true;
+                    }
                 }
             }
         }

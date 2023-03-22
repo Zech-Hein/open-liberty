@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,6 +23,7 @@ import com.ibm.websphere.logging.WsLevel;
 import com.ibm.ws.logging.internal.impl.BaseTraceService;
 import com.ibm.ws.logging.internal.impl.LogProviderConfigImpl;
 import com.ibm.ws.logging.internal.impl.RoutedMessageImpl;
+import com.ibm.wsspi.logprovider.LogProviderConfig;
 
 /**
  *
@@ -62,6 +65,20 @@ public class CapturedOutputHolder extends BaseTraceService {
         earlyMessageTraceKiller_Timer = null;
     }
 
+    @Override
+    public void init(LogProviderConfig config) {
+        systemOut.getOriginalStream().println("init: Did BaseTraceService.captureSystemStreams() already get excuted? : " + isCaptureSystemStreamsExecuted + ". Current COH is "
+                                              + this);
+        super.init(config);
+    }
+
+    @Override
+    protected void registerLoggerHandlerSingleton() {
+        systemOut.getOriginalStream().println("registerLoggerHandlerSingleton: Did BaseTraceService.captureSystemStreams() already get excuted? : "
+                                              + isCaptureSystemStreamsExecuted + ". Current COH is " + this);
+        super.registerLoggerHandlerSingleton();
+    }
+
     /**
      * This is not to be used by the SharedOutputManager! This is an override
      * of the BaseTraceService method that captures system streams.
@@ -75,10 +92,12 @@ public class CapturedOutputHolder extends BaseTraceService {
 
         PrintStream trSysOut = systemOut.getOriginalStream();
         PrintStream trSysErr = systemErr.getOriginalStream();
-
+        System.out.println("captureSystemStreams: CurrentCOH is : " + this);
         if (sysOut != trSysOut) {
+
             throw new ConcurrentModificationException("Someone else has reset or cached System.out. Current System.out value: " + System.out + " and current original stream: "
-                                                      + systemOut.getOriginalStream());
+                                                      + systemOut.getOriginalStream() + ". Did someone already execute BaseTraceService.captureSystemStreams : "
+                                                      + isCaptureSystemStreamsExecuted);
         }
         if (sysErr != trSysErr) {
             throw new ConcurrentModificationException("Someone else has reset or cached System.err");

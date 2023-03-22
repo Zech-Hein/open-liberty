@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017,2020 IBM Corporation and others.
+ * Copyright (c) 2017,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -1680,6 +1683,22 @@ public class MPConcurrentTestServlet extends FATServlet {
     }
 
     /**
+     * Cast a MicroProfile ThreadContext to ContextService and attempt to invoke
+     * createContextualProxy to create a Serializable contextual proxy.
+     * Expect it to be rejected because MicroProfile thread context is not serializable.
+     */
+    @Test
+    public void testCreateContextalProxy() throws Exception {
+        ContextService contextSvc = (ContextService) stateContextPropagator;
+        try {
+            Serializable proxy = contextSvc.createContextualProxy(new SerializableContextSnapshot(), Serializable.class);
+            fail("Serializable contextual proxies should not be supported in MicroProfile Context Propagation. " + proxy);
+        } catch (UnsupportedOperationException x) {
+            // expected
+        }
+    }
+
+    /**
      * When the mpContextPropagation-1.0 feature is enabled, The OpenLiberty implementation of
      * javax.enterprise.concurrent.ManagedExecutorService and
      * javax.enterprise.concurrent.ManagedScheduledExecutorService are also implementations of
@@ -2870,9 +2889,9 @@ public class MPConcurrentTestServlet extends FATServlet {
     public void testNoNewMethods() throws Exception {
         int methodCount = CompletableFuture.class.getMethods().length;
         assertTrue("Methods have been added to CompletableFuture which need to be properly implemented on wrapper class ManagedCompletableFuture. " +
-                   "Expected 127 (Java 12) 117 (Java 9+) or 104 (Java 8). Found " + methodCount,
+                   "Expected 130 (Java 19) 127 (Java 12) 117 (Java 9) or 104 (Java 8). Found " + methodCount,
                    // WARNING: do not update these values unless you have properly implemented (or added code to reject) the new methods on ManagedCompletableFuture!
-                   methodCount == 127 || methodCount == 117 || methodCount == 104);
+                   methodCount == 130 || methodCount == 127 || methodCount == 117 || methodCount == 104);
     }
 
     /**

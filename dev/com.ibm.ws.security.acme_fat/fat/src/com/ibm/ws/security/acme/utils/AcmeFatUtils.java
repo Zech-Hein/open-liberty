@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2021 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -99,9 +101,12 @@ public class AcmeFatUtils {
 	 *             If the certificate could not be generated from the passed in
 	 *             PEM bytes.
 	 */
-	public static X509Certificate getX509Certificate(byte pemBytes[]) throws CertificateException {
+	public static X509Certificate getX509Certificate(byte pemBytes[]) throws CertificateException, IOException {
 		CertificateFactory cf = CertificateFactory.getInstance("X.509");
-		return (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(pemBytes));
+		
+		try (ByteArrayInputStream in = new ByteArrayInputStream(pemBytes)) {
+			return (X509Certificate) cf.generateCertificate(in);
+		}
 	}
 
 	/**
@@ -606,7 +611,11 @@ public class AcmeFatUtils {
 		 * Load the keystore and return the certificate.
 		 */
 		KeyStore keystore = KeyStore.getInstance("PKCS12");
-		keystore.load(new FileInputStream(certFile), SELF_SIGNED_KEYSTORE_PASSWORD.toCharArray());
+		
+		
+		try (FileInputStream fos = new FileInputStream(certFile)) {
+			keystore.load(fos, SELF_SIGNED_KEYSTORE_PASSWORD.toCharArray());
+		}
 		return keystore.getCertificateChain(DefaultSSLCertificateCreator.ALIAS);
 	}
 
@@ -653,7 +662,7 @@ public class AcmeFatUtils {
 					/*
 					 * We can still get the certificate even if we get a non-200 response.
 					 */
-					Log.info(AcmeFatUtils.class, "assertAndGetServerCertificate", "Expected response 200, but received response: " + statusLine +". " + response);
+					Log.info(AcmeFatUtils.class, methodName, "Expected response 200, but received response: " + statusLine +". " + response);
 				}
 
 				/*
@@ -753,7 +762,8 @@ public class AcmeFatUtils {
 		}
 		if (!failedFiles.isEmpty()) {
 			StringBuffer sb = new StringBuffer();
-			sb.append("Failed to delete ACME files after " + retries + ". Future tests may fail. The following files failed: ");
+			sb.append("Failed to delete ACME files after " + retries
+					+ ". Future tests may fail. If this is a Windows/OpenJDK run, may need to update the OpenJDK level in the method, isWindowsWithOpenJDK(). The following files failed: ");
 			for (Object[] failure : failedFiles) {
 				File f = (File) failure[0];
 				IOException ioe = (IOException) failure[1];
@@ -772,9 +782,10 @@ public class AcmeFatUtils {
 	}
 
 	public static void checkPortOpen(int port, long timeoutMs) {
-
+		Log.info(AcmeFatUtils.class, "checkPortOpen", "Checking if port " + port + " is open, will check for " + timeoutMs +"ms.");
 		boolean open = false;
 		long stoptime = System.currentTimeMillis() + timeoutMs;
+		Exception lastException = null;
 
 		while (!open && (stoptime > System.currentTimeMillis())) {
 			ServerSocket socket = null;
@@ -786,6 +797,7 @@ public class AcmeFatUtils {
 				socket.bind(new InetSocketAddress(port));
 				open = true;
 			} catch (Exception e) {
+				lastException = e;
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException ie) {
@@ -805,8 +817,10 @@ public class AcmeFatUtils {
 				}
 			}
 		}
-
-		assertTrue("Expected port " + port + " to be open.", open);
+		if (!open) {
+			Log.error(AcmeFatUtils.class, "checkPortOpen", lastException, "Port was not available in time.");
+		}
+		assertTrue("Expected port " + port + " to be open. Last exception while checking: " + lastException, open);
 	}
 
 	/**
@@ -868,38 +882,22 @@ public class AcmeFatUtils {
  		}
  		return false;
  	}
-
-	/**
-	 * Check if the test is running on Windows OS and a specific java
-	 * 
-	 * @param methodName
-	 * @return True if the test is running on the specific OS/JDK combo
-	 */
-	public static boolean isWindowsWithOpenJDK(String methodName) {
-		String os = System.getProperty("os.name").toLowerCase();
-		String javaVendor = System.getProperty("java.vendor").toLowerCase();
-		String javaVersion = System.getProperty("java.version");
-		Log.info(AcmeFatUtils.class, methodName,
-				"Checking os.name: " + os + " java.vendor: " + javaVendor + " java.version: " + javaVersion);
-		if (os.startsWith("win") && (javaVendor.contains("openjdk") || javaVendor.contains(("oracle")))
-				&& (javaVersion.startsWith("11") || javaVersion.equals("14.0.1")
-						|| javaVersion.equals("1.8.0_181") || javaVersion.equals("15") || javaVersion.equals("16"))) {
-			/*
-			 * On Windows with OpenJDK 11.0.5 (and others), we sometimes get an exception
-			 * deleting the Acme related files.
-			 * 
-			 * "The process cannot access the file because it is being used by another
-			 * process"
-			 * 
-			 * The exception is not seen on later OpenJDK versions.
-			 */
-			Log.info(AcmeFatUtils.class, methodName,
-					"Skipping this test due to a bug with the specific OS/JDK combo: " + System.getProperty("os.name")
-							+ " " + System.getProperty("java.vendor") + " " + System.getProperty("java.version"));
-			return true;
-		}
-		return false;
-	}
+ 	
+ 	/**
+ 	 * Check if the test is running on iSeries / OS/400
+ 	 * @param methodName the name of the method being run.
+ 	 * @return True if the test is running on iSeries.
+ 	 */
+ 	public static boolean isISeries(String methodName) {
+ 		if (System.getProperty("os.name").toLowerCase().startsWith("os/400")) {
+ 			// iSeries not enforcing the setReadable/setWriteable
+ 			Log.info(AcmeFatUtils.class, methodName,
+ 					"Skipping unreadable/unwriteable file tests on iSeries: "
+ 							+ System.getProperty("os.name", "unknown"));
+ 			return true;
+ 		}
+ 		return false;
+ 	}
 
  	/**
  	 * Handle adding CWPKI2045W as an allowed warning message to all stopServer requests.

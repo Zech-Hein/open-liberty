@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2004, 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,6 +14,7 @@ package com.ibm.ws.http.channel.internal.inbound;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -966,6 +969,11 @@ public class HttpInboundLink extends InboundProtocolLink implements InterChannel
         // looking for two headers.
         // connection header with a value of "upgrade"
         // upgrade header with a value of "h2c"
+
+        if (headers == Collections.EMPTY_MAP) {
+            return false; // no headers passed in
+        }
+
         boolean connection_upgrade = false;
         boolean upgrade_h2c = false;
         String headerValue = null;

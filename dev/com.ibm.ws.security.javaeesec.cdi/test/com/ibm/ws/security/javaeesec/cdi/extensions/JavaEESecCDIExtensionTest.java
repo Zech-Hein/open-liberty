@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,15 +15,15 @@ package com.ibm.ws.security.javaeesec.cdi.extensions;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -39,6 +41,7 @@ import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.ProcessBean;
 import javax.enterprise.inject.spi.ProcessBeanAttributes;
+import javax.enterprise.util.AnnotationLiteral;
 import javax.enterprise.util.TypeLiteral;
 import javax.security.enterprise.AuthenticationException;
 import javax.security.enterprise.AuthenticationStatus;
@@ -56,17 +59,15 @@ import javax.security.enterprise.identitystore.LdapIdentityStoreDefinition;
 import javax.security.enterprise.identitystore.LdapIdentityStoreDefinition.LdapSearchScope;
 import javax.security.enterprise.identitystore.PasswordHash;
 import javax.security.enterprise.identitystore.Pbkdf2PasswordHash;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -74,39 +75,46 @@ import org.junit.rules.TestName;
 import com.ibm.websphere.csi.J2EEName;
 import com.ibm.ws.runtime.metadata.ModuleMetaData;
 import com.ibm.ws.security.javaeesec.JavaEESecConstants;
-import com.ibm.ws.security.javaeesec.properties.ModuleProperties;
 import com.ibm.ws.security.javaeesec.cdi.beans.BasicHttpAuthenticationMechanism;
 import com.ibm.ws.security.javaeesec.cdi.beans.CustomFormAuthenticationMechanism;
 import com.ibm.ws.security.javaeesec.cdi.beans.FormAuthenticationMechanism;
+import com.ibm.ws.security.javaeesec.properties.ModuleProperties;
 import com.ibm.ws.webcontainer.security.WebAppSecurityConfig;
 import com.ibm.wsspi.webcontainer.metadata.WebModuleMetaData;
 
 public class JavaEESecCDIExtensionTest {
 
-    private final Mockery context = new JUnit4Mockery();
-    private final ProcessAnnotatedType pat1 = context.mock(ProcessAnnotatedType.class, "pat1");
-    private final ProcessAnnotatedType pat2 = context.mock(ProcessAnnotatedType.class, "pat2");
-    private final BeanManager bm = context.mock(BeanManager.class, "bm1");
-    private final AnnotatedType at1 = context.mock(AnnotatedType.class, "at1");
-    private final AnnotatedType at2 = context.mock(AnnotatedType.class, "at2");
+    private final Mockery mockery = new JUnit4Mockery() {
+        {
+            setImposteriser(ClassImposteriser.INSTANCE);
+        }
+    };
+
+    private final ProcessAnnotatedType pat1 = mockery.mock(ProcessAnnotatedType.class, "pat1");
+    private final ProcessAnnotatedType pat2 = mockery.mock(ProcessAnnotatedType.class, "pat2");
+    private final BeanManager bm = mockery.mock(BeanManager.class, "bm1");
+    private final AnnotatedType at1 = mockery.mock(AnnotatedType.class, "at1");
+    private final AnnotatedType at2 = mockery.mock(AnnotatedType.class, "at2");
 //    private final LdapIdentityStoreDefinition lisd = context.mock(LdapIdentityStoreDefinition.class, "lisd1");
 //    private final DatabaseIdentityStoreDefinition disd = context.mock(DatabaseIdentityStoreDefinition.class, "disd1");
-    private final AfterBeanDiscovery abd = context.mock(AfterBeanDiscovery.class, "abd1");
-    private final ProcessBean<?> pb = context.mock(ProcessBean.class, "pb1");
-    private final ProcessBean<?> pb2 = context.mock(ProcessBean.class, "pb2");
-    private final ProcessBean<?> pb3 = context.mock(ProcessBean.class, "pb3");
-    private final Bean<?> bn = context.mock(Bean.class, "bn1");
-    private final Bean<?> bn2 = context.mock(Bean.class, "bn2");
+    private final AfterBeanDiscovery abd = mockery.mock(AfterBeanDiscovery.class, "abd1");
+    private final ProcessBean<?> pb = mockery.mock(ProcessBean.class, "pb1");
+    private final ProcessBean<?> pb2 = mockery.mock(ProcessBean.class, "pb2");
+    private final ProcessBean<?> pb3 = mockery.mock(ProcessBean.class, "pb3");
+    private final Bean<?> bn = mockery.mock(Bean.class, "bn1");
+    private final Bean<?> bn2 = mockery.mock(Bean.class, "bn2");
     @SuppressWarnings("unchecked")
-    private final CreationalContext<IdentityStoreHandler> cc = context.mock(CreationalContext.class, "cc1");
-    private final WebAppSecurityConfig wasc  = context.mock(WebAppSecurityConfig.class);
-    private final WebModuleMetaData wmmd1 = context.mock(WebModuleMetaData.class, "wmmd1");
-    private final WebModuleMetaData wmmd2 = context.mock(WebModuleMetaData.class, "wmmd2");
-    private final J2EEName j2en1 = context.mock(J2EEName.class, "j2en1");
-    private final J2EEName j2en2 = context.mock(J2EEName.class, "j2en2");
-    private final ProcessBeanAttributes pba = context.mock(ProcessBeanAttributes.class, "pba1");
-    
+    private final CreationalContext<IdentityStoreHandler> cc = mockery.mock(CreationalContext.class, "cc1");
+    private final WebAppSecurityConfig wasc = mockery.mock(WebAppSecurityConfig.class);
+    private final WebModuleMetaData wmmd1 = mockery.mock(WebModuleMetaData.class, "wmmd1");
+    private final WebModuleMetaData wmmd2 = mockery.mock(WebModuleMetaData.class, "wmmd2");
+    private final J2EEName j2en1 = mockery.mock(J2EEName.class, "j2en1");
+    private final J2EEName j2en2 = mockery.mock(J2EEName.class, "j2en2");
+    private final ProcessBeanAttributes pba = mockery.mock(ProcessBeanAttributes.class, "pba1");
+    private final HttpAuthenticationMechanismsTracker httpAuthenticationMechanismsTracker = mockery.mock(HttpAuthenticationMechanismsTracker.class);
 
+    private final static String APP_NAME1 = "module1App";
+    private final static String APP_NAME2 = "module2App";
     private final static String MODULE_NAME1 = "module1.war";
     private final static String MODULE_NAME2 = "module2.war";
     private final static String MODULE_PATH_NAME1 = "/wlp/usr/servers/apps/" + MODULE_NAME1;
@@ -127,7 +135,7 @@ public class JavaEESecCDIExtensionTest {
     private final static String LTC_CUSTOM_FORM_ERROR_PAGE = "/customFormError.xhtml";
     private final static String LTC_CUSTOM_FORM_EL = "${el_expression_for_custom}";
     private final static boolean LTC_CUSTOM_FORM_USEFORWARD = true;
-    
+
     private final static String GLOBAL_FORM = "FORM";
     private final static String GLOBAL_BASIC = "BASIC";
     private final static String GLOBAL_FORM_CONTEXT_ROOT = "/global";
@@ -136,7 +144,6 @@ public class JavaEESecCDIExtensionTest {
     private final static String GLOBAL_FORM_LOGIN_URL = GLOBAL_FORM_CONTEXT_ROOT + GLOBAL_FORM_LOGIN_PAGE;
     private final static String GLOBAL_FORM_ERROR_URL = GLOBAL_FORM_CONTEXT_ROOT + GLOBAL_FORM_ERROR_PAGE;
     private final static String GLOBAL_BASIC_REALM_NAME = "globalRealm";
-    
 
     private URL url1;
     private URL url2;
@@ -146,6 +153,7 @@ public class JavaEESecCDIExtensionTest {
 
     @Before
     public void setUp() {
+        JavaEESecCDIExtension.setHttpAuthenticationMechanismsTracker(new HttpAuthenticationMechanismsTracker());
         try {
             url1 = new URL(MODULE_LOCATION_NAME1);
             url2 = new URL(MODULE_LOCATION_NAME2);
@@ -156,7 +164,7 @@ public class JavaEESecCDIExtensionTest {
 
     @After
     public void tearDown() throws Exception {
-        context.assertIsSatisfied();
+        mockery.assertIsSatisfied();
     }
 
     @Test
@@ -164,7 +172,7 @@ public class JavaEESecCDIExtensionTest {
         final Set<Annotation> aset = new HashSet<Annotation>();
         final InvalidAnnotation ia = getIAInstance();
         aset.add(ia);
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pat1).getAnnotatedType();
                 will(returnValue(at1));
@@ -194,7 +202,7 @@ public class JavaEESecCDIExtensionTest {
         final Properties props = new Properties();
         final LdapIdentityStoreDefinition lisd = getLISDInstance(props);
         aset.add(lisd);
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(at1).getJavaClass();
                 will(returnValue(String.class));
@@ -225,7 +233,7 @@ public class JavaEESecCDIExtensionTest {
         final BasicAuthenticationMechanismDefinition bamd = getBAMDInstance(REALM_NAME1);
         final Map<URL, ModuleMetaData> mmds = new HashMap<URL, ModuleMetaData>();
         aset.add(bamd);
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(at1).getJavaClass();
                 will(returnValue(HAMClass1.class));
@@ -238,27 +246,10 @@ public class JavaEESecCDIExtensionTest {
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected WebAppSecurityConfig getWebAppSecurityConfig() {
-                return wasc;
-            }
-            @Override
-            protected Map<URL, ModuleMetaData> getModuleMetaDataMap() {
-                return mmds;
-            }
+        JavaEESecCDIExtension j3ce = createJavaEESecCDIExtensionWithModuleMetadataMap(mmds);
 
-            @Override
-            protected String getClassFileLocation(Class klass) {
-                if (klass.equals(HAMClass1.class)) {
-                    return CLASS_LOCATION1;
-                } else {
-                    return CLASS_LOCATION2;
-                }
-            }
-        };
-        createMMDs(mmds);
         j3ce.processAnnotatedType(pat1, bm);
+
         Map<String, ModuleProperties> moduleMap = j3ce.getModuleMap();
         // check ModuleProperties object.
         ModuleProperties moduleProps = moduleMap.get(MODULE_NAME1);
@@ -281,7 +272,7 @@ public class JavaEESecCDIExtensionTest {
 
         final Map<URL, ModuleMetaData> mmds = new HashMap<URL, ModuleMetaData>();
         aset.add(famd);
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(at1).getJavaClass();
                 will(returnValue(HAMClass1.class));
@@ -294,27 +285,10 @@ public class JavaEESecCDIExtensionTest {
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected WebAppSecurityConfig getWebAppSecurityConfig() {
-                return wasc;
-            }
-            @Override
-            protected Map<URL, ModuleMetaData> getModuleMetaDataMap() {
-                return mmds;
-            }
+        JavaEESecCDIExtension j3ce = createJavaEESecCDIExtensionWithModuleMetadataMap(mmds);
 
-            @Override
-            protected String getClassFileLocation(Class klass) {
-                if (klass.equals(HAMClass1.class)) {
-                    return CLASS_LOCATION1;
-                } else {
-                    return CLASS_LOCATION2;
-                }
-            }
-        };
-        createMMDs(mmds);
         j3ce.processAnnotatedType(pat1, bm);
+
         Map<String, ModuleProperties> moduleMap = j3ce.getModuleMap();
         // check ModuleProperties object.
         ModuleProperties moduleProps = moduleMap.get(MODULE_NAME1);
@@ -322,10 +296,14 @@ public class JavaEESecCDIExtensionTest {
         Properties resultProps = moduleProps.getFromAuthMechMap(FormAuthenticationMechanism.class);
         assertNotNull("Properties for the HAM implementation class FormAuthenticationMechanism.class should not be null.", resultProps);
         System.out.println("resultProps : " + resultProps);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE) , LTC_FORM_LOGIN_PAGE);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE), LTC_FORM_ERROR_PAGE);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION), LTC_FORM_EL);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), LTC_FORM_USEFORWARD);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE),
+                     LTC_FORM_LOGIN_PAGE);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE),
+                     LTC_FORM_ERROR_PAGE);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION), LTC_FORM_EL);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), LTC_FORM_USEFORWARD);
     }
 
     @Test
@@ -339,7 +317,7 @@ public class JavaEESecCDIExtensionTest {
         final LoginToContinue ltc = getLTCInstance(props);
 
         final Map<URL, ModuleMetaData> mmds = new HashMap<URL, ModuleMetaData>();
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(at1).getJavaClass();
                 will(returnValue(ApplicationHAM.class));
@@ -354,38 +332,26 @@ public class JavaEESecCDIExtensionTest {
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected WebAppSecurityConfig getWebAppSecurityConfig() {
-                return wasc;
-            }
-            @Override
-            protected Map<URL, ModuleMetaData> getModuleMetaDataMap() {
-                return mmds;
-            }
+        JavaEESecCDIExtension j3ce = createJavaEESecCDIExtensionWithModuleMetadataMap(mmds);
 
-            @Override
-            protected String getClassFileLocation(Class klass) {
-                if (klass.equals(ApplicationHAM.class)) {
-                    return CLASS_LOCATION1;
-                } else {
-                    return CLASS_LOCATION2;
-                }
-            }
-        };
-        createMMDs(mmds);
         j3ce.processAnnotatedType(pat1, bm);
+
         Map<String, ModuleProperties> moduleMap = j3ce.getModuleMap();
+
         // check ModuleProperties object.
         ModuleProperties moduleProps = moduleMap.get(MODULE_NAME1);
         assertNotNull("The moduleMap should contain an element of module " + MODULE_NAME1, moduleProps);
         Properties resultProps = moduleProps.getFromAuthMechMap(ApplicationHAM.class);
         assertNotNull("Properties for the application provided HAM with LoginToContinue annotation should not be null.", resultProps);
         System.out.println("resultProps : " + resultProps);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE) , LTC_FORM_LOGIN_PAGE);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE), LTC_FORM_ERROR_PAGE);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION), LTC_FORM_EL);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), LTC_FORM_USEFORWARD);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE),
+                     LTC_FORM_LOGIN_PAGE);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE),
+                     LTC_FORM_ERROR_PAGE);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION), LTC_FORM_EL);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), LTC_FORM_USEFORWARD);
     }
 
     @Test
@@ -412,7 +378,7 @@ public class JavaEESecCDIExtensionTest {
         final Map<URL, ModuleMetaData> mmds = new HashMap<URL, ModuleMetaData>();
         aset2.add(cfamd);
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pat1).getAnnotatedType();
                 will(returnValue(at1));
@@ -433,41 +399,27 @@ public class JavaEESecCDIExtensionTest {
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected WebAppSecurityConfig getWebAppSecurityConfig() {
-                return wasc;
-            }
-            @Override
-            protected Map<URL, ModuleMetaData> getModuleMetaDataMap() {
-                return mmds;
-            }
-
-            @Override
-            protected String getClassFileLocation(Class klass) {
-                if (klass.equals(HAMClass1.class)) {
-                    return CLASS_LOCATION1;
-                } else {
-                    return CLASS_LOCATION2;
-                }
-            }
-        };
-        createMMDs(mmds);
+        JavaEESecCDIExtension j3ce = createJavaEESecCDIExtensionWithModuleMetadataMap(mmds);
 
         j3ce.processAnnotatedType(pat1, bm);
         j3ce.processAnnotatedType(pat2, bm);
 
         Map<String, ModuleProperties> moduleMap = j3ce.getModuleMap();
+
         // check ModuleProperties object for Form.
         ModuleProperties moduleProps = moduleMap.get(MODULE_NAME1);
         assertNotNull("The moduleMap should contain an element of module " + MODULE_NAME1, moduleProps);
         Properties resultProps = moduleProps.getFromAuthMechMap(FormAuthenticationMechanism.class);
         assertNotNull("Properties for the HAM implementation class FormAuthenticationMechanism.class should not be null.", resultProps);
         System.out.println("resultProps for Form: " + resultProps);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE) , LTC_FORM_LOGIN_PAGE);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE), LTC_FORM_ERROR_PAGE);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION), LTC_FORM_EL);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), LTC_FORM_USEFORWARD);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE),
+                     LTC_FORM_LOGIN_PAGE);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE),
+                     LTC_FORM_ERROR_PAGE);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION), LTC_FORM_EL);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), LTC_FORM_USEFORWARD);
 
         // check ModuleProperties object for Custom Form.
         moduleProps = moduleMap.get(MODULE_NAME2);
@@ -475,10 +427,14 @@ public class JavaEESecCDIExtensionTest {
         resultProps = moduleProps.getFromAuthMechMap(CustomFormAuthenticationMechanism.class);
         assertNotNull("Properties for the HAM implementation class CustomFormAuthenticationMechanism.class should not be null.", resultProps);
         System.out.println("resultProps for CustomForm: " + resultProps);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE) , LTC_CUSTOM_FORM_LOGIN_PAGE);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE), LTC_CUSTOM_FORM_ERROR_PAGE);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION), LTC_CUSTOM_FORM_EL);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), LTC_CUSTOM_FORM_USEFORWARD);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE),
+                     LTC_CUSTOM_FORM_LOGIN_PAGE);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE),
+                     LTC_CUSTOM_FORM_ERROR_PAGE);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION), LTC_CUSTOM_FORM_EL);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), LTC_CUSTOM_FORM_USEFORWARD);
     }
 
     @Test
@@ -500,7 +456,7 @@ public class JavaEESecCDIExtensionTest {
         final Map<URL, ModuleMetaData> mmds = new HashMap<URL, ModuleMetaData>();
         aset2.add(cfamd);
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pat1).getAnnotatedType();
                 will(returnValue(at1));
@@ -527,31 +483,13 @@ public class JavaEESecCDIExtensionTest {
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected WebAppSecurityConfig getWebAppSecurityConfig() {
-                return wasc;
-            }
-            @Override
-            protected Map<URL, ModuleMetaData> getModuleMetaDataMap() {
-                return mmds;
-            }
-
-            @Override
-            protected String getClassFileLocation(Class klass) {
-                if (klass.equals(HAMClass1.class)) {
-                    return CLASS_LOCATION1;
-                } else {
-                    return CLASS_LOCATION2;
-                }
-            }
-        };
-        createMMDs(mmds);
+        JavaEESecCDIExtension j3ce = createJavaEESecCDIExtensionWithModuleMetadataMap(mmds);
 
         j3ce.processAnnotatedType(pat1, bm);
         j3ce.processAnnotatedType(pat2, bm);
 
         Map<String, ModuleProperties> moduleMap = j3ce.getModuleMap();
+
         // check ModuleProperties object for Form.
         ModuleProperties moduleProps = moduleMap.get(MODULE_NAME1);
         assertNotNull("The moduleMap should contain an element of module " + MODULE_NAME1, moduleProps);
@@ -559,12 +497,18 @@ public class JavaEESecCDIExtensionTest {
         assertNotNull("Properties for the Global Login FormAuthenticationMechanism.class should not be null.", resultProps);
         System.out.println("resultProps for Form: " + resultProps);
 
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE) , GLOBAL_FORM_LOGIN_PAGE);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE), GLOBAL_FORM_ERROR_PAGE);
-        assertNull("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION));
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), true);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USE_GLOBAL_LOGIN + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USE_GLOBAL_LOGIN), true);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGIN_FORM_CONTEXT_ROOT + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGIN_FORM_CONTEXT_ROOT), GLOBAL_FORM_CONTEXT_ROOT);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE),
+                     GLOBAL_FORM_LOGIN_PAGE);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE),
+                     GLOBAL_FORM_ERROR_PAGE);
+        assertNull("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.",
+                   resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION));
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), true);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USE_GLOBAL_LOGIN + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USE_GLOBAL_LOGIN), true);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGIN_FORM_CONTEXT_ROOT + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGIN_FORM_CONTEXT_ROOT), GLOBAL_FORM_CONTEXT_ROOT);
 
         // check ModuleProperties object for Custom Form.
         moduleProps = moduleMap.get(MODULE_NAME2);
@@ -573,11 +517,16 @@ public class JavaEESecCDIExtensionTest {
         assertNotNull("Properties for the Global Login FormAuthenticationMechanism.class should not be null.", resultProps);
         System.out.println("resultProps for CustomForm: " + resultProps);
 
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE) , GLOBAL_FORM_LOGIN_PAGE);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE), GLOBAL_FORM_ERROR_PAGE);
-        assertNull("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION));
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), true);
-        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USE_GLOBAL_LOGIN + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USE_GLOBAL_LOGIN), true);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE),
+                     GLOBAL_FORM_LOGIN_PAGE);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE + " is not valid.", resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE),
+                     GLOBAL_FORM_ERROR_PAGE);
+        assertNull("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION + " is not valid.",
+                   resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION));
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN), true);
+        assertEquals("the property value of " + JavaEESecConstants.LOGIN_TO_CONTINUE_USE_GLOBAL_LOGIN + " is not valid.",
+                     resultProps.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USE_GLOBAL_LOGIN), true);
     }
 
     @Test
@@ -602,7 +551,7 @@ public class JavaEESecCDIExtensionTest {
         final Map<URL, ModuleMetaData> mmds = new HashMap<URL, ModuleMetaData>();
         aset2.add(famd);
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(at1).getJavaClass();
                 will(returnValue(ApplicationHAM.class));
@@ -625,30 +574,13 @@ public class JavaEESecCDIExtensionTest {
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected WebAppSecurityConfig getWebAppSecurityConfig() {
-                return wasc;
-            }
-            @Override
-            protected Map<URL, ModuleMetaData> getModuleMetaDataMap() {
-                return mmds;
-            }
+        JavaEESecCDIExtension j3ce = createJavaEESecCDIExtensionWithModuleMetadataMap(mmds);
 
-            @Override
-            protected String getClassFileLocation(Class klass) {
-                if (klass.equals(ApplicationHAM.class)) {
-                    return CLASS_LOCATION1;
-                } else if (klass.equals(HAMClass2.class)) {
-                    return CLASS_LOCATION2;
-                }
-                return null;
-            }
-        };
-        createMMDs(mmds);
         j3ce.processAnnotatedType(pat1, bm);
         j3ce.processAnnotatedType(pat2, bm);
+
         Map<String, ModuleProperties> moduleMap = j3ce.getModuleMap();
+
         // check ModuleProperties object.
         ModuleProperties moduleProps = moduleMap.get(MODULE_NAME1);
         assertNotNull("The moduleMap should contain an element of module " + MODULE_NAME1, moduleProps);
@@ -666,12 +598,40 @@ public class JavaEESecCDIExtensionTest {
         assertEquals("realm name should be " + GLOBAL_BASIC_REALM_NAME, resultProps.get(JavaEESecConstants.REALM_NAME), GLOBAL_BASIC_REALM_NAME);
     }
 
+    private JavaEESecCDIExtension createJavaEESecCDIExtensionWithModuleMetadataMap(final Map<URL, ModuleMetaData> mmds) {
+        createMMDs(mmds);
+        HttpAuthenticationMechanismsTracker httpAuthenticationMechanismsTracker = new TestHttpAuthenticationMechanismsTracker(mmds);
+        JavaEESecCDIExtension.setHttpAuthenticationMechanismsTracker(httpAuthenticationMechanismsTracker);
+
+        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
+
+            @Override
+            protected String getApplicationName() {
+                return APP_NAME1;
+            }
+
+            @Override
+            protected WebAppSecurityConfig getWebAppSecurityConfig() {
+                return wasc;
+            }
+
+            @Override
+            protected Map<URL, ModuleMetaData> getModuleMetaDataMap() {
+                return mmds;
+            }
+
+        };
+        return j3ce;
+    }
+
     @Test
     public void afterBeanDiscoveryNoCustomIdentityStoreHandlerOneIdentityStore() {
         final Set<Type> types = new HashSet<Type>();
-        types.add(new TypeLiteral<Bean>() {}.getType());
-        types.add(new TypeLiteral<IdentityStore>() {}.getType());
-        context.checking(new Expectations() {
+        types.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types.add(new TypeLiteral<IdentityStore>() {
+        }.getType());
+        mockery.checking(new Expectations() {
             {
                 exactly(2).of(pb).getBean();
                 will(returnValue(bn));
@@ -680,10 +640,21 @@ public class JavaEESecCDIExtensionTest {
                 exactly(2).of(bn).getTypes();
                 will(returnValue(types));
                 one(abd).addBean(with(any(IdentityStoreHandlerBean.class)));
+                allowing(bm).getBeans(with(any(Type.class)), with(any(AnnotationLiteral.class)));
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension();
+        HttpAuthenticationMechanismsTracker httpAuthenticationMechanismsTracker = new TestHttpAuthenticationMechanismsTracker(Collections.emptyMap());
+        JavaEESecCDIExtension.setHttpAuthenticationMechanismsTracker(httpAuthenticationMechanismsTracker);
+
+        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
+
+            @Override
+            protected String getApplicationName() {
+                return APP_NAME1;
+            }
+        };
+
         j3ce.processBean(pb, bm);
         j3ce.afterBeanDiscovery(abd, bm);
         assertTrue("incorrect IentityStoreRegistered value after afterBeanDiscovery", j3ce.getIdentityStoreRegistered());
@@ -694,9 +665,11 @@ public class JavaEESecCDIExtensionTest {
     @Test
     public void afterBeanDiscoveryCustomIdentityStoreHandlerExists() {
         final Set<Type> types = new HashSet<Type>();
-        types.add(new TypeLiteral<Bean>() {}.getType());
-        types.add(new TypeLiteral<IdentityStoreHandler>() {}.getType());
-        context.checking(new Expectations() {
+        types.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types.add(new TypeLiteral<IdentityStoreHandler>() {
+        }.getType());
+        mockery.checking(new Expectations() {
             {
                 exactly(2).of(pb).getBean();
                 will(returnValue(bn));
@@ -705,6 +678,7 @@ public class JavaEESecCDIExtensionTest {
                 exactly(2).of(bn).getTypes();
                 will(returnValue(types));
                 never(abd).addBean(with(any(IdentityStoreHandlerBean.class)));
+                allowing(bm).getBeans(with(any(Type.class)), with(any(AnnotationLiteral.class)));
             }
         });
 
@@ -719,14 +693,18 @@ public class JavaEESecCDIExtensionTest {
     @Test
     public void processBeanIdentityStoreHandlerTrueIdentityStoreTrue() {
         final Set<Type> types = new HashSet<Type>();
-        types.add(new TypeLiteral<Bean>() {}.getType());
-        types.add(new TypeLiteral<IdentityStoreHandler>() {}.getType());
+        types.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types.add(new TypeLiteral<IdentityStoreHandler>() {
+        }.getType());
 
         final Set<Type> types2 = new HashSet<Type>();
-        types2.add(new TypeLiteral<Bean>() {}.getType());
-        types2.add(new TypeLiteral<IdentityStore>() {}.getType());
+        types2.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types2.add(new TypeLiteral<IdentityStore>() {
+        }.getType());
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 exactly(2).of(pb).getBean();
                 will(returnValue(bn));
@@ -755,13 +733,17 @@ public class JavaEESecCDIExtensionTest {
     @Test
     public void processBeanIdentityStoreHandlerFalseIdentityStoreFalse() {
         final Set<Type> types = new HashSet<Type>();
-        types.add(new TypeLiteral<Bean>() {}.getType());
-        types.add(new TypeLiteral<IdentityStoreHandler>() {}.getType());
+        types.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types.add(new TypeLiteral<IdentityStoreHandler>() {
+        }.getType());
         final Set<Type> types2 = new HashSet<Type>();
-        types2.add(new TypeLiteral<Bean>() {}.getType());
-        types2.add(new TypeLiteral<IdentityStore>() {}.getType());
+        types2.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types2.add(new TypeLiteral<IdentityStore>() {
+        }.getType());
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 exactly(2).of(pb).getBean();
                 will(returnValue(bn));
@@ -790,13 +772,17 @@ public class JavaEESecCDIExtensionTest {
     @Test
     public void processBeanIdentityStoreHandlerStaysTrueIdentityStoreStaysTrue() {
         final Set<Type> types = new HashSet<Type>();
-        types.add(new TypeLiteral<Bean>() {}.getType());
-        types.add(new TypeLiteral<IdentityStoreHandler>() {}.getType());
+        types.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types.add(new TypeLiteral<IdentityStoreHandler>() {
+        }.getType());
         final Set<Type> types2 = new HashSet<Type>();
-        types2.add(new TypeLiteral<Bean>() {}.getType());
-        types2.add(new TypeLiteral<IdentityStore>() {}.getType());
+        types2.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types2.add(new TypeLiteral<IdentityStore>() {
+        }.getType());
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 exactly(2).of(pb).getBean();
                 will(returnValue(bn));
@@ -831,10 +817,12 @@ public class JavaEESecCDIExtensionTest {
     @Test
     public void isApplicationIdentityStoreHanderTrue() {
         final Set<Type> types = new HashSet<Type>();
-        types.add(new TypeLiteral<Bean>() {}.getType());
-        types.add(new TypeLiteral<IdentityStoreHandler>() {}.getType());
+        types.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types.add(new TypeLiteral<IdentityStoreHandler>() {
+        }.getType());
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pb).getBean();
                 will(returnValue(bn));
@@ -852,7 +840,7 @@ public class JavaEESecCDIExtensionTest {
     @Test
     public void isApplicationIdentityStoreHanderFalseBecauseInterface() {
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pb).getBean();
                 will(returnValue(bn));
@@ -868,10 +856,12 @@ public class JavaEESecCDIExtensionTest {
     @Test
     public void isApplicationIdentityStoreHanderFalseBecauseNotHandlerClass() {
         final Set<Type> types = new HashSet<Type>();
-        types.add(new TypeLiteral<Bean>() {}.getType());
-        types.add(new TypeLiteral<IdentityStore>() {}.getType());
+        types.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types.add(new TypeLiteral<IdentityStore>() {
+        }.getType());
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pb).getBean();
                 will(returnValue(bn));
@@ -889,10 +879,12 @@ public class JavaEESecCDIExtensionTest {
 //    @Test
     public void isApplicationIdentityStoreTrue() {
         final Set<Type> types = new HashSet<Type>();
-        types.add(new TypeLiteral<Bean>() {}.getType());
-        types.add(new TypeLiteral<IdentityStore>() {}.getType());
+        types.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types.add(new TypeLiteral<IdentityStore>() {
+        }.getType());
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pb).getBean();
                 will(returnValue(bn));
@@ -910,7 +902,7 @@ public class JavaEESecCDIExtensionTest {
     @Test
     public void isApplicationIdentityStoreFalseBecauseInterface() {
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pb).getBean();
                 will(returnValue(bn));
@@ -926,10 +918,12 @@ public class JavaEESecCDIExtensionTest {
     @Test
     public void isApplicationIdentityStoreFalseBecauseNotClass() {
         final Set<Type> types = new HashSet<Type>();
-        types.add(new TypeLiteral<Bean>() {}.getType());
-        types.add(new TypeLiteral<IdentityStoreHandler>() {}.getType());
+        types.add(new TypeLiteral<Bean>() {
+        }.getType());
+        types.add(new TypeLiteral<IdentityStoreHandler>() {
+        }.getType());
 
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pb).getBean();
                 will(returnValue(bn));
@@ -944,14 +938,15 @@ public class JavaEESecCDIExtensionTest {
         assertFalse("incorrect result.", j3ce.isIdentityStore(pb));
     }
 
-
 // TODO: need to add tests for equalsLdapDefinition params.
     @Test
     public void equalsLdapDefinitionStrings() {
-        String KEY[] = {"bindDn", "bindDnPassword", "callerBaseDn", "callerNameAttribute", "callerSearchBase", "callerSearchFilter", "callerSearchScopeExpression", "groupMemberAttribute", "groupMemberOfAttribute", "groupNameAttribute", "groupSearchBase", "groupSearchFilter", "groupSearchScopeExpression", "maxResultsExpression", JavaEESecConstants.PRIORITY_EXPRESSION, "readTimeoutExpression", "url", JavaEESecConstants.USE_FOR_EXPRESSION};
+        String KEY[] = { "bindDn", "bindDnPassword", "callerBaseDn", "callerNameAttribute", "callerSearchBase", "callerSearchFilter", "callerSearchScopeExpression",
+                         "groupMemberAttribute", "groupMemberOfAttribute", "groupNameAttribute", "groupSearchBase", "groupSearchFilter", "groupSearchScopeExpression",
+                         "maxResultsExpression", JavaEESecConstants.PRIORITY_EXPRESSION, "readTimeoutExpression", "url", JavaEESecConstants.USE_FOR_EXPRESSION };
         List<String> KEYS = Arrays.asList(KEY);
-        String VALUE1="value1";
-        String VALUE2="value2";
+        String VALUE1 = "value1";
+        String VALUE2 = "value2";
         for (String key : KEYS) {
             equalsLdapDefinitionTest(key, VALUE1, VALUE2);
         }
@@ -959,10 +954,10 @@ public class JavaEESecCDIExtensionTest {
 
     @Test
     public void equalsLdapDefinitionIntegers() {
-        String KEY[] = {"maxResults", JavaEESecConstants.PRIORITY, "readTimeout"};
+        String KEY[] = { "maxResults", JavaEESecConstants.PRIORITY, "readTimeout" };
         List<String> KEYS = Arrays.asList(KEY);
-        Integer VALUE1= new Integer(10);
-        Integer VALUE2= new Integer(20);
+        Integer VALUE1 = new Integer(10);
+        Integer VALUE2 = new Integer(20);
         for (String key : KEYS) {
             equalsLdapDefinitionTest(key, VALUE1, VALUE2);
         }
@@ -970,10 +965,10 @@ public class JavaEESecCDIExtensionTest {
 
     @Test
     public void equalsLdapDefinitionSearchScope() {
-        String KEY[] = {"callerSearchScope", "groupSearchScope"};
+        String KEY[] = { "callerSearchScope", "groupSearchScope" };
         List<String> KEYS = Arrays.asList(KEY);
-        LdapSearchScope VALUE1= LdapSearchScope.SUBTREE;
-        LdapSearchScope VALUE2= LdapSearchScope.ONE_LEVEL;
+        LdapSearchScope VALUE1 = LdapSearchScope.SUBTREE;
+        LdapSearchScope VALUE2 = LdapSearchScope.ONE_LEVEL;
         for (String key : KEYS) {
             equalsLdapDefinitionTest(key, VALUE1, VALUE2);
         }
@@ -985,7 +980,8 @@ public class JavaEESecCDIExtensionTest {
 
         equalsLdapDefinitionTest(key, new ValidationType[] { ValidationType.PROVIDE_GROUPS }, new ValidationType[] { ValidationType.VALIDATE });
         equalsLdapDefinitionTest(key, new ValidationType[] { ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE }, new ValidationType[] { ValidationType.PROVIDE_GROUPS });
-        equalsLdapDefinitionTest(key, new ValidationType[] { ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE, ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE }, new ValidationType[] { ValidationType.PROVIDE_GROUPS});
+        equalsLdapDefinitionTest(key, new ValidationType[] { ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE, ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE },
+                                 new ValidationType[] { ValidationType.PROVIDE_GROUPS });
 
         Map map1 = new HashMap<String, Object>();
         map1.put(key, new ValidationType[] { ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE });
@@ -999,163 +995,110 @@ public class JavaEESecCDIExtensionTest {
 
     @Test
     public void processBasicHttpAuthMechNeededVeto() {
-        List<Class> cls = new ArrayList<Class>();
-        cls.add(ApplicationHAM.class);
-        cls.add(CustomFormAuthenticationMechanism.class);
-        cls.add(FormAuthenticationMechanism.class);
 
-        final Map<String, ModuleProperties> mm = createModuleMap(cls);
-
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pba).veto();
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected Map<String, ModuleProperties> getModuleMap() {
-                return mm;
-            }
-        };
-        
+        JavaEESecCDIExtension j3ce = createTestJavaEESecCDIExtensionWithMockedTracker(BasicHttpAuthenticationMechanism.class, false);
+
         j3ce.processBasicHttpAuthMechNeeded(pba, bm);
     }
 
     @Test
     public void processBasicHttpAuthMechNeededNoVeto() {
-        List<Class> cls = new ArrayList<Class>();
-        cls.add(ApplicationHAM.class);
-        cls.add(CustomFormAuthenticationMechanism.class);
-        cls.add(FormAuthenticationMechanism.class);
-        cls.add(BasicHttpAuthenticationMechanism.class);
-
-        final Map<String, ModuleProperties> mm = createModuleMap(cls);
-
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 never(pba).veto();
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected Map<String, ModuleProperties> getModuleMap() {
-                return mm;
-            }
-        };
-        
+        JavaEESecCDIExtension j3ce = createTestJavaEESecCDIExtensionWithMockedTracker(BasicHttpAuthenticationMechanism.class, true);
+
         j3ce.processBasicHttpAuthMechNeeded(pba, bm);
     }
 
     @Test
     public void processFormAuthMechNeededVeto() {
-        List<Class> cls = new ArrayList<Class>();
-        cls.add(ApplicationHAM.class);
-        cls.add(CustomFormAuthenticationMechanism.class);
-        cls.add(BasicHttpAuthenticationMechanism.class);
-
-        final Map<String, ModuleProperties> mm = createModuleMap(cls);
-
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pba).veto();
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected Map<String, ModuleProperties> getModuleMap() {
-                return mm;
-            }
-        };
-        
+        JavaEESecCDIExtension j3ce = createTestJavaEESecCDIExtensionWithMockedTracker(FormAuthenticationMechanism.class, false);
+
         j3ce.processFormAuthMechNeeded(pba, bm);
     }
 
     @Test
     public void processFormAuthMechNeededNoVeto() {
-        List<Class> cls = new ArrayList<Class>();
-        cls.add(ApplicationHAM.class);
-        cls.add(CustomFormAuthenticationMechanism.class);
-        cls.add(BasicHttpAuthenticationMechanism.class);
-        cls.add(FormAuthenticationMechanism.class);
-
-        final Map<String, ModuleProperties> mm = createModuleMap(cls);
-
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 never(pba).veto();
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected Map<String, ModuleProperties> getModuleMap() {
-                return mm;
-            }
-        };
-        
+        JavaEESecCDIExtension j3ce = createTestJavaEESecCDIExtensionWithMockedTracker(FormAuthenticationMechanism.class, true);
+
         j3ce.processFormAuthMechNeeded(pba, bm);
     }
 
     @Test
     public void processCustomFormAuthMechNeededVeto() {
-        List<Class> cls = new ArrayList<Class>();
-        cls.add(ApplicationHAM.class);
-        cls.add(FormAuthenticationMechanism.class);
-        cls.add(BasicHttpAuthenticationMechanism.class);
-
-        final Map<String, ModuleProperties> mm = createModuleMap(cls);
-
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 one(pba).veto();
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected Map<String, ModuleProperties> getModuleMap() {
-                return mm;
-            }
-        };
-        
+        JavaEESecCDIExtension j3ce = createTestJavaEESecCDIExtensionWithMockedTracker(CustomFormAuthenticationMechanism.class, false);
+
         j3ce.processCustomFormAuthMechNeeded(pba, bm);
     }
 
     @Test
     public void processCustomFormAuthMechNeededNoVeto() {
-        List<Class> cls = new ArrayList<Class>();
-        cls.add(ApplicationHAM.class);
-        cls.add(BasicHttpAuthenticationMechanism.class);
-        cls.add(FormAuthenticationMechanism.class);
-        cls.add(CustomFormAuthenticationMechanism.class);
-
-        final Map<String, ModuleProperties> mm = createModuleMap(cls);
-
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
                 never(pba).veto();
             }
         });
 
-        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
-            @Override
-            protected Map<String, ModuleProperties> getModuleMap() {
-                return mm;
-            }
-        };
-        
+        JavaEESecCDIExtension j3ce = createTestJavaEESecCDIExtensionWithMockedTracker(CustomFormAuthenticationMechanism.class, true);
+
         j3ce.processCustomFormAuthMechNeeded(pba, bm);
+    }
+
+    private JavaEESecCDIExtension createTestJavaEESecCDIExtensionWithMockedTracker(Class mechanismClass, boolean authMechExists) {
+        JavaEESecCDIExtension.setHttpAuthenticationMechanismsTracker(httpAuthenticationMechanismsTracker);
+        mockery.checking(new Expectations() {
+            {
+                allowing(httpAuthenticationMechanismsTracker).initialize(APP_NAME1);
+                one(httpAuthenticationMechanismsTracker).existAuthMech(APP_NAME1, mechanismClass);
+                will(returnValue(authMechExists));
+            }
+        });
+
+        JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension() {
+
+            @Override
+            protected String getApplicationName() {
+                return APP_NAME1;
+            }
+
+        };
+        return j3ce;
     }
 
     @Test
     public void equalsDatabaseDefinitionStrings() {
-        String KEY[] = {"callerQuery", "dataSourceLookup", "groupsQuery",  JavaEESecConstants.PRIORITY_EXPRESSION, JavaEESecConstants.USE_FOR_EXPRESSION};
+        String KEY[] = { "callerQuery", "dataSourceLookup", "groupsQuery", JavaEESecConstants.PRIORITY_EXPRESSION, JavaEESecConstants.USE_FOR_EXPRESSION };
         List<String> KEYS = Arrays.asList(KEY);
-        String VALUE1="value1";
-        String VALUE2="value2";
+        String VALUE1 = "value1";
+        String VALUE2 = "value2";
         for (String key : KEYS) {
             equalsDatabaseDefinitionTest(key, VALUE1, VALUE2);
         }
@@ -1173,8 +1116,8 @@ public class JavaEESecCDIExtensionTest {
 
     @Test
     public void equalsDatabaseDefinitionHashAlgorithmParameters() {
-        String param1[] = {"key1=value1", "key2=value2", "key3=value3"};
-        String param2[] = {"key1=value3", "key2=value2", "key3=value1"};
+        String param1[] = { "key1=value1", "key2=value2", "key3=value3" };
+        String param2[] = { "key1=value3", "key2=value2", "key3=value1" };
 
         equalsDatabaseDefinitionTest("hashAlgorithmParameters", param1, param2);
     }
@@ -1185,7 +1128,8 @@ public class JavaEESecCDIExtensionTest {
 
         equalsDatabaseDefinitionTest(key, new ValidationType[] { ValidationType.PROVIDE_GROUPS }, new ValidationType[] { ValidationType.VALIDATE });
         equalsDatabaseDefinitionTest(key, new ValidationType[] { ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE }, new ValidationType[] { ValidationType.PROVIDE_GROUPS });
-        equalsDatabaseDefinitionTest(key, new ValidationType[] { ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE, ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE }, new ValidationType[] { ValidationType.PROVIDE_GROUPS});
+        equalsDatabaseDefinitionTest(key, new ValidationType[] { ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE, ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE },
+                                     new ValidationType[] { ValidationType.PROVIDE_GROUPS });
 
         Map map1 = new HashMap<String, Object>();
         map1.put(key, new ValidationType[] { ValidationType.PROVIDE_GROUPS, ValidationType.VALIDATE });
@@ -1218,6 +1162,14 @@ public class JavaEESecCDIExtensionTest {
         map2.put(key, value2);
         disd1 = getDatabaseDefinitionForEqualsTest(map1);
         disd2 = getDatabaseDefinitionForEqualsTest(map2);
+
+        JavaEESecCDIExtension.setHttpAuthenticationMechanismsTracker(httpAuthenticationMechanismsTracker);
+        mockery.checking(new Expectations() {
+            {
+                allowing(httpAuthenticationMechanismsTracker).initialize(null);
+            }
+        });
+
         JavaEESecCDIExtension j3ce = new JavaEESecCDIExtension();
         assertTrue("the result should be true.", j3ce.equalsDatabaseDefinition(disd1, disd1));
         assertFalse("the result should be false.", j3ce.equalsDatabaseDefinition(disd1, disd2));
@@ -1294,22 +1246,22 @@ public class JavaEESecCDIExtensionTest {
             @Override
             public String errorPage() {
                 // TODO Auto-generated method stub
-                return (String)props.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE);
+                return (String) props.get(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE);
             }
 
             @Override
             public String loginPage() {
-                return (String)props.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE);
+                return (String) props.get(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE);
             }
 
             @Override
             public boolean useForwardToLogin() {
-                return (boolean)props.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN);
+                return (boolean) props.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGIN);
             }
 
             @Override
             public String useForwardToLoginExpression() {
-                return (String)props.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION);
+                return (String) props.get(JavaEESecConstants.LOGIN_TO_CONTINUE_USEFORWARDTOLOGINEXPRESSION);
             }
         };
         return ann;
@@ -1738,15 +1690,15 @@ public class JavaEESecCDIExtensionTest {
      *
      **/
     private void createMMDs(Map<URL, ModuleMetaData> mmds) {
-        context.checking(new Expectations() {
+        mockery.checking(new Expectations() {
             {
-                one(wmmd1).getJ2EEName();
+                allowing(wmmd1).getJ2EEName();
                 will(returnValue(j2en1));
-                one(j2en1).getModule();
+                allowing(j2en1).getModule();
                 will(returnValue(MODULE_NAME1));
-                one(wmmd2).getJ2EEName();
+                allowing(wmmd2).getJ2EEName();
                 will(returnValue(j2en2));
-                one(j2en2).getModule();
+                allowing(j2en2).getModule();
                 will(returnValue(MODULE_NAME2));
             }
         });
@@ -1758,7 +1710,7 @@ public class JavaEESecCDIExtensionTest {
         Map<String, ModuleProperties> mm = new LinkedHashMap<String, ModuleProperties>();
         Iterator<Class> it = cls.iterator();
         int i = 1;
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Class cl = it.next();
             Map<Class<?>, Properties> amm = new HashMap<Class<?>, Properties>();
             amm.put(cl, new Properties());
@@ -1772,14 +1724,17 @@ public class JavaEESecCDIExtensionTest {
     }
 
     class HAMClass1 {};
+
     class HAMClass2 {};
+
     class ApplicationHAM implements HttpAuthenticationMechanism {
         @Override
         public AuthenticationStatus validateRequest(HttpServletRequest request,
-                                             HttpServletResponse response,
-                                             HttpMessageContext httpMessageContext) throws AuthenticationException {
+                                                    HttpServletResponse response,
+                                                    HttpMessageContext httpMessageContext) throws AuthenticationException {
             return AuthenticationStatus.SEND_FAILURE;
         }
+
         @Override
         public AuthenticationStatus secureResponse(HttpServletRequest request,
                                                    HttpServletResponse response,
@@ -1790,18 +1745,18 @@ public class JavaEESecCDIExtensionTest {
         @Override
         public void cleanSubject(HttpServletRequest request,
                                  HttpServletResponse response,
-                                 HttpMessageContext httpMessageContext) {
-        }
+                                 HttpMessageContext httpMessageContext) {}
     }
 
     class CustomPasswordHash1 implements PasswordHash {
         @Override
-        public  void initialize(Map<String,String> parameters) {
-        }
+        public void initialize(Map<String, String> parameters) {}
+
         @Override
         public String generate(char[] password) {
             return null;
         }
+
         @Override
         public boolean verify(char[] password, String hashedPassword) {
             return true;
@@ -1810,12 +1765,13 @@ public class JavaEESecCDIExtensionTest {
 
     class CustomPasswordHash2 implements PasswordHash {
         @Override
-        public  void initialize(Map<String,String> parameters) {
-        }
+        public void initialize(Map<String, String> parameters) {}
+
         @Override
         public String generate(char[] password) {
             return null;
         }
+
         @Override
         public boolean verify(char[] password, String hashedPassword) {
             return false;

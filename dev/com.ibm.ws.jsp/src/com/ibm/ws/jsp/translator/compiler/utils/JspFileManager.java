@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -285,7 +287,7 @@ public class JspFileManager extends ForwardingJavaFileManager<JavaFileManager> {
             if (isDirectory) { 
                 // useful for when there are references to classes in WEB-INF/classes
                 return processDir(packageName, directory, recursive);
-            } else if (packageFolderURL.getProtocol().equals("bundleresource")) {
+            } else if (packageFolderURL.getProtocol().equals("bundleresource") || packageFolderURL.getProtocol().equals("jarentry")) {
                 // meaning that this URL is a bundle
                 return processBundle(packageName, recursive);
             } else { 
@@ -492,7 +494,7 @@ public class JspFileManager extends ForwardingJavaFileManager<JavaFileManager> {
                 childFiles = directory.listFiles();
             }
 
-            if(childFiles != null) // If we are here, childFiles shouldn't be null. Sanity check.
+            if(childFiles != null) // If we are here, childFiles shouldn't be null. Validation.
                 for (final File childFile : childFiles) {
                     boolean isFile = false;
                     if (System.getSecurityManager() != null) {

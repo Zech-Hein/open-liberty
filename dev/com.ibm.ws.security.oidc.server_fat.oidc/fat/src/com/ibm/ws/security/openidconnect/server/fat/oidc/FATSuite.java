@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2021 IBM Corporation and others.
+ * Copyright (c) 2013, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
+import com.ibm.ws.security.fat.common.actions.LargeProjectRepeatActions;
 import com.ibm.ws.security.fat.common.utils.ldaputils.CommonRemoteLDAPServerSuite;
 import com.ibm.ws.security.openidconnect.server.fat.BasicTests.OIDC.OIDCInvokeNonexistentPathTest;
 import com.ibm.ws.security.openidconnect.server.fat.BasicTests.OIDC.OIDCPublicClientAuthCodeTest;
@@ -47,15 +50,13 @@ import com.ibm.ws.security.openidconnect.server.fat.OIDC.OIDCScopesPasswordTest;
 import com.ibm.ws.security.openidconnect.server.fat.OIDC.OIDCScopesTest;
 
 import componenttest.custom.junit.runner.AlwaysPassesTest;
-import componenttest.rules.repeater.EmptyAction;
-import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.rules.repeater.RepeatTests;
 
 @RunWith(Suite.class)
 @SuiteClasses({
 
                 AlwaysPassesTest.class,
-                // Basic OIDC functionality tests
+// Basic OIDC functionality tests
                 OIDCWebClientAuthCodeTest.class,
                 OIDCWebClientAuthTaiTest.class,
                 OIDCWebClientAuthCertTest.class,
@@ -102,11 +103,15 @@ public class FATSuite extends CommonRemoteLDAPServerSuite {
     }
 
     /*
-     * Run EE9 tests in only FULL mode and run EE7/EE8 tests only in LITE mode.
+     * On Windows, always run the default/empty/EE7/EE8 tests.
+     * On other Platforms:
+     * - if Java 8, run default/empty/EE7/EE8 tests.
+     * - All other Java versions
+     * -- If LITE mode, run EE9
+     * -- If FULL mode, run EE10
      *
-     * This was done to increase coverage of EE9 while not adding a large amount of of test runtime.
      */
     @ClassRule
-    public static RepeatTests repeat = RepeatTests.with(new EmptyAction().liteFATOnly())
-                    .andWith(new JakartaEE9Action().removeFeatures(REMOVE).addFeatures(INSERT).fullFATOnly());
+    public static RepeatTests repeat = LargeProjectRepeatActions.createEE9OrEE10Repeats(null, null, REMOVE, INSERT);
+
 }

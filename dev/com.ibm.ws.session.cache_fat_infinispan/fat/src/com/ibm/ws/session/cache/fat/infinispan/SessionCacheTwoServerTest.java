@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,16 +20,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.custom.junit.runner.RepeatTestFilter;
 import componenttest.custom.junit.runner.TestModeFilter;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
 
@@ -43,20 +51,36 @@ public class SessionCacheTwoServerTest extends FATServletClient {
     public static SessionCacheApp appA;
     public static SessionCacheApp appB;
 
+    @ClassRule
+    public static RepeatTests repeatRule = RepeatTests.withoutModification().andWith(new CacheManagerRepeatAction());
+
     @BeforeClass
     public static void setUp() throws Exception {
         appA = new SessionCacheApp(serverA, true, "session.cache.infinispan.web"); // no HttpSessionListeners are registered by this app
         appB = new SessionCacheApp(serverB, true, "session.cache.infinispan.web", "session.cache.infinispan.web.cdi", "session.cache.infinispan.web.listener1");
         serverB.useSecondaryHTTPPort();
+
+        String sessionCacheConfigFile = "httpSessionCache_1.xml";
+        if (RepeatTestFilter.isRepeatActionActive(CacheManagerRepeatAction.ID)) {
+            sessionCacheConfigFile = "httpSessionCache_2.xml";
+        }
+
         String rand = UUID.randomUUID().toString();
         Map<String, String> options = serverA.getJvmOptionsAsMap();
         options.put("-Dinfinispan.cluster.name", rand);
+        options.put("-Dsession.cache.config.file", sessionCacheConfigFile);
+        options.put("-Djgroups.bind.address", "127.0.0.1"); // Resolves JGroup multicast issues on some OS's.
         serverA.setJvmOptions(options);
+
         options = serverB.getJvmOptionsAsMap();
         options.put("-Dinfinispan.cluster.name", rand);
+        options.put("-Dsession.cache.config.file", sessionCacheConfigFile);
+        options.put("-Djgroups.bind.address", "127.0.0.1"); // Resolves JGroup multicast issues on some OS's.
         serverB.setJvmOptions(options);
 
         serverA.startServer();
+
+        TimeUnit.SECONDS.sleep(10);
 
         // Since we initialize the JCache provider lazily, use an HTTP session on serverA before starting serverB,
         // so that the JCache provider has fully initialized on serverA. Otherwise, serverB might start up its own
@@ -66,6 +90,8 @@ public class SessionCacheTwoServerTest extends FATServletClient {
         appA.invalidateSession(sessionA);
 
         serverB.startServer();
+
+        TimeUnit.SECONDS.sleep(10);
     }
 
     @AfterClass
@@ -74,11 +100,17 @@ public class SessionCacheTwoServerTest extends FATServletClient {
             testFailover();
         } finally {
             try {
-                if (serverA.isStarted())
+                if (serverA.isStarted()) {
+                    Log.info(SessionCacheTwoServerTest.class, "tearDown", "Start server A shutdown");
                     serverA.stopServer();
+                }
+            } catch (Exception e) {
+                Log.info(SessionCacheTwoServerTest.class, "tearDown", "Ignoring exception due to slow test machine during server shutdown");
             } finally {
-                if (serverB.isStarted())
+                if (serverB.isStarted()) {
+                    Log.info(SessionCacheTwoServerTest.class, "tearDown", "Start server B shutdown");
                     serverB.stopServer();
+                }
             }
         }
     }

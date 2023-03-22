@@ -1,28 +1,25 @@
 #*******************************************************************************
-# Copyright (c) 2017, 2021 IBM Corporation and others.
+# Copyright (c) 2017, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 bVersion=1.0
 
-Bundle-Name: Liberty Security Social Media 1.0
-Bundle-SymbolicName: com.ibm.ws.security.social
-Bundle-Description: Liberty Security Social Media, version=${bVersion}
 
 #
 # Generate an Jakarta EE compliant JAR for the bundle.
 #
-jakartaeeMe: true
-jakartaFinalJarName: io.openliberty.security.social.internal.jar
-jakartaFinalBundleName: Liberty Security Social Media 1.0
-jakartaFinalBundleId: io.openliberty.security.social.internal
-jakartaFinalBundleDescription: Liberty Security Social Media 1.0; Jakarta Enabled
 
 #Web-ContextPath: /ibm/api/social-login
 Web-ContextPath: @socialLoginWebapp
@@ -113,6 +110,15 @@ Service-Component:\
     deactivate:='deactivate'; \
     immediate:=true; \
     properties:="service.vendor=IBM,id=SocialLoginWtihATTAI,TAIName=SocialLoginWtihATTAI,invokeBeforeSSO:Boolean=true,addLTPACookieToResponse:Boolean=false", \
+  com.ibm.ws.security.socialmediasessioninvalidator.tai; \
+    implementation:=com.ibm.ws.security.social.tai.SocialLoginSessionInvalidatorTAI; \
+    provide:='com.ibm.wsspi.security.tai.TrustAssociationInterceptor'; \
+    configuration-policy:=ignore; \
+    modified:='modified'; \
+    activate:='activate'; \
+    deactivate:='deactivate'; \
+    immediate:=true; \
+    properties:="service.vendor=IBM,id=SocialLoginSessionInvalidatorTAI,TAIName=SocialLoginSessionInvalidatorTAI,invokeBeforeSSO:Boolean=true,addLTPACookieToResponse:Boolean=false", \
   com.ibm.ws.security.social.web.EndpointServices; \
     implementation:=com.ibm.ws.security.social.web.EndpointServices; \
     provide:=com.ibm.ws.security.social.web.EndpointServices; \
@@ -137,6 +143,7 @@ Include-Resource: \
 	com.ibm.websphere.security;version=latest,\
 	com.ibm.ws.app.manager.wab;version=latest,\
 	com.ibm.ws.crypto.passwordutil;version=latest,\
+	com.ibm.ws.kernel.boot.core;version=latest,\
 	com.ibm.ws.kernel.service;version=latest,\
 	com.ibm.ws.logging;version=latest,\
 	io.openliberty.org.apache.commons.codec;version=latest,\

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,6 +18,8 @@ import java.util.logging.Logger;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+
+import io.openliberty.asm.ASMHelper;
 
 // An annotation visitor is used for all processing of annotation occurrences.
 //
@@ -84,7 +88,7 @@ public abstract class AnnotationVisitorImpl_Info extends AnnotationVisitor {
     // annotation class name.  (This is not validated.)
 
     protected AnnotationVisitorImpl_Info(InfoStoreImpl iStore) {
-        super(Opcodes.ASM8);
+        super(ASMHelper.getCurrentASM());
         String methodName = "<init>";
 
         this.infoStore = iStore;

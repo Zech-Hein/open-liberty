@@ -30,9 +30,7 @@ IBM-API-Package: jakarta.decorator;  type="spec", \
  org.jboss.weld.serialization.spi; type="internal", \
  org.jboss.weld.context;type="third-party", \
  org.jboss.weld.context.api;type="third-party", \
- org.jboss.weld.context.beanstore;type="third-party", \
- org.jboss.weld.context.bound;type="third-party", \
- org.jboss.weld.context.conversation;type="third-party"
+ org.jboss.weld.context.bound;type="third-party"
 IBM-SPI-Package: io.openliberty.cdi.spi;type="ibm-spi"
 IBM-ShortName: cdi-3.0
 Subsystem-Name: Jakarta Contexts and Dependency Injection 3.0
@@ -50,7 +48,7 @@ Subsystem-Name: Jakarta Contexts and Dependency Injection 3.0
   io.openliberty.jakarta.xmlBinding-3.0, \
   io.openliberty.jakarta.annotation-2.0, \
   com.ibm.websphere.appserver.eeCompatible-9.0, \
-  com.ibm.websphere.appserver.internal.slf4j-1.7.7, \
+  com.ibm.websphere.appserver.internal.slf4j-1.7, \
   io.openliberty.jakarta.interceptor-2.0, \
   io.openliberty.jakarta.pages-3.0, \
   com.ibm.websphere.appserver.transaction-2.0
@@ -64,11 +62,12 @@ Subsystem-Name: Jakarta Contexts and Dependency Injection 3.0
  com.ibm.ws.cdi.internal.jakarta, \
  com.ibm.ws.cdi.2.0.weld.jakarta, \
  com.ibm.ws.cdi.interfaces.jakarta, \
- com.ibm.websphere.appserver.spi.cdi.jakarta; location:="dev/spi/ibm/,lib/"
--jars=io.openliberty.cdi.3.0.thirdparty; location:="dev/api/third-party/,lib/"; mavenCoordinates="org.jboss.weld:weld-osgi-bundle:4.0.0"
+ io.openliberty.cdi.spi; location:="dev/spi/ibm/,lib/"
+-jars=io.openliberty.cdi.3.0.thirdparty; location:="dev/api/third-party/,lib/"; mavenCoordinates="org.jboss.weld:weld-osgi-bundle:4.0.3.Final"
 -files=dev/api/ibm/schema/ibm-managed-bean-bnd_1_0.xsd, \
  dev/api/ibm/schema/ibm-managed-bean-bnd_1_1.xsd, \
- dev/spi/ibm/javadoc/com.ibm.websphere.appserver.spi.cdi_1.1-javadoc.zip
-kind=beta
+ dev/spi/ibm/javadoc/io.openliberty.cdi.spi_1.1-javadoc.zip
+kind=ga
 edition=core
 WLP-Activation-Type: parallel
+WLP-InstantOn-Enabled: true

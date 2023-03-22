@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -29,7 +31,7 @@ import org.w3c.dom.ls.LSSerializer;
 
 import com.ibm.oauth.core.api.config.OAuthComponentConfiguration;
 import com.ibm.oauth.core.api.error.oauth20.OAuth20Exception;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 
 /**
  * OAuth audit handler that writes the audit entries to local file in XML

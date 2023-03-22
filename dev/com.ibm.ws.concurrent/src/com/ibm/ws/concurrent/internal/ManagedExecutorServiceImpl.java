@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2021 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -36,8 +38,10 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import javax.enterprise.concurrent.ContextService;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.concurrent.ManagedTask;
 
@@ -115,6 +119,15 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
      */
     private static final Map<String, String> JAVAX_SUSPEND_TRAN = Collections.singletonMap("javax.enterprise.concurrent.TRANSACTION", "SUSPEND");
 
+    /**
+     * Execution properties that specify to suspend the current transaction.
+     */
+    private static final Map<String, String> XPROPS_SUSPEND_TRAN = new TreeMap<String, String>();
+    static {
+        XPROPS_SUSPEND_TRAN.putAll(JAKARTA_SUSPEND_TRAN);
+        XPROPS_SUSPEND_TRAN.putAll(JAVAX_SUSPEND_TRAN);
+    }
+
     private final boolean allowLifeCycleMethods;
 
     /**
@@ -125,7 +138,7 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
     /**
      * Collects common dependencies, including the ConcurrencyExtensionProvider, if any is available.
      */
-    private ConcurrencyService concurrencySvc;
+    ConcurrencyService concurrencySvc;
 
     /**
      * Reference to the context service for this managed executor service. Available only on the OSGi code path.
@@ -166,7 +179,7 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
     /**
      * Available only on the MicroProfile code path (CDI injection or ManagedExecutorBuilder).
      */
-    private final WSContextService mpContextService;
+    private final ContextServiceImpl mpContextService;
 
     /**
      * Reference to the name of this managed executor service.
@@ -178,6 +191,12 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
      * Executor that runs tasks against the general concurrency policy for this managed executor.
      */
     volatile PolicyExecutor policyExecutor;
+
+    /**
+     * The service.pid of the managed executor service config.
+     * Null if created by a MicroProfile builder or not activated yet.
+     */
+    private String servicePid;
 
     /**
      * Reference to the transaction context provider.
@@ -196,16 +215,18 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
     /**
      * Constructor for ManagedExecutorBuilder (from MicroProfile Context Propagation).
      */
-    public ManagedExecutorServiceImpl(String name, int hash, PolicyExecutor policyExecutor, ThreadContextImpl mpThreadContext,
+    public ManagedExecutorServiceImpl(String name, int hash, int eeVersion,
+                                      PolicyExecutor policyExecutor, ContextServiceImpl mpThreadContext,
                                       AtomicServiceReference<com.ibm.wsspi.threadcontext.ThreadContextProvider> tranContextProviderRef) {
         this.name.set(name);
         this.hash = hash;
+        this.eeVersion = eeVersion;
         this.policyExecutor = policyExecutor;
         this.longRunningPolicyExecutorRef.set(policyExecutor);
         this.mpContextService = mpThreadContext;
         this.tranContextProviderRef = tranContextProviderRef;
         allowLifeCycleMethods = true;
-        mpThreadContext.managedExecutor = this;
+        mpThreadContext.managedExecutorRef.set(this);
     }
 
     /**
@@ -216,6 +237,8 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
     protected void activate(ComponentContext context, Map<String, Object> properties) {
         contextSvcRef.activate(context);
         tranContextProviderRef.activate(context);
+
+        servicePid = (String) properties.get("service.pid");
 
         String jndiName = (String) properties.get("jndiName");
         jndiNameRef.set(jndiName);
@@ -289,6 +312,40 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
     }
 
     @Override
+    public ThreadContextDescriptor captureThreadContext(Map<String, String> props) {
+        ContextServiceImpl contextSvc;
+        if (mpContextService == null)
+            contextSvc = (ContextServiceImpl) contextSvcRef.getServiceWithException();
+        else
+            contextSvc = mpContextService;
+
+        if (props == null)
+            props = contextSvc.execProps.isEmpty() ? XPROPS_SUSPEND_TRAN : contextSvc.execProps;
+
+        @SuppressWarnings("unchecked")
+        ThreadContextDescriptor threadContext = contextSvc.captureThreadContext(props);
+        return threadContext;
+    }
+
+    @Trivial
+    public void close() {
+        if (allowLifeCycleMethods) {
+            PolicyExecutor executor = getNormalPolicyExecutor();
+            if (executor instanceof AutoCloseable)
+                try {
+                    ((AutoCloseable) executor).close();
+                } catch (Exception e) {
+                    // Shouldn't happen -- The Java 19 executor's close method does not throw an exception, but AutoCloseable does.
+                    throw new IllegalStateException(e);
+                }
+            else // Java 18 or earlier
+                throw new UnsupportedOperationException("close");
+        } else { // Section 3.1.6.1 of the Concurrency Utilities spec requires IllegalStateException
+            throw new IllegalStateException(new UnsupportedOperationException("close"));
+        }
+    }
+
+    @Override
     public <U> CompletableFuture<U> completedFuture(U value) {
         return ManagedCompletableFuture.completedFuture(value, this);
     }
@@ -358,7 +415,7 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
                 task = a.getAction();
                 taskUpdates = Arrays.asList(task);
             } else {
-                contextDescriptor = getContextService().captureThreadContext(getExecutionProperties(task));
+                contextDescriptor = captureThreadContext(getExecutionProperties(task));
             }
 
             callbacks[0] = new TaskLifeCycleCallback(this, contextDescriptor);
@@ -377,8 +434,7 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
                     Map<String, String> execProps = getExecutionProperties(task);
                     TaskLifeCycleCallback callback = execPropsToCallback.get(execProps);
                     if (callback == null) {
-                        contextSvc = contextSvc == null ? getContextService() : contextSvc;
-                        execPropsToCallback.put(execProps, callback = new TaskLifeCycleCallback(this, contextSvc.captureThreadContext(execProps)));
+                        execPropsToCallback.put(execProps, callback = new TaskLifeCycleCallback(this, captureThreadContext(execProps)));
                     }
                     callbacks[t++] = callback;
                 }
@@ -417,22 +473,11 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
         return null;
     }
 
-    @Override
-    @Trivial
-    public WSContextService getContextService() {
-        WSContextService contextSvc;
-        if (mpContextService == null)
-            try {
-                contextSvc = contextSvcRef.getServiceWithException(); // doPriv is covered by AtomicServiceReference
-            } catch (IllegalStateException x) {
-                throw new RejectedExecutionException(x);
-            }
-        else
-            contextSvc = mpContextService;
-
-        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-            Tr.debug(this, tc, "getContextService: " + contextSvc);
-        return contextSvc;
+    // Concurrency 3.0 / Jakarta EE 10
+    public ContextService getContextService() {
+        return mpContextService == null //
+                        ? ((ContextServiceImpl) contextSvcRef.getServiceWithException()).forManagedExecutor(this, servicePid) //
+                        : mpContextService;
     }
 
     @Override
@@ -479,21 +524,36 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
             throw new NullPointerException(Tr.formatMessage(tc, "CWWKC1111.task.invalid", (Object) null));
 
         Map<String, String> execProps = task instanceof ManagedTask ? ((ManagedTask) task).getExecutionProperties() : null;
-        if (execProps == null)
-            execProps = defaultExecutionProperties.get();
-        else {
-            execProps = new TreeMap<String, String>(execProps);
-            String tranPropKey;
-            String tranProp = execProps.remove(tranPropKey = "jakarta.enterprise.concurrent.TRANSACTION");
-            if (tranProp == null)
-                tranProp = execProps.remove(tranPropKey = "javax.enterprise.concurrent.TRANSACTION");
-            if (tranProp != null && !"SUSPEND".equals(tranProp)) // USE_TRANSACTION_OF_EXECUTION_THREAD not valid for managed tasks
-                throw new RejectedExecutionException(Tr.formatMessage(tc, "CWWKC1130.xprop.value.invalid", name, tranPropKey, tranProp));
-            if (!execProps.containsKey(WSContextService.DEFAULT_CONTEXT))
+
+        ServiceReference<?> ref = contextSvcRef.getReference();
+        if (ref == null || "file".equals(ref.getProperty("config.source"))) {
+            if (execProps == null)
+                execProps = defaultExecutionProperties.get();
+            else {
+                execProps = new TreeMap<String, String>(execProps);
+                String tranPropKey;
+                String tranProp = execProps.remove(tranPropKey = "jakarta.enterprise.concurrent.TRANSACTION");
+                if (tranProp == null)
+                    tranProp = execProps.remove(tranPropKey = "javax.enterprise.concurrent.TRANSACTION");
+                if (tranProp != null && !"SUSPEND".equals(tranProp)) // USE_TRANSACTION_OF_EXECUTION_THREAD not valid for managed tasks
+                    throw new RejectedExecutionException(Tr.formatMessage(tc, "CWWKC1130.xprop.value.invalid", name, tranPropKey, tranProp));
+                if (!execProps.containsKey(WSContextService.DEFAULT_CONTEXT))
+                    execProps.put(WSContextService.DEFAULT_CONTEXT, WSContextService.UNCONFIGURED_CONTEXT_TYPES);
+                if (!execProps.containsKey(WSContextService.TASK_OWNER))
+                    execProps.put(WSContextService.TASK_OWNER, name.get());
+            }
+        } else { // ContextServiceDefinition is used
+            if (execProps != null) {
+                execProps = new TreeMap<String, String>(execProps);
                 execProps.put(WSContextService.DEFAULT_CONTEXT, WSContextService.UNCONFIGURED_CONTEXT_TYPES);
-            if (!execProps.containsKey(WSContextService.TASK_OWNER))
-                execProps.put(WSContextService.TASK_OWNER, name.get());
+                String contextToSkip = (String) ref.getProperty("context.unchanged");
+                if (contextToSkip != null)
+                    execProps.put(WSContextService.SKIP_CONTEXT_PROVIDERS, contextToSkip);
+                if (!execProps.containsKey(WSContextService.TASK_OWNER))
+                    execProps.put(WSContextService.TASK_OWNER, name.get());
+            }
         }
+
         return execProps;
     }
 
@@ -523,7 +583,7 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
         if (mpContextService == null || !MPContextPropagationVersion.atLeast(MPContextPropagationVersion.V1_1))
             throw new UnsupportedOperationException();
         else
-            return (org.eclipse.microprofile.context.ThreadContext) mpContextService;
+            return mpContextService;
     }
 
     @Override
@@ -600,6 +660,11 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
     }
 
     @Override
+    public <I, T> CompletableFuture<T> newAsyncMethod(BiFunction<I, CompletableFuture<T>, CompletionStage<T>> invoker, I invocation) {
+        return new AsyncMethod<>(invoker, invocation, this);
+    }
+
+    @Override
     public <U> CompletableFuture<U> newIncompleteFuture() {
         if (ManagedCompletableFuture.JAVA8)
             return new ManagedCompletableFuture<U>(new CompletableFuture<U>(), this, null);
@@ -638,6 +703,7 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
      * @param ref reference to the service
      */
     @Reference(policy = ReferencePolicy.DYNAMIC, target = "(id=unbound)")
+    //     protected void setContextService(ServiceReference<ContextServiceImpl> ref) {
     protected void setContextService(ServiceReference<WSContextService> ref) {
         contextSvcRef.setReference(ref);
     }
@@ -715,8 +781,7 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
             contextDescriptor = a.getContextDescriptor();
             task = a.getAction();
         } else {
-            WSContextService contextSvc = getContextService();
-            contextDescriptor = contextSvc.captureThreadContext(execProps);
+            contextDescriptor = captureThreadContext(execProps);
         }
 
         TaskLifeCycleCallback callback = new TaskLifeCycleCallback(this, contextDescriptor);
@@ -735,8 +800,7 @@ public class ManagedExecutorServiceImpl implements ExecutorService, //
             contextDescriptor = a.getContextDescriptor();
             task = a.getAction();
         } else {
-            WSContextService contextSvc = getContextService();
-            contextDescriptor = contextSvc.captureThreadContext(execProps);
+            contextDescriptor = captureThreadContext(execProps);
         }
 
         TaskLifeCycleCallback callback = new TaskLifeCycleCallback(this, contextDescriptor);

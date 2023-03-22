@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2011, 2015 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -88,4 +90,9 @@ PROVIDER_WARNING_CWWKD0291W.useraction=Consultez la documentation DatabaseStore.
 PROVIDER_ERROR_CWWKD0292E=CWWKD0292E: {0}
 PROVIDER_ERROR_CWWKD0292E.explanation=L'\u00e9l\u00e9ment DatabaseStore a consign\u00e9 ce message d'erreur.
 PROVIDER_ERROR_CWWKD0292E.useraction=Consultez la documentation DatabaseStore.
+
+#-------------------------------------------------------------------------------
+UNSUPPORTED_ISOLATION_LEVEL_CWWKD0293E=CWWKD0293E: Le niveau d''isolement de transaction configur\u00e9 {0} n''est pas pris en charge.
+UNSUPPORTED_ISOLATION_LEVEL_CWWKD0293E.explanation=Le pilote de base de donn\u00e9es associ\u00e9 ne prend pas en charge le niveau d'isolement demand\u00e9.
+UNSUPPORTED_ISOLATION_LEVEL_CWWKD0293E.useraction=Modifiez le niveau d'isolement avant de faire une nouvelle tentative.
 

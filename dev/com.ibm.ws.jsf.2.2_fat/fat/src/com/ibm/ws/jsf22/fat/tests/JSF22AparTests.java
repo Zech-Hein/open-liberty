@@ -1,15 +1,18 @@
 /*
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  */
 package com.ibm.ws.jsf22.fat.tests;
 
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 import static componenttest.annotation.SkipForRepeat.EE8_FEATURES;
 import static componenttest.annotation.SkipForRepeat.EE9_FEATURES;
 import static org.junit.Assert.assertFalse;
@@ -49,6 +52,7 @@ import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import junit.framework.Assert;
@@ -70,6 +74,8 @@ public class JSF22AparTests {
 
     @BeforeClass
     public static void setup() throws Exception {
+        boolean isEE10 = JakartaEE10Action.isActive();
+
         ShrinkHelper.defaultDropinApp(jsfAparServer, "PI47600.war", "com.ibm.ws.jsf22.fat.tests.PI47600");
 
         JavaArchive PI30335Jar = ShrinkHelper.buildJavaArchive("PI30335.jar", "com.ibm.ws.jsf22.fat.tests.PI30335");
@@ -82,11 +88,13 @@ public class JSF22AparTests {
         ShrinkHelper.exportDropinAppToServer(jsfAparServer, PI30335FalseWar);
 
         JavaArchive PH01566Jar = ShrinkHelper.buildJavaArchive("PH01566.jar", "");
-        WebArchive PH01566War = ShrinkHelper.buildDefaultApp("PH01566.war", "com.ibm.ws.jsf22.fat.PH01566");
+        WebArchive PH01566War = ShrinkHelper.buildDefaultApp("PH01566.war",
+                                                             isEE10 ? "com.ibm.ws.jsf22.fat.PH01566.bean.faces40" : "com.ibm.ws.jsf22.fat.PH01566.bean.jsf22");
         PH01566War.addAsLibraries(PH01566Jar);
         ShrinkHelper.exportDropinAppToServer(jsfAparServer, PH01566War);
 
-        ShrinkHelper.defaultDropinApp(jsfAparServer, "PI50108.war", "com.ibm.ws.jsf22.fat.tests.PI50108");
+        ShrinkHelper.defaultDropinApp(jsfAparServer, "PI50108.war",
+                                      isEE10 ? "com.ibm.ws.jsf22.fat.tests.PI50108.bean.faces40" : "com.ibm.ws.jsf22.fat.tests.PI50108.bean.jsf22");
 
         ShrinkHelper.defaultDropinApp(jsfAparServer, "PI46218Flow1.war", "com.ibm.ws.jsf22.fat.PI46218Flow1.*");
 
@@ -96,11 +104,14 @@ public class JSF22AparTests {
 
         ShrinkHelper.defaultDropinApp(jsfAparServer, "PI59422.war", "com.ibm.ws.jsf22.fat.PI59422");
 
-        ShrinkHelper.defaultDropinApp(jsfAparServer, "PI63135.war", "com.ibm.ws.jsf22.fat.PI63135");
+        ShrinkHelper.defaultDropinApp(jsfAparServer, "PI63135.war",
+                                      "com.ibm.ws.jsf22.fat.PI63135",
+                                      isEE10 ? "com.ibm.ws.jsf22.fat.PI63135.bean.faces40" : "com.ibm.ws.jsf22.fat.PI63135.bean.jsf22");
 
         ShrinkHelper.defaultDropinApp(jsfAparServer, "ViewScopedCDIBean.war", "com.ibm.ws.jsf22.fat.viewscopedcdi");
 
-        ShrinkHelper.defaultDropinApp(jsfAparServer, "ViewScopedJSFBean.war", "com.ibm.ws.jsf22.fat.viewscopedjsf");
+        ShrinkHelper.defaultDropinApp(jsfAparServer, "ViewScopedJSFBean.war",
+                                      isEE10 ? "com.ibm.ws.jsf22.fat.viewscopedjsf.bean.faces40" : "com.ibm.ws.jsf22.fat.viewscopedjsf.bean.jsf22");
 
         ShrinkHelper.defaultDropinApp(jsfAparServer, "PI64714.war", "com.ibm.ws.jsf22.fat.PI64714");
 
@@ -194,6 +205,9 @@ public class JSF22AparTests {
      * @throws Exception
      */
     @Test
+    // Skipping for EE10 as this test tests com.ibm.ws.jsf.delayManagedBeanPostConstruct which
+    // is specific to ManagedBeans which are no longer available in Faces 4.0.
+    @SkipForRepeat(EE10_FEATURES)
     public void testPI30335DefaultBehavior() throws Exception {
         String msgToSearchFor = "ManagedBean Ref: com.ibm.ws.jsf22.fat.tests.PI30335.ManagedBean2";
 
@@ -212,6 +226,9 @@ public class JSF22AparTests {
      * @throws Exception
      */
     @Test
+    // Skipping for EE10 as this test tests com.ibm.ws.jsf.delayManagedBeanPostConstruct which
+    // is specific to ManagedBeans which are no longer available in Faces 4.0.
+    @SkipForRepeat(EE10_FEATURES)
     public void testPI30335PropertySetToFalse() throws Exception {
         String msgToSearchFor = "ManagedBean Ref: null";
 
@@ -454,9 +471,12 @@ public class JSF22AparTests {
      * button will then be clicked that will invalidate the session and the test will look to ensure
      * that the PreDestroy method on the JSF Managed Bean was invoked.
      *
+     * For EE10 this test is executed with a CDI @Named bean to verify that PreDestroy is called.
+     *
      * @throws Exception
      */
     @Test
+    @SkipForRepeat(EE10_FEATURES)
     public void testViewScopedJSFManagedBeanPreDestroy() throws Exception {
         try (WebClient webClient = new WebClient()) {
             URL url = JSFUtils.createHttpUrl(jsfAparServer, "ViewScopedJSFBean", "");
@@ -484,6 +504,10 @@ public class JSF22AparTests {
      * @throws Exception
      */
     @Test
+    // Skipping for EE10 as this test uses both a CDI bean and a ManagedBean and ManagedBeans are
+    // no longer available in Faces 4.0. The testViewScopedJSFManagedBeanPreDestroy test will
+    // be executed for EE10 with just a CDI bean to verify that PreDestroy is called.
+    @SkipForRepeat(EE10_FEATURES) // Skipped due to HTMLUnit / JavaScript Incompatabilty (New JS in RC5)
     public void testViewScopedCDIManagedBeanPreDestroy() throws Exception {
         try (WebClient webClient = new WebClient()) {
             URL url = JSFUtils.createHttpUrl(jsfAparServer, "ViewScopedCDIBean", "");
@@ -872,7 +896,8 @@ public class JSF22AparTests {
             HtmlForm statefulForm = page.getFormByName("statefulForm");
 
             // Change the value of ViewState to stateless
-            HtmlHiddenInput viewStateInput = (HtmlHiddenInput) statefulForm.getInputByName((JakartaEE9Action.isActive() ? "jakarta." : "javax.") + "faces.ViewState");
+            HtmlHiddenInput viewStateInput = (HtmlHiddenInput) statefulForm
+                            .getInputByName((JakartaEE10Action.isActive() || JakartaEE9Action.isActive() ? "jakarta." : "javax.") + "faces.ViewState");
             viewStateInput.setValueAttribute("stateless");
 
             // Get the button and then click it
@@ -884,7 +909,9 @@ public class JSF22AparTests {
 
             // Check that a FacesException is thrown
             assertTrue("PI89168: FacesException was not thrown!\n" + page.asText(),
-                       page.asText().contains((JakartaEE9Action.isActive() ? "jakarta." : "javax.") + "faces.FacesException: unable to create view \"/statefulView.xhtml\""));
+                       page.asText()
+                                       .contains((JakartaEE10Action.isActive() || JakartaEE9Action.isActive() ? "jakarta." : "javax.")
+                                                 + "faces.FacesException: unable to create view \"/statefulView.xhtml\""));
         }
     }
 
@@ -1014,7 +1041,7 @@ public class JSF22AparTests {
      *
      * @throws Exception
      */
-    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES })
+    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES, EE10_FEATURES })
     @Test
     public void testPI90507NonBindingCase() throws Exception {
         try (WebClient webClient = new WebClient()) {
@@ -1058,7 +1085,7 @@ public class JSF22AparTests {
      *
      * @throws Exception
      */
-    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES })
+    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES, EE10_FEATURES })
     @Test
     public void testPI90507BindingCase() throws Exception {
         try (WebClient webClient = new WebClient()) {

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -52,10 +54,11 @@ public class JPATestOLGH8820Logic extends AbstractTestLogic {
             }
         }
         final String dbProductName = (testProps == null) ? "UNKNOWN" : ((testProps.get("dbProductName") == null) ? "UNKNOWN" : (String) testProps.get("dbProductName"));
+        final String dbProductVersion = (testProps == null) ? "UNKNOWN" : ((testProps.get("dbProductVersion") == null) ? "UNKNOWN" : (String) testProps.get("dbProductVersion"));
 
-        final boolean isOracle = DatabaseVendor.checkDBProductName(dbProductName, DatabaseVendor.ORACLE);
-        final boolean isDB2 = DatabaseVendor.checkDBProductName(dbProductName, DatabaseVendor.DB2);
-        final boolean isMySQL = DatabaseVendor.checkDBProductName(dbProductName, DatabaseVendor.MYSQL);
+        final boolean isOracle = DatabaseVendor.checkDBProductName(dbProductName, dbProductVersion, DatabaseVendor.ORACLE);
+        final boolean isDB2 = DatabaseVendor.checkDBProductName(dbProductName, dbProductVersion, DatabaseVendor.DB2LUW);
+        final boolean isMySQL = DatabaseVendor.checkDBProductName(dbProductName, dbProductVersion, DatabaseVendor.MYSQL);
 
         // TODO: Add support for more database platforms
         if (!isOracle || !isDB2 || !isMySQL) {
@@ -130,10 +133,11 @@ public class JPATestOLGH8820Logic extends AbstractTestLogic {
             }
         }
         final String dbProductName = (testProps == null) ? "UNKNOWN" : ((testProps.get("dbProductName") == null) ? "UNKNOWN" : (String) testProps.get("dbProductName"));
+        final String dbProductVersion = (testProps == null) ? "UNKNOWN" : ((testProps.get("dbProductVersion") == null) ? "UNKNOWN" : (String) testProps.get("dbProductVersion"));
 
-        final boolean isOracle = DatabaseVendor.checkDBProductName(dbProductName, DatabaseVendor.ORACLE);
-        final boolean isDB2 = DatabaseVendor.checkDBProductName(dbProductName, DatabaseVendor.DB2);
-        final boolean isMySQL = DatabaseVendor.checkDBProductName(dbProductName, DatabaseVendor.MYSQL);
+        final boolean isOracle = DatabaseVendor.checkDBProductName(dbProductName, dbProductVersion, DatabaseVendor.ORACLE);
+        final boolean isDB2 = DatabaseVendor.checkDBProductName(dbProductName, dbProductVersion, DatabaseVendor.DB2LUW);
+        final boolean isMySQL = DatabaseVendor.checkDBProductName(dbProductName, dbProductVersion, DatabaseVendor.MYSQL);
 
         // TODO: Add support for more database platforms
         if (!isOracle || !isDB2 || !isMySQL) {

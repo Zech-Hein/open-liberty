@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -157,6 +159,10 @@ public class ServiceIOTest {
                         .append("&service=").append("SimpleEcho")
                         .append("&war=simpleTestService");
         server.waitForStringInLog("CWWKZ0001I.*simpleTestService");
+        // Adding an additional log check, as Servlet doesn't seem to have deploy by the time 
+        // the test is run on certain builds.
+        server.waitForStringInLog("SRVE0242I.*simpleTestService");
+        
         String urlStr = sBuilder.toString();
         HttpURLConnection con = HttpUtils.getHttpConnection(new URL(urlStr),
                                                             HttpURLConnection.HTTP_OK, REQUEST_TIMEOUT);

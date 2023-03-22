@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2020 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,6 +18,10 @@ import static org.junit.Assert.fail;
 import java.io.BufferedReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import com.ibm.websphere.simplicity.log.Log;
+
+import com.ibm.ws.wsat.fat.util.WSATTest;
 
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.HttpUtils;
@@ -63,7 +69,7 @@ public abstract class DBTestBase extends WSATTest {
 	public static String appNameServiceOptional;
 
 	public static void initWSATTest(LibertyServer s) throws Exception {
-		s.setServerStartTimeout(300000);
+		s.setServerStartTimeout(600000);
 		s.removeAllInstalledAppsForValidation();
 		s.deleteDirectoryFromLibertyServerRoot("dropins");
 	}
@@ -117,17 +123,17 @@ public abstract class DBTestBase extends WSATTest {
 			}
 		} catch (Exception e) {
 			fail("Exception happens: " + e.toString());
-			e.printStackTrace(System.out);
 		}
 	}
 
 	public void InitDB(String url, String serverName, String value)
 			throws Exception {
+		String method = "InitDB";
 		HttpURLConnection con = getHttpConnection(new URL(url),
 				HttpURLConnection.HTTP_OK, REQUEST_TIMEOUT);
 		BufferedReader br = HttpUtils.getConnectionStream(con);
 		String result = br.readLine();
-		System.out.println("Init " + serverName + " DB from " + url + ": "
+		Log.info(getClass(), method, "Init " + serverName + " DB from " + url + ": "
 				+ result);
 		assertTrue("Init " + serverName + " DB from "+url+", expect is 0, result is "
 				+ result, result.equals(value));
@@ -135,23 +141,25 @@ public abstract class DBTestBase extends WSATTest {
 
 	public void CheckDB(String url, String serverName, String value)
 			throws Exception {
+		String method = "CheckDB";
 		HttpURLConnection con = getHttpConnection(new URL(url),
 				HttpURLConnection.HTTP_OK, REQUEST_TIMEOUT);
 		BufferedReader br = HttpUtils.getConnectionStream(con);
 		String result = br.readLine();
-		System.out.println("Check " + serverName + " DB from " + url + ": "
+		Log.info(getClass(), method, "Check " + serverName + " DB from " + url + ": "
 				+ result);
 		assertTrue("Check " + serverName + " DB from "+url+", expect is " + value
 				+ ", result is " + result, result.equals(value));
 	}
 
 	public String executeWSAT(String url) throws Exception {
+		String method = "executeWSAT";
 		HttpURLConnection con = getHttpConnection(new URL(url),
 				HttpURLConnection.HTTP_OK, REQUEST_TIMEOUT);
 		BufferedReader br = HttpUtils.getConnectionStream(con);
 		String result = br.readLine();
-		System.out.println("Execute WS-AT test from " + url);
-		System.out.println("Result: " + result);
+		Log.info(getClass(), method, "Execute WS-AT test from " + url);
+		Log.info(getClass(), method, "Result: " + result);
 		return result;
 	}
 }

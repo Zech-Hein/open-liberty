@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2021 IBM Corporation and others.
+# Copyright (c) 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -12,11 +14,11 @@
 bVersion=1.0
 
 # Eclipselink version info
-eclVersion=2.7.9
-eclHash=2c549e2
+eclVersion=2.7.11
+eclHash=52dea2a
 eclFullVersion=${eclVersion}
 eclPackageVersion=2.0.16
-asmFullVersion=9.1.0
+asmFullVersion=9.4.0
 
 Bundle-SymbolicName: com.ibm.websphere.appserver.thirdparty.eclipselink.2.7
 Bundle-Description: EclipseLink JPA
@@ -111,7 +113,7 @@ Private-Package: com.ibm.ws.eclipselink.osgi
 
 Include-Resource: \
   @${repo;org.eclipse.persistence:org.eclipse.persistence.antlr;${eclFullVersion};EXACT}!/!META-INF/maven/*,\
-  @${repo;org.eclipse.persistence:org.eclipse.persistence.asm;${asmFullVersion};EXACT}!/!META-INF/maven/*,\
+  @${repo;org.eclipse.persistence:org.eclipse.persistence.asm;${asmFullVersion};EXACT}!/!(META-INF/maven/*|module-info.class),\
   @${repo;org.eclipse.persistence:org.eclipse.persistence.core;${eclFullVersion};EXACT}!/!META-INF/maven/*,\
   @${repo;org.eclipse.persistence:org.eclipse.persistence.jpa;${eclFullVersion};EXACT}!/!META-INF/maven/*,\
   @${repo;org.eclipse.persistence:org.eclipse.persistence.jpa.jpql;${eclFullVersion};EXACT}!/!META-INF/maven/*,\

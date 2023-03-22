@@ -1,21 +1,22 @@
 #*******************************************************************************
-# Copyright (c) 2017,2021 IBM Corporation and others.
+# Copyright (c) 2017,2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 bVersion=1.1
 
-Bundle-Name: Connection Management and Pooling
-Bundle-SymbolicName: com.ibm.ws.jca.cm
-Bundle-Description: Connection Management and Pooling; version=${bVersion}
 
-jakartaeeMe: true
 
 WS-TraceGroup: WAS.j2c
 
@@ -24,7 +25,7 @@ Export-Package: \
     com.ibm.ws.jca.adapter, \
     com.ibm.ws.jca.cm, \
     com.ibm.ws.jca.cm.mbean, \
-    com.ibm.wsspi.zos.tx \
+    com.ibm.wsspi.zos.tx
 
 Import-Package: \
     com.ibm.ws.jca.cm.handle, \
@@ -87,5 +88,4 @@ instrument.disabled: true
 	com.ibm.ws.kernel.security.thread,\
 	com.ibm.websphere.org.osgi.core,\
 	com.ibm.websphere.org.osgi.service.component,\
-	com.ibm.tx.ltc;version=latest, \
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest

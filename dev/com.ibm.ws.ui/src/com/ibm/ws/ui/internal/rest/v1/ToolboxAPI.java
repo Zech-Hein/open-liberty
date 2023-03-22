@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -38,10 +40,10 @@ import com.ibm.ws.ui.internal.v1.pojo.DuplicateException;
 import com.ibm.ws.ui.internal.v1.pojo.Message;
 import com.ibm.ws.ui.internal.v1.pojo.NoSuchToolException;
 import com.ibm.ws.ui.internal.v1.pojo.ToolEntry;
-import com.ibm.ws.ui.internal.v1.utils.Utils;
 import com.ibm.ws.ui.internal.validation.InvalidToolException;
 import com.ibm.wsspi.rest.handler.RESTRequest;
 import com.ibm.wsspi.rest.handler.RESTResponse;
+import com.ibm.ws.ui.internal.v1.utils.Utils;
 
 /**
  * <p>Defines the toolbox API for the version 1 of the adminCenter REST API.</p>
@@ -112,7 +114,7 @@ public class ToolboxAPI extends CommonJSONRESTHandler implements V1Constants {
     /** {@inheritDoc} */
     @Override
     public boolean isKnownGrandchildResource(String child, String grandchild, RESTRequest request) {
-        final String toolId = Utils.urlEncode(grandchild);
+        final String toolId = grandchild;
         if (CHILD_RESOURCE_BOOKMARKS.equals(child)) {
             return getToolbox(request).getBookmark(toolId) != null;
         } else if (CHILD_RESOURCE_TOOL_ENTRIES.equals(child)) {
@@ -195,8 +197,7 @@ public class ToolboxAPI extends CommonJSONRESTHandler implements V1Constants {
         if (!isAuthorizedAdminOrReader(request, response)) {
             throw new UserNotAuthorizedException();
         }
-        // The inbound child resource name is not URL encoded, need to encode it
-        final String toolId = Utils.urlEncode(grandchild);
+        final String toolId = grandchild;
         if (CHILD_RESOURCE_TOOL_ENTRIES.equals(child)) {
             return handleToolResponse(request, toolId, getToolbox(request).getToolEntry(toolId));
         } else if (CHILD_RESOURCE_BOOKMARKS.equals(child)) {
@@ -225,6 +226,11 @@ public class ToolboxAPI extends CommonJSONRESTHandler implements V1Constants {
         }
         if (CHILD_RESOURCE_TOOL_ENTRIES.equals(child)) {
             ToolEntry toAdd = readJSONPayload(request, ToolEntry.class);
+
+            if(!Utils.isValidJsonString(toAdd.toString(), "ToolEntry ")) {
+                throw new RESTException(HTTP_INTERNAL_ERROR);
+            }
+
             try {
                 ToolEntry added = getToolbox(request).addToolEntry(toAdd);
                 POSTResponse postResponse = new POSTResponse();
@@ -243,6 +249,11 @@ public class ToolboxAPI extends CommonJSONRESTHandler implements V1Constants {
             }
         } else if (CHILD_RESOURCE_BOOKMARKS.equals(child)) {
             Bookmark toAdd = readJSONPayload(request, Bookmark.class);
+
+            if(!Utils.isValidJsonString(toAdd.toString(), "Bookmark ")) {
+                throw new RESTException(HTTP_INTERNAL_ERROR);
+            }
+
             try {
                 ITool added = getToolbox(request).addBookmark(toAdd);
                 POSTResponse postResponse = new POSTResponse();
@@ -277,6 +288,11 @@ public class ToolboxAPI extends CommonJSONRESTHandler implements V1Constants {
             IToolbox toolbox = getToolbox(request);
             @SuppressWarnings("unchecked")
             Map<String, Object> preferences = readJSONPayload(request, Map.class);
+
+            if(!Utils.isValidJsonString(preferences.toString())) {
+                throw new RESTException(HTTP_INTERNAL_ERROR);
+            }
+
             return toolbox.updatePreferences(preferences);
         } else if (CHILD_RESOURCE_TOOL_ENTRIES.equals(child)) {
             ToolEntry[] listEntries = readJSONPayload(request, ToolEntry[].class);
@@ -328,8 +344,7 @@ public class ToolboxAPI extends CommonJSONRESTHandler implements V1Constants {
         if (!isAuthorizedAdminOrReader(request, response)) {
             throw new UserNotAuthorizedException();
         }
-        // The inbound child resource name is not URL encoded, need to encode it
-        String toolId = Utils.urlEncode(grandchild);
+        String toolId = grandchild;
         if (CHILD_RESOURCE_BOOKMARKS.equals(child)) {
             return handleToolResponse(request, toolId, getToolbox(request).deleteBookmark(toolId));
         } else if (CHILD_RESOURCE_TOOL_ENTRIES.equals(child)) {

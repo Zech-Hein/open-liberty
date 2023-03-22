@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2006 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,7 +19,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
-import com.ibm.ws.session.http.HttpSessionImpl;
+import com.ibm.ws.session.http.AbstractHttpSession;
 import com.ibm.ws.session.utils.LoggingUtil;
 import com.ibm.wsspi.session.IProtocolAdapter;
 import com.ibm.wsspi.session.ISession;
@@ -50,7 +52,7 @@ public class WasHttpAppSessionObserver extends WasHttpSessionObserver {
         }
 
         if (_sessionListeners.size() > 0 || attributes.size() > 0) {
-            HttpSession httpsession = (HttpSessionImpl) _adapter.adapt(session);
+            HttpSession httpsession = (AbstractHttpSession) _adapter.adapt(session);
             HttpSessionEvent event = new HttpSessionEvent(httpsession);
             HttpSessionListener listener = null;
 

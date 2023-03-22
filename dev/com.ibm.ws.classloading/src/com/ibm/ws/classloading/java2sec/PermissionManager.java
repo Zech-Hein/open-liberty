@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2019, 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -100,6 +102,8 @@ public class PermissionManager implements PermissionsCombiner {
 
     private boolean isServer = true;
     private boolean wsjarUrlStreamHandlerAvailable = false;
+    
+    private static final String LOGGING_PERMISSION = "java.util.logging.LoggingPermission";
 
     /**
      * The list of effective restrictable permissions. The effective permissions are merged from the
@@ -419,6 +423,12 @@ public class PermissionManager implements PermissionsCombiner {
                 Tr.debug(tc, "codeBase = " + codeBase);
             }
             ArrayList<Permission> permissions = codeBasePermissionMap.get(codeBase);
+            // Add the granted permissions to an arraylist
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "Adding grantedPermissions to codeBase: " + codeBase);
+            }
+                
+            permissions.addAll(grantedPermissions);
 
             if (tc.isDebugEnabled()) {
                 for (int i = 0; i < permissions.size(); i++) {
@@ -528,7 +538,11 @@ public class PermissionManager implements PermissionsCombiner {
                         if (target == null || target.equalsIgnoreCase("null")) {
                             permission = (Permission) getPermissionClass(permissionClass).newInstance();
                         } else {
-                            permission = (Permission) getPermissionClass(permissionClass).getConstructor(String.class).newInstance(target);
+                            if (permissionClass.equals(LOGGING_PERMISSION))  {
+                                permission = (Permission) getPermissionClass(permissionClass).getConstructor(String.class, String.class).newInstance(target, null);
+                            } else {
+                                permission = (Permission) getPermissionClass(permissionClass).getConstructor(String.class).newInstance(target);
+                            } 
                         }
                     } else {
                         permission = (Permission) getPermissionClass(permissionClass).getConstructor(String.class, String.class).newInstance(target, action);

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2021 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -41,6 +43,8 @@ public class Constants extends com.ibm.ws.security.fat.common.Constants {
     /* Test types */
     public static final String OIDC = "OIDC";
     public static final String OAUTH = "OAuth";
+    public static final String SAML = "SAML";
+    public static final String MONGODB = "MONGODB";
 
     public static final String OAUTH_OP = "OAuth_OP";
     public static final String OIDC_OP = "OpenIDConnect_OP";
@@ -138,6 +142,12 @@ public class Constants extends com.ibm.ws.security.fat.common.Constants {
     public static final String INVOKE_ACS = "invokeACS";
     public static final String INVOKE_JWK_ENDPOINT = "invokeJwkEndpoint";
     public static final String BUILD_POST_SP_INITIATED_REQUEST = "buildPostSPInitiatedRequest";
+    public static final String INVOKE_BACK_CHANNEL_LOGOUT_ENDPOINT = "invokeBackChannelLogoutEndpoint";
+
+    public static final String PERFORM_IDP_LOGOUT = "performIDPLogout";
+    public static final String PROCESS_LOGOUT_CONTINUE = "processLogoutContinue";
+    public static final String PROCESS_LOGOUT_PROPAGATE_YES = "processLogoutPropagateYes";
+    public static final String PROCESS_LOGOUT_REDIRECT = "processLogoutRedirect";
 
     // All OP actions/tasks should be included in this list!
     public static final String[] OP_TEST_ACTIONS = { INVOKE_OAUTH_CLIENT, SUBMIT_TO_AUTH_SERVER, SUBMIT_TO_AUTH_SERVER_FOR_TOKEN, INVOKE_AUTH_SERVER, PERFORM_LOGIN,
@@ -208,6 +218,8 @@ public class Constants extends com.ibm.ws.security.fat.common.Constants {
             INVOKE_PROTECTED_RESOURCE, INVOKE_RS_PROTECTED_RESOURCE };
     public static final String[] INVOKE_RS_PROTECTED_RESOURCE_ONLY_ACTIONS = { INVOKE_RS_PROTECTED_RESOURCE };
     public static final String[] INVOKE_RS_PROTECTED_RESOURCE_LOGIN_ACTIONS = { INVOKE_RS_PROTECTED_RESOURCE, PERFORM_LOGIN };
+    //    public static final String[] IDP_INITIATED_LOGOUT = { PERFORM_IDP_LOGOUT, PROCESS_LOGOUT_CONTINUE, PROCESS_LOGOUT_PROPAGATE_YES };
+    public static final String[] IDP_INITIATED_LOGOUT = { PERFORM_IDP_LOGOUT, PROCESS_LOGOUT_PROPAGATE_YES };
 
     /* ******************** steps in the RP test process ***************** */
     public static final String SPECIFY_PROVIDER = "specifyProvider";
@@ -319,6 +331,8 @@ public class Constants extends com.ibm.ws.security.fat.common.Constants {
     public static final String OIDC_CLIENT_DEFAULT_CONTEXT_ROOT = "/oidcclient/";
     public static final String JWT_DEFAULT_CONTEXT_ROOT = "/jwt/";
 
+    public static final String OIDC_BACK_CHANNEL_LOGOUT_ROOT = "/backchannel_logout/";
+
     public static final String AUTHORIZE_ENDPOINT = "authorize";
     public static final String TOKEN_ENDPOINT = "token";
     public static final String INTROSPECTION_ENDPOINT = "introspect";
@@ -339,6 +353,7 @@ public class Constants extends com.ibm.ws.security.fat.common.Constants {
     public static final String USERSTOKENMGMT_ENDPOINT = "usersTokenManagement";
     public static final String CLIENTMETATYPE_ENDPOINT = "clientMetatype";
     public static final String CHECKSESSIONIFRAME_ENDPOINT = "check_session_iframe";
+    public static final String HTTP_SESSION = "http_session";
 
     public static final String JSON_USERINFO_DATA = "json_userinfo_data";
     public static final String JWS_USERINFO_DATA = "jws_userinfo_data";
@@ -567,6 +582,7 @@ public class Constants extends com.ibm.ws.security.fat.common.Constants {
     public static final String IDTOK_AT_HASH_KEY = "at_hash";
     public static final String IDTOK_REALM_KEY = "realmName";
     public static final String IDTOK_UNIQ_SEC_NAME_KEY = "uniqueSecurityName";
+    public static final String IDTOK_SESSION_ID = "sid";
 
     /* ********************** ACC_TOKEN ************************ */
 
@@ -592,9 +608,6 @@ public class Constants extends com.ibm.ws.security.fat.common.Constants {
     public static final String SCOPE_KEY = "scope";
     public static final String JWT_TOKEN = "jwt_token";
     public static final String MP_JWT_TOKEN = "mpJwt_token";
-    public static final String JWT_TOKEN_FORMAT = "jwt";
-    public static final String MP_JWT_TOKEN_FORMAT = "mpjwt";
-    public static final String OPAQUE_TOKEN_FORMAT = "opaque";
     public static final String JWS_TOKEN_FORMAT = "jws_token";
     public static final String JWE_TOKEN_FORMAT = "jwe_token";
     public static final String APP_PASSWORD_KEY = "app_password";
@@ -604,6 +617,7 @@ public class Constants extends com.ibm.ws.security.fat.common.Constants {
     public static final String EXPIRES_AT_KEY = "expires_at";
     public static final String APP_NAME_KEY = "name";
     public static final String USER_NAME_KEY = "user";
+    public static final String LOGOUT_TOKEN = "logout_token";
 
     public static final String OIDC_PROVIDER = "";
     public static final String OIDC_USERPARM = "j_username";
@@ -668,6 +682,8 @@ public class Constants extends com.ibm.ws.security.fat.common.Constants {
     public static final String PAYLOAD_GROUPS = "groups";
     public static final String PAYLOAD_USER_PRINCIPAL_NAME = "upn";
     public static final String PAYLOAD_TOKEN_TYPE = "token_type";
+    public static final String PAYLOAD_EVENTS = "events";
+    public static final String PAYLOAD_SESSION_ID = "sid";
 
     /************************** jwt_bearer request parameters *********************************/
     public static final String JWT_BEARER_TOKEN = "jwt_bearer_token";
@@ -837,5 +853,13 @@ public class Constants extends com.ibm.ws.security.fat.common.Constants {
 
     /*********************************** RP TRacking *******************************************/
     public static final String RP_TRACKING_COOKIE_NAME = "WasOAuthTrackClients";
+
+    /******************************** Test Tooling Servlets ************************************/
+    public static final String TOKEN_ENDPOINT_SERVLET = "TokenEndpointServlet";
+    public static final String USERINFO_ENDPOINT_SERVLET = "UserinfoEndpointServlet";
+
+    /************************************** Misc Parms***** ************************************/
+    public static final String PROVIDER_HINT = "oidcAuthnHint";
+    public static final String OIDC_CLIENT = "oidc_client";
 
 }

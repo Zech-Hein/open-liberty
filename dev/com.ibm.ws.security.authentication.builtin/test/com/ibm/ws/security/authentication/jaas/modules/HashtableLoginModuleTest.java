@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -84,7 +86,6 @@ public class HashtableLoginModuleTest extends LoginModuleTester {
     private final ComponentContext cc = mock.mock(ComponentContext.class);
     private final ServiceReference<JAASConfigurationFactory> jaasConfigurationFactoryRef = mock.mock(ServiceReference.class, "Test" + JAASServiceImpl.KEY_JAAS_CONFIG_FACTORY
                                                                                                                              + "Ref");
-    private final ServiceReference<AuthenticationService> authenticationServiceRef = mock.mock(ServiceReference.class, "authenticationServiceRef");
     private final ServiceReference<UserRegistryService> userRegistryServiceRef = mock.mock(ServiceReference.class, "userRegistryServiceRef");
     private final UserRegistryService userRegistryService = mock.mock(UserRegistryService.class);
     private final UserRegistry userRegistry = mock.mock(UserRegistry.class);
@@ -111,6 +112,8 @@ public class HashtableLoginModuleTest extends LoginModuleTester {
     @SuppressWarnings("static-access")
     @Before
     public void setUp() throws Exception {
+        LoginModuleHelper.setTestJaasService(jaasServiceCollab); // No OSGi component to lookup in the runtime, so override
+
         mock.checking(new Expectations() {
             {
                 // This expectation is to allow the JAAS stuff to activate
@@ -552,5 +555,4 @@ public class HashtableLoginModuleTest extends LoginModuleTester {
         sharedState.put(AttributeNameConstants.WSCREDENTIAL_PROPERTIES_KEY, hashtable);
         return sharedState;
     }
-
 }

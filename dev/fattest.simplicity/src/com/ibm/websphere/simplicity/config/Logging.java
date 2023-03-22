@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,6 +35,9 @@ public class Logging extends ConfigElement {
     private String jsonFields;
     private String consoleFormat;
     private String jsonAccessLogFields;
+    private String rolloverStartTime;
+    private String rolloverInterval;
+    private String maxFfdcAge;
 
     /**
      * @return the configured log directory
@@ -232,6 +237,57 @@ public class Logging extends ConfigElement {
      */
     public String getJsonAccessLogFields() {
         return this.jsonAccessLogFields;
+    }
+
+    /**
+     * default="default"; options="logFormat"
+     *
+     * @param rolloverStartTime the value of rolloverStartTime configuration to set
+     */
+    @XmlAttribute(name = "rolloverStartTime")
+    public void setRolloverStartTime(String rolloverStartTime) {
+        this.rolloverStartTime = ConfigElement.getValue(rolloverStartTime);
+    }
+
+    /**
+     * @return the value of the rolloverStartTime configuration attribute
+     */
+    public String getRolloverStartTime() {
+        return this.rolloverStartTime;
+    }
+
+    /**
+     * default="default"; options="logFormat"
+     *
+     * @param rolloverInterval the value of rolloverInterval configuration to set
+     */
+    @XmlAttribute(name = "rolloverInterval")
+    public void setRolloverInterval(String rolloverInterval) {
+        this.rolloverInterval = ConfigElement.getValue(rolloverInterval);
+    }
+
+    /**
+     * @return the value of the rolloverInterval configuration attribute
+     */
+    public String getRolloverInterval() {
+        return this.rolloverInterval;
+    }
+
+    /**
+     * default="default"; options="logFormat"
+     *
+     * @param maxFfdcAge the value of maxFfdcAge configuration to set
+     */
+    @XmlAttribute(name = "maxFfdcAge")
+    public void setMaxFfdcAge(String maxFfdcAge) {
+        this.maxFfdcAge = ConfigElement.getValue(maxFfdcAge);
+    }
+
+    /**
+     * @return the value of the rolloverInterval configuration attribute
+     */
+    public String getMaxFfdcAge() {
+        return this.maxFfdcAge;
     }
 
     @Override

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -67,40 +69,6 @@ define(['dojo/request/xhr',
                 }
             }
             return false;
-        },
-
-        /**
-         * Function to determine if new tool URL is accessible
-         * @param (String) url: The URL to access
-         * @returns (Boolean) true if status code 200, false otherwise
-         */
-        isUrlAccessible: function(targetURL) {
-            if (!targetURL) {
-              tr.throwMsg(i18n.ERROR_URLACCESS_NOURL);
-            }
-            var url = '/ibm/api/adminCenter/v1/utils/url/getStatus?url=' + decodeURI(targetURL);
-            var options = { handleAs: 'json', timeout: 2000 };
-            var xhrDef = xhr.get(url, options);
-
-            // Establish the Deferred to be returned.
-            // This allows the caller to cancel the underlying XHR request.
-            var deferred = new Deferred(function cancelXHRDeferred(reason) {
-                xhrDef.cancel(reason);
-            });
-
-            xhrDef.then(function(response) {
-                if (response.status === 200) {
-                    deferred.resolve(true, true);
-                } else {
-                    deferred.resolve(false, true);
-                }
-            }, function(err) {
-                deferred.reject(err, true);
-            }, function(evt) {
-                deferred.progress(evt, true);
-            });
-
-            return deferred;
         },
 
         /**

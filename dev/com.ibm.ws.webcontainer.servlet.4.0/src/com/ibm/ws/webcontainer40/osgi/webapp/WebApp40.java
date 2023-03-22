@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2020 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,8 +27,8 @@ import com.ibm.ws.container.service.metadata.MetaDataService;
 import com.ibm.ws.ffdc.FFDCFilter;
 import com.ibm.ws.managedobject.ManagedObjectService;
 import com.ibm.ws.session.SessionManager;
-import com.ibm.ws.webcontainer.osgi.webapp.WebAppConfiguration;
 import com.ibm.ws.webcontainer.osgi.WebContainer;
+import com.ibm.ws.webcontainer.osgi.webapp.WebAppConfiguration;
 import com.ibm.ws.webcontainer.webapp.WebApp;
 import com.ibm.ws.webcontainer.webapp.WebAppDispatcherContext;
 import com.ibm.ws.webcontainer.webapp.WebAppRequestDispatcher;
@@ -73,7 +75,8 @@ public class WebApp40 extends com.ibm.ws.webcontainer31.osgi.webapp.WebApp31 imp
      */
     @Override
     public int getMajorVersion() {
-        return WebContainer.getServletContainerSpecLevel() == WebContainer.SPEC_LEVEL_50 ? 5 : 4;
+        int level = WebContainer.getServletContainerSpecLevel();
+        return level == WebContainer.SPEC_LEVEL_60 ? 6 : level == WebContainer.SPEC_LEVEL_50 ? 5 : 4;
     }
 
     /*
@@ -160,7 +163,7 @@ public class WebApp40 extends com.ibm.ws.webcontainer31.osgi.webapp.WebApp31 imp
      */
     @Override
     public int getSessionTimeout() {
-        if (withinContextInitOfProgAddListener) {
+        if (withinContextInitOfProgAddListener && (WebContainer.getServletContainerSpecLevel() < WebContainer.SPEC_LEVEL_60)) {
             throw new UnsupportedOperationException(MessageFormat.format(
                                                                          nls.getString("Unsupported.op.from.servlet.context.listener"),
                                                                          new Object[] { "getSessionTimeout", lastProgAddListenerInitialized, getApplicationName() })); // PI41941
@@ -222,7 +225,7 @@ public class WebApp40 extends com.ibm.ws.webcontainer31.osgi.webapp.WebApp31 imp
     @Override
     public String getRequestCharacterEncoding() {
 
-        if (withinContextInitOfProgAddListener) {
+        if (withinContextInitOfProgAddListener && (WebContainer.getServletContainerSpecLevel() < WebContainer.SPEC_LEVEL_60)) {
             throw new UnsupportedOperationException(MessageFormat.format(
                                                                          nls.getString("Unsupported.op.from.servlet.context.listener"),
                                                                          new Object[] { "getRequestCharacterEncoding", lastProgAddListenerInitialized, getApplicationName() }));
@@ -267,7 +270,7 @@ public class WebApp40 extends com.ibm.ws.webcontainer31.osgi.webapp.WebApp31 imp
      */
     @Override
     public String getResponseCharacterEncoding() {
-        if (withinContextInitOfProgAddListener) {
+        if (withinContextInitOfProgAddListener && (WebContainer.getServletContainerSpecLevel() < WebContainer.SPEC_LEVEL_60)) {
             throw new UnsupportedOperationException(MessageFormat.format(
                                                                          nls.getString("Unsupported.op.from.servlet.context.listener"),
                                                                          new Object[] { "getResponseCharacterEncoding", lastProgAddListenerInitialized, getApplicationName() }));
@@ -408,5 +411,4 @@ public class WebApp40 extends com.ibm.ws.webcontainer31.osgi.webapp.WebApp31 imp
 
         return sconfig;
     }
-
 }

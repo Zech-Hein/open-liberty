@@ -1,12 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 IBM Corporation and others.
+ * Copyright (c) 2017, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 package com.ibm.ws.jsf23.fat.tests;
 
@@ -22,7 +21,6 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
@@ -45,28 +43,28 @@ import componenttest.topology.impl.LibertyServer;
 @RunWith(FATRunner.class)
 public class JSF23UIRepeatConditionTests {
 
-    protected static final Class<?> c = JSF23UIRepeatConditionTests.class;
+    private static final Class<?> c = JSF23UIRepeatConditionTests.class;
 
     @Rule
     public TestName name = new TestName();
 
-    @Server("jsf23CDIServer")
-    public static LibertyServer jsf23CDIServer;
+    @Server("jsf23UIRepeatConditionServer")
+    public static LibertyServer server;
 
     @BeforeClass
     public static void setup() throws Exception {
-        ShrinkHelper.defaultDropinApp(jsf23CDIServer, "UIRepeatConditionCheck.war", "com.ibm.ws.jsf23.fat.uirepeat");
+        ShrinkHelper.defaultDropinApp(server, "UIRepeatConditionCheck.war", "com.ibm.ws.jsf23.fat.uirepeat");
 
         // Start the server and use the class name so we can find logs easily.
         // Many tests use the same server.
-        jsf23CDIServer.startServer(JSF23UIRepeatConditionTests.class.getSimpleName() + ".log");
+        server.startServer(JSF23UIRepeatConditionTests.class.getSimpleName() + ".log");
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
         // Stop the server
-        if (jsf23CDIServer != null && jsf23CDIServer.isStarted()) {
-            jsf23CDIServer.stopServer();
+        if (server != null && server.isStarted()) {
+            server.stopServer();
         }
     }
 
@@ -79,13 +77,12 @@ public class JSF23UIRepeatConditionTests {
     public void testUIRepeatCondition() throws Exception {
         String contextRoot = "UIRepeatConditionCheck";
         try (WebClient webClient = new WebClient()) {
-            webClient.setAjaxController(new NicelyResynchronizingAjaxController());
 
             // The initial value expected
             String expected = "0123456789";
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23CDIServer, contextRoot, "UIRepeatBeginEnd.jsf");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "UIRepeatBeginEnd.jsf");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -99,7 +96,7 @@ public class JSF23UIRepeatConditionTests {
 
             String output = page.getElementById("panel1").getTextContent().replaceAll("\\s", "");
 
-            // Test the inital output for the default values of begin = 0, end = 9 and step = 1
+            // Test the initial output for the default values of begin = 0, end = 9 and step = 1
             assertTrue("The output should have been: " + expected + " but was: " + output, output.equals(expected));
 
             // Set step = 2 and ensure we get the proper output
@@ -120,6 +117,10 @@ public class JSF23UIRepeatConditionTests {
 
             // Set step = 1, begin = 4 and end = 6 and ensure we get the proper output
             expected = "456";
+            beginInput = (HtmlTextInput) page.getElementById("beginInput");
+            endInput = (HtmlTextInput) page.getElementById("endInput");
+            stepInput = (HtmlTextInput) page.getElementById("stepInput");
+
             stepInput.setValueAttribute("1");
             beginInput.setValueAttribute("4");
             endInput.setValueAttribute("6");
@@ -154,10 +155,10 @@ public class JSF23UIRepeatConditionTests {
 
             // Ensure the test does not fail due to the error condition we are creating
             webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
-            jsf23CDIServer.addIgnoredErrors(Arrays.asList("SRVE0777E:.*", "SRVE0315E:.*"));
+            server.addIgnoredErrors(Arrays.asList("SRVE0777E:.*", "SRVE0315E:.*"));
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23CDIServer, contextRoot, "UIRepeatEndTooLarge.jsf");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "UIRepeatEndTooLarge.jsf");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 

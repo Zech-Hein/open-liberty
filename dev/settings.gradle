@@ -1,13 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
+
+import org.apache.tools.ant.DirectoryScanner
 
 pluginManagement {
   /**
@@ -59,6 +63,21 @@ pluginManagement {
                   +';index=${build}/oss_source_dependencies.maven')
   props.setProperty('fetch.oss.source.repository', fetchRepoSource)
 
+  String fetchRepoIBMSource = !isUsingArtifactory ?
+          ('aQute.bnd.repository.maven.provider.MavenBndRepository;'
+                  +'name = RemoteIBMSource'
+                  +';local=~/.ibmdhe/repository'
+                  +';releaseUrl=https://public.dhe.ibm.com/ibmdl/export/pub/software/olrepo/'
+                  +';index=${build}/oss_ibm_source_dependencies.maven') :
+
+          ('aQute.bnd.repository.maven.provider.MavenBndRepository'
+                  +';name = RemoteIBMSource'
+                  +';local=~/.ibmartifactory/repository'
+                  +';releaseUrl=' + ('https://' + props.getProperty('artifactory.download.server') + '/artifactory/wasliberty-source-built-maven-local')
+                  +';snapshotUrl=' + ('https://' + props.getProperty('artifactory.download.server') + '/artifactory/wasliberty-source-built-maven-local')
+                  +';index=${build}/oss_ibm_source_dependencies.maven')
+  props.setProperty('fetch.oss.ibm.source.repository', fetchRepoIBMSource)
+
   // Bnd configuration for where to download open source software binaries from.
   // Note: no non-artifactory snapshotUrl because we must not rely on public snapshots
   String fetchRepoPublic = !isUsingArtifactory ?
@@ -80,7 +99,7 @@ pluginManagement {
           ('aQute.bnd.repository.maven.provider.MavenBndRepository'
                   +';name = RemoteIBM'
                   +';local=~/.ibmdhe/repository'
-                  +';releaseUrl=http://public.dhe.ibm.com/ibmdl/export/pub/software/olrepo/'
+                  +';releaseUrl=https://public.dhe.ibm.com/ibmdl/export/pub/software/olrepo/'
                   +';index=${build}/oss_ibm.maven') :
 
           ('aQute.bnd.repository.maven.provider.MavenBndRepository'
@@ -90,19 +109,6 @@ pluginManagement {
                   +';snapshotUrl=' + repoURL
                   +';index=${build}/oss_ibm.maven')
   props.setProperty('fetch.oss.ibm.repository', fetchRepoIBM)
-
-  // Bnd configuration for where to download IBM Java binaries from.
-  String fetchRepoIBMJava = !isUsingArtifactory ?
-          ('aQute.bnd.repository.maven.provider.MavenBndRepository'
-                  +';name = DummyRepo') :
-
-          ('aQute.bnd.repository.maven.provider.MavenBndRepository'
-                  +';local=~/.ibmjava/repository'
-                  +';name = IBMInternalJava'
-                  +';releaseUrl=' + repoURL
-                  +';snapshotUrl=' + repoURL
-                  +';index=${build}/ibm_java.maven')
-  props.setProperty('fetch.ibm.java.repository', fetchRepoIBMJava)
 
   def uploadRepoURL = ('https://' + props.getProperty('artifactory.upload.server') + '/artifactory/wasliberty-open-liberty')
 
@@ -144,6 +150,13 @@ pluginManagement {
           artifact()
         }
       }
+      maven {
+        credentials {
+          username gradle.userProps.getProperty("artifactory.download.user")
+          password gradle.userProps.getProperty("artifactory.download.token")
+        }
+        url ("https://" + gradle.userProps.getProperty("artifactory.download.server") + "/artifactory/wasliberty-maven-remote")
+      }
     } else {
       maven {
         url uri(bnd_repourl)
@@ -152,6 +165,7 @@ pluginManagement {
           artifact()
         }
       }
+      mavenCentral()
       maven {
         url "https://plugins.gradle.org/m2/"
         metadataSources {
@@ -165,13 +179,18 @@ pluginManagement {
 
 // Require Java 11
 if (!JavaVersion.current().isJava11Compatible()) {
-  println "WARNING: Building this repository will soon require Java 11. To use Java 11 follow these steps:\n" + 
+  println "ERROR: Building this repository requires Java 11. To use Java 11 follow these steps:\n" + 
                             "  1) You can download a copy for your OS here if you don't already have it: " + 
-                            "https://adoptopenjdk.net/index.html?variant=openjdk11&jvmVariant=openj9\n" + 
+                            "http://ibm.biz/GetSemeru\n" + 
                             "  2) run 'export JAVA_HOME=/path/to/your/java11' in the shell, or set in ~/.bashrc\n" + 
                             "  3) [MACOS ONLY] Set 'ulimit -Sn 1024' in your ~/.bashrc\n" + 
                             "  4) Restart your gradle daemon with './gradlew --stop'\n";
+        throw new GradleException('Current Java version is not 11 or higher.')
+
 }
+
+//DirectoryScanner.removeDefaultExclude("**/.gitignore")
+//DirectoryScanner.removeDefaultExclude("**/.gitattributes")
 
 apply from: 'wlp-gradle/propertiesSettings.gradle'
 apply from: 'wlp-gradle/bndSettings.gradle'

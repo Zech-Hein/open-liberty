@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2020 IBM Corporation and others.
+ * Copyright (c) 2009, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,6 +18,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.Locale;
+
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -27,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
+import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
 import com.ibm.websphere.simplicity.config.EJBContainerElement;
 import com.ibm.websphere.simplicity.config.EJBTimerServiceElement;
 import com.ibm.websphere.simplicity.config.PersistentExecutor;
@@ -41,6 +46,7 @@ import componenttest.annotation.TestServlets;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.rules.repeater.FeatureReplacementAction;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
@@ -52,6 +58,8 @@ public class PersistentTimerCoreTest extends FATServletClient {
     public static final String CORE_WAR_NAME = "PersistentTimerCoreWeb";
     public static final String MISSED_ACTION_WAR_NAME = "MissedTimerActionWeb";
 
+    private static final boolean isWindows = System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win");
+
     @Server("com.ibm.ws.ejbcontainer.timer.persistent.fat.PersistentTimerServer")
     @TestServlets({ @TestServlet(servlet = TimerAccessOperationsServlet.class, contextRoot = CORE_WAR_NAME),
                     @TestServlet(servlet = TimerSFOperationsServlet.class, contextRoot = CORE_WAR_NAME),
@@ -59,7 +67,9 @@ public class PersistentTimerCoreTest extends FATServletClient {
     public static LibertyServer server;
 
     @ClassRule
-    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.timer.persistent.fat.PersistentTimerServer")).andWith(FeatureReplacementAction.EE8_FEATURES().forServers("com.ibm.ws.ejbcontainer.timer.persistent.fat.PersistentTimerServer")).andWith(new JakartaEE9Action().forServers("com.ibm.ws.ejbcontainer.timer.persistent.fat.PersistentTimerServer"));
+    public static RepeatTests r = isWindows //
+                    ? RepeatTests.with(FeatureReplacementAction.EE8_FEATURES().forServers("com.ibm.ws.ejbcontainer.timer.persistent.fat.PersistentTimerServer")).andWith(new JakartaEE9Action().forServers("com.ibm.ws.ejbcontainer.timer.persistent.fat.PersistentTimerServer")).andWith(new JakartaEE10Action().forServers("com.ibm.ws.ejbcontainer.timer.persistent.fat.PersistentTimerServer")) //
+                    : RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.timer.persistent.fat.PersistentTimerServer")).andWith(FeatureReplacementAction.EE8_FEATURES().forServers("com.ibm.ws.ejbcontainer.timer.persistent.fat.PersistentTimerServer")).andWith(new JakartaEE9Action().forServers("com.ibm.ws.ejbcontainer.timer.persistent.fat.PersistentTimerServer")).andWith(new JakartaEE10Action().forServers("com.ibm.ws.ejbcontainer.timer.persistent.fat.PersistentTimerServer"));
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -71,7 +81,7 @@ public class PersistentTimerCoreTest extends FATServletClient {
         EnterpriseArchive InitTxRecoveryLogApp = ShrinkWrap.create(EnterpriseArchive.class, "InitTxRecoveryLogApp.ear");
         InitTxRecoveryLogApp.addAsModule(InitTxRecoveryLogEJBJar);
 
-        ShrinkHelper.exportDropinAppToServer(server, InitTxRecoveryLogApp);
+        ShrinkHelper.exportDropinAppToServer(server, InitTxRecoveryLogApp, DeployOptions.SERVER_ONLY);
 
         //#################### MissedTimerActionApp.ear
         JavaArchive MissedTimerActionEJB = ShrinkHelper.buildJavaArchive("MissedTimerActionEJB.jar", "com.ibm.ws.ejbcontainer.timer.persistent.missed.ejb.");
@@ -80,7 +90,7 @@ public class PersistentTimerCoreTest extends FATServletClient {
         EnterpriseArchive MissedTimerActionApp = ShrinkWrap.create(EnterpriseArchive.class, "MissedTimerActionApp.ear");
         MissedTimerActionApp.addAsModule(MissedTimerActionEJB).addAsModule(MissedTimerActionWeb);
 
-        ShrinkHelper.exportDropinAppToServer(server, MissedTimerActionApp);
+        ShrinkHelper.exportDropinAppToServer(server, MissedTimerActionApp, DeployOptions.SERVER_ONLY);
 
         //#################### PersistentTimerCoreApp.ear
         JavaArchive PersistentTimerCoreEJB = ShrinkHelper.buildJavaArchive("PersistentTimerCoreEJB.jar", "com.ibm.ws.ejbcontainer.timer.persistent.core.ejb.");
@@ -91,7 +101,7 @@ public class PersistentTimerCoreTest extends FATServletClient {
         PersistentTimerCoreApp.addAsModule(PersistentTimerCoreEJB).addAsModule(PersistentTimerCoreWeb);
         PersistentTimerCoreApp = (EnterpriseArchive) ShrinkHelper.addDirectory(PersistentTimerCoreApp, "test-applications/PersistentTimerCoreApp.ear/resources");
 
-        ShrinkHelper.exportDropinAppToServer(server, PersistentTimerCoreApp);
+        ShrinkHelper.exportDropinAppToServer(server, PersistentTimerCoreApp, DeployOptions.SERVER_ONLY);
 
         // Finally, start server
         server.startServer();

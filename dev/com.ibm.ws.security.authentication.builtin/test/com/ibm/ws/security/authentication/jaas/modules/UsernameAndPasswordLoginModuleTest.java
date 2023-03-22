@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,6 +27,7 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
+import com.ibm.ws.security.authentication.AuthenticationService;
 
 import org.hamcrest.Description;
 import org.jmock.Expectations;
@@ -85,6 +88,7 @@ public class UsernameAndPasswordLoginModuleTest extends LoginModuleTester {
     private final UserRegistry userRegistry = mock.mock(UserRegistry.class);
     private final ServiceReference<CredentialsService> credentialsServiceRef = mock.mock(ServiceReference.class, "credentialsServiceRef");
     private final CredentialsService credentialsService = mock.mock(CredentialsService.class);
+    private final AuthenticationService authenticationService = mock.mock(AuthenticationService.class);
     private final JAASServiceImpl jaasServiceCollab = new JAASServiceImpl();
     private final SingleSignonToken ssoToken = mock.mock(SingleSignonToken.class, "ssoToken");
     private final ServiceReference<JAASConfigurationFactory> jaasConfigurationFactoryRef = mock.mock(ServiceReference.class, "Test" + JAASServiceImpl.KEY_JAAS_CONFIG_FACTORY
@@ -101,6 +105,8 @@ public class UsernameAndPasswordLoginModuleTest extends LoginModuleTester {
 
     @Before
     public void setUp() throws Exception {
+        LoginModuleHelper.setTestJaasService(jaasServiceCollab); // No OSGi component to lookup in the runtime, so override
+
         mock.checking(new Expectations() {
             {
                 // This expectation is to allow the JAAS stuff to activate
@@ -113,6 +119,8 @@ public class UsernameAndPasswordLoginModuleTest extends LoginModuleTester {
                 will(returnValue(userRegistryService));
                 allowing(userRegistryService).getUserRegistry();
                 will(returnValue(userRegistry));
+                allowing(authenticationService).isUseDisplayNameForSecurityName();
+                will(returnValue(false));
                 allowing(cc).locateService(JAASServiceImpl.KEY_CREDENTIALS_SERVICE, credentialsServiceRef);
                 will(returnValue(credentialsService));
                 allowing(cc).locateService(JAASServiceImpl.KEY_JAAS_CONFIG_FACTORY, jaasConfigurationFactoryRef);
@@ -125,6 +133,7 @@ public class UsernameAndPasswordLoginModuleTest extends LoginModuleTester {
         });
         jaasServiceCollab.setJaasConfigurationFactory(jaasConfigurationFactoryRef);
         jaasServiceCollab.setUserRegistryService(userRegistryServiceRef);
+        jaasServiceCollab.setAuthenticationService(authenticationService);
         jaasServiceCollab.setCredentialsService(credentialsServiceRef);
         jaasServiceCollab.activate(cc, null);
     }

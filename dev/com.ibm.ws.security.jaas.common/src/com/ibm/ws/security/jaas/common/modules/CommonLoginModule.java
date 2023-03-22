@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -70,21 +72,27 @@ public abstract class CommonLoginModule implements LoginModule {
 
     private void cleanup() {
         cleanUpSubject();
-        if (subject != null && !subject.isReadOnly()) {
-            AccessController.doPrivileged(new PrivilegedAction<Object>() {
-                @Override
-                public Object run() {
-                    Set<Principal> principals = subject.getPrincipals();
-                    principals.removeAll(subject.getPrincipals());
-                    Set<Object> publicCredentials = subject.getPublicCredentials();
-                    publicCredentials.removeAll(subject.getPublicCredentials());
-                    Set<Object> privateCredentials = subject.getPrivateCredentials();
-                    privateCredentials.removeAll(subject.getPrivateCredentials());
-                    return null;
-                }
-            });
-            subject = null;
+        try {
+            if (subject != null && !subject.isReadOnly()) {
+                AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                    @Override
+                    public Object run() {
+                        Set<Principal> principals = subject.getPrincipals();
+                        principals.removeAll(subject.getPrincipals());
+                        Set<Object> publicCredentials = subject.getPublicCredentials();
+                        publicCredentials.removeAll(subject.getPublicCredentials());
+                        Set<Object> privateCredentials = subject.getPrivateCredentials();
+                        privateCredentials.removeAll(subject.getPrivateCredentials());
+                        return null;
+                    }
+                });
+                subject = null;
+            }
         }
+        catch (Exception e) {
+            //This is to avoid Subject.isReadOnly() error.
+        }
+
     }
 
     /**

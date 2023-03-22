@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -126,7 +128,6 @@ public class SessionImpl {
 
         // doPriv is needed if this method  is called from client/User code, since the user code on the stack will not have the right privileges.
         // if called form server code, then all modules on the stack should have the right privileges, and no use to slow down the code with doPriv blocks
-        ClassLoader originalCL = null;
 
         ComponentMetaDataAccessorImpl cmdai = null;
         boolean appActivateResult = false;
@@ -137,9 +138,12 @@ public class SessionImpl {
 
         connLink.setEndpointManager(things.getEndpointManager());
 
-        // Not sure if we should do this right before or right after onOpen, spec is ambigioius, seems like right before is better.
-        userProperties = new HashMap<String, Object>();
-        things.setUserProperties(userProperties);
+        if (WebSocketVersionServiceManager.isWsoc21OrHigher()) {
+            things.setUserProperties(endpointConfig.getUserProperties());
+        } else {
+            userProperties = new HashMap<String, Object>();
+            things.setUserProperties(userProperties);
+        }
 
         things.setSessionID(sessionID);
 
@@ -151,6 +155,7 @@ public class SessionImpl {
 
         // setup the context class loader and Component Metadata for the app to use during onOpen
         // also need to store and restore the current context classloader and not leak out the Component Metadata
+        final ClassLoader originalCL;
         if (runWithDoPriv) {
             final Thread t = Thread.currentThread();
             originalCL = AccessController.doPrivileged(
@@ -234,7 +239,17 @@ public class SessionImpl {
             if (cmdai != null) {
                 cmdai.endContext();
             }
-            Thread.currentThread().setContextClassLoader(originalCL);
+            if (runWithDoPriv) {
+                AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                    @Override
+                    public Void run() {
+                        Thread.currentThread().setContextClassLoader(originalCL);
+                        return null;
+                    }
+                });
+            } else {
+                Thread.currentThread().setContextClassLoader(originalCL);
+            }
         }
 
         // Once we do this, we could return on another thread right away with read data.  So be careful about putting any session logic after

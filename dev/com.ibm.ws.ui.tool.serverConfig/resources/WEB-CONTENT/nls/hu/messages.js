@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +21,8 @@ var editorMessages = {
 "REMOVE": "Eltávolítás",
 "TEST" : "Teszt",
 "TEST_CONNECTION": "Kapcsolat tesztelése",
+"TEST_CONNECTION_DESCRIPTION": "Tesztelje a kapcsolatot",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "A kapcsolat teszteléséhez mentse a módosításokat",
 "DESCRIPTION": "Leírás",
 "PREVIOUS": "Előző",
 "NEXT": "Következő",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "Elem eltávolítása párbeszédablak",
 "VALIDATE_DATASOURCE_DIALOG": "Adatforrás-kapcsolat érvényesítése párbeszédpanel",
 "VALIDATE_DATASOURCE": "Adatforrás-kapcsolat tesztelése",
+"VALIDATE_CONNECTION_DIALOG":"Kapcsolat érvényesítése párbeszédablak",
+"DEFAULT_AUTHENTICATION_ALIAS":"Alapértelmezett hitelesítés",
+"SPECIFY_AUTHENTICATION_ALIAS":"Hitelesítési álnév megadása",
+"LOGIN_CONFIG":"Bejelentkezési konfiguráció",
+"LOGIN_CONFIG_ID":"Bejelentkezési konfiguráció azonosítója",
+"ADD_LOGIN_CONFIG_PROPERTY":"Bejelentkezési konfigurációs tulajdonság hozzáadása",
+"KEY":"Kulcs",
+"CHOOSE_AN_OPTION":"Válasszon ki egy beállítást",
 "ENUMERATION_SELECTION_DIALOG": "Felsorolás választási párbeszédablak",
 "SAVE_BEFORE_CLOSING_DIALOG": "Mentés bezárás előtt párbeszédablak",
 "ERROR_SAVING_FILE_DIALOG": "Hiba a fájl mentésekor párbeszédablak",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "Hitelesítési álnév (Elhagyható)",
 "AUTH_ALIAS": "Hitelesítési álnév",
 "CONTAINER_AUTHENTICATION": "Tároló hitelesítés",
+"RESOURCE_REFERENCE": "Erőforrás-hivatkozás",
 "NO_RESOURCE_REFERENCE": "Nincs erőforrás-hivatkozás",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "Tesztelje a kapcsolatot olyan erőforrás-hivatkozás használatával, amely alkalmazáshitelesítéssel végzi a hitelesítést.",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "Tesztelje a kapcsolatot olyan erőforrás-hivatkozás használatával, amely tárolóhitelesítéssel végzi a hitelesítést.",
+"RESOURCE_REFERENCE_IN_USE": "A közvetlen kikeresések tárolóhitelesítése engedélyezett. A kapcsolatteszt a beállított alapértelmezett tárolóhitelesítési adatokat használja.",
+"NO_RESOURCE_REFERENCE_IN_USE": "A kapcsolat tesztelése erőforrás-hivatkozás használata nélkül.",
 "APPLICATION_AUTHENTICATION": "Alkalmazáshitelesítés",
 "CUSTOM_LOGIN_MODULE": "Egyéni bejelentkezési modul (Elhagyható)",
 "LOGIN_PROPERTIES": "Bejelentkezési tulajdonságok (Elhagyható)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "Válasszon ki egy szolgáltatást a leírásának megtekintéséhez.",
 "SUPPORT_MESSAGE" : "Nem érhető el kiszolgálóbeállítás a Node.js kiszolgálókra és a kollektív vezérlőn keresztül elért Docker tároló kiszolgálókra.",
 "NO_ROLE_MESSAGE": "A felhasználó nem olyan szerephez tartozik, amelynek engedélye van konfigurációs módosítások végrehajtására. A fájlok írásvédett módban érhetők el.",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "KOLLEKTÍVA TAGOK ESETÉN SZÜKSÉGES MŰVELETEK:",
 "RUN_UPDATE_HOST" : "Futtassa a 'collective updateHost' vagy 'collective registerHost' parancsot a '--hostWritePath' paraméterrel, olyan útvonal megadásával, amelyhez az rpcUser felhasználónak írási engedélye van.  Az érvényes hoszt hitelesítési adatokat szintén meg kell adnia.",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "Hivatkozás létrehozása a JAVA-hoz az /usr/bin könyvtárban. Például:  /usr/bin/java -> [pathToJAVA]",
 "JAVA_ON_PATH" : "JAVA hozzáadása a PATH környezeti változóhoz.  Linuxon el kell végezni a PATH exportálását a .bashrc fájlba.", 
 "MORE_INFORMATION" : "További információkért lásd: "
-
 };

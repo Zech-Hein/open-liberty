@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2020 IBM Corporation and others.
+ * Copyright (c) 1997, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,6 +27,7 @@ import com.ibm.ws.http.channel.h2internal.frames.FrameFactory;
 import com.ibm.ws.http.channel.h2internal.frames.FrameRstStream;
 import com.ibm.ws.http.channel.internal.HttpMessages;
 import com.ibm.wsspi.bytebuffer.WsByteBuffer;
+import com.ibm.wsspi.kernel.service.utils.FrameworkState;
 
 public class FrameReadProcessor {
 
@@ -61,7 +64,7 @@ public class FrameReadProcessor {
      * @throws ProtocolException
      *
      */
-    public void processCompleteFrame() throws Http2Exception {
+    public void processCompleteFrame() throws Exception {
         Frame currentFrame = getCurrentFrame();
 
         boolean frameSizeError = false;
@@ -99,6 +102,15 @@ public class FrameReadProcessor {
                     throw new ProtocolException("Cannot start a stream from the client with an even numbered ID. stream-id: " + streamId);
                 }
             } else {
+                if (FrameworkState.isStopping()){
+                    if (tc.isDebugEnabled()) {
+                        Tr.debug(tc, "processCompleteFrame: server is stopping so this new stream will be rejected");
+                    }
+                    // the server is stopping, so we don't want to accept a new stream - invoke close(vc, e) to (potentially) trigger a GOAWAY
+                    muxLink.close(null, null);
+                    return;
+                }
+
                 if (!currentFrame.getFrameType().equals(FrameTypes.PRIORITY)) {
                     muxLink.updateHighestStreamId(streamId);
                 }

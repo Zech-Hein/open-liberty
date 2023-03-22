@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,12 +13,10 @@
 package com.ibm.ws.security.javaeesec.cdi.beans;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -56,7 +56,7 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 
 import com.ibm.ws.cdi.CDIService;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.security.javaeesec.CDIHelperTestWrapper;
 import com.ibm.ws.webcontainer.security.WebAppSecurityConfig;
 
@@ -200,7 +200,7 @@ public class FormAuthenticationMechanismTest {
         IdentityStoreHandler mish = new MyIdentityStoreHandler();
         withMessageContext();
         withUsernamePassword(USER1, "invalid").withAuthenticationRequest(false);
-        withIDSBeanInstance(ids, false, false).withIDSHandlerBeanInstance(mish).withSetStatusToResponse(HttpServletResponse.SC_UNAUTHORIZED);
+        withIDSBeanInstance(ids, false, false).withIDSHandlerBeanInstance(mish).withResponseUnauthorized();
 
         AuthenticationStatus status = fam.validateRequest(request, res, hmc);
         assertEquals("The result should be SEND_FAILURE", AuthenticationStatus.SEND_FAILURE, status);
@@ -234,7 +234,7 @@ public class FormAuthenticationMechanismTest {
         final MyCallbackHandler mch = new MyCallbackHandler();
         withMessageContext().withHandler(mch);
         withUsernamePassword(USER1, "invalid").withAuthenticationRequest(false);
-        withIDSBeanInstance(null, false, true).withSetStatusToResponse(HttpServletResponse.SC_UNAUTHORIZED);
+        withIDSBeanInstance(null, false, true).withResponseUnauthorized();
 
         AuthenticationStatus status = fam.validateRequest(request, res, hmc);
         assertEquals("The result should be SEND_FAILURE", AuthenticationStatus.SEND_FAILURE, status);
@@ -256,7 +256,7 @@ public class FormAuthenticationMechanismTest {
         IdentityStoreHandler mish = new MyIdentityStoreHandler();
         withMessageContext();
         withUsernamePassword(USER1, "invalid").withAuthenticationRequest(true);
-        withIDSBeanInstance(ids, false, false).withIDSHandlerBeanInstance(mish).withSetStatusToResponse(HttpServletResponse.SC_UNAUTHORIZED);
+        withIDSBeanInstance(ids, false, false).withIDSHandlerBeanInstance(mish).withResponseUnauthorized();
 
         AuthenticationStatus status = fam.validateRequest(request, res, hmc);
         assertEquals("The result should be SEND_FAILURE", AuthenticationStatus.SEND_FAILURE, status);
@@ -278,7 +278,7 @@ public class FormAuthenticationMechanismTest {
         final MyCallbackHandler mch = new MyCallbackHandler();
         withMessageContext().withHandler(mch);
         withUsernamePassword(USER1, "invalid").withAuthenticationRequest(true);
-        withIDSBeanInstance(null, false, true).withSetStatusToResponse(HttpServletResponse.SC_UNAUTHORIZED);
+        withIDSBeanInstance(null, false, true).withResponseUnauthorized();
 
         AuthenticationStatus status = fam.validateRequest(request, res, hmc);
         assertEquals("The result should be SEND_FAILURE", AuthenticationStatus.SEND_FAILURE, status);
@@ -305,7 +305,7 @@ public class FormAuthenticationMechanismTest {
     public void testValidateRequestAuthReqTrueValidIdAndPWNoIdentityStoreHandlerNoCallbackHandler() throws Exception {
         withMessageContext().withHandler(null);
         withUsernamePassword(USER1, PASSWORD1).withAuthenticationRequest(true);
-        withIDSBeanInstance(null, false, true).withSetStatusToResponse(HttpServletResponse.SC_UNAUTHORIZED);
+        withIDSBeanInstance(null, false, true).withResponseUnauthorized();
 
         fam.validateRequest(request, res, hmc);
     }
@@ -504,6 +504,15 @@ public class FormAuthenticationMechanismTest {
         mockery.checking(new Expectations() {
             {
                 one(res).setStatus(value);
+            }
+        });
+        return this;
+    }
+
+    private FormAuthenticationMechanismTest withResponseUnauthorized() {
+        mockery.checking(new Expectations() {
+            {
+                one(hmc).responseUnauthorized();
             }
         });
         return this;

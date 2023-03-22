@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -23,6 +25,8 @@
 
 @import url("preferences.css");
 
+@import url("preferencesExcludeValidator.css");
+
 @import url("tablet.css");
 
 @import url("toolDetails.css");
@@ -30,22 +34,22 @@
 @import url("../../../../com.ibm.ws.ui.shared/resources/WEB-CONTENT/cssShared/dialog.css");
 
 @font-face {
-    font-family: 'HelvNeueRoman';
-    src: url('../fonts/helvetica-neue-roman.woff');
+    font-family: "IBM Plex Sans Regular";
+    src: url("../fonts/IBMPlexSans-Regular.woff");
 }
 
 * {
-    font-family: 'HelvNeueRoman', Helvetica, Arial, sans-serif;
+    font-family: 'IBM Plex Sans Regular', Helvetica, Arial, sans-serif;
     font-weight: normal;
 }
 
 .oneui {
-    font-family: 'HelvNeueRoman', Helvetica, Arial, sans-serif;
+    font-family: 'IBM Plex Sans Regular', Helvetica, Arial, sans-serif;
     font-weight: normal;
 }
 
 .mobile .mblTextBox {
-    font-family: 'HelvNeueRoman', Helvetica, Arial, sans-serif;
+    font-family: 'IBM Plex Sans Regular', Helvetica, Arial, sans-serif;
     font-weight: normal;
 }
 
@@ -76,4 +80,9 @@
 
 .skipToContent:visited {
     color: #FFFFFF;
+}
+
+/* high contrast css */
+.a11yHighContrastMode .skipToContent:focus {
+    outline: 2px solid;
 }

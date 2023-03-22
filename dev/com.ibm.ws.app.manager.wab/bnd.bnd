@@ -1,26 +1,29 @@
 #*******************************************************************************
-# Copyright (c) 2017 IBM Corporation and others.
+# Copyright (c) 2017, 2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 -nouses=true
 bVersion=1.0
 
-Bundle-Name: WebSphere OSGi Web Application Support
-Bundle-SymbolicName: com.ibm.ws.app.manager.wab; singleton:=true
-Bundle-Description: WebSphere OSGi Web Application Support, version ${bVersion}
 
 Private-Package: com.ibm.ws.app.manager.wab*
 
 -dsannotations: \
   com.ibm.ws.app.manager.wab.internal.WABInstaller, \
-  com.ibm.ws.app.manager.wab.internal.WABExtensionFactory
+  com.ibm.ws.app.manager.wab.internal.WABExtensionFactory, \
+  com.ibm.ws.app.manager.wab.internal.WABCheckpointHook
 
 
 Export-Package: com.ibm.wsspi.wab.configure, \
@@ -35,11 +38,11 @@ IBM-Default-Config: OSGI-INF/wlp/defaultInstances.xml
 
 instrument.classesExcludes: com/ibm/ws/app/manager/wab/internal/resources/*.class
 
-jakartaeeMe: true
 
 -buildpath: \
 	com.ibm.websphere.javaee.servlet.3.0;version=latest,\
 	com.ibm.ws.container.service;version=latest,\
+	com.ibm.ws.kernel.boot.common;version=latest,\
 	com.ibm.ws.kernel.feature.core;version=latest,\
 	com.ibm.websphere.appserver.spi.kernel.service,\
 	com.ibm.websphere.org.osgi.core,\

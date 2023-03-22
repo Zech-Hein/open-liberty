@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,6 +15,7 @@ package com.ibm.ws.wsat.service.impl;
 import javax.xml.bind.JAXBElement;
 
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
+import org.apache.cxf.ws.addressing.EndpointReferenceUtils;
 import org.apache.cxf.ws.addressing.ReferenceParametersType;
 
 import com.ibm.websphere.ras.Tr;
@@ -22,7 +25,6 @@ import com.ibm.ws.wsat.common.impl.WSATCoordinator;
 import com.ibm.ws.wsat.common.impl.WSATCoordinatorTran;
 import com.ibm.ws.wsat.common.impl.WSATParticipant;
 import com.ibm.ws.wsat.common.impl.WSATTransaction;
-import com.ibm.ws.wsat.cxf.utils.WSATCXFUtils;
 import com.ibm.ws.wsat.service.WSATContext;
 import com.ibm.ws.wsat.service.WSATException;
 import com.ibm.ws.wsat.service.WSATFault;
@@ -72,7 +74,7 @@ public class RegistrationImpl {
             }
         }
 
-        EndpointReferenceType epr = WSATCXFUtils.duplicate(registrationEndpoint);
+        EndpointReferenceType epr = EndpointReferenceUtils.duplicate(registrationEndpoint);
         ReferenceParametersType refs = new ReferenceParametersType();
 
         refs.getAny().add(new JAXBElement<String>(Constants.WS_WSAT_CTX_REF, String.class, global));

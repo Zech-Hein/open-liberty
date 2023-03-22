@@ -1,12 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2021 IBM Corporation and others.
+ * Copyright (c) 1997, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 package com.ibm.wsspi.webcontainer;
 
@@ -20,6 +19,8 @@ import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.webcontainer.WebContainer;
 import com.ibm.ws.webcontainer.osgi.osgi.WebContainerConstants;
+
+import io.openliberty.checkpoint.spi.CheckpointPhase;
 
 /**
  * 
@@ -144,7 +145,7 @@ public class WCCustomProperties {
     public static boolean KEEP_UNREAD_DATA; //PM18453
     public static boolean PARSE_UTF8_POST_DATA; //PM20484
     
-    public static boolean LOCALE_DEPENDENT_DATE_FORMATTER;//PM25931, this has been added if any customer is dependet on current behavior.
+    public static boolean LOCALE_DEPENDENT_DATE_FORMATTER;//PM25931, this has been added if any customer is dependent on current behavior.
     //End 7.0.0.15
     
     //Start 7.0.0.19
@@ -324,6 +325,9 @@ public class WCCustomProperties {
 
     //21.0.0.6
     public static boolean EXCLUDE_ALL_HANDLED_TYPES_CLASSES;
+    
+    //23.0.0.1
+    public static boolean SKIP_ENCODED_CHAR_VERIFICATION;
 
     static {
         setCustomPropertyVariables(); //initializes all the variables
@@ -419,6 +423,7 @@ public class WCCustomProperties {
         WCCustomProperties.FullyQualifiedPropertiesMap.put("redirecttorelativeurl", "com.ibm.ws.webcontainer.redirecttorelativeurl");
         WCCustomProperties.FullyQualifiedPropertiesMap.put("sethtmlcontenttypeonerror", "com.ibm.ws.webcontainer.sethtmlcontenttypeonerror"); //PH34054
         WCCustomProperties.FullyQualifiedPropertiesMap.put("excludeallhandledtypesclasses", "com.ibm.ws.webcontainer.excludeallhandledtypesclasses");
+        WCCustomProperties.FullyQualifiedPropertiesMap.put("skipencodedcharverification", "com.ibm.ws.webcontainer.skipencodedcharverification");
     }
 
     //some properties require "com.ibm.ws.webcontainer." on the front
@@ -626,7 +631,7 @@ public class WCCustomProperties {
         KEEP_UNREAD_DATA = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.keepunreadpostdataafterresponsesenttoclient", "false")).booleanValue(); //PM18453
         PARSE_UTF8_POST_DATA = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.parseutf8postdata", "false")).booleanValue(); //PM20484
         
-        LOCALE_DEPENDENT_DATE_FORMATTER = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.localedependentdateformatter")).booleanValue(); //PM25931, this has been added if any customer is dependet on current behavior.
+        LOCALE_DEPENDENT_DATE_FORMATTER = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.localedependentdateformatter")).booleanValue(); //PM25931, this has been added if any customer is dependent on current behavior.
         //End 7.0.0.15
         
         //Start 7.0.0.19
@@ -696,7 +701,7 @@ public class WCCustomProperties {
         //End 8.0.0.4
         
         //Start Liberty
-        DEFER_SERVLET_LOAD = Boolean.valueOf(customProps.getProperty("deferservletload")); //Liberty to override delayed load/init
+        DEFER_SERVLET_LOAD = CheckpointPhase.getPhase() == CheckpointPhase.INACTIVE && Boolean.valueOf(customProps.getProperty("deferservletload")); //Liberty to override delayed load/init
 
         
         
@@ -754,9 +759,6 @@ public class WCCustomProperties {
         EMPTY_SERVLET_MAPPINGS =  Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.emptyservletmappings")).booleanValue(); //PI23529
         SERVLET31_PRIVATE_BUFFERSIZE_FOR_LARGE_POST_DATA = Integer.valueOf(customProps.getProperty("servlet31.private.buffersizeforlargepostdata", (new Integer(Integer.MAX_VALUE/16)).toString())).intValue();
         if (SERVLET31_PRIVATE_BUFFERSIZE_FOR_LARGE_POST_DATA < 1) SERVLET31_PRIVATE_BUFFERSIZE_FOR_LARGE_POST_DATA = Integer.MAX_VALUE/16;
-       
-        //Start 8.5.5.5 CD
-        DEFER_SERVLET_REQUEST_LISTENER_DESTROY_ON_ERROR =  Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.deferservletrequestlistenerdestroyonerror")).booleanValue(); //PI26908
         
         // Start 8.5.5.6 CD
         ALLOW_EXPRESSION_FACTORY_PER_APP = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.jsp.allowexpressionfactoryperapp")).booleanValue(); // PI31922
@@ -808,9 +810,18 @@ public class WCCustomProperties {
         //21.0.0.4
         SET_HTML_CONTENT_TYPE_ON_ERROR = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.sethtmlcontenttypeonerror", "true")).booleanValue();
 
+        //23.0.0.1 - Servlet 6.0
+        SKIP_ENCODED_CHAR_VERIFICATION = (Boolean.valueOf(customProps.getProperty("com.ibm.ws.webcontainer.skipencodedcharverification"))).booleanValue();
+        
         //Default for Servlet 5.0 +
         if(com.ibm.ws.webcontainer.osgi.WebContainer.getServletContainerSpecLevel() >= com.ibm.ws.webcontainer.osgi.WebContainer.SPEC_LEVEL_50) {
-            DISABLE_X_POWERED_BY = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.disablexpoweredby","true")).booleanValue();
+            if(com.ibm.ws.webcontainer.osgi.WebContainer.getServletContainerSpecLevel() >= com.ibm.ws.webcontainer.osgi.WebContainer.SPEC_LEVEL_60) {
+                // If Servlet 6.0 or later don't allow DISABLE_X_POWERED_BY to be configured. It will always be disabled regardless of what anyone configures in
+                // the server.xml.
+                DISABLE_X_POWERED_BY = true;
+            } else {
+                DISABLE_X_POWERED_BY = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.disablexpoweredby","true")).booleanValue();
+            }
             STOP_APP_STARTUP_ON_LISTENER_EXCEPTION = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.stopappstartuponlistenerexception" , "true")).booleanValue();
             DECODE_URL_PLUS_SIGN = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.decodeurlplussign", "false")).booleanValue(); 
             ALLOW_QUERY_PARAM_WITH_NO_EQUAL = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.allowqueryparamwithnoequal", "true")).booleanValue();
@@ -818,6 +829,9 @@ public class WCCustomProperties {
             EXCLUDE_ALL_HANDLED_TYPES_CLASSES = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.excludeallhandledtypesclasses", "true")).booleanValue();
             //21.0.0.10
             ENABLE_POST_ONLY_J_SECURITY_CHECK = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.enablepostonlyjsecuritycheck", "true")).booleanValue(); //18368
+            //21.0.0.11
+            DEFER_SERVLET_REQUEST_LISTENER_DESTROY_ON_ERROR =  Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.deferservletrequestlistenerdestroyonerror", "true")).booleanValue(); //PI26908
+
         } else {
             DISABLE_X_POWERED_BY = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.disablexpoweredby","false")).booleanValue();
             STOP_APP_STARTUP_ON_LISTENER_EXCEPTION = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.stopappstartuponlistenerexception" , "false")).booleanValue();
@@ -826,6 +840,9 @@ public class WCCustomProperties {
             //21.0.0.6
             EXCLUDE_ALL_HANDLED_TYPES_CLASSES = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.excludeallhandledtypesclasses", "false")).booleanValue();
             ENABLE_POST_ONLY_J_SECURITY_CHECK = Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.enablepostonlyjsecuritycheck", "false")).booleanValue(); 
+
+            DEFER_SERVLET_REQUEST_LISTENER_DESTROY_ON_ERROR =  Boolean.valueOf(WebContainer.getWebContainerProperties().getProperty("com.ibm.ws.webcontainer.deferservletrequestlistenerdestroyonerror", "false")).booleanValue(); //PI26908
+
         }
         
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
@@ -834,7 +851,9 @@ public class WCCustomProperties {
                                      "DECODE_URL_PLUS_SIGN [" + DECODE_URL_PLUS_SIGN + "], " +
                                      "ALLOW_QUERY_PARAM_WITH_NO_EQUAL [" + ALLOW_QUERY_PARAM_WITH_NO_EQUAL + "], " +
                                      "EXCLUDE_ALL_HANDLED_TYPES_CLASSES [" + EXCLUDE_ALL_HANDLED_TYPES_CLASSES + "], " +
-                                     "ENABLE_POST_ONLY_J_SECURITY_CHECK [" + ENABLE_POST_ONLY_J_SECURITY_CHECK + "]");
+                                     "ENABLE_POST_ONLY_J_SECURITY_CHECK [" + ENABLE_POST_ONLY_J_SECURITY_CHECK + "], " + 
+                                     "DEFER_SERVLET_REQUEST_LISTENER_DESTROY_ON_ERROR [" + DEFER_SERVLET_REQUEST_LISTENER_DESTROY_ON_ERROR + "], " +
+                                     "ALLOW_QUERY_PARAM_WITH_NO_EQUAL [" + ALLOW_QUERY_PARAM_WITH_NO_EQUAL + "]");
         }
     }
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017,2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -139,7 +141,7 @@ public class JMXTest {
         final String mbeanClassName = info.getClassName();
         assertTrue("com.ibm.ws.jmx.internal.ReadOnlyConfigurationAdmin".equals(mbeanClassName));
 
-        // Sanity check with a few other OSGi JMX MBeans.
+        // Test with a few other OSGi JMX MBeans.
         // Ensures the delayed registration is working correctly.
         //this ObjectName is also ObjectNameConstants.OSGI_FRAMEWORK_MBEAN_NAME
         info = getMBeanInfo(server, new ObjectName("osgi.core:type=framework,version=1.7,*"));

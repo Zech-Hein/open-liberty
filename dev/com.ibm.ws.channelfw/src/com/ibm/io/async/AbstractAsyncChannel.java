@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2007 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -129,10 +131,10 @@ public abstract class AbstractAsyncChannel implements Channel {
      * OS memory.
      *
      * @param theBuffer
-     *            the direct byte buffer.
+     *                      the direct byte buffer.
      * @return the OS address as a <code>long</code>.
      * @throws IllegalArgumentException
-     *             if the buffer is not direct.
+     *                                      if the buffer is not direct.
      */
     static long getBufAddress(ByteBuffer theBuffer) {
         /*
@@ -313,12 +315,12 @@ public abstract class AbstractAsyncChannel implements Channel {
     /**
      * Performs a read or write operation.
      *
-     * @param buffers -
-     *            a Direct ByteBuffer array for the operation
+     * @param buffers  -
+     *                     a Direct ByteBuffer array for the operation
      * @param position -
-     *            a position in a file for the operation.
-     * @param isRead -
-     *            true for a read operation, false for a write operation
+     *                     a position in a file for the operation.
+     * @param isRead   -
+     *                     true for a read operation, false for a write operation
      * @return a future representing the IO operation underway
      */
     IAsyncFuture multiIO(ByteBuffer[] buffers, long position, boolean isRead, boolean forceQueue, long bytesRequested, boolean useJITBuffer, VirtualConnection vci,
@@ -328,7 +330,7 @@ public abstract class AbstractAsyncChannel implements Channel {
             Tr.entry(tc, "multiIO(.," + position + "," + isRead + "," + forceQueue + "," + bytesRequested + "," + useJITBuffer + ",.," + asyncIO);
         }
 
-        // Sanity check on the arguments
+        // Evaluate the arguments
         if (buffers == null) {
             throw new IllegalArgumentException();
         }

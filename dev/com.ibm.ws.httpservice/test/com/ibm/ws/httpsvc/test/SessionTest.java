@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2018 IBM Corporation and others.
+ * Copyright (c) 2009, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -52,6 +54,9 @@ import com.ibm.wsspi.http.HttpInputStream;
 import com.ibm.wsspi.http.HttpRequest;
 import com.ibm.wsspi.http.HttpResponse;
 import com.ibm.wsspi.http.SSLContext;
+import com.ibm.wsspi.http.channel.values.HttpHeaderKeys;
+
+import io.openliberty.http.ext.HttpRequestExt;
 
 /**
  * Test session related apis.
@@ -117,7 +122,7 @@ public class SessionTest {
         }
     }
 
-    private class MockRequest implements HttpRequest {
+    private class MockRequest implements HttpRequestExt {
         public String uri = null;
 
         public MockRequest() {
@@ -155,7 +160,17 @@ public class SessionTest {
         }
 
         @Override
+        public String getHeader(HttpHeaderKeys key) {
+            return null;
+        }
+
+        @Override
         public List<String> getHeaderNames() {
+            return null;
+        }
+
+        @Override
+        public Set<String> getHeaderNamesSet() {
             return null;
         }
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2020 IBM Corporation and others.
+ * Copyright (c) 2004, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,8 @@
 package com.ibm.ws.http.channel.internal.cookies;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
@@ -53,11 +57,11 @@ public class CookieUtils {
      * given header is not supported or is unknown, then a simple name=value
      * string will be returned.
      *
-     * @param cookie The cookie object that needs to be serialized
+     * @param cookie                The cookie object that needs to be serialized
      * @param hdr
-     * @param httpOnly if set
+     * @param httpOnly              if set
      * @param isv0CookieDateRFC1123 - Custom property needs to be set
-     * @param skipCookiePathQuotes - Custom property needs to be set
+     * @param skipCookiePathQuotes  - Custom property needs to be set
      * @return String -- the HTTP header value of this cookie.
      * @throws NullPointerException if either input value is null.
      */
@@ -333,7 +337,9 @@ public class CookieUtils {
         int expires = cookie.getMaxAge();
         if (-1 < expires) {
             if (0 == expires) {
-                if (!isRFC1123DateEnabled) {
+                if (HttpDispatcher.useEE10Cookies()) { //Since Servlet 6.0 - RFC 6265
+                    buffer.append("; max-age=0");
+                } else if (!isRFC1123DateEnabled) {
                     buffer.append(longAgo);
                 } else {
                     buffer.append(longAgoRFC1123);
@@ -383,6 +389,9 @@ public class CookieUtils {
             buffer.append("; SameSite=");
             buffer.append(value);
         }
+
+        //Servlet 6.0
+        setAttributes(cookie, buffer);
 
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "Created v0 Set-Cookie: [" + GenericUtils.nullOutPasswords(buffer.toString(), (byte) '&') + "]");
@@ -456,6 +465,9 @@ public class CookieUtils {
             buffer.append("; SameSite=");
             buffer.append(value);
         }
+
+        //Servlet 6.0
+        setAttributes(cookie, buffer);
 
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "Created v1 Set-Cookie: [" + buffer.toString() + "]");
@@ -546,6 +558,9 @@ public class CookieUtils {
             buffer.append(value);
         }
 
+        //Servlet 6.0
+        setAttributes(cookie, buffer);
+
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "Created v1 Set-Cookie2: [" + buffer.toString() + "]");
         }
@@ -553,4 +568,25 @@ public class CookieUtils {
         return buffer.toString();
     }
 
+    /*
+     * since Servlet 6.0 - Support Cookie's setAttribute
+     * exclude "samesite", "port", "commenturl" attribute since they already set
+     */
+    private static void setAttributes(HttpCookie cookie, StringBuilder buffer) {
+        Map<String, String> cookieAttrs = cookie.getAttributes();
+        if (cookieAttrs != null) {
+            String key, value;
+            for (Entry<String, String> entry : cookieAttrs.entrySet()) {
+                key = entry.getKey();
+                if (!(key.equals("samesite") || key.equals("port") || key.equals("commenturl"))) {
+                    value = entry.getValue();
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                        Tr.debug(tc, "setAttribute (" + key + " , " + value + ")");
+                    }
+                    buffer.append("; " + key + "=");
+                    buffer.append(value);
+                }
+            }
+        }
+    }
 }

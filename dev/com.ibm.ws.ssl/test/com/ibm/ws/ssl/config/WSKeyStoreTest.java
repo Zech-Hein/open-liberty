@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -485,7 +487,8 @@ public class WSKeyStoreTest {
         WSKeyStore keystore = new WSKeyStoreTestDoubleReturn("keyring", storeconfig, testConfigService);
 
         assertEquals("keyring", keystore.getProperty("com.ibm.ssl.keyStoreName"));
-        assertTrue(keystore.getProperty("com.ibm.ssl.keyStore").endsWith("safkeyring:///doesNotExist"));
+        String ringName = keystore.getProperty("com.ibm.ssl.keyStore");
+        assertTrue(ringName.endsWith("safkeyringjce:///doesNotExist") || ringName.endsWith("safkeyring:///doesNotExist"));
         assertEquals("JCERACFKS", keystore.getProperty("com.ibm.ssl.keyStoreType"));
         assertEquals("false", keystore.getProperty("com.ibm.ssl.keyStoreFileBased"));
     }

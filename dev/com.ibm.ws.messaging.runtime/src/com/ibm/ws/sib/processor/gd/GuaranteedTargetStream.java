@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -1784,7 +1786,7 @@ public class GuaranteedTargetStream extends ControllableStream implements Target
         getControlAdapter().getHealthState().deregister(HealthStateListener.GAP_DETECTED_STATE);
 
         // We shouldn't be flushed if we have pending unacked data.  But
-        // just as a sanity check, throw an exception here if we have
+        // just as a validation, throw an exception here if we have
         // something undelivered.
         if (oststream
                         .containsState(

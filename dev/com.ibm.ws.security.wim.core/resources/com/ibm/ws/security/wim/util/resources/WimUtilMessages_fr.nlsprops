@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2012, 2021 IBM Corporation and others.
+# Copyright (c) 2012, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -32,9 +34,9 @@ INVALID_SUPPORTED_ENTITY_TYPE_DEFINITION=CWIMK0001E: L''op\u00e9ration de regist
 INVALID_SUPPORTED_ENTITY_TYPE_DEFINITION.explanation= Le type d'entit\u00e9 doit \u00eatre d\u00e9fini avec un nom de type d'entit\u00e9 et au moins une propri\u00e9t\u00e9 de nom distinctif relatif correspondante.
 INVALID_SUPPORTED_ENTITY_TYPE_DEFINITION.useraction=Modifiez et corrigez la d\u00e9finition de type d'entit\u00e9 dans le fichier server.xml.
 
-INVALID_BASE_ENTRY_DEFINITION=CWIMK0002E: L''op\u00e9ration de registre d''utilisateurs n''a pas pu \u00eatre ex\u00e9cut\u00e9e. La d\u00e9finition d''entr\u00e9e de base {0} n''est pas valide.  Corrigez la d\u00e9finition d''entr\u00e9e de base dans le fichier server.xml. Par exemple, la syntaxe est <baseEntry name="..." baseDN="...."/>.
-INVALID_BASE_ENTRY_DEFINITION.explanation= La d\u00e9finition sp\u00e9cifi\u00e9e de l'entr\u00e9e de base est incorrecte. La syntaxe de la d\u00e9finition d'une entr\u00e9e de base est <baseEntry name="..." baseDN="...."/>.
-INVALID_BASE_ENTRY_DEFINITION.useraction= Modifiez et corrigez la d\u00e9finition d'entr\u00e9e de base dans le  fichier server.xml.
+INVALID_BASE_ENTRY_DEFINITION=CWIMK0002E: L''op\u00e9ration du registre d''utilisateurs n''a pas pu \u00eatre effectu\u00e9e. La d\u00e9finition d''entr\u00e9e de base {0} n''est pas valide.  Corrigez la d\u00e9finition d''entr\u00e9e de base dans le fichier server.xml.
+INVALID_BASE_ENTRY_DEFINITION.explanation=La d\u00e9finition d'entr\u00e9e de base sp\u00e9cifi\u00e9e n'est pas valide.
+INVALID_BASE_ENTRY_DEFINITION.useraction=Indiquez une d\u00e9finition d'entr\u00e9e de base valide dans le fichier server.xml.
 
 INVALID_REALM_DEFINITION=CWIMK0003E: L''op\u00e9ration de registre d''utilisateurs n''a pas pu \u00eatre ex\u00e9cut\u00e9e. La d\u00e9finition de domaine {0} n''est pas valide. Corrigez la d\u00e9finition de domaine dans le fichier server.xml.
 INVALID_REALM_DEFINITION.explanation= La balise de domaine est manquante ou incorrecte en raison d'un attribut requis manquant.
@@ -71,6 +73,11 @@ FEDERATED_MANAGER_SERVICE_STOPPED.useraction=Aucune action n'est requise.
 MISSING_REGISTRY_DEFINITION=CWIMK0011E: L'op\u00e9ration de registre d'utilisateurs n'a pas pu \u00eatre ex\u00e9cut\u00e9e. Aucun registre d'utilisateurs n'a \u00e9t\u00e9 trouv\u00e9. Ajoutez ou corrigez la d\u00e9finition de registre dans le fichier server.xml.
 MISSING_REGISTRY_DEFINITION.explanation=Aucun registre d'utilisateurs n'a \u00e9t\u00e9 d\u00e9fini ou n'a pu \u00eatre initialis\u00e9 en raison d'une erreur de configuration. Un registre d'utilisateurs valide inclut un registre LDAP ou d'autres registres ou r\u00e9f\u00e9rentiels pris en charge.
 MISSING_REGISTRY_DEFINITION.useraction=Si un registre d'utilisateurs a \u00e9t\u00e9 d\u00e9fini dans le fichier de configuration, v\u00e9rifiez les journaux pour y rechercher d'\u00e9ventuelles erreurs de configuration survenues au cours du d\u00e9marrage du serveur. Ajoutez ou corrigez la d\u00e9finition de registre d'utilisateurs dans le fichier server.xml.
+
+FAILED_LOGIN_DELAY_DISABLED=CWIMK0012W: Le d\u00e9lai d''\u00e9chec de connexion pour les r\u00e9f\u00e9rentiels f\u00e9d\u00e9r\u00e9s est d\u00e9sactiv\u00e9. Cette d\u00e9sactivation expose le serveur \u00e0 des attaques d''\u00e9num\u00e9ration des utilisateurs. Pour activer le d\u00e9lai pour les \u00e9checs de connexion, supprimez les attributs de r\u00e9f\u00e9rentiel f\u00e9d\u00e9r\u00e9 {0} et {1} afin que les valeurs minimale et maximale par d\u00e9faut de 0 et 5000 millisecondes soient utilis\u00e9es. Vous pouvez \u00e9galement d\u00e9finir l''attribut du r\u00e9f\u00e9rentiel f\u00e9d\u00e9r\u00e9 {1} sur une valeur sup\u00e9rieure \u00e0 z\u00e9ro. 
+FAILED_LOGIN_DELAY_DISABLED.explanation=Lorsque le d\u00e9lai d'\u00e9chec de connexion est d\u00e9sactiv\u00e9, le serveur est vuln\u00e9rable \u00e0 une attaque de type \u00e9num\u00e9ration d'utilisateurs.
+FAILED_LOGIN_DELAY_DISABLED.useraction=Activez le d\u00e9lai d'\u00e9chec de connexion en supprimant les attributs pour utiliser les d\u00e9lais de remplissage minimal et maximal par d\u00e9faut de z\u00e9ro et 5000 millisecondes ou d\u00e9finissez les attributs sur une configuration personnalis\u00e9e. 
+
 
 ENTITY_IDENTIFIER_NOT_SPECIFIED=CWIML1009E: L'op\u00e9ration de registre d'utilisateurs n'a pas pu \u00eatre ex\u00e9cut\u00e9e. L'identificateur de l'entit\u00e9 est introuvable. Indiquez l'identificateur correct comme param\u00e8tre d'entr\u00e9e. 
 ENTITY_IDENTIFIER_NOT_SPECIFIED.explanation=L'identificateur de l'entit\u00e9 n'a pas \u00e9t\u00e9 indiqu\u00e9. Le syst\u00e8me ne peut pas localiser l'entit\u00e9. L'op\u00e9ration de registre d'utilisateurs ne peut pas se poursuivre sans cette entit\u00e9. 
@@ -220,9 +227,9 @@ MISSING_REPOSITORIES_FOR_GROUPS_CONFIGURATION=CWIML1034E: Configuration reposito
 MISSING_REPOSITORIES_FOR_GROUPS_CONFIGURATION.explanation=Aucune configuration de groupe interr\u00e9f\u00e9rentiel n'est d\u00e9finie pour ce r\u00e9f\u00e9rentiel.
 MISSING_REPOSITORIES_FOR_GROUPS_CONFIGURATION.useraction=Reportez-vous au fichier journal pour d\u00e9terminer l'origine de l'erreur. V\u00e9rifiez la configuration de votre r\u00e9f\u00e9rentiel.
 
-ENTITY_TYPE_NOT_SUPPORTED=CWIML0510W: Le type d''entit\u00e9 {0} sp\u00e9cifi\u00e9 n''est pas un type valide pour cette op\u00e9ration.
+ENTITY_TYPE_NOT_SUPPORTED=CWIML0510W: Le type d''entit\u00e9 sp\u00e9cifi\u00e9 {0} n''est pas valide pour cette op\u00e9ration.
 ENTITY_TYPE_NOT_SUPPORTED.explanation=Une op\u00e9ration a \u00e9t\u00e9 demand\u00e9e sur une entit\u00e9, mais cette op\u00e9ration ne prend pas en charge le type d'entit\u00e9 indiqu\u00e9.
-ENTITY_TYPE_NOT_SUPPORTED.useraction=Assurez-vous que les entit\u00e9s fournies dans l'entr\u00e9e sont des types d'entit\u00e9 pris en charge, puis supprimez les \u00e9ventuels types d'entit\u00e9 non pris en charge.
+ENTITY_TYPE_NOT_SUPPORTED.useraction=V\u00e9rifiez que les entit\u00e9s fournies dans l'entr\u00e9e sont prises en charge et supprimez les types d'entit\u00e9 non pris en charge de l'entr\u00e9e.
 
 CAN_NOT_CONSTRUCT_UNIQUE_NAME=CWIML1008E: La propri\u00e9t\u00e9 {0} du type d''entit\u00e9 {1} a \u00e9t\u00e9 fournie dans l''entr\u00e9e. Le nom unique ne peut pas \u00eatre cr\u00e9\u00e9 dans le r\u00e9f\u00e9rentiel sous-jacent car les informations RDN indiqu\u00e9es dans l''entr\u00e9e sont consid\u00e9r\u00e9es comme ambigu\u00ebs.
 CAN_NOT_CONSTRUCT_UNIQUE_NAME.explanation=Lors de la cr\u00e9ation d'une entit\u00e9, le nom distinctif relatif (RDN) doit pr\u00e9senter une syntaxe correcte et comporter des propri\u00e9t\u00e9s non ambigu\u00ebs.  Par exemple, le type d'entit\u00e9 OrgContainer peut repr\u00e9senter une organisation (qui utilise la propri\u00e9t\u00e9 RDN 'o') ou une unit\u00e9 organisationnelle (qui utilise la propri\u00e9t\u00e9 RDN 'ou') dans un r\u00e9f\u00e9rentiel sous-jacent. Si 'o' et 'ou' sont sp\u00e9cifi\u00e9s dans le RDN de l'objet de donn\u00e9es en entr\u00e9e pour la nouvelle entit\u00e9, un nom unique ne peut pas \u00eatre cr\u00e9\u00e9 pour cette nouvelle entit\u00e9.
@@ -252,8 +259,8 @@ ENTITY_SEARCH_FAILED=CWIML4506E: L''op\u00e9ration de registre d''utilisateurs n
 ENTITY_SEARCH_FAILED.explanation=L'entit\u00e9 ne peut pas \u00eatre recherch\u00e9e pour la raison indiqu\u00e9e par le registre sous-jacent.
 ENTITY_SEARCH_FAILED.useraction=Consultez le message d'erreur et le fichier trace afin de d\u00e9terminer l'origine de la d\u00e9faillance. Corrigez l'erreur et faites une nouvelle tentative.
 
-MISSING_OR_EMPTY_PASSWORD=CWIML4541E: L'op\u00e9ration de connexion n'a pas pu \u00eatre ex\u00e9cut\u00e9e car le mot de passe est manquant ou vide.
-MISSING_OR_EMPTY_PASSWORD.explanation=Si le nom du principal est d\u00e9fini lors de la connexion, le mot de passe ne peut pas \u00eatre null, ni vide.
+MISSING_OR_EMPTY_PASSWORD=CWIML4541E: L'op\u00e9ration de connexion n'a pas pu \u00eatre r\u00e9alis\u00e9e car le mot de passe est manquant ou vide.
+MISSING_OR_EMPTY_PASSWORD.explanation=Si le nom principal est sp\u00e9cifi\u00e9 lors de la connexion, le mot de passe ne peut pas \u00eatre nul ou vide.
 MISSING_OR_EMPTY_PASSWORD.useraction=D\u00e9finissez le mot de passe.
 
 CERTIFICATE_GENERATE_FAILED=CWIML3012E: L'op\u00e9ration de connexion n'a pas pu \u00eatre ex\u00e9cut\u00e9e car la g\u00e9n\u00e9ration du certificat a \u00e9chou\u00e9.

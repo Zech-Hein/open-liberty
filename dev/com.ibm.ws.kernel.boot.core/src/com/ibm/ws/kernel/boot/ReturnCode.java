@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -49,6 +51,8 @@ public enum ReturnCode implements ExitCode {
     ERROR_BAD_JAVA_BITMODE(ExitCode.ERROR_BAD_JAVA_BITMODE), // 31
     // Used by the server scripts when jvm.options has an invalid line.
     ERROR_BAD_JVM_OPTION(32),
+    // Repository connection failed
+    CONNECTION_FAILED(33),
     ERROR_COMMUNICATE_SERVER(34),
     // Used by ClientRunner when an exception occurs during executing client application's main().
     CLIENT_RUNNER_EXCEPTION(35),
@@ -68,6 +72,7 @@ public enum ReturnCode implements ExitCode {
     JAVADUMP_ACTION(-10, "javadump.log"),
     CREATE_ACTION(-11, "create.log"),
     LIST_ACTION(-12),
+    CHECKPOINT_ACTION(-13),
     INVALID(13),
     PACKAGE_WLP_ACTION(-15, "package.log"),
     PAUSE_ACTION(-16),

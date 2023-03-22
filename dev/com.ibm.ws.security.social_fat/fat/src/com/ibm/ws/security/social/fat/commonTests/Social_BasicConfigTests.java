@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -206,7 +208,7 @@ public class Social_BasicConfigTests extends SocialCommonTest {
                     expectations = validationTools.addMessageExpectation(genericTestServer, expectations, SocialConstants.INVOKE_SOCIAL_RESOURCE, SocialConstants.MESSAGES_LOG, SocialConstants.STRING_MATCHES, "Did not get a message in social server logs about a missing clientId.", SocialMessageConstants.CWWKS5416W_OUTGOING_REQUEST_MISSING_PARAMETER + ".+\\[" + "client_id" + "\\]");
                 } else {
                     expectations = vData.addResponseStatusExpectation(expectations, perform_social_login, SocialConstants.BAD_REQUEST_STATUS);
-                    expectations = validationTools.addMessageExpectation(genericTestServer, expectations, perform_social_login, SocialConstants.MESSAGES_LOG, SocialConstants.STRING_CONTAINS, "Message log did not contain message indicating that clientid is invalid", SocialMessageConstants.CWWKS5500E_BAD_CONFIG_PARAM);
+                    expectations = validationTools.addMessageExpectation(genericTestServer, expectations, perform_social_login, SocialConstants.MESSAGES_LOG, SocialConstants.STRING_CONTAINS, "Message log did not contain message indicating that clientid is invalid", SocialMessageConstants.CWWKS5390E_BAD_CONFIG_PARAM);
                 }
             } else if (provider.equals(SocialConstants.FACEBOOK_PROVIDER)) {
                 expectations = vData.addSuccessStatusCodesForActions(inovke_social_login_actions);
@@ -253,7 +255,7 @@ public class Social_BasicConfigTests extends SocialCommonTest {
 
     }
 
-    @AllowedFFDC({ "com.ibm.ws.security.social.error.SocialLoginException", "com.ibm.ws.security.openidconnect.clients.common.BadPostRequestException" })
+    @AllowedFFDC({ "com.ibm.ws.security.social.error.SocialLoginException", "io.openliberty.security.oidcclientcore.http.BadPostRequestException" })
     @Test
     @SkipForRepeat(SkipForRepeat.EE9_FEATURES) // TODO See note 1 in class javadoc.
     public void Social_BasicConfigTests_badClientSecret() throws Exception {
@@ -262,7 +264,7 @@ public class Social_BasicConfigTests extends SocialCommonTest {
 
     }
 
-    @AllowedFFDC({ "com.ibm.ws.security.social.error.SocialLoginException", "com.ibm.ws.security.openidconnect.clients.common.BadPostRequestException" })
+    @AllowedFFDC({ "com.ibm.ws.security.social.error.SocialLoginException", "io.openliberty.security.oidcclientcore.http.BadPostRequestException" })
     @Test
     @SkipForRepeat(SkipForRepeat.EE9_FEATURES) // TODO See note 1 in class javadoc.
     public void Social_BasicConfigTests_blankClientSecret() throws Exception {
@@ -270,7 +272,7 @@ public class Social_BasicConfigTests extends SocialCommonTest {
         blankEmptyOrBadClientSecret("_blankClientSecret.xml", "/helloworld/rest/helloworld_blankClientSecret", false);
     }
 
-    @AllowedFFDC({ "com.ibm.ws.security.social.error.SocialLoginException", "com.ibm.ws.security.openidconnect.clients.common.BadPostRequestException" })
+    @AllowedFFDC({ "com.ibm.ws.security.social.error.SocialLoginException", "io.openliberty.security.oidcclientcore.http.BadPostRequestException" })
     @Test
     @SkipForRepeat(SkipForRepeat.EE9_FEATURES) // TODO See note 1 in class javadoc.
     public void Social_BasicConfigTests_emptyClientSecret() throws Exception {
@@ -321,7 +323,7 @@ public class Social_BasicConfigTests extends SocialCommonTest {
             if (provider.equals(SocialConstants.LIBERTYOP_PROVIDER)) {
                 if (isTestingOidc) {
                     if (failsOidcConfigCheck) {
-                        expectations = validationTools.addMessageExpectation(genericTestServer, expectations, finalAction, SocialConstants.MESSAGES_LOG, SocialConstants.STRING_CONTAINS, "Should have received an unable to contact provider exception", SocialMessageConstants.CWWKS5500E_BAD_CONFIG_PARAM);
+                        expectations = validationTools.addMessageExpectation(genericTestServer, expectations, finalAction, SocialConstants.MESSAGES_LOG, SocialConstants.STRING_CONTAINS, "Should have received an unable to contact provider exception", SocialMessageConstants.CWWKS5390E_BAD_CONFIG_PARAM);
                     } else {
                         expectations = validationTools.addMessageExpectation(genericTestServer, expectations, finalAction, SocialConstants.MESSAGES_LOG, SocialConstants.STRING_CONTAINS, "Should have received an unable to contact provider exception", SocialMessageConstants.CWWKS1708E_UNABLE_TO_CONTACT_PROVIDER);
                     }
@@ -396,7 +398,7 @@ public class Social_BasicConfigTests extends SocialCommonTest {
         genericSocial(_testName, webClient, inovke_social_login_actions, updatedSocialTestSettings, expectations);
     }
 
-    @AllowedFFDC({ "com.ibm.ws.security.social.error.SocialLoginException", "com.ibm.ws.security.openidconnect.clients.common.BadPostRequestException" })
+    @AllowedFFDC({ "com.ibm.ws.security.social.error.SocialLoginException", "io.openliberty.security.oidcclientcore.http.BadPostRequestException" })
     @Test
     @SkipForRepeat(SkipForRepeat.EE9_FEATURES) // TODO See note 1 in class javadoc.
     public void Social_BasicConfigTests_bad_XOR_Secret() throws Exception {
@@ -718,7 +720,7 @@ public class Social_BasicConfigTests extends SocialCommonTest {
         }
 
         if (isTestingOidc) {
-            expectations = validationTools.addMessageExpectation(genericTestServer, expectations, perform_social_login, SocialConstants.MESSAGES_LOG, SocialConstants.STRING_CONTAINS, "Message log did not contain message indicating that the auth endpoint was bad", SocialMessageConstants.CWWKS5500E_BAD_CONFIG_PARAM);
+            expectations = validationTools.addMessageExpectation(genericTestServer, expectations, perform_social_login, SocialConstants.MESSAGES_LOG, SocialConstants.STRING_CONTAINS, "Message log did not contain message indicating that the auth endpoint was bad", SocialMessageConstants.CWWKS5390E_BAD_CONFIG_PARAM);
         } else {
             expectations = vData.addExpectation(expectations, SocialConstants.INVOKE_SOCIAL_RESOURCE, SocialConstants.RESPONSE_MESSAGE, SocialConstants.STRING_CONTAINS, "Was expecting the response message to contain: " + badMessage, null, badMessage);
             expectations = vData.addExpectation(expectations, SocialConstants.INVOKE_SOCIAL_RESOURCE, SocialConstants.RESPONSE_FULL, SocialConstants.STRING_CONTAINS, "Was expecting the response to contain: " + badString, null, badString);

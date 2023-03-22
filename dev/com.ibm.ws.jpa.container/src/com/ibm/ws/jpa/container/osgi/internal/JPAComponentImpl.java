@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2021 IBM Corporation and others.
+ * Copyright (c) 2011, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -46,9 +48,11 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import com.ibm.websphere.csi.J2EEName;
+import com.ibm.websphere.ras.ProtectedString;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TrConfigurator;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.Transaction.UOWCurrent;
 import com.ibm.ws.container.service.app.deploy.ApplicationClassesContainerInfo;
@@ -58,6 +62,7 @@ import com.ibm.ws.container.service.app.deploy.ContainerInfo.Type;
 import com.ibm.ws.container.service.app.deploy.EARApplicationInfo;
 import com.ibm.ws.container.service.app.deploy.ModuleClassesContainerInfo;
 import com.ibm.ws.container.service.app.deploy.ModuleInfo;
+import com.ibm.ws.container.service.app.deploy.extended.ExtendedApplicationInfo;
 import com.ibm.ws.container.service.state.ApplicationStateListener;
 import com.ibm.ws.container.service.state.ModuleStateListener;
 import com.ibm.ws.container.service.state.StateChangeException;
@@ -79,6 +84,8 @@ import com.ibm.ws.jpa.management.JPAPuScope;
 import com.ibm.ws.jpa.management.JPARuntime;
 import com.ibm.ws.kernel.LibertyProcess;
 import com.ibm.ws.kernel.service.util.SecureAction;
+import com.ibm.ws.runtime.metadata.ApplicationMetaData;
+import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
 import com.ibm.ws.tx.embeddable.EmbeddableWebSphereTransactionManager;
 import com.ibm.wsspi.adaptable.module.Container;
 import com.ibm.wsspi.adaptable.module.Entry;
@@ -89,9 +96,12 @@ import com.ibm.wsspi.classloading.ClassLoadingService;
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 import com.ibm.wsspi.kernel.service.utils.ConcurrentServiceReferenceSet;
 import com.ibm.wsspi.kernel.service.utils.FrameworkState;
+import com.ibm.wsspi.kernel.service.utils.SerializableProtectedString;
 import com.ibm.wsspi.kernel.service.utils.ServiceAndServiceReferencePair;
 import com.ibm.wsspi.logging.Introspector;
 import com.ibm.wsspi.resource.ResourceBindingListener;
+
+import io.openliberty.checkpoint.spi.CheckpointPhase;
 
 @Component(configurationPid = "com.ibm.ws.jpacomponent",
            configurationPolicy = ConfigurationPolicy.REQUIRE,
@@ -119,7 +129,13 @@ public class JPAComponentImpl extends AbstractJPAComponent implements Applicatio
 
     private ComponentContext context;
     private Dictionary<String, Object> props;
+
+    /**
+     * Persistence properties supplied through JPAComponent configuration.
+     * These properties are applied to createContainerEntityManagerFactory.
+     */
     private Map<String, String> defaultProps;
+
     private boolean server = false;
     private static final Set<String> stuckApps = new ConcurrentSkipListSet<String>();
 
@@ -130,6 +146,8 @@ public class JPAComponentImpl extends AbstractJPAComponent implements Applicatio
     private final AtomicServiceReference<JPAProviderIntegration> providerIntegrationSR = new AtomicServiceReference<JPAProviderIntegration>(REFERENCE_JPA_PROVIDER);
     private final ConcurrentServiceReferenceSet<JPAEMFPropertyProvider> propProviderSRs = new ConcurrentServiceReferenceSet<JPAEMFPropertyProvider>(REFERENCE_JPA_PROPS_PROVIDER);
     private ClassLoadingService classLoadingService;
+
+    protected Boolean delayEntityManagerFactoryCreate = null;
 
     @Activate
     protected void activate(ComponentContext cc) {
@@ -199,6 +217,7 @@ public class JPAComponentImpl extends AbstractJPAComponent implements Applicatio
         }
     }
 
+    @Sensitive
     private void setDefaultProperties(Dictionary<String, Object> properties) {
         // Look for default integration-level properties
         Map<String, String> dProperties = new HashMap<String, String>();
@@ -206,12 +225,29 @@ public class JPAComponentImpl extends AbstractJPAComponent implements Applicatio
         while (defaultPropertiesIndex >= 0) {
             String name = (String) properties.get(DEFAULT_PROPS_PREFIX + defaultPropertiesIndex + DEFAULT_PROPS_NAME);
             if (name != null) {
-                String value = (String) properties.get(DEFAULT_PROPS_PREFIX + defaultPropertiesIndex + DEFAULT_PROPS_VALUE);
-                if (name.length() > 0 && value != null && value.length() > 0) {
-                    dProperties.put(name, value);
+                // See metatype: 'ibm:obscure="true"'
+                SerializableProtectedString value = (SerializableProtectedString) properties.get(DEFAULT_PROPS_PREFIX + defaultPropertiesIndex + DEFAULT_PROPS_VALUE);
+
+                if (value != null) {
+                    if (!name.isEmpty() && !value.isEmpty()) {
+                        // Convert to java.lang.String to pass the value to the persistence providers
+                        String ovalue = new String(value.getChars());
+                        if (name.contains("persistence.jdbc")) {
+                            if (AbstractJPAComponent.isPassword(name)) {
+                                Tr.warning(tc, "JDBC_PROP_NAME_CWWJP0057W", name, value.toString());
+                            } else {
+                                Tr.warning(tc, "JDBC_PROP_NAME_CWWJP0057W", name, ovalue);
+                            }
+                        } else {
+                            dProperties.put(name, ovalue);
+                        }
+                    } else {
+                        Tr.warning(tc, "EMPTY_PROP_NAME_VALUE_CWWJP0056W", name, new String(value.getChars()));
+                    }
                 } else {
-                    Tr.warning(tc, "EMPTY_PROP_NAME_VALUE_CWWJP0056W", name, value);
+                    Tr.warning(tc, "EMPTY_PROP_NAME_VALUE_CWWJP0056W", name, null);
                 }
+
                 defaultPropertiesIndex++;
             } else {
                 defaultPropertiesIndex = -1;
@@ -279,9 +315,18 @@ public class JPAComponentImpl extends AbstractJPAComponent implements Applicatio
         // -> a jar file in the EAR library directory
         // ------------------------------------------------------------------------
 
+        boolean setContext = false;
         try {
             JPAIntrospection.beginJPAIntrospection();
             JPAIntrospection.beginApplicationVisit(applName, applInfo);
+
+            if (appInfo instanceof ExtendedApplicationInfo) {
+                ApplicationMetaData applicationMetaData = ((ExtendedApplicationInfo) appInfo).getMetaData();
+                ApplicationComponentMetaData cmd = new ApplicationComponentMetaData(applicationMetaData);
+
+                ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor().beginContext(cmd);
+                setContext = true;
+            }
 
             // Process any persistence.xml in EAR/lib/*.jar
             // Note: if there is no application classloader (standalone module),
@@ -352,6 +397,10 @@ public class JPAComponentImpl extends AbstractJPAComponent implements Applicatio
                 FFDCFilter.processException(e, this.getClass().getName(), "457");
             }
         } finally {
+            if (setContext) {
+                ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor().endContext();
+            }
+
             JPAIntrospection.endApplicationVisit();
             JPAIntrospection.executeTraceAnalysis();
             JPAIntrospection.endJPAIntrospection();
@@ -648,6 +697,27 @@ public class JPAComponentImpl extends AbstractJPAComponent implements Applicatio
                         "#" + module.getName());
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public void addDefaultProperties(@Sensitive Map<String, Object> persistenceProperties) {
+        if (this.defaultProps != null) {
+            persistenceProperties.putAll(defaultProps);
+
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Map<String, Object> props = new HashMap<String, Object>();
+                for (Map.Entry<String, String> entry : defaultProps.entrySet()) {
+                    if (AbstractJPAComponent.isPassword(entry.getKey())) {
+                        props.put(entry.getKey(), new ProtectedString(entry.getValue().toCharArray()).toString());
+                    } else {
+                        props.put(entry.getKey(), entry.getValue());
+                    }
+                }
+
+                Tr.debug(tc, "addDefaultProperties props: {0}", props);
+            }
+        }
+    }
+
     /**
      * Add any additional environment specific properties to the set of
      * integration-level properties used on the call to
@@ -729,6 +799,19 @@ public class JPAComponentImpl extends AbstractJPAComponent implements Applicatio
     public boolean isIgnoreDataSourceErrors() {
         Boolean value = (Boolean) props.get("ignoreDataSourceErrors");
         return getJPARuntime().isIgnoreDataSourceErrors(value);
+    }
+
+    @Override
+    public boolean shouldDelayEntityManagerFactoryCreate() {
+        if (this.delayEntityManagerFactoryCreate == null) {
+            // If CheckPoint phase is set, delay EMF creation until applications are used
+            if (CheckpointPhase.getPhase().restored() == false) {
+                this.delayEntityManagerFactoryCreate = true;
+            } else {
+                this.delayEntityManagerFactoryCreate = false;
+            }
+        }
+        return this.delayEntityManagerFactoryCreate;
     }
 
     /**
@@ -999,6 +1082,11 @@ public class JPAComponentImpl extends AbstractJPAComponent implements Applicatio
         Enumeration<String> keysEnum = props.keys();
         while (keysEnum.hasMoreElements()) {
             String key = keysEnum.nextElement();
+
+            if (key.contains("defaultProperties")) {
+                break;
+            }
+
             Object o = props.get(key);
             if (o != null && o.getClass().isArray()) {
                 out.print("  " + key + " = [ ");
@@ -1025,7 +1113,11 @@ public class JPAComponentImpl extends AbstractJPAComponent implements Applicatio
         out.println("Default Properties:");
         if (defaultProps != null) {
             for (Map.Entry<String, String> entry : defaultProps.entrySet()) {
-                out.println("  " + entry.getKey() + " = " + entry.getValue());
+                if (AbstractJPAComponent.isPassword(entry.getKey())) {
+                    out.println("  " + entry.getKey() + " = " + new ProtectedString(entry.getValue().toCharArray()).toString());
+                } else {
+                    out.println("  " + entry.getKey() + " = " + entry.getValue().toString());
+                }
             }
         }
         out.println();

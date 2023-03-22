@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -85,6 +87,7 @@ public class SsoConfigImpl extends PkixTrustEngineConfig implements SsoConfig, F
     static final String KEY_realmIdentifier = "realmIdentifier";
     static final String KEY_includeTokenInSubject = "includeTokenInSubject";
     static final String KEY_mapToUserRegistry = "mapToUserRegistry";
+    static final String KEY_disableInitialRequestCookie = "disableInitialRequestCookie";
     static final String KEY_disableLtpaCookie = "disableLtpaCookie";
     static final String KEY_spCookieName = "spCookieName";
     static final String KEY_realmName = "realmName";
@@ -161,6 +164,7 @@ public class SsoConfigImpl extends PkixTrustEngineConfig implements SsoConfig, F
     boolean allowCustomCacheKey = true; // default is allowCustomCacheKey
 
     Constants.MapToUserRegistry mapToUserRegistry = Constants.MapToUserRegistry.No;
+    boolean disableInitialRequestCookie = false;
     boolean disableLtpaCookie = true;
     String spCookieName = null;
     String spHostAndPort = null;
@@ -270,6 +274,7 @@ public class SsoConfigImpl extends PkixTrustEngineConfig implements SsoConfig, F
         realmIdentifier = trim((String) props.get(KEY_realmIdentifier));
         includeTokenInSubject = (Boolean) props.get(KEY_includeTokenInSubject);
         mapToUserRegistry = Constants.MapToUserRegistry.valueOf((String) props.get(KEY_mapToUserRegistry));
+        disableInitialRequestCookie = (Boolean) props.get(KEY_disableInitialRequestCookie);
         disableLtpaCookie = (Boolean) props.get(KEY_disableLtpaCookie);
         spCookieName = trim((String) props.get(KEY_spCookieName));
         realmName = trim((String) props.get(KEY_realmName));
@@ -546,6 +551,7 @@ public class SsoConfigImpl extends PkixTrustEngineConfig implements SsoConfig, F
                      + "\nrealmIdentifier:" + realmIdentifier
                      + "\nincludeTokenInSubject:" + includeTokenInSubject
                      + "\nmapToUserRegistry:" + mapToUserRegistry
+                     + "\ndisableInitialRequestCookie:" + disableInitialRequestCookie
                      + "\ndisableLtpaCookie:" + disableLtpaCookie
                      + "\nspCookieName:" + spCookieName
                      + "\nrealmName:" + realmName
@@ -927,6 +933,11 @@ public class SsoConfigImpl extends PkixTrustEngineConfig implements SsoConfig, F
     @Override
     public boolean isServletRequestLogoutPerformsSamlLogout() {
         return servletRequestLogoutPerformsSamlLogout;
+    }
+    
+    @Override
+    public boolean isDisableInitialRequestCookie() {  
+        return this.disableInitialRequestCookie;
     }
 
 }

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2006 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -76,7 +78,7 @@ public class HttpSessionObserver implements ISessionObserver {
     public HttpSessionObserver(ArrayList listeners, IProtocolAdapter adapter) {
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled() && LoggingUtil.SESSION_LOGGER_CORE.isLoggable(Level.FINE)) {
             if (!_loggedVersion) {
-                LoggingUtil.SESSION_LOGGER_CORE.logp(Level.FINE, methodClassName, "", "CMVC Version 1.5 3/12/08 09:24:17");
+                LoggingUtil.SESSION_LOGGER_CORE.logp(Level.FINE, methodClassName, "", "Constructor (AL, IPAdapter)");
                 _loggedVersion = true;
             }
         }
@@ -90,7 +92,7 @@ public class HttpSessionObserver implements ISessionObserver {
     public HttpSessionObserver(ArrayList listeners, ArrayList idListeners, IProtocolAdapter adapter) {
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled() && LoggingUtil.SESSION_LOGGER_CORE.isLoggable(Level.FINE)) {
             if (!_loggedVersion) {
-                LoggingUtil.SESSION_LOGGER_CORE.logp(Level.FINE, methodClassName, "", "CMVC Version 1.5 3/12/08 09:24:17");
+                LoggingUtil.SESSION_LOGGER_CORE.logp(Level.FINE, methodClassName, "", "Constructor (AL, AL, IPAdapter)");
                 _loggedVersion = true;
             }
         }
@@ -109,7 +111,7 @@ public class HttpSessionObserver implements ISessionObserver {
      * @see com.ibm.wsspi.session.ISessionObserver#sessionCreated(com.ibm.wsspi.session.ISession)
      */
     public void sessionCreated(ISession session) {
-        HttpSession httpsession = (HttpSessionImpl) _adapter.adapt(session);
+        HttpSession httpsession = (AbstractHttpSession) _adapter.adapt(session);
         HttpSessionEvent event = new HttpSessionEvent(httpsession);
         HttpSessionListener listener = null;
 
@@ -185,7 +187,7 @@ public class HttpSessionObserver implements ISessionObserver {
         }
 
         if (_sessionListeners.size() > 0 || attributes.size() > 0) {
-            HttpSession httpsession = (HttpSessionImpl) _adapter.adapt(session);
+            HttpSession httpsession = (AbstractHttpSession) _adapter.adapt(session);
             HttpSessionEvent event = new HttpSessionEvent(httpsession);
             HttpSessionListener listener = null;
 
@@ -264,7 +266,7 @@ public class HttpSessionObserver implements ISessionObserver {
      * @see com.ibm.wsspi.session.ISessionObserver#sessionDidActivate(com.ibm.wsspi.session.ISession)
      */
     public void sessionDidActivate(ISession session) {
-        HttpSession httpsession = (HttpSessionImpl) _adapter.adapt(session);
+        HttpSession httpsession = (AbstractHttpSession) _adapter.adapt(session);
         HttpSessionEvent event = new HttpSessionEvent(httpsession);
 
         Enumeration enum1 = session.getAttributeNames();
@@ -286,7 +288,7 @@ public class HttpSessionObserver implements ISessionObserver {
      * @see com.ibm.wsspi.session.ISessionObserver#sessionWillPassivate(com.ibm.wsspi.session.ISession)
      */
     public void sessionWillPassivate(ISession session) {
-        HttpSession httpsession = (HttpSessionImpl) _adapter.adapt(session);
+        HttpSession httpsession = (AbstractHttpSession) _adapter.adapt(session);
         HttpSessionEvent event = new HttpSessionEvent(httpsession);
 
         Enumeration enum1 = session.getAttributeNames();
@@ -316,7 +318,7 @@ public class HttpSessionObserver implements ISessionObserver {
      */
     @Override
     public void sessionIdChanged(String oldId, ISession session) {
-        HttpSession httpsession = (HttpSessionImpl) _adapter.adapt(session);
+        HttpSession httpsession = (AbstractHttpSession) _adapter.adapt(session);
         HttpSessionEvent event = new HttpSessionEvent(httpsession);
         HttpSessionIdListener listener = null;
 

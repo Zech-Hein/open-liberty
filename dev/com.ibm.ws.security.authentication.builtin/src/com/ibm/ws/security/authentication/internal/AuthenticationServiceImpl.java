@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2021 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,7 +30,7 @@ import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.websphere.ras.annotation.TraceOptions;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.security.authentication.AuthenticationConstants;
 import com.ibm.ws.security.authentication.AuthenticationData;
@@ -60,6 +62,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     static final String CFG_ALLOW_HASHTABLE_LOGIN_WITH_ID_ONLY = "allowHashtableLoginWithIdOnly";
     static final String CFG_CACHE_ENABLED = "cacheEnabled";
+    static final String CFG_USE_DISPLAYNAME_FOR_SECURITYNAME = "useDisplayNameForSecurityName";
     static final String KEY_AUTH_CACHE_SERVICE = "authCacheService";
     static final String KEY_USER_REGISTRY_SERVICE = "userRegistryService";
     static final String KEY_DELEGATION_PROVIDER = "delegationProvider";
@@ -77,6 +80,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private ComponentContext cc;
     private boolean cacheEnabled = true;
     private boolean allowHashtableLoginWithIdOnly = false;
+    private boolean useDisplayNameForSecurityName = false;
     private String invalidDelegationUser = "";
 
     private final AuthenticationGuard authenticationGuard = new AuthenticationGuard();
@@ -84,14 +88,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     protected void setJaasService(JAASService jaasService) {
         this.jaasService = jaasService;
         if (jaasService instanceof JAASServiceImpl) {
-            JAASServiceImpl.setAuthenticationService(this);
+            ((JAASServiceImpl) jaasService).setAuthenticationService(this);
         }
     }
 
     protected void unsetJaasService(JAASService jaasService) {
         if (this.jaasService == jaasService) {
             this.jaasService = null;
-            JAASServiceImpl.unsetAuthenticationService(this);
+            ((JAASServiceImpl) jaasService).unsetAuthenticationService(this);
         }
     }
 
@@ -163,6 +167,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (state != null) {
             cacheEnabled = state;
         }
+
+        Boolean useDisplayNameForSecurityNameState = (Boolean) props.get(CFG_USE_DISPLAYNAME_FOR_SECURITYNAME);
+        if (useDisplayNameForSecurityNameState != null) {
+            useDisplayNameForSecurityName = useDisplayNameForSecurityNameState;
+        }
     }
 
     protected void activate(ComponentContext cc, Map<String, Object> props) {
@@ -185,7 +194,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         delegationProviderRef.deactivate(cc);
         defaultDelegationProviderRef.deactivate(cc);
         credentialsServiceRef.deactivate(cc);
-        JAASServiceImpl.unsetAuthenticationService(this);
+        if (jaasService instanceof JAASServiceImpl) {
+            ((JAASServiceImpl) jaasService).unsetAuthenticationService(this);
+        }
         cc = null;
     }
 
@@ -215,7 +226,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 return authenticatedSubject;
             }
         } finally {
-            releaseLock(authenticationData, currentLock);
+            releaseLock(authenticationData, hashtableAuthData, currentLock);
             CertificateLoginModule.collectiveCertificate.set(false);
         }
     }
@@ -295,7 +306,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 return authenticatedSubject;
             }
         } finally {
-            releaseLock(authenticationData, currentLock);
+            releaseLock(authenticationData, hashtableAuthData, currentLock);
         }
     }
 
@@ -331,8 +342,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * The authentication cache may have been removed dynamically
      * after the lock was obtained.
      */
-    private void releaseLock(AuthenticationData authenticationData, ReentrantLock currentLock) {
-        authenticationGuard.relinquishAccess(authenticationData, currentLock);
+    private void releaseLock(AuthenticationData authenticationData, AuthenticationData hashtableAuthData, ReentrantLock currentLock) {
+        if (!hashtableAuthData.isEmpty()) {
+            authenticationGuard.relinquishAccess(hashtableAuthData, currentLock);
+        } else {
+            authenticationGuard.relinquishAccess(authenticationData, currentLock);
+        }
     }
 
     private Subject findSubjectInAuthCache(AuthenticationData authenticationData, Subject partialSubject,
@@ -378,9 +393,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     /**
-     * @param authCacheService An authentication cache service
-     * @param token The cache key, can be either a byte[] (SSO Token) or String (SSO Token Base64 encoded)
-     * @param ssoTokenBytes Optional SSO token as byte[], if null, it will be constructed from the token
+     * @param authCacheService   An authentication cache service
+     * @param token              The cache key, can be either a byte[] (SSO Token) or String (SSO Token Base64 encoded)
+     * @param ssoTokenBytes      Optional SSO token as byte[], if null, it will be constructed from the token
      * @param authenticaitonData TODO
      * @return the cached subject
      * @throws AuthenticationException if no cached subject was found
@@ -596,7 +611,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * or the MethodDelegationProvider if one is not configured.
      *
      * @param roleName the name of the role, used to look up the corresponding user.
-     * @param appName the name of the application, used to look up the corresponding user.
+     * @param appName  the name of the application, used to look up the corresponding user.
      * @return subject a subject representing the user that is mapped to the given run-as role.
      * @throws IllegalArgumentException
      */
@@ -637,4 +652,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public Boolean isAllowHashTableLoginWithIdOnly() {
         return allowHashtableLoginWithIdOnly;
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public Boolean isUseDisplayNameForSecurityName() {
+        return useDisplayNameForSecurityName;
+    }
+    
 }

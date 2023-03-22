@@ -1,21 +1,27 @@
 #*******************************************************************************
-# Copyright (c) 2020, 2021 IBM Corporation and others.
+# Copyright (c) 2020, 2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 bVersion=1.0
 
-Bundle-SymbolicName: io.openliberty.org.jboss.resteasy.common
+# Only publish the Jakarta one
+publish.wlp.jar.include: io.openliberty.org.jboss.resteasy.common.jakarta.jar
 
-resteasy-version=4.7.0.Final
-resteasy-tracing-api-version=1.0.0.Final
-apache-mime4j-version=0.8.5
+resteasy-version=4.7.2.Final
+resteasy-tracing-api-version=1.1.0.Final
+apache-mime4j-version=0.8.9
 
 src: src, resources
 
@@ -32,7 +38,8 @@ app-resources= \
   io.openliberty.org.jboss.resteasy.common.client.JAXRSClientConfig,\
   io.openliberty.org.jboss.resteasy.common.client.JAXRSAppSecurity,\
   io.openliberty.restfulWS.client.security.OAuthPropagationHelper,\
-  io.openliberty.restfulWS.introspector.LibertyResteasyEndpointIntrospector
+  io.openliberty.restfulWS.introspector.ResteasyEndpointIntrospector,\
+  io.openliberty.restfulWS.client.internal.ClientAsyncTaskWrapperComponent
 
 Service-Component: \
   io.openliberty.org.jboss.resteasy.client.clientbuilder; \
@@ -47,7 +54,7 @@ Service-Component: \
     properties:="resources=${app-resources}"
 
 Export-Package: \
-  com.ibm.websphere.jaxrs20.multipart;thread-local=true, \
+  com.ibm.websphere.jaxrs20.multipart;thread-context=true, \
   com.ibm.ws.jaxrs20.client, \
   com.ibm.ws.jaxrs20.providers.api, \
   com.ibm.ws.resteasy.cdi.component;version=${resteasy-version};thread-context=true, \
@@ -59,6 +66,7 @@ Export-Package: \
   org.jboss.resteasy.annotations.providers.img;version=${resteasy-version}, \
   org.jboss.resteasy.annotations;version=${resteasy-version}, \
   org.jboss.resteasy.api.validation;version=${resteasy-version}, \
+  org.jboss.resteasy.client.exception;version=${resteasy-version}, \
   org.jboss.resteasy.client.jaxrs.cache;version=${resteasy-version}, \
   org.jboss.resteasy.client.jaxrs.engines;version=${resteasy-version}, \
   org.jboss.resteasy.client.jaxrs.i18n;version=${resteasy-version}, \
@@ -66,7 +74,7 @@ Export-Package: \
   org.jboss.resteasy.client.jaxrs.internal.proxy.processors.invocation;version=${resteasy-version}, \
   org.jboss.resteasy.client.jaxrs.internal.proxy.processors.webtarget;version=${resteasy-version}, \
   org.jboss.resteasy.client.jaxrs.internal.proxy.processors;version=${resteasy-version}, \
-  org.jboss.resteasy.client.jaxrs.internal.proxy;version=${resteasy-version}, \
+  org.jboss.resteasy.client.jaxrs.internal.proxy;version=${resteasy-version};thread-context=true, \
   org.jboss.resteasy.client.jaxrs.internal;version=${resteasy-version};thread-context=true, \
   org.jboss.resteasy.client.jaxrs;version=${resteasy-version};thread-context=true, \
   org.jboss.resteasy.core.interception.jaxrs;version=${resteasy-version}, \
@@ -150,10 +158,22 @@ DynamicImport-Package: \
 
 Private-Package: \
   org.apache.james.*
-  
-instrument.ffdc: false
-instrument.disabled: false
 
+instrument.ffdc: false
+instrument.classesExcludes: \
+  org/jboss/resteasy/client/jaxrs/internal/ClientConfiguration.class, \
+  org/jboss/resteasy/client/jaxrs/internal/ClientInvocationBuilder.class, \
+  org/jboss/resteasy/client/jaxrs/internal/ClientWebTarget.class, \
+  org/jboss/resteasy/client/jaxrs/internal/ResteasyClientBuilderImpl.class, \
+  org/jboss/resteasy/client/jaxrs/internal/ResteasyClientImpl.class, \
+  org/jboss/resteasy/core/interception/jaxrs/ContainerResponseContextImpl.class, \
+  org/jboss/resteasy/core/providerfactory/ResteasyProviderFactoryImpl.class, \
+  org/jboss/resteasy/core/ResteasyContext.class, \
+  org/jboss/resteasy/plugins/delegates/CookieHeaderDelegate.class, \
+  org/jboss/resteasy/plugins/delegates/MediaTypeHeaderDelegate.class, \
+  org/jboss/resteasy/specimpl/MultivaluedTreeMap.class, \
+  org/jboss/resteasy/util/snapshot/SnapshotMap.class, \
+  org/jboss/resteasy/util/ThreadLocalStack.class
 
 Include-Resource:\
   @${repo;org.jboss.resteasy:resteasy-client;${resteasy-version};EXACT}, \
@@ -208,7 +228,6 @@ Include-Resource:\
 	com.ibm.ws.webcontainer.security;version=latest,\
 	com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
 	javax.activation:activation;version=1.1,\
-	com.ibm.websphere.org.osgi.core;version=latest,\
 	com.ibm.websphere.appserver.api.basics,\
 	com.ibm.ws.kernel.service
 
@@ -219,5 +238,3 @@ Include-Resource:\
 	io.openliberty.org.apache.commons.logging,\
 	com.ibm.ws.org.apache.httpcomponents,\
 	com.ibm.ws.org.glassfish.json.1.1
-
-jakartaeeMe: true

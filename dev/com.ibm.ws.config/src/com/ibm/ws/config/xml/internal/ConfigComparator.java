@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2009 IBM Corporation and others.
+ * Copyright (c) 2009, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -38,7 +40,7 @@ public class ConfigComparator {
     private final BaseConfiguration newConfiguration;
     private final MetaTypeRegistry metatypeRegistry;
     private RegistryEntry parentRegistryEntry;
-    private final Map<String, DeltaType> fileSystemVariableChanges;
+    private final Map<String, DeltaType> variableChanges;
 
     public ConfigComparator(BaseConfiguration oldConfiguration, BaseConfiguration newConfiguration, MetaTypeRegistry registry) {
         this(oldConfiguration, newConfiguration, registry, null);
@@ -48,7 +50,7 @@ public class ConfigComparator {
         this.oldConfiguration = oldConfiguration;
         this.newConfiguration = newConfiguration;
         this.metatypeRegistry = registry;
-        this.fileSystemVariableChanges = variableDelta;
+        this.variableChanges = variableDelta;
     }
 
     private RegistryEntry getRegistry(RegistryEntry parent, String childNodeName) {
@@ -567,9 +569,11 @@ public class ConfigComparator {
     }
 
     private Map<String, DeltaType> computeVariableDelta() throws ConfigUpdateException {
-        // server.xml variables and file system variables can't change at the same time
-        if (this.fileSystemVariableChanges != null) {
-            return this.fileSystemVariableChanges;
+        // Do not compute the server.xml variables if the variableChanges have already
+        // been supplied.  For example, from file system variable changes or calculated
+        // variable changes from restored environment changes.
+        if (this.variableChanges != null) {
+            return this.variableChanges;
         }
 
         Map<String, DeltaType> deltaMap = new HashMap<String, DeltaType>();

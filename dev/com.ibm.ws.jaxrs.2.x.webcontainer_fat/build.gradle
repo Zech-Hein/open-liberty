@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,7 +32,7 @@ dependencies {
     'org.apache.wink:wink-client:1.4',
     'org.apache.wink:wink-common:1.4',
     'org.apache.wink:wink-client-apache-httpclient:1.4',
-    "org.slf4j:slf4j-api:1.7.7",
+    project(':com.ibm.ws.org.slf4j.api'),
     project(':io.openliberty.org.apache.commons.codec')
   jersey 'org.glassfish.hk2.external:aopalliance-repackaged:2.3.0-b10',
     'org.ow2.asm:asm-debug-all:5.2',

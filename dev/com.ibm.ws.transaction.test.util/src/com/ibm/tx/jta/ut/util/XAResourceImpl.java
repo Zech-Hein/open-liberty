@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2019 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -43,6 +45,9 @@ import com.ibm.ws.Transaction.JTA.Util;
 
 public class XAResourceImpl implements XAResource, Serializable {
     static final long serialVersionUID = -2141508727147091254L;
+    
+    // Set when dumped. If a operation occurs which changes the state after this has happened
+    protected static boolean dumped;
 
     protected static ConcurrentHashMap<Integer, XAResourceData> _resources = new ConcurrentHashMap<Integer, XAResourceData>();
 
@@ -50,13 +55,9 @@ public class XAResourceImpl implements XAResource, Serializable {
 
     static class StateKeeperImpl implements StateKeeper {
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see com.ibm.tx.jta.ut.util.StateKeeper#dumpState()
-         */
         @Override
-        public void dumpState() {
+        public void dumpState(boolean quietly) {
+        	dumped = !quietly; // For some tests (e.g. XAFlow) we need to continue after dumping state.
             printState();
             FileOutputStream fos = null;
             ObjectOutputStream oos = null;
@@ -172,6 +173,7 @@ public class XAResourceImpl implements XAResource, Serializable {
     public static final int COMMITTED_ONE_PHASE = 256;
 
     protected static String STATE_FILE = "XAResourceData.dat";
+    public static final String DUMP_STATE = "Dump State: ";
 
     // This variable may be set to true to allow more chatty output.
     protected static boolean DEBUG_OUTPUT = true;
@@ -269,7 +271,6 @@ public class XAResourceImpl implements XAResource, Serializable {
         private boolean busyInLongRunningQuery;
         private boolean queryAborted;
         private boolean commitSuicide = true;
-        private final String stateFile;
 
         URL doomedServer;
 
@@ -342,7 +343,6 @@ public class XAResourceImpl implements XAResource, Serializable {
         public XAResourceData(int i) {
             key = i;
             RM = UUID.randomUUID();
-            stateFile = STATE_FILE;
         }
 
         public int getCommitAction() {
@@ -532,33 +532,8 @@ public class XAResourceImpl implements XAResource, Serializable {
             sb.append("State: " + stateFormatter(_state));
             sb.append("\nXid: " + _xid);
             sb.append("\nCommit order: " + _commitOrder);
+            sb.append("\nRecover action: " + actionFormatter(recoverAction));
 
-/*
- * private UUID RM;
- * private int prepareAction = XAResource.XA_OK;
- * private int rollbackAction = XAResource.XA_OK;
- * private int commitAction = XAResource.XA_OK;
- * private int endAction = XAResource.XA_OK;
- * private int startAction = XAResource.XA_OK;
- * private int forgetAction = XAResource.XA_OK;
- * private int recoverAction = XAResource.XA_OK;
- * private int setTransactionTimeoutAction = RETURN_TRUE;
- * private int commitRepeatCount;
- * private int rollbackRepeatCount;
- * private int forgetRepeatCount;
- * private int recoverRepeatCount;
- * private int statusDuringCommit;
- * private int statusDuringRollback;
- * private int statusDuringPrepare;
- * private int rollbackCount;
- * private int forgetCount;
- * private boolean heuristic;
- * private int _sleepTime;
- * private Xid _xid;
- * private boolean busyInLongRunningQuery;
- * private boolean queryAborted;
- * private boolean commitSuicide = true;
- */
             return sb.toString();
         }
 
@@ -690,7 +665,9 @@ public class XAResourceImpl implements XAResource, Serializable {
 
     @Override
     public void commit(Xid xid, boolean onePhase) throws XAException {
-        System.out.println("commit(" + _key + ", " + xid + ", " + onePhase
+    	if (dumped) throw new AlreadyDumpedException("Test resource state was already dumped");
+
+    	System.out.println("commit(" + _key + ", " + xid + ", " + onePhase
                            + ")");
 
         self().setCommitOrder(_commitSequence.incrementAndGet());
@@ -793,7 +770,7 @@ public class XAResourceImpl implements XAResource, Serializable {
         }
 
         if (self().getCommitSuicide()) {
-//			Log.info(getClass(), "killDoomedServers", "Uh oh");
+            System.out.println("Committing suicide");
             if (dumpState) {
                 dumpState();
             }
@@ -803,7 +780,9 @@ public class XAResourceImpl implements XAResource, Serializable {
 
     @Override
     public void end(Xid xid, int flags) throws XAException {
-        System.out.println("end(" + _key + ", " + xid + ", " + flags + ")");
+    	if (dumped) throw new AlreadyDumpedException("Test resource state was already dumped");
+
+    	System.out.println("end(" + _key + ", " + xid + ", " + flags + ")");
 
         _XAEvents.add(new XAEvent(XAEventCode.END, _key));
 
@@ -826,7 +805,9 @@ public class XAResourceImpl implements XAResource, Serializable {
 
     @Override
     public void forget(Xid xid) throws XAException {
-        System.out.println("forget(" + _key + ", " + xid + ")");
+    	if (dumped) throw new AlreadyDumpedException("Test resource state was already dumped");
+
+    	System.out.println("forget(" + _key + ", " + xid + ")");
 
         _XAEvents.add(new XAEvent(XAEventCode.FORGET, _key));
 
@@ -871,7 +852,9 @@ public class XAResourceImpl implements XAResource, Serializable {
 
     @Override
     public int prepare(Xid xid) throws XAException {
-        System.out.println("prepare(" + _key + ", " + xid + ") = "
+    	if (dumped) throw new AlreadyDumpedException("Test resource state was already dumped");
+
+    	System.out.println("prepare(" + _key + ", " + xid + ") = "
                            + actionFormatter(self().getPrepareAction()));
 
         _XAEvents.add(new XAEvent(XAEventCode.PREPARE, _key));
@@ -926,7 +909,9 @@ public class XAResourceImpl implements XAResource, Serializable {
 
     @Override
     public Xid[] recover(int flag) throws XAException {
-        System.out.println("recover(" + _key + ", " + flag + ")");
+    	if (dumped) throw new AlreadyDumpedException("Test resource state was already dumped");
+
+    	System.out.println("recover(" + _key + ", " + flag + ")");
 
         if (self() == null) {
             if (DEBUG_OUTPUT)
@@ -934,14 +919,17 @@ public class XAResourceImpl implements XAResource, Serializable {
                                 .println("No XARecoveryData - returning null xid array");
             return null;
         }
+        
+        System.out.println("XAResource state in recover(): "+self());
 
         _XAEvents.add(new XAEvent(XAEventCode.RECOVER, _key));
 
         final int recoverAction = self().getRecoverAction();
         if (recoverAction != XAResource.XA_OK) {
             final int repeatCount = self().getRecoverRepeatCount();
+            System.out.println("recoverRepeatCount = "+repeatCount+", recoverAction = "+actionFormatter(recoverAction));
             self().setRecoverRepeatCount(repeatCount - 1);
-            if (repeatCount >= 0) {
+            if (repeatCount > 0) {
                 switch (recoverAction) {
                     case RUNTIME_EXCEPTION:
                         throw new RuntimeException();
@@ -971,7 +959,9 @@ public class XAResourceImpl implements XAResource, Serializable {
 
     @Override
     public void rollback(Xid xid) throws XAException {
-        System.out.println("rollback(" + _key + ", " + xid + ")");
+    	if (dumped) throw new AlreadyDumpedException("Test resource state was already dumped");
+
+    	System.out.println("rollback(" + _key + ", " + xid + ")");
 
         if (self().getExpectedDirection() != DIRECTION_ROLLBACK && self().getExpectedDirection() != DIRECTION_EITHER) {
             System.out.println("Rollback is not the expected direction! Test failed.");
@@ -1049,7 +1039,9 @@ public class XAResourceImpl implements XAResource, Serializable {
 
     @Override
     public void start(Xid xid, int flags) throws XAException {
-        System.out.println("start(" + _key + ", " + xid + ", " + flags + ")");
+    	if (dumped) throw new AlreadyDumpedException("Test resource state was already dumped");
+
+    	System.out.println("start(" + _key + ", " + xid + ", " + flags + ")");
         _XAEvents.add(new XAEvent(XAEventCode.START, _key));
 
         setState(STARTED);
@@ -1338,21 +1330,27 @@ public class XAResourceImpl implements XAResource, Serializable {
         int committed = 0;
         int prepared = 0;
         int rolledback = 0;
+        int numResources = 0;
 
         for (XAResourceData res : _resources.values()) {
-            if (res.inState(COMMITTED)) {
-                committed++;
-            } else if (res.inState(ROLLEDBACK)) {
-                rolledback++;
-            } else if (res.inState(PREPARED)) {
-                prepared++;
-            } else {
-                rolledback++;
-            }
+        	if (null != res.getXid()) {
+        		numResources++;
+        		if (res.inState(COMMITTED)) {
+        			committed++;
+        		} else if (res.inState(ROLLEDBACK)) {
+        			rolledback++;
+        		} else if (res.inState(PREPARED)) {
+        			prepared++;
+        		} else {
+        			rolledback++;
+        		}
+        	} else {
+        		System.out.println("Resource has null Xid. Ignoring in checkAtomicity(): " + res);
+        	}
         }
 
         if (committed > 0) {
-            if (committed != _resources.size()) {
+            if (committed != numResources) {
                 return "Unatomic";
             }
 
@@ -1360,7 +1358,7 @@ public class XAResourceImpl implements XAResource, Serializable {
         }
 
         if (rolledback > 0) {
-            if (rolledback != _resources.size()) {
+            if (rolledback != numResources) {
                 return "Unatomic";
             }
 
@@ -1415,27 +1413,41 @@ public class XAResourceImpl implements XAResource, Serializable {
         return _resources.size();
     }
 
-    public static synchronized void clear() {
-        _XAEvents.clear();
+    public static synchronized boolean clear() {
+		final File f = new File(STATE_FILE);
+		System.out.println("XAResourceImpl.clear(): Deleting state file: " + f.getAbsolutePath());
+
+		_XAEvents.clear();
         _resources.clear();
         _nextKey.set(0);
 
-        AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+        return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
 
 			@Override
 			public Boolean run() {
-				return new File(STATE_FILE).delete();
+				if (f.exists()) {
+					boolean result = f.delete();
+					System.out.println("Deletion " + (result ? "succeeded" : "failed"));
+					return result;
+				} else {
+					System.out.println("Deletion not required");
+					return false;
+				}
 			}
         });
     }
 
     public static synchronized void dumpState() {
-        stateKeeper.dumpState();
+    	dumpState(false);	
+    }
+
+    public static synchronized void dumpState(boolean quietly) {
+        stateKeeper.dumpState(quietly);
 
         // Defect 168553 - this string needs to be written in order for the
         // test infrastructure to see that the
         // server has been halted.
-        System.out.println("Dump State: " + _resources.values().size());
+        System.out.println(DUMP_STATE + _resources.values().size());
     }
 
     public synchronized static int loadState() {
@@ -1537,24 +1549,26 @@ public class XAResourceImpl implements XAResource, Serializable {
 
     private String actionFormatter(int action) {
         switch (action) {
-            case XAException.XA_RBROLLBACK:
-                return "ROLLBACK";
-            case XAException.XA_RDONLY:
-                return "READONLY";
-            case RUNTIME_EXCEPTION:
-                return "RUNTIME_EXCEPTION";
-            case DIE:
-                return "DIE";
-            case SLEEP_COMMIT:
-                return "SLEEP_COMMIT";
-            case SLEEP_ROLLBACK:
-                return "SLEEP_ROLLBACK";
-            case RETURN_TRUE:
-                return "RETURN_TRUE";
-            case RETURN_FALSE:
-                return "RETURN_FALSE";
-            default:
-                return "INVALID ACTION " + action;
+        case XAException.XAER_RMFAIL:
+        	return "RMFAIL";
+        case XAException.XA_RBROLLBACK:
+        	return "ROLLBACK";
+        case XAException.XA_RDONLY:
+        	return "READONLY";
+        case RUNTIME_EXCEPTION:
+        	return "RUNTIME_EXCEPTION";
+        case DIE:
+        	return "DIE";
+        case SLEEP_COMMIT:
+        	return "SLEEP_COMMIT";
+        case SLEEP_ROLLBACK:
+        	return "SLEEP_ROLLBACK";
+        case RETURN_TRUE:
+        	return "RETURN_TRUE";
+        case RETURN_FALSE:
+        	return "RETURN_FALSE";
+        default:
+        	return "NO ACTION (" + action +")";
         }
     }
 
@@ -1566,7 +1580,6 @@ public class XAResourceImpl implements XAResource, Serializable {
      * @param stateFile
      */
     public static synchronized void loadState(String stateFile) {
-        new Throwable("loadState: " + STATE_FILE).printStackTrace(System.out);
         setStateFile(stateFile);
         loadState();
     }

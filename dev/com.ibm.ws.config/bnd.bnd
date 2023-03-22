@@ -1,14 +1,16 @@
 #*******************************************************************************
-# Copyright (c) 2017 IBM Corporation and others.
+# Copyright (c) 2017, 2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
--include= ~../cnf/resources/bnd/bundle.props, 
+-include= ~../cnf/resources/bnd/bundle.props
 bVersion=1.0
 
 Bundle-Name: WAS ConfigAdmin Service
@@ -26,7 +28,8 @@ Export-Package: com.ibm.websphere.config;provide:=true, \
   com.ibm.websphere.metatype;provide:=true, \
   com.ibm.websphere.config.mbeans;provide:=true, \
   org.osgi.service.cm;provide:=true, \
-  com.ibm.ws.config.xml
+  com.ibm.ws.config.xml, \
+  com.ibm.ws.config.xml.nester
 
 Private-Package: com.ibm.ws.config.admin, \
    com.ibm.ws.config*.internal*
@@ -63,7 +66,6 @@ instrument.classesExcludes: com/ibm/ws/config/internal/resources/*.class
 
 -buildpath: \
 	com.ibm.ws.runtime.update;version=latest,\
-	com.ibm.ws.config.ext;version=latest,\
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
 	com.ibm.websphere.org.osgi.core;version=latest,\
 	com.ibm.websphere.org.osgi.service.cm;version=latest,\
@@ -78,6 +80,7 @@ instrument.classesExcludes: com/ibm/ws/config/internal/resources/*.class
 	com.ibm.ws.kernel.service;version=latest,\
 	com.ibm.ws.kernel.filemonitor;version=latest,\
 	com.ibm.ws.kernel.boot.nested;version=latest,\
+	com.ibm.ws.kernel.boot.common;version=latest,\
 	com.ibm.websphere.appserver.spi.logging;version=latest
 
 -testpath: \
@@ -92,4 +95,6 @@ instrument.classesExcludes: com/ibm/ws/config/internal/resources/*.class
 	com.ibm.ws.kernel.service;version=latest, \
 	com.ibm.ws.logging;version=latest, \
 	com.ibm.ws.kernel.boot.logging;version=latest, \
-	com.ibm.ws.kernel.security.thread;version=latest
+	com.ibm.ws.kernel.security.thread;version=latest,\
+	com.ibm.ws.kernel.boot.core;version=latest,\
+	com.ibm.ws.kernel.boot.common;version=latest

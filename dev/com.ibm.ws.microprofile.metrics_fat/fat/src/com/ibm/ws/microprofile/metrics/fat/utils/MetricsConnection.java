@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,7 +24,7 @@ import java.util.Map.Entry;
 
 import org.junit.Assert;
 
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.HttpUtils;
@@ -60,7 +62,7 @@ public class MetricsConnection {
      * Creates connection with default values
      *
      * @param server - server to use to construct connection
-     * @param path - URI to connect to
+     * @param path   - URI to connect to
      */
     public MetricsConnection(LibertyServer server, String path) {
         this.server = server;
@@ -130,7 +132,7 @@ public class MetricsConnection {
     /**
      * Sets value for specific header
      *
-     * @param headerName - header to be set
+     * @param headerName  - header to be set
      * @param headerValue - value of the header
      * @return
      */

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -233,7 +235,8 @@ public class DataModelSerializerTest {
     }
 
     public static class StringGetter {
-        public StringGetter() {}
+        public StringGetter() {
+        }
 
         //ignore the warning.. eclipse is trying to tell me this is bad ;p
         //but that's the whole point of this test =)
@@ -302,7 +305,8 @@ public class DataModelSerializerTest {
 
     // Do not make this class implement VersionableContent.
     public static class JustAnotherBean {
-        public JustAnotherBean() {}
+        public JustAnotherBean() {
+        }
 
         String field;
 
@@ -455,7 +459,7 @@ public class DataModelSerializerTest {
     @Test
     public void testDeserializeNulls() throws Exception {
 
-        // simple string list sanity check
+        // simple string list check
         DeserialisationHelperClass dhc = DataModelSerializer.deserializeObject(new ByteArrayInputStream("{ \"stringList\": [\"somestring1\", \"somestring2\"] }".getBytes()),
                                                                                DeserialisationHelperClass.class);
         List<String> list = new ArrayList<String>();

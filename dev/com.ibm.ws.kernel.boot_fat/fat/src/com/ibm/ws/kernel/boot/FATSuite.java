@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,9 +23,8 @@ import com.ibm.ws.kernel.boot.commandline.StartCommandTest;
 import com.ibm.ws.kernel.boot.commandport.ServerCommandPortTest;
 import com.ibm.ws.kernel.boot.internal.commands.LogLevelPropertyTest;
 import com.ibm.ws.kernel.boot.internal.commands.PackageCommandTest;
-import com.ibm.ws.kernel.boot.internal.commands.PackageLooseRunnableTest;
 import com.ibm.ws.kernel.boot.internal.commands.PackageLooseContentsTest;
-import com.ibm.ws.kernel.boot.internal.commands.PackageLooseFilterTest;
+import com.ibm.ws.kernel.boot.internal.commands.PackageLooseRunnableTest;
 import com.ibm.ws.kernel.osgi.OSGiEmbedManagerTest;
 import com.ibm.ws.kernel.provisioning.KernelChangeTest;
 import com.ibm.ws.kernel.provisioning.ProvisioningTest;
@@ -48,7 +49,9 @@ import com.ibm.wsspi.kernel.embeddable.EmbeddedServerTest;
                 EmbeddedServerAddProductExtensionMultipleTest.class,
                 ProvisioningTest.class,
                 KernelChangeTest.class,
+                ServerEnvTest.class,
                 ServerStartTest.class,
+                ServerStopTest.class,
                 ServerStartAsServiceTest.class,
                 ShutdownTest.class,
                 ServerCommandPortTest.class,
@@ -56,7 +59,7 @@ import com.ibm.wsspi.kernel.embeddable.EmbeddedServerTest;
                 PackageCommandTest.class,
                 PackageLooseRunnableTest.class,
                 PackageLooseContentsTest.class,
-//                PackageLooseFilterTest.class, // Recreates issue 15724; disabled until that is fixed.
+                // PackageLooseFilterTest.class, // Recreates issue 15724; disabled until that is fixed.
                 LogLevelPropertyTest.class,
                 CreateCommandTest.class,
                 StartCommandTest.class,
@@ -66,7 +69,8 @@ import com.ibm.wsspi.kernel.embeddable.EmbeddedServerTest;
                 PauseResumeCommandTest.class,
                 EmbeddedServerMergeProductExtensionTest.class,
                 ServerEndpointControlMBeanTest.class,
-                OSGiEmbedManagerTest.class
+                OSGiEmbedManagerTest.class,
+                ServerCleanTest.class
 })
 public class FATSuite {
     // Empty

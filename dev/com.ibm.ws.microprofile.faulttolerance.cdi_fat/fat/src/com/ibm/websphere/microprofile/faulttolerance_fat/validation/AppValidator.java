@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,7 +23,6 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 import com.ibm.websphere.simplicity.RemoteFile;
 import com.ibm.websphere.simplicity.ShrinkHelper;
-import com.ibm.ws.fat.util.SharedServer;
 
 import componenttest.matchers.Matchers;
 import componenttest.topology.impl.LibertyServer;
@@ -58,13 +59,6 @@ public class AppValidator {
      */
     public static AppValidator validateAppOn(LibertyServer server) {
         return new AppValidator(server);
-    }
-
-    /**
-     * Begin setting up an app validation to run on the given liberty server
-     */
-    public static AppValidator validateAppOn(SharedServer sharedServer) {
-        return new AppValidator(sharedServer.getLibertyServer());
     }
 
     private AppValidator(LibertyServer server) {

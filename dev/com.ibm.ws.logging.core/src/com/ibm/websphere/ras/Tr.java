@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 IBM Corporation and others.
+ * Copyright (c) 2010, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -150,6 +152,19 @@ public class Tr {
      * annotation can be specified at the class and/or the package level; the
      * class-level annotation will be given priority. If both traceGroup and
      * traceGroups are specified, traceGroups will be given priority.
+     * </br>
+     * </br>
+     * This method should be used <b>statically as a private final global element in the target class</b>
+     * </br>
+     * For example:
+     * </br>
+     * <code>public class Example {
+     * </br>
+     * private final static TraceComponent tc = Tr.register( ... );
+     * </br>
+     *  ...
+     * </br>
+     * }</code>
      * 
      * @param aClass
      *            a valid <code>Class</code> to register a component for with
@@ -195,6 +210,19 @@ public class Tr {
     /**
      * Register the provided name with the trace service and assign it to the
      * provided group name.
+     * </br>
+     * </br>
+     * This method should be used <b>statically as a private final global element in the target class</b>
+     * </br>
+     * For example:
+     * </br>
+     * <code>public class Example {
+     * </br>
+     * private final static TraceComponent tc = Tr.register( ... );
+     * </br>
+     * ...
+     * </br>
+     * }</code>
      * 
      * @param name
      *            a <code>String</code> to register a component for with
@@ -219,6 +247,19 @@ public class Tr {
     /**
      * Register the provided name with the trace service and assign it to the
      * provided groups.
+     * </br>
+     * </br>
+     * This method should be used <b>statically as a private final global element in the target class</b>
+     * </br>
+     * For example:
+     * </br>
+     * <code>public class Example {
+     * </br>
+     * private final static TraceComponent tc = Tr.register( ... );
+     * </br>
+     *  ...
+     * </br>
+     * }</code>
      * 
      * @param name
      *            a <code>String</code> to register a component for with
@@ -243,6 +284,19 @@ public class Tr {
     /**
      * Register the provided class with the trace service and assign it to the
      * provided group name.
+     * </br>
+     * </br>
+     * This method should be used <b>statically as a private final global element in the target class</b>
+     * </br>
+     * For example:
+     * </br>
+     * <code>public class Example {
+     * </br>
+     * private final static TraceComponent tc = Tr.register( ... );
+     * </br>
+     *  ...
+     * </br>
+     * }</code>
      * 
      * @param aClass
      *            a valid <code>Class</code> to register a component for with
@@ -264,6 +318,19 @@ public class Tr {
      * Register the provided class with the trace service and assign it to the
      * provided group name. Translated messages will attempt to use the input
      * message bundle source.
+     * </br>
+     * </br>
+     * This method should be used <b>statically as a private final global element in the target class</b>
+     * </br>
+     * For example:
+     * </br>
+     * <code>public class Example {
+     * </br>
+     * private final static TraceComponent tc = Tr.register( ... );
+     * </br>
+     *  ...
+     * </br>
+     * }</code>
      * 
      * @param aClass
      *            a valid <code>Class</code> to register a component for with
@@ -293,6 +360,19 @@ public class Tr {
      * Register the provided class with the trace service and assign it to the
      * provided group name. Translated messages will attempt to use the input
      * message bundle source.
+     * </br>
+     * </br>
+     * This method should be used <b>statically as a private final global element in the target class</b>
+     * </br>
+     * For example:
+     * </br>
+     * <code>public class Example {
+     * </br>
+     * private final static TraceComponent tc = Tr.register( ... );
+     * </br>
+     *  ...
+     * </br>
+     * }</code>
      * 
      * @param aClass
      *            a valid <code>Class</code> to register a component for with
@@ -322,6 +402,19 @@ public class Tr {
      * Register the provided name with the trace service and assign it to the
      * provided group name. Translated messages will attempt to use the input
      * message bundle source.
+     * </br>
+     * </br>
+     * This method should be used <b>statically as a private final global element in the target class</b>
+     * </br>
+     * For example:
+     * </br>
+     * <code>public class Example {
+     * </br>
+     * private final static TraceComponent tc = Tr.register( ... );
+     * </br>
+     *  ...
+     * </br>
+     * }</code>
      * 
      * @param name
      *            a <code>String</code> to register a component for with
@@ -355,6 +448,19 @@ public class Tr {
      * Register the provided name with the trace service and assign it to the
      * provided groups. Translated messages will attempt to use the input
      * message bundle source.
+     * </br>
+     * </br>
+     * This method should be used <b>statically as a private final global element in the target class</b>
+     * </br>
+     * For example:
+     * </br>
+     * <code>public class Example {
+     * </br>
+     * private final static TraceComponent tc = Tr.register( ... );
+     * </br>
+     *  ...
+     * </br>
+     * }</code>
      * 
      * @param name
      *            a <code>String</code> to register a component for with

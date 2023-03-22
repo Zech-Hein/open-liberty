@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,12 +30,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.junit.Test;
 
+import componenttest.annotation.SkipForRepeat;
 import componenttest.app.FATServlet;
+import componenttest.rules.repeater.MicroProfileActions;
 
 @SuppressWarnings("serial")
 @WebServlet(urlPatterns = "/BasicClientTestServlet")
@@ -133,14 +136,14 @@ public class BasicClientTestServlet extends FATServlet {
     }
 
     @Test
+    @SkipForRepeat({MicroProfileActions.MP50_ID, MicroProfileActions.MP60_ID}) // timeout property not supported in Rest Client 3.0 - use timeout method instead
     public void testReadTimeout(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         try {
             builder.property("com.ibm.ws.jaxrs.client.receive.timeout", "5");
             long startTime = System.nanoTime();
             WaitServiceClient client = builder.build(WaitServiceClient.class);
-            Response r = null;
             try {
-                r = client.waitFor(20);
+                client.waitFor(20);
                 fail("Did not throw expected ProcessingException");
             } catch (ProcessingException expected) {
                 LOG.info("Caught expected ProcessingException");

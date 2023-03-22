@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2016, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,6 +36,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -76,9 +79,14 @@ public class BasicConfigTests extends FATServletClient {
     public static final String CUSTOM_SOURCES_APP_NAME = "customSources";
     public static final String TYPES_APP_NAME = "types";
 
-    public static RepeatTests r = MicroProfileActions.repeat(SERVER_NAME, MicroProfileActions.MP50, MicroProfileActions.MP12, MicroProfileActions.MP13, MicroProfileActions.MP14,
+    @ClassRule
+    public static RepeatTests r = MicroProfileActions.repeat(SERVER_NAME, MicroProfileActions.MP60,
+                                                             MicroProfileActions.MP12,
+                                                             MicroProfileActions.MP13,
+                                                             MicroProfileActions.MP14,
                                                              MicroProfileActions.MP33,
-                                                             MicroProfileActions.MP41);
+                                                             MicroProfileActions.MP41,
+                                                             MicroProfileActions.MP50);
 
     @Server(SERVER_NAME)
     @TestServlets({

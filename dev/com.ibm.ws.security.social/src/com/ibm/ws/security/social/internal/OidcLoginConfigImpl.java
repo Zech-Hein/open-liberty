@@ -1,15 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2021 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.security.social.internal;
 
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.util.ArrayList;
@@ -23,19 +26,25 @@ import javax.net.ssl.SSLSocketFactory;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 
+import com.ibm.ejs.ras.TraceNLS;
 import com.ibm.json.java.JSONObject;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.security.common.config.DiscoveryConfigUtils;
+import com.ibm.ws.security.common.http.HttpResponseNot200Exception;
 import com.ibm.ws.security.common.http.HttpUtils;
+import com.ibm.ws.security.common.http.SocialLoginWrapperException;
+import com.ibm.ws.security.common.http.HttpResponseNullOrEmptyException;
 import com.ibm.ws.security.common.jwk.impl.JWKSet;
 import com.ibm.ws.security.jwt.config.ConsumerUtils;
 import com.ibm.ws.security.jwt.config.JwtConsumerConfig;
 import com.ibm.ws.security.jwt.utils.JwtUtils;
 import com.ibm.ws.security.openidconnect.clients.common.ConvergedClientConfig;
+import com.ibm.ws.security.openidconnect.clients.common.InMemoryOidcSessionCache;
 import com.ibm.ws.security.openidconnect.clients.common.OidcClientConfig;
+import com.ibm.ws.security.openidconnect.clients.common.OidcSessionCache;
 import com.ibm.ws.security.openidconnect.common.ConfigUtils;
 import com.ibm.ws.security.social.SocialLoginConfig;
 import com.ibm.ws.security.social.SocialLoginService;
@@ -133,6 +142,8 @@ public class OidcLoginConfigImpl extends Oauth2LoginConfigImpl implements Conver
     HttpUtils httputils = new HttpUtils();
     ConfigUtils oidcConfigUtils = new ConfigUtils(null);
     DiscoveryConfigUtils discoveryUtil = new DiscoveryConfigUtils();
+
+    private final OidcSessionCache oidcSessionCache = new InMemoryOidcSessionCache();
 
     @Override
     protected void checkForRequiredConfigAttributes(Map<String, Object> props) {
@@ -237,7 +248,7 @@ public class OidcLoginConfigImpl extends Oauth2LoginConfigImpl implements Conver
         discoveryUtil = discoveryUtil.initialConfig(getId(), discoveryEndpointUrl, discoveryPollingRate).discoveryDocumentResult(null).discoveryDocumentHash(discoveryDocumentHash).discoveredConfig(signatureAlgorithm, tokenEndpointAuthMethod, scope);
     }
 
-    @FFDCIgnore({ Exception.class })
+    @FFDCIgnore({ Exception.class, SocialLoginWrapperException.class })
     public boolean handleDiscoveryEndpoint(String discoveryUrl) {
 
         String jsonString = null;
@@ -252,7 +263,7 @@ public class OidcLoginConfigImpl extends Oauth2LoginConfigImpl implements Conver
             }
 
             SSLSocketFactory sslSocketFactory = getSSLSocketFactory();
-            jsonString = httputils.getHttpRequest(sslSocketFactory, discoveryUrl, hostNameVerificationEnabled, null, null); // do not need to add basic auth header
+            jsonString = fetchDiscoveryData(discoveryUrl, sslSocketFactory);
             if (jsonString != null) {
                 parseJsonResponse(jsonString);
                 if (discoveryjson != null) {
@@ -260,6 +271,10 @@ public class OidcLoginConfigImpl extends Oauth2LoginConfigImpl implements Conver
                 }
             }
 
+        } catch (SocialLoginWrapperException e) {
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "Fail to get successful discovery response : ", e.getCause());
+            }
         } catch (Exception e) {
             if (tc.isDebugEnabled()) {
                 Tr.debug(tc, "Fail to get successful discovery response : ", e.getCause());
@@ -270,6 +285,16 @@ public class OidcLoginConfigImpl extends Oauth2LoginConfigImpl implements Conver
             Tr.error(tc, "OIDC_CLIENT_DISCOVERY_SSL_ERROR", getId(), discoveryUrl);
         }
         return valid;
+    }
+
+    @FFDCIgnore({ SocialLoginWrapperException.class })
+    String fetchDiscoveryData(String discoveryUrl, SSLSocketFactory sslSocketFactory) throws Exception {
+        try {
+            return httputils.getHttpJsonRequest(sslSocketFactory, discoveryUrl, hostNameVerificationEnabled, useSystemPropertiesForHttpClientConnections);
+        } catch (SocialLoginWrapperException e) {
+            Tr.error(tc, e.getNlsMessage());
+            throw e;
+        }
     }
 
     /**
@@ -913,6 +938,11 @@ public class OidcLoginConfigImpl extends Oauth2LoginConfigImpl implements Conver
             return JwtUtils.getPrivateKey(keyAlias, keyStoreRef);
         }
         return null;
+    }
+    
+    @Override
+    public OidcSessionCache getOidcSessionCache() {
+    	return this.oidcSessionCache;
     }
 
 }

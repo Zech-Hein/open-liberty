@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2020 IBM Corporation and others.
+ * Copyright (c) 2019, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -105,6 +107,9 @@ public class ThreadedClientServlet extends HttpServlet {
 					requestContext.put("javax.xml.ws.client.receiveTimeout", timeout * 1000);
 					System.out.println("Thread " + count + ": " + "Get service from: " + location);
 					response = proxy.invoke();
+					if (response.contains("Exception happens")) {
+						throw new Exception(response);
+					}
 				} catch (Exception e) {
 					System.out.println("Thread " + count + ": " + "Failed to get service from: " + location + " after " + ((System.nanoTime() - time) / 1000000000l) + " seconds");
 					e.printStackTrace(System.out);

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -77,7 +79,6 @@ import componenttest.topology.impl.LibertyServer;
 
 @Mode(TestMode.FULL)
 @RunWith(FATRunner.class)
-@SkipForRepeat(SkipForRepeat.EE9_FEATURES) // TODO openidConnectClient-1.0 has not been transformed.
 public class JwtBuilderApiBasicTests extends CommonSecurityFat {
 
     @Server("com.ibm.ws.security.jwt_fat.builder")
@@ -102,8 +103,8 @@ public class JwtBuilderApiBasicTests extends CommonSecurityFat {
 
     @BeforeClass
     public static void setUp() throws Exception {
-    	FATSuite.transformApps(builderServer, "test-apps/jwtbuilder.war", "test-apps/jwtbuilderclient.war", "dropins/testmarker.war");
-    	FATSuite.transformApps(rsServer, "test-apps/helloworld.war", "dropins/testmarker.war");
+        transformApps(builderServer);
+        transformApps(rsServer);
 
         // Start server that will build the JWT Token
         serverTracker.addServer(builderServer);

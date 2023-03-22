@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,7 +29,6 @@ import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.config.xml.ConfigVariables;
 import com.ibm.ws.config.xml.LibertyVariable;
-import com.ibm.ws.config.xml.internal.validator.XMLConfigValidator;
 import com.ibm.ws.config.xml.internal.variables.ConfigVariableRegistry;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.wsspi.kernel.service.location.WsLocationAdmin;
@@ -211,7 +212,7 @@ class ServerXMLConfiguration {
 
     // Remove milliseconds from timestamp values to address inconsistencies in container file systems
     long reduceTimestampPrecision(long value) {
-      return (value / 1000) * 1000;
+        return (value / 1000) * 1000;
     }
 
     /**
@@ -273,7 +274,7 @@ class ServerXMLConfiguration {
     @FFDCIgnore({ ConfigParserException.class, ConfigParserTolerableException.class })
     private ServerConfiguration loadServerConfiguration() throws ConfigValidationException, ConfigParserException {
         ServerConfiguration configuration = null;
-        XMLConfigValidator configValidator = parser.getConfigValidator();
+
         try {
             try {
                 // Initialize the configuration object here, so that as the parser progresses
@@ -291,7 +292,6 @@ class ServerXMLConfiguration {
 
                 configuration.updateLastModified(configRoot.getLastModified());
 
-                configValidator.validateConfig(configuration);
             } catch (ConfigParserTolerableException ex) {
                 // We know what this is, so no need to retry
                 throw ex;
@@ -306,7 +306,7 @@ class ServerXMLConfiguration {
                     // Reset the server configuration so that we can start over from the beginning.
                     configuration = new ServerConfiguration();
                     parser.parseServerConfiguration(configRoot, configuration);
-                    configValidator.validateConfig(configuration);
+
                 }
             }
         } catch (ConfigParserException ex) {

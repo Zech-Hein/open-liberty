@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2021 IBM Corporation and others.
+ * Copyright (c) 2014, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,6 +28,8 @@ import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.security.spnego.fat.config.InitClass;
 
 import componenttest.custom.junit.runner.AlwaysPassesTest;
+import componenttest.rules.repeater.FeatureReplacementAction;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.JavaInfo;
@@ -49,7 +53,9 @@ public class FATSuite extends ApacheKDCforSPNEGO {
     private static final Class<?> c = FATSuite.class;
 
     //@ClassRule
-    public static RepeatTests repeat = RepeatTests.withoutModification().andWith(new JakartaEE9Action());
+    public static RepeatTests repeat = RepeatTests.withoutModification()
+                    .andWith(new JakartaEE9Action().conditionalFullFATOnly(FeatureReplacementAction.GREATER_THAN_OR_EQUAL_JAVA_11))
+                    .andWith(new JakartaEE10Action());
 
     /**
      * Rule to setup users, SPNs etc on the KDC.
@@ -95,10 +101,12 @@ public class FATSuite extends ApacheKDCforSPNEGO {
             InitClass.KDC_HOSTNAME = ldapServerHostName;
             IBM_HYBRID_JDK = isHybridJDK(javaInfo);
 
+            boolean isIbmJdk8 = javaInfo.vendor() == Vendor.IBM && javaInfo.majorVersion() == 8;
+
             Log.info(c, thisMethod, "The JDK used on this system is version: " + javaInfo.majorVersion() + " and vendor: " + javaInfo.vendor());
-            if (!IBM_JDK_V8_LOWER && !OTHER_SUPPORT_JDKS && !SUN_ORACLE_JDK_V8_HIGHER) {
+            if (!IBM_JDK_V8_LOWER && !OTHER_SUPPORT_JDKS && !SUN_ORACLE_JDK_V8_HIGHER || isIbmJdk8) {
                 Log.info(c, thisMethod, "The JDK used on this system is version: " + javaInfo.majorVersion() + " and vendor: " + javaInfo.vendor() +
-                                        ". Because only IBM JDK version 8 or less, Oracle and Open JDK version 8 and higher and JDK version 11 are currently supported, no tests will be run.");
+                                        ". Because only IBM JDK version 7 or less, Oracle and Open JDK version 8 and higher and JDK version 11 are currently supported, no tests will be run.");
                 runTests = false;
             }
             if (IBM_HYBRID_JDK) {
@@ -136,13 +144,18 @@ public class FATSuite extends ApacheKDCforSPNEGO {
      * JakartaEE9 transform a list of applications. The applications are the simple app names and they must exist at '<server>/apps/<appname>'.
      *
      * @param myServer The server to transform the applications on.
-     * @param apps The simple names of the applications to transform.
+     * @param apps     The simple names of the applications to transform.
      */
     public static void transformApps(LibertyServer myServer, String... apps) {
         if (JakartaEE9Action.isActive()) {
             for (String app : apps) {
                 Path someArchive = Paths.get(myServer.getServerRoot() + File.separatorChar + "apps" + File.separatorChar + app);
                 JakartaEE9Action.transformApp(someArchive);
+            }
+        } else if (JakartaEE10Action.isActive()) {
+            for (String app : apps) {
+                Path someArchive = Paths.get(myServer.getServerRoot() + File.separatorChar + "apps" + File.separatorChar + app);
+                JakartaEE10Action.transformApp(someArchive);
             }
         }
     }

@@ -1,9 +1,11 @@
 #*******************************************************************************
 # Copyright (c) 2019 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -19,7 +21,8 @@ WS-TraceGroup: WSS4J
 
 Export-Package: \
   net.sf.ehcache;version="1.0.16", \
-  net.sf.ehcache.config;version="1.0.16"
+  net.sf.ehcache.config;version="1.0.16", \
+  net.sf.ehcache.store;version="1.0.16"
 
 Private-Package: \
  net.sf.ehcache.*
@@ -35,12 +38,6 @@ Import-Package: \
  org.slf4j,\
  org.xml.sax,\
  org.xml.sax.helpers
-   
-Include-Resource: \
- @lib/ehcache-core-2.5.2.jar!/META-INF/**,\
- @lib/ehcache-core-2.5.2.jar!/templates/**,\
- @lib/ehcache-core-2.5.2.jar!/schemas/**,\
- @lib/ehcache-core-2.5.2.jar!/*xml
 
 Archiver-Version:
 Build-Jdk:

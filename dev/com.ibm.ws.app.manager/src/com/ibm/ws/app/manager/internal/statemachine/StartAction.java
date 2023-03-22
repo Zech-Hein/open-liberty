@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2020 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -23,6 +25,7 @@ import com.ibm.ws.app.manager.AppMessageHelper;
 import com.ibm.ws.app.manager.ApplicationStateCoordinator;
 import com.ibm.ws.app.manager.NotificationHelper;
 import com.ibm.ws.app.manager.internal.ApplicationConfig;
+import com.ibm.ws.app.manager.internal.ApplicationConfigurator;
 import com.ibm.ws.app.manager.internal.ApplicationInstallInfo;
 import com.ibm.ws.app.manager.internal.monitor.ApplicationMonitor;
 import com.ibm.ws.threading.FutureMonitor;
@@ -31,10 +34,13 @@ import com.ibm.wsspi.application.handler.ApplicationHandler;
 import com.ibm.wsspi.application.handler.ApplicationMonitoringInformation;
 import com.ibm.wsspi.kernel.service.utils.TimestampUtils;
 
+import io.openliberty.checkpoint.spi.CheckpointHook;
+import io.openliberty.checkpoint.spi.CheckpointPhase;
+
 /**
  *
  */
-class StartAction implements Action {
+class StartAction implements Action, CheckpointHook {
     private static final TraceComponent _tc = Tr.register(StartAction.class);
     private final ApplicationConfig _config;
     private final ApplicationInstallInfo _aii;
@@ -45,8 +51,9 @@ class StartAction implements Action {
     private final boolean _update;
     private volatile boolean cancelled = false;
     private final AtomicReference<Future<?>> _slowMessageAction = new AtomicReference<Future<?>>();
+    private final ApplicationConfigurator _configurator;
     private final CompletionListener<Boolean> _listener = new CompletionListener<Boolean>() {
-        @SuppressWarnings("deprecation")
+
         @Override
         public void successfulCompletion(Future<Boolean> future, Boolean result) {
             StateChangeCallback callback = _callback.getAndSet(null);
@@ -56,8 +63,11 @@ class StartAction implements Action {
                     String key = _update ? "APPLICATION_UPDATE_SUCCESSFUL" : "APPLICATION_START_SUCCESSFUL";
                     NotificationHelper.broadcastChange(_config.getMBeanNotifier(), _config.getMBeanName(), _update ? "application.update" : "application.start", Boolean.TRUE,
                                                        AppMessageHelper.get(_aii.getHandler()).formatMessage(key, _config.getName(),
-                                                                                                             TimestampUtils.getElapsedTime(_startTime.get())));
-                    AppMessageHelper.get(_aii.getHandler()).audit(key, _config.getName(), TimestampUtils.getElapsedTime(_startTime.get()));
+                                                                                                             TimestampUtils.getElapsedTimeNanos(_startTime.get())));
+                    AppMessageHelper.get(_aii.getHandler()).audit(key, _config.getName(), TimestampUtils.getElapsedTimeNanos(_startTime.get()));
+                    _configurator.restoreMessage(() -> {
+                        AppMessageHelper.get(_aii.getHandler()).audit(key, _config.getName(), TimestampUtils.getElapsedTime());
+                    });
                     callback.changed();
                 } else {
                     if (!cancelled) {
@@ -65,6 +75,9 @@ class StartAction implements Action {
                         NotificationHelper.broadcastChange(_config.getMBeanNotifier(), _config.getMBeanName(), _update ? "application.update" : "application.start", Boolean.FALSE,
                                                            AppMessageHelper.get(_aii.getHandler()).formatMessage(key, _config.getName()));
                         AppMessageHelper.get(_aii.getHandler()).audit(key, _config.getName());
+                        _configurator.restoreMessage(() -> {
+                            AppMessageHelper.get(_aii.getHandler()).audit(key, _config.getName());
+                        });
                     }
                     callback.failed(null);
                 }
@@ -85,6 +98,9 @@ class StartAction implements Action {
                 NotificationHelper.broadcastChange(_config.getMBeanNotifier(), _config.getMBeanName(), _update ? "application.update" : "application.start", Boolean.FALSE,
                                                    AppMessageHelper.get(_aii.getHandler()).formatMessage(key, _config.getName(), t.toString()));
                 AppMessageHelper.get(_aii.getHandler()).error(key, _config.getName(), t.toString());
+                _configurator.restoreMessage(() -> {
+                    AppMessageHelper.get(_aii.getHandler()).error(key, _config.getName(), t.toString());
+                });
                 callback.failed(t);
             } else {
                 if (_tc.isEventEnabled()) {
@@ -105,19 +121,39 @@ class StartAction implements Action {
                        boolean update, ApplicationMonitor appMonitor,
                        ApplicationInstallInfo appInstallInfo,
                        StateChangeCallback scc,
-                       FutureMonitor fm) {
+                       FutureMonitor fm,
+                       ApplicationConfigurator configurator) {
         _config = config;
         _aii = appInstallInfo;
         _callback.set(scc);
         _monitor = fm;
         _appMonitor = appMonitor;
         _update = update;
+        _configurator = configurator;
+        CheckpointPhase checkpointPhase = CheckpointPhase.getPhase();
+        if (checkpointPhase == CheckpointPhase.APPLICATIONS) {
+            checkpointPhase.addMultiThreadedHook(this);
+        }
+    }
+
+    @Override
+    public void prepare() {
+        if (_callback.get() != null) {
+            // application startup timed out, fail checkpoint
+            final ApplicationHandler<?> handler = _aii.getHandler();
+            if (handler == null) {
+                // this should never happen
+                throw new IllegalStateException("The application handler is not available");
+            }
+            throw new IllegalStateException(AppMessageHelper.get(handler).formatMessage("APPLICATION_SLOW_STARTUP", _config.getName(),
+                                                                                        TimestampUtils.getElapsedTimeNanos(_startTime.get())));
+        }
     }
 
     /** {@inheritDoc} */
     @Override
     public void execute(ExecutorService executor) {
-        _startTime.set(System.currentTimeMillis());
+        _startTime.set(System.nanoTime());
         @SuppressWarnings({ "rawtypes" })
         final ApplicationHandler handler = _aii.getHandler();
         if (handler == null) {
@@ -132,10 +168,9 @@ class StartAction implements Action {
 
         _slowMessageAction.set(((ScheduledExecutorService) executor).schedule(new Runnable() {
 
-            @SuppressWarnings("deprecation")
             @Override
             public void run() {
-                AppMessageHelper.get(handler).audit("APPLICATION_SLOW_STARTUP", _config.getName(), TimestampUtils.getElapsedTime(_startTime.get()));
+                AppMessageHelper.get(handler).audit("APPLICATION_SLOW_STARTUP", _config.getName(), TimestampUtils.getElapsedTimeNanos(_startTime.get()));
             }
         }, maxWait, TimeUnit.SECONDS));
 
@@ -172,5 +207,10 @@ class StartAction implements Action {
     public void cancel() {
         this.cancelled = true;
         stopSlowStartMessage();
+    }
+
+    @Override
+    public void resetStartTime() {
+        _startTime.set(System.nanoTime());
     }
 }

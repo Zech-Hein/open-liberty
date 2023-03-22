@@ -1,12 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2020 IBM Corporation and others.
+ * Copyright (c) 1997, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 package com.ibm.ws.webcontainer.webapp;
 
@@ -30,6 +29,7 @@ import javax.servlet.FilterRegistration;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.ServletRegistration.Dynamic;
+import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 
 import com.ibm.ejs.ras.TraceNLS;
@@ -87,7 +87,7 @@ public abstract class WebAppConfiguration extends BaseConfiguration implements W
     // it's not been set in the web.xml
     private boolean moduleSessionTimeoutSet = false;
     private boolean moduleSessionTrackingModeSet = false;
-    private SessionCookieConfigImpl sessionCookieConfig;
+    private SessionCookieConfig sessionCookieConfig;        //Servlet 6.0 - change to interface
     private boolean hasProgrammaticCookieConfig = false;
     private EnumSet<SessionTrackingMode> sessionDefaultTrackingModeSet;
     private SessionManagerConfig sessionManagerConfig;
@@ -200,6 +200,9 @@ public abstract class WebAppConfiguration extends BaseConfiguration implements W
     private String requestEncoding = null;
     private String responseEncoding = null;
     private static final String NULLSERVLETNAME = "com.ibm.ws.webcontainer.NullServletName"; //PI93226
+    
+    //since Servlet 6.0
+    private boolean skipEncodedCharVerification = false;
     
     /**
      * Constructor.
@@ -1117,22 +1120,25 @@ public abstract class WebAppConfiguration extends BaseConfiguration implements W
         this.sessionManagerConfig = smcBase;
     }
 
-    public SessionCookieConfigImpl getSessionCookieConfig() {
+    /*
+     * Servlet 6.0 - Updated to use SessionCookieConfig
+     */
+    public SessionCookieConfig getSessionCookieConfig() {
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled() && logger.isLoggable(Level.FINE))
         {
-            logger.logp(Level.FINE, CLASS_NAME, "getSessionCookieConfigurator", "scc = " + this.sessionCookieConfig  + " for application: "
-                            + this.getApplicationName());
+            logger.logp(Level.FINE, CLASS_NAME, "getSessionCookieConfig", " returns [" + this.sessionCookieConfig  + "] for application [" + this.getApplicationName() + "] , this -> " + this);
         }
         return this.sessionCookieConfig;
     }
 
-    public void setSessionCookieConfig(SessionCookieConfigImpl scc) {
+    /*
+     * Servlet 6.0 - Updated to SessionCookieConfig
+     */
+    public void setSessionCookieConfig(SessionCookieConfig scc) {
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled() && logger.isLoggable(Level.FINE))
         {
-            logger.logp(Level.FINE, CLASS_NAME, "setSessionCookieConfig", "scc = " + scc + " for application: "
-                            + this.getApplicationName());
+            logger.logp(Level.FINE, CLASS_NAME, "setSessionCookieConfig", " scc [" + scc + "] for application [" + this.getApplicationName() + "] , replaced [" + sessionCookieConfig + "] , this -> " + this);
         }
-
         this.sessionCookieConfig = scc;
     }
 
@@ -1143,7 +1149,8 @@ public abstract class WebAppConfiguration extends BaseConfiguration implements W
                 logger.logp(Level.FINE, CLASS_NAME, "setSessionCookieConfigInitialized", "scc = " +  this.sessionCookieConfig + " for application: "
                                 + this.getApplicationName());
             }
-            this.sessionCookieConfig.setContextInitialized();
+
+            ((SessionCookieConfigImpl) this.sessionCookieConfig).setContextInitialized();
         }
     }
 
@@ -2161,5 +2168,39 @@ public abstract class WebAppConfiguration extends BaseConfiguration implements W
             logger.logp(Level.FINE, CLASS_NAME, "setModuleResponseEncoding", " response encoding [" + encoding +"]");
         }
         this.responseEncoding = encoding;
+    }
+    
+    /**
+     * Since Servlet 6.0 - opt-out verifying the encoded char in URI.
+     * 
+     * true - skip checking for %23 , %2e , %2f , %5c in URI
+     */
+    public void setSkipEncodedCharVerification() {
+        if (this.contextParams != null){
+            String value = (String) this.contextParams.get("SKIP_ENCODED_CHAR_VERIFICATION");
+            if (value != null){
+                if(value.equalsIgnoreCase("true")){
+                    if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE))
+                        logger.logp(Level.FINE, CLASS_NAME,"setSkipEncodedCharVerification", "SKIP verifying encoded character in URI for application -> "+ applicationName);
+                    this.skipEncodedCharVerification = true;
+                }
+                else{ // false for either invalid/false
+                    if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE))
+                        logger.logp(Level.FINE, CLASS_NAME,"setSkipEncodedCharVerification", "VERIFY encoded character in URI for application -> "+ applicationName);
+                }
+
+                return;
+            }
+        }
+
+        if (WCCustomProperties.SKIP_ENCODED_CHAR_VERIFICATION){
+            if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE))
+                logger.logp(Level.FINE, CLASS_NAME,"setSkipEncodedCharVerification", "via server property. SKIP verifying encoded character in URI for application -> "+ applicationName);
+            this.skipEncodedCharVerification = true;
+        }
+    }
+
+    public boolean isSkipVerifyEncodedCharInURI() {
+        return this.skipEncodedCharVerification;
     }
 }

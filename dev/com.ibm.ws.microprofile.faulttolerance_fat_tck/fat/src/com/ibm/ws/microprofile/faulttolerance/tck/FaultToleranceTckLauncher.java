@@ -1,16 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.microprofile.faulttolerance.tck;
-
-import java.util.Collections;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -26,7 +26,8 @@ import componenttest.custom.junit.runner.TestModeFilter;
 import componenttest.rules.repeater.FeatureReplacementAction;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
-import componenttest.topology.utils.MvnUtils;
+import componenttest.topology.utils.tck.TCKResultsInfo.Type;
+import componenttest.topology.utils.tck.TCKRunner;
 
 /**
  * This is a test class that runs the whole Fault Tolerance TCK. The TCK results
@@ -98,13 +99,16 @@ public class FaultToleranceTckLauncher {
      */
     @Test
     @AllowedFFDC // The tested exceptions cause FFDC so we have to allow for this.
-    public void launchFaultToleranceTCK() throws Exception {
+    public void launchFaultTolerance10TCK() throws Exception {
         boolean isFullMode = TestModeFilter.shouldRun(TestMode.FULL);
 
         String suiteFileName = isFullMode ? "tck-suite.xml" : "tck-suite-lite.xml";
 
-        MvnUtils.runTCKMvnCmd(server, "com.ibm.ws.microprofile.faulttolerance_fat_tck", this.getClass() + ":launchFaultToleranceTCK", suiteFileName,
-                              Collections.emptyMap(), Collections.emptySet());
+        String bucketName = "com.ibm.ws.microprofile.faulttolerance_fat_tck";
+        String testName = this.getClass() + ":launchFaultTolerance10TCK";
+        Type type = Type.MICROPROFILE;
+        String specName = "Fault Tolerance";
+        TCKRunner.runTCK(server, bucketName, testName, type, specName, suiteFileName);
     }
 
 }

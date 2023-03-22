@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2004, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution,  and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -5654,8 +5656,15 @@ public abstract class HttpServiceContextImpl implements HttpServiceContext, FFDC
         H2StreamProcessor promisedSP = ((H2HttpInboundLinkWrap) link).muxLink.createNewInboundLink(promisedStreamId);
         if (promisedSP == null) {
             if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
-                Tr.exit(tc, "handleH2LinkPreload exit; cannot create new push stream - "
-                            + "the max number of concurrent streams has already been reached on link: " + link);
+                if(((H2HttpInboundLinkWrap) link).muxLink.isClosing()){
+                    Tr.exit(tc, "handleH2LinkPreload exit; cannot create new push stream - "
+                            + "server is shutting down, closing link: " + link);
+                }
+                else{
+                    Tr.exit(tc, "handleH2LinkPreload exit; cannot create new push stream - "
+                            + "the max number of concurrent streams has already been reached on link: " + link);  
+                }
+                
             }
             return;
         }

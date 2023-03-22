@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -77,6 +79,7 @@ public class IdPInitiatedSLO {
 
     SsoSamlService ssoService = null;
     BasicMessageContext<?, ?> basicMsgCtx;
+    String idpRelayState = null;
     final static String SINDEX = "sessionIndex";
 
     /**
@@ -86,6 +89,20 @@ public class IdPInitiatedSLO {
     public IdPInitiatedSLO(SsoSamlService service, BasicMessageContext<?, ?> msgCtx) {
         ssoService = service;
         basicMsgCtx = msgCtx;
+        if (tc.isDebugEnabled()) {
+            Tr.debug(tc, "IdPInitiatedSLO(" + service.getProviderId() + ")");
+        }
+    }
+    
+    /**
+     * @param ssoService2
+     * @param msgCtx
+     * @param externalRelayState
+     */
+    public IdPInitiatedSLO(SsoSamlService service, BasicMessageContext<?, ?> msgCtx, String externalRelayState) {
+        ssoService = service;
+        basicMsgCtx = msgCtx;
+        idpRelayState = externalRelayState;
         if (tc.isDebugEnabled()) {
             Tr.debug(tc, "IdPInitiatedSLO(" + service.getProviderId() + ")");
         }
@@ -335,7 +352,11 @@ public class IdPInitiatedSLO {
 
         ForwardRequestInfo requestInfo = new ForwardRequestInfo(idpUrl);
         // requestInfo.setFragmentCookieId(cachingRequestInfo.getFragmentCookieId()); //TODO
-        // requestInfo.setParameter("RelayState", new String[] { relayState }); // IdP did not send one in the Logout request
+        // If IdP sends the relaystate, then add it back into response
+        if (this.idpRelayState != null) {
+         requestInfo.setParameter("RelayState", new String[] { this.idpRelayState }); // IdP sent one in the Logout request
+        }
+        
         requestInfo.setParameter("SAMLResponse", new String[] { samlResponse });
         requestInfo.redirectPostRequest(req,
                                         resp,

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -104,6 +106,7 @@ public class OAuthUtil {
      * @param length
      * @return
      */
+    @Sensitive
     public static String getRandom(int length) {
         StringBuffer result = new StringBuffer(length);
         final char[] chars = new char[] {
@@ -123,9 +126,6 @@ public class OAuthUtil {
         }
 
         String retVal = result.toString();
-        if (tc.isDebugEnabled()) {
-            Tr.debug(tc, "getRandom("+length+") returns ["+retVal+"]");
-        }
         return retVal;
     }
 

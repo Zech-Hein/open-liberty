@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -1154,8 +1156,9 @@ public class ZipFileReaperTest {
                     // debug(methodName, "Opened " + actionText(reaper, actualActAt));
 
                 } catch ( Exception e ) {
-                    debug(methodName, "Failed to open " + actionText(reaper, actualActAt));
-                    throw new RuntimeException(e);
+                    String message = "Failed to open " + actionText(reaper, actualActAt);
+                    debug(methodName, message);
+                    throw new RuntimeException(message, e);
                 }
 
                 reaper.validate();

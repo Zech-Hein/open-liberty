@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,11 +24,11 @@ import com.ibm.ws.jpa.fvt.entity.testlogic.PKEntityTestLogic;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext.PersistenceContextType;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext.PersistenceInjectionType;
-import com.ibm.ws.testtooling.vehicle.web.EJBTestVehicleServlet;
+import com.ibm.ws.testtooling.vehicle.web.EJBDBTestVehicleServlet;
 
 @SuppressWarnings("serial")
 @WebServlet(urlPatterns = "/PKEntity_EJB_SFEX_TestServlet")
-public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
+public class PKEntity_EJB_SFEX_TestServlet extends EJBDBTestVehicleServlet {
     @PostConstruct
     private void initFAT() {
         testClassName = PKEntityTestLogic.class.getName();
@@ -47,7 +49,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityByte");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -60,7 +61,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityByte");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -73,7 +73,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityByteWrapper");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -86,7 +85,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityByteWrapper");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -99,7 +97,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityChar");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -112,7 +109,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityChar");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -125,7 +121,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityCharWrapper");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -138,7 +133,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityCharWrapper");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -151,7 +145,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityInt");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -164,7 +157,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityInt");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -177,7 +169,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityIntWrapper");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -190,7 +181,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityIntWrapper");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -203,7 +193,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityLong");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -216,7 +205,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityLong");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -229,7 +217,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityLongWrapper");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -242,7 +229,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityLongWrapper");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -255,7 +241,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityShort");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -268,7 +253,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityShort");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -281,7 +265,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityShortWrapper");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -294,7 +277,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityShortWrapper");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -307,7 +289,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityString");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -320,7 +301,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityString");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -333,7 +313,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityJavaSqlDate");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -346,7 +325,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityJavaSqlDate");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -359,7 +337,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "PKEntityJavaUtilDate");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 
@@ -372,7 +349,6 @@ public class PKEntity_EJB_SFEX_TestServlet extends EJBTestVehicleServlet {
         HashMap<String, java.io.Serializable> properties = new HashMap<String, java.io.Serializable>();
         properties.put("EntityName", "XMLPKEntityJavaUtilDate");
 
-        executeDDL("JPA10_ENTITY_DELETE_${dbvendor}.ddl");
         executeTest(testName, testMethod, testResource, properties);
     }
 

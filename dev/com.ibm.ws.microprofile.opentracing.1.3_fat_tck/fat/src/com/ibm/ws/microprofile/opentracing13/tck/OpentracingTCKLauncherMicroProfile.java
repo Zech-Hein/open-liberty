@@ -1,16 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.microprofile.opentracing13.tck;
-
-import java.util.Collections;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -21,7 +21,8 @@ import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
-import componenttest.topology.utils.MvnUtils;
+import componenttest.topology.utils.tck.TCKResultsInfo.Type;
+import componenttest.topology.utils.tck.TCKRunner;
 
 /**
  * This is a test class that runs a whole Maven TCK as one test FAT test.
@@ -47,10 +48,12 @@ public class OpentracingTCKLauncherMicroProfile {
 
     @Test
     @AllowedFFDC // The tested deployment exceptions cause FFDC so we have to allow for this.
-    public void launchOpentracingTck() throws Exception {
-        // Use default tck-suite.xml
-        
-        MvnUtils.runTCKMvnCmd(server, "com.ibm.ws.opentracing.1.3_fat", this.getClass() + ":launchOpentracingRestClientTck", "tck-and-rest-client-tck.xml", Collections.emptyMap(), Collections.emptySet());
-
+    public void launchOpenTracing13RestClientTck() throws Exception {
+        String suiteName = "tck-and-rest-client-tck.xml";
+        String bucketName = "com.ibm.ws.opentracing.1.3_fat_tck";
+        String testName = this.getClass() + ":launchOpenTracing13RestClientTck";
+        Type type = Type.MICROPROFILE;
+        String specName = "Open Tracing";
+        TCKRunner.runTCK(server, bucketName, testName, type, specName, suiteName);
     }
 }

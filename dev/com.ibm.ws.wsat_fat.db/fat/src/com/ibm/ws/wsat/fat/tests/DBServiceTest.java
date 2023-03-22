@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2020 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
+import com.ibm.ws.transaction.fat.util.FATUtils;
 
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
@@ -207,22 +210,12 @@ public class DBServiceTest extends DBTestBase {
 		ShrinkHelper.defaultDropinApp(server1, appNameService, "com.ibm.ws."+appNameService+".client","com.ibm.ws."+appNameService+".server","com.ibm.ws."+appNameService+".servlet","com.ibm.ws."+appNameService+".utils");
 		ShrinkHelper.defaultDropinApp(server2, appNameService, "com.ibm.ws."+appNameService+".client","com.ibm.ws."+appNameService+".server","com.ibm.ws."+appNameService+".servlet","com.ibm.ws."+appNameService+".utils");
 
-		if (client != null && !client.isStarted()) {
-			client.startServer();
-		}
-		if (server1 != null && !server1.isStarted()) {
-			server1.startServer();
-		}
-		if (server2 != null && !server2.isStarted()) {
-			server2.startServer();
-		}
+		FATUtils.startServers(client, server1, server2);
 	}
 
 	@AfterClass
 	public static void tearDown() throws Exception {
-		ServerUtils.stopServer(client);
-		ServerUtils.stopServer(server1);
-		ServerUtils.stopServer(server2);
+		FATUtils.stopServers(client, server1, server2);
 
 		DBTestBase.cleanupWSATTest(client);
 		DBTestBase.cleanupWSATTest(server1);
@@ -238,12 +231,9 @@ public class DBServiceTest extends DBTestBase {
 	
 	@After
 	public void restoreServerConfigs() throws Exception {
-		client.restoreServerConfiguration();
-		server1.restoreServerConfiguration();
-		server2.restoreServerConfiguration();
-		client.waitForStringInLog("CWWKG001[78]I");
-		server1.waitForStringInLog("CWWKG001[78]I");
-		server2.waitForStringInLog("CWWKG001[78]I");
+		client.restoreServerConfigurationAndWaitForApps();
+		server1.restoreServerConfigurationAndWaitForApps();
+		server2.restoreServerConfigurationAndWaitForApps();
 	}
 	
 	/*

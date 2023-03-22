@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,6 +15,7 @@ package com.ibm.ws.wssecurity.fat.cxf.samltoken2.OneServerTests;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
@@ -45,7 +48,6 @@ import static componenttest.annotation.SkipForRepeat.NO_MODIFICATION;
  * 2.0 token in the HTTP POST request.
  */
 
-@SkipForRepeat({ NO_MODIFICATION, EE8_FEATURES })
 @LibertyServerWrapper
 @RunWith(FATRunner.class)
 public class CxfSAMLCaller1ServerTests extends CxfSAMLCallerTests {
@@ -88,6 +90,15 @@ public class CxfSAMLCaller1ServerTests extends CxfSAMLCallerTests {
 
         testSAMLServer.addIgnoredServerExceptions(SAMLMessageConstants.CWWKS5207W_SAML_CONFIG_IGNORE_ATTRIBUTES, SAMLMessageConstants.CWWKG0101W_CONFIG_NOT_VISIBLE_TO_OTHER_BUNDLES, SAMLMessageConstants.CWWKF0001E_FEATURE_MISSING);
         
+        //issue 23060 
+        //The condition checker is also used in some tests which do not run with CBH, 
+        //where it acts another checker to reference the respective old/new format ehcache xml.
+        Set<String> features = testSAMLServer.getServer().getServerConfiguration().getFeatureManager().getFeatures(); 
+		if (features.contains("usr:wsseccbh-1.0")) {
+            setFeatureVersion("EE7cbh1");
+        } else if (features.contains("usr:wsseccbh-2.0")) {
+            setFeatureVersion("EE7cbh2");
+        } 
         
     }
 }

@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ * SPDX-License-Identifier: EPL-2.0
  */
 package com.ibm.ws.jsf22.fat.tests;
 
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URL;
@@ -28,9 +28,11 @@ import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.ws.jsf22.fat.JSFUtils;
 
 import componenttest.annotation.Server;
+import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.topology.impl.LibertyServer;
 import junit.framework.Assert;
 
@@ -52,7 +54,11 @@ public class JSF22StatelessViewTests {
 
     @BeforeClass
     public static void setup() throws Exception {
-        ShrinkHelper.defaultDropinApp(jsf22StatelessViewServer, "JSF22StatelessView.war", "com.ibm.ws.jsf22.fat.statelessview.beans");
+        boolean isEE10 = JakartaEE10Action.isActive();
+
+        ShrinkHelper.defaultDropinApp(jsf22StatelessViewServer, "JSF22StatelessView.war",
+                                      "com.ibm.ws.jsf22.fat.statelessview.beans",
+                                      isEE10 ? "com.ibm.ws.jsf22.fat.statelessview.beans.faces40" : "com.ibm.ws.jsf22.fat.statelessview.beans.jsf22");
 
         jsf22StatelessViewServer.startServer(JSF22StatelessViewTests.class.getSimpleName() + ".log");
     }
@@ -61,12 +67,7 @@ public class JSF22StatelessViewTests {
     public static void tearDown() throws Exception {
         // Stop the server
         if (jsf22StatelessViewServer != null && jsf22StatelessViewServer.isStarted()) {
-            /*
-             * Avoiding the two errors below during the checkLogsForErrorsAndWarnings step.
-             * [WARNING ] SESN0066E: The response is already committed to the client. The session cookie cannot be set.
-             * [WARNING ] SRVE8114W: WARNING Cannot set session cookie. Response already committed.
-             */
-            jsf22StatelessViewServer.stopServer("SESN0066E", "SRVE8114W");
+            jsf22StatelessViewServer.stopServer();
         }
     }
 
@@ -226,6 +227,8 @@ public class JSF22StatelessViewTests {
      * @throws Exception
      */
     @Test
+    // Faces 4.0 doesn't support ManagedBeans and there is already a CDI test.
+    @SkipForRepeat(EE10_FEATURES)
     public void JSF22StatelessView_TestViewScopeManagedBeanTransient() throws Exception {
         testViewScopeManagedBeanTransient("JSF22StatelessView_ViewScope_Transient.xhtml");
     }
@@ -237,6 +240,8 @@ public class JSF22StatelessViewTests {
      * @throws Exception
      */
     @Test
+    // Faces 4.0 doesn't support ManagedBeans and there is already a CDI test.
+    @SkipForRepeat(EE10_FEATURES)
     public void JSF22StatelessView_TestViewScopeManagedBeanNotTransient() throws Exception {
         testViewScopeManagedBeanNotTransient("JSF22StatelessView_ViewScope_NotTransient.xhtml");
     }

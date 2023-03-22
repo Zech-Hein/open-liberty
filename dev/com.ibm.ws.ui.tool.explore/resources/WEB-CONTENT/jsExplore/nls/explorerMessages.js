@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2019 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -309,7 +311,6 @@ define({
     SOME_APPS_RUNNING : "Some Apps Running",
     SOME_SERVERS_RUNNING : "Some Servers Running",
     SOME_CLUSTERS_RUNNING : "Some Clusters Running",
-    NO_APPS_RUNNING : "No Apps Running",
     NO_SERVERS_RUNNING : "No Servers Running",
     NO_CLUSTERS_RUNNING : "No Clusters Running",
 
@@ -449,7 +450,6 @@ define({
     INSTANCE_STOPPED_ON_SERVERS : "{0}: app instance not running", // serverNames
 
     NOT_ALL_APPS_RUNNING : "{0}: not all apps running", // serverName[]
-    NO_APPS_RUNNING : "{0}: no apps running", // serverName[]
     NOT_ALL_APPS_RUNNING_SERVERS : "{0} servers with not all apps running", // quantity
     NO_APPS_RUNNING_SERVERS : "{0} servers with no apps running", // quantity
 
@@ -529,7 +529,6 @@ define({
     NOTE_LABEL : "Note {0}",  // note value
     SET_ATTRIBUTES: "Tags and Metadata",
     SETATTR_RUNTIME_NAME: "{0} on {1}",  // runtime, host
-    SAVE: "Save",
     TAGINVALIDCHARS: "Characters '/', '<', and '>' are not valid.",
     ERROR_GET_TAGS_METADATA: "The product cannot get current tags and metatdata for the resource.",
     ERROR_SET_TAGS_METADATA: "An error prevented the product from setting the tags and metadata.",

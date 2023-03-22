@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,7 +17,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.websocket.ClientEndpoint;
+import javax.websocket.ClientEndpoint; 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ClientEndpointConfig.Builder;
 import javax.websocket.Decoder;
@@ -63,13 +65,26 @@ public class ClientConnector {
     }
 
     public Session connectClass(Object clazz, URI path, ClientEndpointConfig config, WebSocketContainer wsc) throws DeploymentException, IOException {
+       
+        WsocAddress endpointAddress;
 
-        WsocAddress endpointAddress = new WsocAddress(path);
+        if(WebSocketVersionServiceManager.isWsoc21OrHigher()){
+            endpointAddress  = new Wsoc21Address(path);
+        } else {
+            endpointAddress = new Wsoc10Address(path);
+        }
+        
+        
         endpointAddress.validateURI();
 
         ParametersOfInterest things = new ParametersOfInterest();
 
-        HttpRequestor requestor = new HttpRequestor(endpointAddress, config, things);
+        if(WebSocketVersionServiceManager.isWsoc21OrHigher()){
+            config = WebSocketVersionServiceManager.getClientEndpointConfigCopyFactory().getClientEndpointConfig(config);
+            things.setUserProperties(config.getUserProperties());
+        }
+
+        HttpRequestor requestor = WebSocketVersionServiceManager.getHttpRequestorFactory().getHttpRequestor(endpointAddress, config, things);
         WsByteBuffer remainingBuf = null;
 
         try {

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,11 +30,12 @@ import javax.websocket.server.ServerEndpointConfig;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.webcontainer31.osgi.webapp.WebApp31;
-import com.ibm.ws.wsoc.external.ServerContainerExt;
+import com.ibm.ws.wsoc.external.WebSocketFactory;
 import com.ibm.ws.wsoc.external.WsocHandlerImpl;
+import com.ibm.ws.wsoc.servercontainer.ServerContainerExt;
 
 /**
- * 
+ *
  */
 @HandlesTypes({ ServerEndpoint.class, Endpoint.class, ServerApplicationConfig.class })
 public class WebSocketServletContainerInitializer implements ServletContainerInitializer {
@@ -41,7 +44,7 @@ public class WebSocketServletContainerInitializer implements ServletContainerIni
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.servlet.ServletContainerInitializer#onStartup(java.util.Set, javax.servlet.ServletContext)
      */
     @Override
@@ -51,7 +54,9 @@ public class WebSocketServletContainerInitializer implements ServletContainerIni
             WsocHandlerImpl wsocServletHandler = new WsocHandlerImpl();
             ((WebApp31) servletContext).registerWebSocketHandler(wsocServletHandler);
 
-            ServerContainerExt serverContainer = new ServerContainerExt();
+            ServerContainerExt serverContainer = WebSocketVersionServiceManager.getServerContainerExtFactory().getServletContainer();
+
+            WebSocketFactory factory = WebSocketVersionServiceManager.getWebSocketFactory();
 
             servletContext.setAttribute(WebSocketContainerManager.SERVER_CONTAINER_ATTRIBUTE, serverContainer);
 

@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2019, 2020 IBM Corporation and others.
+# Copyright (c) 2019, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -24,7 +26,7 @@ fat.project: true
 tested.features=servlet-4.0,cdi-2.0,mphealth-3.0,mphealth-3.1,mpConfig-1.4,mpConfig-2.0
 
 -buildpath: \
-	org.apache.commons:commons-compress;version=1.20, \
+	org.apache.commons:commons-compress;version=1.21, \
 	org.apache.johnzon:johnzon-core;version=1.1.0, \
 	com.ibm.websphere.javaee.jsonp.1.1;version=latest, \
 	com.ibm.websphere.javaee.cdi.1.2;version=latest, \
@@ -44,4 +46,5 @@ tested.features=servlet-4.0,cdi-2.0,mphealth-3.0,mphealth-3.1,mpConfig-1.4,mpCon
 	com.ibm.ws.io.smallrye.reactive.streams-operators;version=latest,\
 	com.ibm.ws.microprofile.reactive.messaging.kafka;version=latest,\
 	com.ibm.ws.microprofile.reactive.messaging.kafka.adapter;version=latest,\
-	com.ibm.ws.crypto.passwordutil;version=latest
+	com.ibm.ws.crypto.passwordutil;version=latest,\
+	com.ibm.ws.org.slf4j.jdk14;version=latest

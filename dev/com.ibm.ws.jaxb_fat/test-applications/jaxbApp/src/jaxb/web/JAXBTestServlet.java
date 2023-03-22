@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,7 +30,7 @@ import componenttest.app.FATServlet;
 public class JAXBTestServlet extends FATServlet {
 
     @Test
-    @SkipForRepeat(SkipForRepeat.EE9_FEATURES)
+    @SkipForRepeat({ SkipForRepeat.EE9_FEATURES, SkipForRepeat.EE10_FEATURES })
     public void testJaxbAPILoadedFromLiberty() throws Exception {
         assertNull("System property 'javax.xml.bind.context.factory' effects the entire JVM and should not be set by the Liberty runtime!",
                    System.getProperty("javax.xml.bind.context.factory"));
@@ -45,7 +47,7 @@ public class JAXBTestServlet extends FATServlet {
     }
 
     @Test
-    @SkipForRepeat({ SkipForRepeat.NO_MODIFICATION, "JAXRS", "JAXB-2.3" })
+    @SkipForRepeat(SkipForRepeat.NO_MODIFICATION)
     public void testJakartaJaxbAPILoadedFromLiberty() throws Exception {
         assertNull("System property 'jakarta.xml.bind.context.factory' effects the entire JVM and should not be set by the Liberty runtime!",
                    System.getProperty("jakarta.xml.bind.context.factory"));
@@ -56,13 +58,13 @@ public class JAXBTestServlet extends FATServlet {
         System.out.println("Got JAX-B API from loader=  " + apiLoader);
         System.out.println("Got JAX-B API from location=" + apiLocation);
         assertTrue("Expected JAX-B API to come from Liberty bundle, but it came from: " + apiLoader,
-                   apiLoader != null && apiLoader.toString().contains("io.openliberty.jakarta.xmlBinding.3."));
+                   apiLoader != null && apiLoader.toString().contains("io.openliberty.jakarta.xmlBinding."));
         assertTrue("Expected JAX-B API to come from Liberty, but it came from: " + apiLocation,
-                   apiLocation != null && apiLocation.contains("io.openliberty.jakarta.xmlBinding.3."));
+                   apiLocation != null && apiLocation.contains("io.openliberty.jakarta.xmlBinding."));
     }
 
     @Test
-    @SkipForRepeat({ SkipForRepeat.EE9_FEATURES })
+    @SkipForRepeat({ SkipForRepeat.EE9_FEATURES, SkipForRepeat.EE10_FEATURES })
     public void testJaxbImplLoadedFromLiberty() throws Exception {
         JAXBContext ctx = JAXBContext.newInstance("jaxb.web", ObjectFactory.class.getClassLoader());
         ClassLoader implLoader = ctx.getClass().getClassLoader();
@@ -78,7 +80,7 @@ public class JAXBTestServlet extends FATServlet {
     }
 
     @Test
-    @SkipForRepeat({ SkipForRepeat.NO_MODIFICATION, "JAXB-2.3" })
+    @SkipForRepeat({ SkipForRepeat.NO_MODIFICATION })
     public void testXMLBindingImplLoadedFromLiberty() throws Exception {
         JAXBContext ctx = JAXBContext.newInstance("jaxb.web", ObjectFactory.class.getClassLoader());
         ClassLoader implLoader = ctx.getClass().getClassLoader();
@@ -94,7 +96,7 @@ public class JAXBTestServlet extends FATServlet {
     }
 
     @Test
-    @SkipForRepeat({ SkipForRepeat.EE9_FEATURES })
+    @SkipForRepeat({ SkipForRepeat.EE9_FEATURES, SkipForRepeat.EE10_FEATURES })
     public void testActivationLoaded() throws Exception {
         // Verify Activation API came from the JDK
         ClassLoader apiLoader = javax.activation.DataHandler.class.getClassLoader();
@@ -116,7 +118,7 @@ public class JAXBTestServlet extends FATServlet {
     }
 
     @Test
-    @SkipForRepeat({ SkipForRepeat.NO_MODIFICATION, "JAXB-2.3" })
+    @SkipForRepeat({ SkipForRepeat.NO_MODIFICATION })
     public void testJakartaActivationLoaded() throws Exception {
         // Verify Activation API came from the JDK
         ClassLoader apiLoader = jakarta.activation.DataHandler.class.getClassLoader();
@@ -126,8 +128,8 @@ public class JAXBTestServlet extends FATServlet {
         System.out.println("Got jakarta.activation from location=" + apiLocation);
 
         assertTrue("Expected jakarta.activation to come from Liberty JDK classloader, but it came from: " + apiLoader,
-                   apiLoader != null && apiLoader.toString().contains("io.openliberty.jakarta.activation.2.0"));
+                   apiLoader != null && apiLoader.toString().contains("io.openliberty.jakarta.activation.2."));
         assertTrue("Expected jakarta.activation to come from Liberty, but it came from: " + apiLocation,
-                   apiLocation != null && apiLocation.contains("io.openliberty.jakarta.activation.2.0"));
+                   apiLocation != null && apiLocation.contains("io.openliberty.jakarta.activation.2."));
     }
 }

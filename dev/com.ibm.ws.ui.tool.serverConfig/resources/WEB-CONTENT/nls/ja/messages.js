@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ var editorMessages = {
 "ADD_CHILD": "子の追加",
 "REMOVE": "削除",
 "TEST" : "テスト",
-"TEST_CONNECTION": "テスト接続",
+"TEST_CONNECTION": "接続テスト",
+"TEST_CONNECTION_DESCRIPTION": "接続をテストする",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "変更を保存して、接続をテストします",
 "DESCRIPTION": "説明",
 "PREVIOUS": "前へ",
 "NEXT": "次へ",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "「エレメントの削除」ダイアログ",
 "VALIDATE_DATASOURCE_DIALOG": "「データ・ソース接続の検証」ダイアログ",
 "VALIDATE_DATASOURCE": "データ・ソース接続のテスト",
+"VALIDATE_CONNECTION_DIALOG":"接続ダイアログを検証する",
+"DEFAULT_AUTHENTICATION_ALIAS":"デフォルト認証",
+"SPECIFY_AUTHENTICATION_ALIAS":"認証別名の指定",
+"LOGIN_CONFIG":"ログイン構成",
+"LOGIN_CONFIG_ID":"構成IDをログインする",
+"ADD_LOGIN_CONFIG_PROPERTY":"ログイン構成プロパティーの追加",
+"KEY":"キー",
+"CHOOSE_AN_OPTION":"オプションの選択",
 "ENUMERATION_SELECTION_DIALOG": "「列挙選択」ダイアログ",
 "SAVE_BEFORE_CLOSING_DIALOG": "「閉じる前に保存」ダイアログ",
 "ERROR_SAVING_FILE_DIALOG": "「ファイル保存エラー」ダイアログ",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "認証別名 (オプション)",
 "AUTH_ALIAS": "認証別名",
 "CONTAINER_AUTHENTICATION": "コンテナー認証",
+"RESOURCE_REFERENCE": "リソース参照",
 "NO_RESOURCE_REFERENCE": "リソース参照がありません",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "アプリケーション認証で認証されるリソース参照を使用して、接続をテストします。",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "コンテナー認証で認証されるリソース参照を使用して、接続をテストします。",
+"RESOURCE_REFERENCE_IN_USE": "直接検索のコンテナー認証が有効になっています。 接続テストは、構成されたデフォルトのコンテナー認証データを使用します。",
+"NO_RESOURCE_REFERENCE_IN_USE": "リソース参照を使用せずに接続をテストします。",
 "APPLICATION_AUTHENTICATION": "アプリケーション認証",
 "CUSTOM_LOGIN_MODULE": "カスタム・ログイン・モジュール (オプション)",
 "LOGIN_PROPERTIES": "ログイン・プロパティー (オプション)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "機能を選択すると、その機能の説明が表示されます。",
 "SUPPORT_MESSAGE" : "サーバー構成は、Node.js サーバーに対しても、集合コントローラーを介してアクセスされる Docker コンテナー内のサーバーに対しても使用できません。",
 "NO_ROLE_MESSAGE": "ユーザーは構成変更の権限を持つロールに属していません。 ファイルは読み取り専用モードで使用可能です。",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "集合メンバーに必要なアクション:",
 "RUN_UPDATE_HOST" : "rpcUser が書き込み権限を持つパスを '--hostWritePath' に指定して、'collective updateHost' または 'collective registerHost' を実行してください。  ホストの有効な資格情報も指定する必要があります。",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "/usr/bin に JAVA へのリンクを作成します。 例: /usr/bin/java -> [pathToJAVA]",
 "JAVA_ON_PATH" : "PATH 環境変数に JAVA を追加します。  Linux の .bashrc で PATH のエクスポートを行います。", 
 "MORE_INFORMATION" : "詳細については、以下を参照してください。 "
-
 };

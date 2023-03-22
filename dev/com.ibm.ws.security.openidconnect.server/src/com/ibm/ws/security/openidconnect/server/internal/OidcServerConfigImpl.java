@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -79,6 +81,7 @@ public class OidcServerConfigImpl implements OidcServerConfig {
     public static final String CFG_KEY_SIGNATURE_ALGORITHM = "signatureAlgorithm";
     public static final String CFG_KEY_CUSTOM_CLAIMS_ENABLED = "customClaimsEnabled";
     public static final String CFG_KEY_CUSTOM_CLAIMS = "customClaims";
+    public static final String CFG_KEY_THIRD_PARTY_ID_TOKEN_CLAIMS = "thirdPartyIDTokenClaims";
     public static final String CFG_KEY_JTI_CLAIM_ENABLED = "jtiClaimEnabled";
     public static final String CFG_KEY_KEYSTORE_REF = "keyStoreRef";
     public static final String CFG_KEYSTORE_REF_DEFAULT = "opKeyStore";
@@ -89,6 +92,7 @@ public class OidcServerConfigImpl implements OidcServerConfig {
     public static final String CFG_KEY_CHECK_SESSION_IFRAME_ENDPOINT_URL = "checkSessionIframeEndpointUrl";
     public static final String CFG_KEY_PROTECTED_ENDPOINTS = "protectedEndpoints";
     public static final String CFG_KEY_CACHE_IDTOKEN = "idTokenCacheEnabled";
+    public static final String CFG_KEY_BACKCHANNEL_LOGOUT_REQUEST_TIMEOUT = "backchannelLogoutRequestTimeout";
     // OIDC Discovery Configuration Metadata
     public static final String CFG_KEY_RESPONSE_TYPES_SUPPORTED = "responseTypesSupported";
     public static final String CFG_KEY_SUBJECT_TYPES_SUPPORTED = "subjectTypesSupported";
@@ -146,6 +150,7 @@ public class OidcServerConfigImpl implements OidcServerConfig {
         defaultCustomClaims.add("groupIds");
     };
     private Set<String> customClaims;
+    private Set<String> thirdPartyIDTokenClaims;
     private boolean jtiClaimEnabled;
     private boolean sessionManaged;
     private String keyStoreRef;
@@ -183,6 +188,7 @@ public class OidcServerConfigImpl implements OidcServerConfig {
     private boolean requireOpenidScopeForUserInfo = true;
     // End of OIDC Discovery Configuration Metadata
     private OidcEndpointSettings oidcEndpointSettings;
+    private long backchannelLogoutRequestTimeout = 180L;
 
     // Use locks instead of synchronize blocks to ensure concurrent access while reading and lock during modification only
     private final ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();;
@@ -320,6 +326,7 @@ public class OidcServerConfigImpl implements OidcServerConfig {
         customClaimsEnabled = (Boolean) props.get(CFG_KEY_CUSTOM_CLAIMS_ENABLED);
         String[] aCustomClaims = (String[]) props.get(CFG_KEY_CUSTOM_CLAIMS);
         customClaims = newCustomClaims(aCustomClaims);
+        thirdPartyIDTokenClaims = newThirdPartyClaims((String[]) props.get(CFG_KEY_THIRD_PARTY_ID_TOKEN_CLAIMS));
         jtiClaimEnabled = (Boolean) props.get(CFG_KEY_JTI_CLAIM_ENABLED);
         sessionManaged = (Boolean) props.get(CFG_KEY_SESSION_MANAGED);
         keyStoreRef = trimIt(fixUpKeyStoreRef((String) props.get(CFG_KEY_KEYSTORE_REF)));
@@ -357,6 +364,7 @@ public class OidcServerConfigImpl implements OidcServerConfig {
         buildJwk();
 
         oidcEndpointSettings = populateOidcEndpointSettings(props, CFG_KEY_OIDC_ENDPOINT);
+        backchannelLogoutRequestTimeout = commonConfigUtils.getLongConfigAttribute(props, CFG_KEY_BACKCHANNEL_LOGOUT_REQUEST_TIMEOUT, backchannelLogoutRequestTimeout);
 
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "providerId: " + providerId);
@@ -369,6 +377,7 @@ public class OidcServerConfigImpl implements OidcServerConfig {
             Tr.debug(tc, "groupIdentifier: " + groupIdentifier);
             Tr.debug(tc, "customClaimsEnabled: " + customClaimsEnabled);
             Tr.debug(tc, "customClaims: " + customClaims);
+            Tr.debug(tc, "thirdPartyIDTokenClaims: " + thirdPartyIDTokenClaims);
             Tr.debug(tc, "jtiClaimEnabled: " + jtiClaimEnabled);
             Tr.debug(tc, "defaultScope: " + defaultScope);
             Tr.debug(tc, "externalClaimNames: " + externalClaimNames);
@@ -386,6 +395,7 @@ public class OidcServerConfigImpl implements OidcServerConfig {
             Tr.debug(tc, "jwkEnabled: " + jwkEnabled);
             Tr.debug(tc, "allowLtpaToken2Name: " + this.allowLtpaToken2Name);
             Tr.debug(tc, "cacheIDToken: " + cacheIDToken);
+            Tr.debug(tc, "backchannelLogoutRequestTimeout: " + backchannelLogoutRequestTimeout);
 
             //TODO: Joe Add debug statements for Discovery Properties
         }
@@ -433,6 +443,17 @@ public class OidcServerConfigImpl implements OidcServerConfig {
                 if (!defaultCustomClaims.contains(claim)) {
                     result.add(claim);
                 }
+            }
+        }
+        return result;
+    }
+
+    protected Set<String> newThirdPartyClaims(String[] aCustomClaims) {
+        Set<String> result = new HashSet<String>();
+        if (aCustomClaims != null) {
+            for (String claim : aCustomClaims) {
+                claim = claim.trim();
+                result.add(claim);
             }
         }
         return result;
@@ -1249,6 +1270,11 @@ public class OidcServerConfigImpl implements OidcServerConfig {
     }
 
     @Override
+    public Set<String> getThirdPartyIDTokenClaims() {
+        return new HashSet<String>(this.thirdPartyIDTokenClaims);
+    }
+
+    @Override
     public boolean allowDefaultSsoCookieName() {
         return this.allowLtpaToken2Name;
     }
@@ -1277,6 +1303,10 @@ public class OidcServerConfigImpl implements OidcServerConfig {
 
     public OidcEndpointSettings getOidcEndpointSettings() {
         return oidcEndpointSettings;
+    }
+
+    public long getBackchannelLogoutRequestTimeout() {
+        return backchannelLogoutRequestTimeout;
     }
 
 }

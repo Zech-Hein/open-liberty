@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -23,11 +25,11 @@ dependencies {
      */
     collectedDeps 'org.mongodb:mongo-java-driver:2.13.3',
                   'de.flapdoodle.embed:de.flapdoodle.embed.mongo:3.0.0',
-                  'org.apache.commons:commons-compress:1.20',
+                  'org.apache.commons:commons-compress:1.21',
                   project(':io.openliberty.org.apache.commons.codec'),
                   project(':io.openliberty.org.apache.commons.logging'),
                   project(':com.ibm.json4j'),
-                  project(':com.ibm.ws.com.google.gson'),
+                  project(':io.openliberty.com.google.gson'),
                   project(':com.ibm.ws.com.google.guava'),
                   project(':com.ibm.ws.com.meterware.httpunit.1.7'),
                   project(':com.ibm.ws.net.oauth.jsontoken'),
@@ -88,7 +90,8 @@ task formlogin_ZIP (type: Zip, dependsOn: classes) {
   from (new File(projectDir, 'build/classes/java/main')) {
     include 'web/BaseServlet.class', 'web/FlexibleBaseServlet*.class'
     include 'web/FormLoginServlet.class', 'web/FormLoginServlet2.class', 'web/Base64.class',
-            'web/manual_IntrospectRequester*.class', 'web/manual_IntrospectServlet.class'
+            'web/manual_IntrospectRequester*.class', 'web/manual_IntrospectServlet.class',
+            'web/LogoutServlet.class'
     into 'WEB-INF/classes'
   }
 }
@@ -298,7 +301,7 @@ task testTokenEndpoint_ZIP (type: Zip, dependsOn: classes) {
   
   /* start of slf4j copy */
   /* copy contents of the slf4j jar into our test app - we don't have another way to get to the jar */
-  from(zipTree("../com.ibm.ws.org.slf4j.api/build/libs/com.ibm.ws.org.slf4j.api.1.7.7.jar")) {
+  from(zipTree("../com.ibm.ws.org.slf4j.api/build/libs/com.ibm.ws.org.slf4j.api.jar")) {
     exclude("META-INF/MANIFEST.MF")
     into "WEB-INF/classes"
   }
@@ -341,7 +344,7 @@ task testUserinfoEndpoint_ZIP (type: Zip, dependsOn: classes) {
   /* end of jose4j copy */
   /* start of slf4j copy */
   /* copy contents of the slf4j jar into our test app - we don't have another way to get to the jar */
-  from(zipTree("../com.ibm.ws.org.slf4j.api/build/libs/com.ibm.ws.org.slf4j.api.1.7.7.jar")) {
+  from(zipTree("../com.ibm.ws.org.slf4j.api/build/libs/com.ibm.ws.org.slf4j.api.jar")) {
     exclude("META-INF/MANIFEST.MF")
     into "WEB-INF/classes"
   }

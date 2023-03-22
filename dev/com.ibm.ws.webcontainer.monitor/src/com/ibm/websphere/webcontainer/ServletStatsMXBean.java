@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,7 +16,7 @@ import com.ibm.websphere.monitor.jmx.Counter;
 import com.ibm.websphere.monitor.jmx.StatisticsMeter;
 
 /**
- * Management12 interface for MBeans with names of the form "WebSphere:type=ServletStats,name=*"
+ * Management interface for MBeans with names of the form "WebSphere:type=ServletStats,name=*"
  * where * is the name of a servlet within an application under the Liberty profile of the form <appName>.<servletName>. For example, myApp.DemoServlet. One such MBean for each servlet in the system is available
  * from the Liberty profile platform MBean server when the monitor-1.0 feature is enabled. This interface can be used to request a proxy object via the {@link javax.management.JMX#newMMBeanProxy} method.
  * 

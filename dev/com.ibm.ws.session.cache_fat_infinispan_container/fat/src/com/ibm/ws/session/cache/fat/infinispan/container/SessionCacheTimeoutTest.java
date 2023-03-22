@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,12 +18,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,8 +36,11 @@ import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.custom.junit.runner.RepeatTestFilter;
 import componenttest.custom.junit.runner.TestModeFilter;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyFileManager;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -53,10 +60,13 @@ public class SessionCacheTimeoutTest extends FATServletClient {
     public static SessionCacheApp app = null;
     public List<List<String>> cleanupSessions = new ArrayList<>();
 
+    @ClassRule
+    public static RepeatTests repeatRule = RepeatTests.withoutModification().andWith(new CacheManagerRepeatAction());
+
     @BeforeClass
     public static void setUp() throws Exception {
 
-        if (JakartaEE9Action.isActive()) {
+        if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
             RemoteFile originalResourceDir = LibertyFileManager.getLibertyFile(server.getMachine(), server.getInstallRoot() + "/usr/shared/resources/infinispan");
             RemoteFile jakartaResourceDir = LibertyFileManager.getLibertyFile(server.getMachine(), server.getInstallRoot() + "/usr/shared/resources/infinispan-jakarta");
 
@@ -67,8 +77,13 @@ public class SessionCacheTimeoutTest extends FATServletClient {
         //Dropin web, and listener1 apps
         app = new SessionCacheApp(server, false, "session.cache.infinispan.web", "session.cache.infinispan.web.listener1");
 
-        server.addEnvVar("INF_SERVERLIST", infinispan.getContainerIpAddress() + ":" + infinispan.getMappedPort(11222));
+        String sessionCacheConfigFile = "httpSessionCache_1.xml";
+        if (RepeatTestFilter.isRepeatActionActive(CacheManagerRepeatAction.ID)) {
+            sessionCacheConfigFile = "httpSessionCache_2.xml";
+        }
 
+        server.addEnvVar("INF_SERVERLIST", infinispan.getHost() + ":" + infinispan.getMappedPort(11222));
+        server.setJvmOptions(Arrays.asList("-Dsession.cache.config.file=" + sessionCacheConfigFile));
         server.startServer();
 
         // Access a session before the main test logic to ensure that delays caused by lazy initialization

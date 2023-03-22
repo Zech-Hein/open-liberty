@@ -1,21 +1,24 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
- *     IBM Corporation - initial API and implementation
+ * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.security.social.tai;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -30,12 +33,18 @@ import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.security.WebTrustAssociationException;
 import com.ibm.websphere.security.WebTrustAssociationFailedException;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
+import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.security.SecurityService;
 import com.ibm.ws.security.authentication.cache.AuthCacheService;
 import com.ibm.ws.security.authentication.filter.AuthenticationFilter;
+import com.ibm.ws.security.openidconnect.backchannellogout.BackchannelLogoutHelper;
 import com.ibm.ws.security.openidconnect.clients.common.ConvergedClientConfig;
 import com.ibm.ws.security.openidconnect.clients.common.OIDCClientAuthenticatorUtil;
+import com.ibm.ws.security.openidconnect.clients.common.OidcClientConfig;
 import com.ibm.ws.security.openidconnect.clients.common.OidcClientRequest;
+import com.ibm.ws.security.openidconnect.clients.common.OidcSessionCache;
+import com.ibm.ws.security.openidconnect.clients.common.OidcSessionInfo;
+import com.ibm.ws.security.openidconnect.clients.common.OidcSessionUtils;
 import com.ibm.ws.security.social.Constants;
 import com.ibm.ws.security.social.SocialLoginConfig;
 import com.ibm.ws.security.social.SocialLoginWebappConfig;
@@ -51,9 +60,11 @@ import com.ibm.ws.security.social.web.SelectionPageGenerator;
 import com.ibm.ws.security.social.web.utils.ObscuredConfigIdManager;
 import com.ibm.ws.security.social.web.utils.SocialWebUtils;
 import com.ibm.ws.webcontainer.security.AuthResult;
+import com.ibm.ws.webcontainer.security.CookieHelper;
 import com.ibm.ws.webcontainer.security.ProviderAuthenticationResult;
 import com.ibm.ws.webcontainer.security.UnprotectedResourceService;
 import com.ibm.ws.webcontainer.security.WebProviderAuthenticatorHelper;
+import com.ibm.ws.webcontainer.security.WebRequest;
 import com.ibm.wsspi.kernel.service.location.WsLocationAdmin;
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 import com.ibm.wsspi.kernel.service.utils.ConcurrentServiceReferenceMap;
@@ -90,6 +101,8 @@ public class SocialLoginTAI implements TrustAssociationInterceptor, UnprotectedR
     TAIRequestHelper taiRequestHelper = new TAIRequestHelper();
     SocialWebUtils webUtils = new SocialWebUtils();
     static ObscuredConfigIdManager configIdManager = new ObscuredConfigIdManager();
+
+    private static boolean issuedBetaMessage = false;
 
     protected void setSslSupport(ServiceReference<SSLSupport> ref) {
         sslSupportRef.setReference(ref);
@@ -442,10 +455,26 @@ public class SocialLoginTAI implements TrustAssociationInterceptor, UnprotectedR
             SocialLoginConfig socialLoginConfig = null;
             while (services.hasNext()) {
                 socialLoginConfig = services.next();
+                if (socialLoginConfig instanceof OidcLoginConfigImpl && isRunningBetaMode()) {
+                    OidcSessionUtils.removeOidcSession(request, response, (OidcLoginConfigImpl) socialLoginConfig);
+                }
                 // TODO remove all the cookies of the subject
             }
         }
         return bSetSubject;
+    }
+    
+    boolean isRunningBetaMode() {
+        if (!ProductInfo.getBetaEdition()) {
+            return false;
+        } else {
+            // Running beta exception, issue message if we haven't already issued one for this class
+            if (!issuedBetaMessage) {
+                Tr.info(tc, "BETA: A beta method has been invoked for the class " + this.getClass().getName() + " for the first time.");
+                issuedBetaMessage = !issuedBetaMessage;
+            }
+            return true;
+        }
     }
 
     TAIResult handleOAuthLoginRequest(HttpServletRequest request, HttpServletResponse response, SocialLoginConfig clientConfig) throws WebTrustAssociationFailedException {
@@ -501,11 +530,7 @@ public class SocialLoginTAI implements TrustAssociationInterceptor, UnprotectedR
 
         // have validated tokens from oidc, create the subject.
         String idToken = (String) presult.getCustomProperties().get(ClientConstants.ID_TOKEN);
-        String accessToken = (String) presult.getCustomProperties().get(ClientConstants.ACCESS_TOKEN);
-        Map<String, Object> tokens = new HashMap<String, Object>();
-        tokens.put(ClientConstants.ACCESS_TOKEN, accessToken);
-        tokens.put(ClientConstants.ID_TOKEN, idToken);
-        AuthorizationCodeAuthenticator aca = new AuthorizationCodeAuthenticator(clientConfig, tokens);
+        AuthorizationCodeAuthenticator aca = new AuthorizationCodeAuthenticator(clientConfig, presult.getCustomProperties());
 
         TAIResult authnResult = null;
         try {
@@ -515,13 +540,13 @@ public class SocialLoginTAI implements TrustAssociationInterceptor, UnprotectedR
             String userInfo = (String) presult.getCustomProperties().get(com.ibm.ws.security.openidconnect.common.Constants.USERINFO_STR);
             if (userInfo != null) {
                 subjectUtils.setUserInfo(userInfo);
-            }       
+            }
             authnResult = subjectUtils.createResult(response, clientConfig);
         } catch (Exception e) {
             Tr.error(tc, "AUTH_CODE_ERROR_CREATING_RESULT", new Object[] { clientConfig.getUniqueId(), e.getLocalizedMessage() });
             return taiWebUtils.sendToErrorPage(response, TAIResult.create(HttpServletResponse.SC_UNAUTHORIZED));
         }
-        
+
         taiWebUtils.restorePostParameters(request); // did oidc already do this?
 
         return authnResult;
@@ -529,18 +554,18 @@ public class SocialLoginTAI implements TrustAssociationInterceptor, UnprotectedR
     }
 
     private void discoverOPAgain(ProviderAuthenticationResult presult, OidcLoginConfigImpl clientConfig) {
-		
-    	if (clientConfig.isDiscoveryInUse()) {
-    		if (presult.getStatus().compareTo(AuthResult.SUCCESS) == 0) {
-    			clientConfig.setNextDiscoveryTime();
-    		} else if (System.currentTimeMillis() > clientConfig.getNextDiscoveryTime()) {
-    			clientConfig.handleDiscoveryEndpoint(clientConfig.getDiscoveryEndpointUrl());
-    		}
-    	}
-		
-	}
 
-	/**
+        if (clientConfig.isDiscoveryInUse()) {
+            if (presult.getStatus().compareTo(AuthResult.SUCCESS) == 0) {
+                clientConfig.setNextDiscoveryTime();
+            } else if (System.currentTimeMillis() > clientConfig.getNextDiscoveryTime()) {
+                clientConfig.handleDiscoveryEndpoint(clientConfig.getDiscoveryEndpointUrl());
+            }
+        }
+
+    }
+
+    /**
      * Check for some things that will always fail and emit message about bad config.
      * Do here so 1) classic oidc messages don't change and 2) put error message closer in log to failure.
      *
@@ -554,16 +579,16 @@ public class SocialLoginTAI implements TrustAssociationInterceptor, UnprotectedR
         String authorizationEndpoint = config.getAuthorizationEndpointUrl();
         String jwksUri = config.getJwkEndpointUrl();
         if (clientId == null || clientId.length() == 0) {
-            Tr.error(tc, "INVALID_CONFIG_PARAM", new Object[] { OidcLoginConfigImpl.KEY_clientId, clientId }); //CWWKS5500E
+            Tr.error(tc, "INVALID_CONFIG_PARAM", new Object[] { OidcLoginConfigImpl.KEY_clientId, clientId });
             valid = false;
         }
         if (clientSecret == null || clientSecret.length() == 0) {
-            Tr.error(tc, "INVALID_CONFIG_PARAM", new Object[] { OidcLoginConfigImpl.KEY_clientSecret, "" }); //CWWKS5500E
+            Tr.error(tc, "INVALID_CONFIG_PARAM", new Object[] { OidcLoginConfigImpl.KEY_clientSecret, "" });
             valid = false;
         }
         if (authorizationEndpoint == null || authorizationEndpoint.length() == 0
                 || (!authorizationEndpoint.toLowerCase().startsWith("http"))) {
-            Tr.error(tc, "INVALID_CONFIG_PARAM", new Object[] { OidcLoginConfigImpl.KEY_authorizationEndpoint, authorizationEndpoint }); //CWWKS5500E
+            Tr.error(tc, "INVALID_CONFIG_PARAM", new Object[] { OidcLoginConfigImpl.KEY_authorizationEndpoint, authorizationEndpoint });
             valid = false;
         }
 
@@ -571,7 +596,7 @@ public class SocialLoginTAI implements TrustAssociationInterceptor, UnprotectedR
         /*
          * if (jwksUri == null || jwksUri.length() == 0
          * || (!jwksUri.toLowerCase().startsWith("http"))) {
-         * Tr.error(tc, "INVALID_CONFIG_PARAM", new Object[] { OidcLoginConfigImpl.KEY_jwksUri, jwksUri }); //CWWKS5500E
+         * Tr.error(tc, "INVALID_CONFIG_PARAM", new Object[] { OidcLoginConfigImpl.KEY_jwksUri, jwksUri });
          *
          * }
          */

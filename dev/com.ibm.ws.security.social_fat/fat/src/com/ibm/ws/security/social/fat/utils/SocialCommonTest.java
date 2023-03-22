@@ -1,12 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
- *     IBM Corporation - initial API and implementation
+ * IBM Corporation - initial API and implementation
  *******************************************************************************/
 
 package com.ibm.ws.security.social.fat.utils;
@@ -38,10 +40,10 @@ import com.gargoylesoftware.htmlunit.html.HtmlPasswordInput;
 import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
 import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 import com.ibm.websphere.simplicity.log.Log;
+import com.ibm.ws.security.fat.common.TestHelpers;
 import com.ibm.ws.security.fat.common.utils.AutomationTools;
 import com.ibm.ws.security.fat.common.utils.ConditionalIgnoreRule;
 import com.ibm.ws.security.fat.common.utils.MySkipRule;
-import com.ibm.ws.security.fat.common.TestHelpers;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.CommonTest;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.Constants;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.TestServer;
@@ -707,8 +709,8 @@ public class SocialCommonTest extends CommonTest {
         }
 
         // reduce logging
-        //        settings.printSocialTestSettings();
-        msgUtils.printOAuthOidcExpectations(expectations, testActions);
+        settings.printSocialTestSettings();
+        msgUtils.printOAuthOidcExpectations(expectations, testActions, settings);
 
         try {
 

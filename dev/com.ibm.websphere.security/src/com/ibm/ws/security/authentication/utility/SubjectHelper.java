@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2020 IBM Corporation and others.
+ * Copyright (c) 2011, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -86,6 +88,19 @@ public class SubjectHelper {
             wsCredential = wsCredentialsIterator.next();
         }
         return wsCredential;
+    }
+
+    /**
+     * Gets the ID token from the run-as subject.
+     *
+     * @return The ID token as a String or null.
+     */
+    public String getIDTokenFromRunAsSubject() {
+        Hashtable<String, ?> hashtableFromRunAsSubject = getHashtableFromRunAsSubject();
+        if (hashtableFromRunAsSubject == null) {
+            return null;
+        }
+        return (String) hashtableFromRunAsSubject.get("id_token");
     }
 
     /**
@@ -317,6 +332,18 @@ public class SubjectHelper {
             return getHashtableFromSubject(subject);
         } else {
             return AccessController.doPrivileged(new GetHashtablePrivilegedAction(subject));
+        }
+    }
+
+    public Hashtable<String, ?> getHashtableFromRunAsSubject() {
+        try {
+            Subject runAsSubject = WSSubject.getRunAsSubject();
+            if (runAsSubject == null) {
+                return null;
+            }
+            return getHashtableFromSubject(runAsSubject);
+        } catch (Exception e) {
+            return null;
         }
     }
 

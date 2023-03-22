@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2019 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,7 +34,6 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 
-import com.ibm.websphere.simplicity.Machine;
 import com.ibm.websphere.simplicity.ShrinkHelper;
 
 import componenttest.annotation.Server;
@@ -56,6 +57,25 @@ public class RequestProbeJDBCUnRegTDTest {
         ShrinkHelper.defaultDropinApp(server, "jdbcTestPrj_All", "com.ibm.ws.request.timing");
         server.setServerConfigurationFile("server_RT.xml");
         server.startServer();
+    }
+
+    @Before
+    public void setupTestStart() throws Exception {
+        if (server != null && !server.isStarted()) {
+            server.setServerConfigurationFile("server_original.xml");
+            server.startServer();
+        }
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        unregTDs = null;
+        if (server != null && server.isStarted()) {
+            // Since, the RequestTiming feature is enabled, due to system slowness, some requests may take longer
+            // than the default 10s to complete, which might log the SlowRequest Warning. We should skip these expected
+            // warning messages.
+            server.stopServer("TRAS0112W", "TRAS0113I");
+        }
     }
 
     @Test
@@ -126,14 +146,6 @@ public class RequestProbeJDBCUnRegTDTest {
         return missed;
     }
 
-    @After
-    public void tearDown() throws Exception {
-        unregTDs = null;
-        if (server != null && server.isStarted()) {
-            server.stopServer();
-        }
-    }
-
     /**
      * This method is used to get a connection stream from an HTTP connection. It
      * gives the output from the webpage that it gets from the connection
@@ -162,13 +174,4 @@ public class RequestProbeJDBCUnRegTDTest {
         con.setRequestMethod("GET");
         return con;
     }
-
-    @Before
-    public void setupTestStart() throws Exception {
-        if (server != null && !server.isStarted()) {
-            server.setServerConfigurationFile("server_original.xml");
-            server.startServer();
-        }
-    }
-
 }

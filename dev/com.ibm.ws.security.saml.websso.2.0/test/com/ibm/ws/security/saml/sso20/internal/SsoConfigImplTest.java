@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -144,6 +146,7 @@ public class SsoConfigImplTest {
         SAML_CONFIG_PROPS.put(SsoConfigImpl.KEY_realmIdentifier, "realmIdentifier");
         SAML_CONFIG_PROPS.put(SsoConfigImpl.KEY_includeTokenInSubject, true);
         SAML_CONFIG_PROPS.put(SsoConfigImpl.KEY_mapToUserRegistry, "User");
+        SAML_CONFIG_PROPS.put(SsoConfigImpl.KEY_disableInitialRequestCookie, false);
         SAML_CONFIG_PROPS.put(SsoConfigImpl.KEY_disableLtpaCookie, true);
         SAML_CONFIG_PROPS.put(SsoConfigImpl.CFG_KEY_AUTH_FILTER_REF, "authFilterRef");
         SAML_CONFIG_PROPS.put(SsoConfigImpl.KEY_authnRequestTime, Long.valueOf(600000L));

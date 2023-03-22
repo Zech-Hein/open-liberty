@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2021 IBM Corporation and others.
+ * Copyright (c) 2010, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -328,6 +330,7 @@ public class BootstrapConfig {
         initProps.put(BootstrapConstants.LOC_PROPERTY_SRVTMP_DIR, getPathProperty(outputDir,
                                                                                   workareaDirStr,
                                                                                   BootstrapConstants.LOC_AREA_NAME_TMP));
+        initProps.put(BootstrapConstants.LOC_PROPERTY_SRVLOGS_DIR, getPathProperty(logDir));
 
         if (BootstrapConstants.LOC_PROCESS_TYPE_CLIENT.equals(getProcessType())) {
             initProps.put(BootstrapConstants.LOC_PROPERTY_CLIENTCFG_DIR, getPathProperty(configDir));

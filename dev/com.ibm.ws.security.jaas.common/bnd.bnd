@@ -1,28 +1,25 @@
 #*******************************************************************************
-# Copyright (c) 2017,2020 IBM Corporation and others.
+# Copyright (c) 2017,2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 bVersion=1.0
 
-Bundle-Name: Security JAAS Implementation
-Bundle-SymbolicName: com.ibm.ws.security.jaas.common
-Bundle-Description: Security JAAS Implementation; version=${bVersion}
 
 #
 # Produce a JakartaEE compliant JAR.
 #
-jakartaeeMe: true
-jakartaFinalJarName: io.openliberty.security.jaas.internal.common.jar
-jakartaFinalBundleName: Security JAAS Implementation
-jakartaFinalBundleId: io.openliberty.security.jaas.internal.common
-jakartaFinalBundleDescription: Security JAAS Implementation; Jakarta Enabled
 
 WS-TraceGroup: \
   security
@@ -36,16 +33,15 @@ Export-Package: \
   com.ibm.wsspi.security.auth.callback;provide:=true;thread-context=true  
   
 Import-Package: \
-  com.ibm.ws.common.internal.encoder, \
-  !*.internal.*, \
-  !javax.resource.spi.*, \
-  !com.ibm.wsspi.application.*, \
-  *
+	!*.internal.*,\
+	!javax.resource.spi.*,\
+	!com.ibm.wsspi.application.*,\
+	*
 
 DynamicImport-Package: \
   javax.resource.spi.*
 
-Private-Package: com.ibm.ws.config.xml.internal.nester, \
+Private-Package: \
   com.ibm.ws.security.jaas.common.internal.*, \
   com.ibm.ws.security.jaas.config.internal.*
 
@@ -84,7 +80,6 @@ instrument.classesExcludes: com/ibm/ws/security/jaas/common/internal/resources/*
 	com.ibm.ws.security.authentication;version=latest,\
 	com.ibm.websphere.javaee.servlet.3.0;version=latest,\
 	com.ibm.ws.adaptable.module;version=latest,\
-	com.ibm.ws.common.encoder,\
 	com.ibm.ws.bnd.annotations;version=latest,\
 	com.ibm.ws.classloading;version=latest,\
 	com.ibm.ws.config,\

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2003,2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -54,6 +56,13 @@ public abstract class ParametersHeaderImpl extends HeaderImpl
     protected abstract char getParamSeparator();
     
     /**
+     * @return true if parameters should be escaped when encoded
+     */
+    protected boolean escapeParameters() {
+    	return true;
+    }
+    
+    /**
 	 * Gets the value of specified parameter
 	 * (Note - zero-length String indicates flag parameter)
 	 * (Returns null if parameter does not exist)
@@ -82,9 +91,10 @@ public abstract class ParametersHeaderImpl extends HeaderImpl
         throws IllegalArgumentException, SipParseException
     {
     	boolean quoted = false;
+    	boolean escapeParameters = escapeParameters();
     	if (value != null && value.length() > 0 ){
     		ParameterQuoter quoter = ParameterQuoter.instance();
-    		quoted = quoter.quote(name, value, false); 
+    		quoted = quoter.quote(name, value, escapeParameters); 
     	}
 
     	setParameter(name,value,quoted);
@@ -179,7 +189,8 @@ public abstract class ParametersHeaderImpl extends HeaderImpl
         if (parser.LA(1) == listSeparator) {
         	parser.match(listSeparator);
         	char paramSeparator = getParamSeparator();
-        	m_params = parser.parseParametersMap(paramSeparator, false,false);
+        	boolean escape = escapeParameters();
+        	m_params = parser.parseParametersMap(paramSeparator, escape,false);
         }
         else {
         	removeParameters();
@@ -194,7 +205,8 @@ public abstract class ParametersHeaderImpl extends HeaderImpl
 			char listSeparator = getListSeparator();
 			buffer.append(listSeparator);
         	char paramSeparator = getParamSeparator();
-			m_params.encode(buffer, paramSeparator, false);
+        	boolean escape = escapeParameters();
+			m_params.encode(buffer, paramSeparator, escape);
 		}
 	}
 	

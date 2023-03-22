@@ -1,12 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 package com.ibm.ws.security.oauth20.util;
 
@@ -88,6 +87,7 @@ public interface OIDCConstants extends OAuth20Constants {
     public static final String OIDC_LOGOUT_AUTO_LOGOUT = "autoLogout";
     public static final String OIDC_LOGOUT_ID_TOKEN_HINT = OIDC_AUTHZ_PARAM_ID_TOKEN_HINT;
     public static final String OIDC_LOGOUT_REDIRECT_URI = "post_logout_redirect_uri";
+    public static final String OIDC_LOGOUT_CLIENT_ID = "client_id";
 
     /* parameters for oidc discovery response */
     public static final String OIDC_DISC_ISSUER = "issuer";
@@ -366,6 +366,7 @@ public interface OIDCConstants extends OAuth20Constants {
     public static final String PAYLOAD_AT_HASH = "at_hash";
     public static final String PAYLOAD_CLASS_REFERENCE = "acr";
     public static final String PAYLOAD_METHODS_REFERENCE = "amr";
+    public static final String PAYLOAD_SESSION_ID = "sid";
 
     public static final String CLIENT_REDIRECT_URI = "client_redirect_uri";
     /* session management constants */
@@ -376,5 +377,7 @@ public interface OIDCConstants extends OAuth20Constants {
 
     /* uri prefix for a regexp redirect */
     public static final String REGEXP_PREFIX = "regexp:";
+
+    public static final int SID_CLAIM_LENGTH = 20;
 
 }

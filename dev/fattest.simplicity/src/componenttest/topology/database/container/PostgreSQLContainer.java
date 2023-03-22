@@ -1,5 +1,7 @@
 package componenttest.topology.database.container;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,6 +12,10 @@ import java.util.Set;
 import java.util.concurrent.Future;
 
 import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.containers.wait.strategy.WaitStrategy;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * This class is a replacement for the regular <code>org.testcontainers.containers.PostgreSQLContainer</code> class.
@@ -18,7 +24,7 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
  * 2. To fix the ordering of configure() so that we can set config options such as max_connections=200
  */
 public class PostgreSQLContainer extends JdbcDatabaseContainer<PostgreSQLContainer> {
-	
+
     public static final String NAME = "postgresql";
     public static final String IMAGE = "postgres";
     public static final String DEFAULT_TAG = "9.6.8";
@@ -29,20 +35,32 @@ public class PostgreSQLContainer extends JdbcDatabaseContainer<PostgreSQLContain
     private String password = "test";
     private final Map<String, String> options = new HashMap<>();
 
+    private final WaitStrategy defaultWaitStrategy = new LogMessageWaitStrategy()
+                    .withRegEx(".*database system is ready to accept connections.*\\s")
+                    .withTimes(2)
+                    .withStartupTimeout(Duration.of(60, ChronoUnit.SECONDS));
+
     public PostgreSQLContainer(String img) {
         super(img);
+        this.waitStrategy = defaultWaitStrategy; //can be overwritten by calling waitingFor or setWaitStrategy
     }
 
     public PostgreSQLContainer(final Future<String> image) {
         super(image);
+        this.waitStrategy = defaultWaitStrategy; //can be overwritten by calling waitingFor or setWaitStrategy
+    }
+
+    public PostgreSQLContainer(final DockerImageName image) {
+        super(image);
+        this.waitStrategy = defaultWaitStrategy; //can be overwritten by calling waitingFor or setWaitStrategy
     }
 
     /**
      * Add additional configuration options that should be used for this container.
      *
-     * @param key   The PostgreSQL configuration option key. For example: "max_connections"
-     * @param value The PostgreSQL configuration option value. For example: "200"
-     * @return this
+     * @param  key   The PostgreSQL configuration option key. For example: "max_connections"
+     * @param  value The PostgreSQL configuration option value. For example: "200"
+     * @return       this
      */
     public PostgreSQLContainer withConfigOption(String key, String value) {
         if (key == null) {
@@ -64,7 +82,7 @@ public class PostgreSQLContainer extends JdbcDatabaseContainer<PostgreSQLContain
         if (!options.containsKey("fsync"))
             withConfigOption("fsync", "off");
         if (!options.containsKey("max_prepared_transactions"))
-        	withConfigOption("max_prepared_transactions", "2");
+            withConfigOption("max_prepared_transactions", "2");
         List<String> command = new ArrayList<>();
         for (Entry<String, String> e : options.entrySet()) {
             command.add("-c");
@@ -85,7 +103,7 @@ public class PostgreSQLContainer extends JdbcDatabaseContainer<PostgreSQLContain
 
     @Override
     public String getJdbcUrl() {
-        return "jdbc:postgresql://" + getContainerIpAddress() + ":" + getMappedPort(POSTGRESQL_PORT) + "/" + databaseName;
+        return "jdbc:postgresql://" + getHost() + ":" + getMappedPort(POSTGRESQL_PORT) + "/" + databaseName;
     }
 
     @Override
@@ -125,11 +143,11 @@ public class PostgreSQLContainer extends JdbcDatabaseContainer<PostgreSQLContain
         this.password = password;
         return self();
     }
-    
+
     /**
      * Sets the necessary config options for enabling SSL for the container. Assumes there is
      * a server.crt and server.key file under /var/lib/postgresql/ in the container.
-     * An easy way to use this is to combine it with the <code>aguibert/postgresql-ssl:1.0</code>
+     * An easy way to use this is to combine it with the <code>kyleaure/postgres-ssl:1.0</code>
      * or similar base image
      */
     public PostgreSQLContainer withSSL() {
@@ -143,6 +161,9 @@ public class PostgreSQLContainer extends JdbcDatabaseContainer<PostgreSQLContain
     protected void waitUntilContainerStarted() {
         // by Testcontainers waits for being able to establish a JDBC connection
         // use the default wait strategy instead (necessary for the SSL path)
+        if (getWaitStrategy().equals(Wait.defaultWaitStrategy())) {
+            throw new RuntimeException("DefaultWaitStrategy is inadequite to ensure the database is ready for incoming connections.");
+        }
         getWaitStrategy().waitUntilReady(this);
     }
 

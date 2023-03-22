@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2021 IBM Corporation and others.
+ * Copyright (c) 2017, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,7 +15,13 @@ package componenttest.rules.repeater;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,9 +29,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 
 import com.ibm.websphere.simplicity.config.ClientConfiguration;
 import com.ibm.websphere.simplicity.config.ClientConfigurationFactory;
@@ -36,6 +46,7 @@ import componenttest.custom.junit.runner.TestModeFilter;
 import componenttest.topology.impl.JavaInfo;
 import componenttest.topology.impl.LibertyClientFactory;
 import componenttest.topology.impl.LibertyServerFactory;
+import componenttest.topology.utils.FileUtils;
 
 /**
  * Test repeat action that removes and adds features during setup.
@@ -85,6 +96,9 @@ public class FeatureReplacementAction implements RepeatTestAction {
         featuresWithNameChangeOnEE9 = Collections.unmodifiableMap(featureNameMapping);
     }
 
+    public static final Predicate<FeatureReplacementAction> GREATER_THAN_OR_EQUAL_JAVA_11 = (action) -> JavaInfo.JAVA_VERSION >= 11;
+    public static final Predicate<FeatureReplacementAction> GREATER_THAN_OR_EQUAL_JAVA_17 = (action) -> JavaInfo.JAVA_VERSION >= 17;
+
     public static EmptyAction NO_REPLACEMENT() {
         return new EmptyAction();
     }
@@ -118,9 +132,19 @@ public class FeatureReplacementAction implements RepeatTestAction {
         return new JakartaEE10Action();
     }
 
+    /**
+     * Adds beta option to all the servers and clients
+     */
+    public static FeatureReplacementAction BETA_OPTION() {
+        return new FeatureReplacementAction().withID(BETA_ID).withOptions(BETA_EDITION_TRUE);
+    }
+
     private boolean forceAddFeatures = true;
     private int minJavaLevel = 8;
     protected String currentID = null;
+    private final Set<String> optionsToAdd = new HashSet<String>();
+    private final Set<File> optionFilesCreated = new HashSet<File>();
+    private final Map<File, File> optionsFileBackupMapping = new HashMap<File, File>();
     private final Set<String> servers = new HashSet<>(Arrays.asList(ALL_SERVERS));
     private final Set<String> clients = new HashSet<>(Arrays.asList(ALL_CLIENTS));
     private final Set<String> removeFeatures = new LinkedHashSet<>();
@@ -135,6 +159,9 @@ public class FeatureReplacementAction implements RepeatTestAction {
     private static final String pathToAutoFVTTestFiles = "lib/LibertyFATTestFiles/";
     private static final String pathToAutoFVTTestServers = "publish/servers/";
     private static final String pathToAutoFVTTestClients = "publish/clients/";
+
+    public static final String BETA_EDITION_TRUE = "-Dcom.ibm.ws.beta.edition=true";
+    public static final String BETA_ID = "BETA_JVM_OPTIONS";
 
     public FeatureReplacementAction() {}
 
@@ -270,9 +297,21 @@ public class FeatureReplacementAction implements RepeatTestAction {
         return this;
     }
 
+    public int getMinJavaLevel() {
+        return this.minJavaLevel;
+    }
+
     public FeatureReplacementAction fullFATOnly() {
         this.testRunMode = TestMode.FULL;
         liteFATOnly = false;
+        return this;
+    }
+
+    public FeatureReplacementAction conditionalFullFATOnly(Predicate<FeatureReplacementAction> conditional) {
+        if (conditional.test(this)) {
+            this.testRunMode = TestMode.FULL;
+            liteFATOnly = false;
+        }
         return this;
     }
 
@@ -284,6 +323,11 @@ public class FeatureReplacementAction implements RepeatTestAction {
 
     public FeatureReplacementAction withTestMode(TestMode mode) {
         this.testRunMode = mode;
+        return this;
+    }
+
+    public FeatureReplacementAction withOptions(String... jvmOptions) {
+        optionsToAdd.addAll(Arrays.asList(jvmOptions));
         return this;
     }
 
@@ -377,6 +421,11 @@ public class FeatureReplacementAction implements RepeatTestAction {
         return this;
     }
 
+    public FeatureReplacementAction withBeta() {
+        this.withOptions(BETA_EDITION_TRUE);
+        return this;
+    }
+
     @Override
     public boolean isEnabled() {
         if (JavaInfo.forCurrentVM().majorVersion() < minJavaLevel) {
@@ -399,11 +448,24 @@ public class FeatureReplacementAction implements RepeatTestAction {
 
     @Override
     public void setup() throws Exception {
-        final String m = "setup";
 
-        //check that there are actually some features to be added or removed
-        assertFalse("No features were set to be added or removed", addFeatures.size() == 0 && removeFeatures.size() == 0);
+        //check that there are actually some features or options to be added or removed
+        assertFalse("No features or options were set to be added or removed", addFeatures.size() == 0 && removeFeatures.size() == 0 && optionsToAdd.size() == 0);
 
+        // Manage JVM options
+        if (optionsToAdd.size() != 0)
+            setJvmOptions();
+
+        // Manage feature changes
+        if (addFeatures.size() != 0 || removeFeatures.size() != 0)
+            setFeatures();
+    }
+
+    /**
+     * Goes through all the servers and clients making the specified feature changes
+     */
+    private void setFeatures() throws Exception {
+        final String m = "setFeatures";
         // Find all of the server configurations to replace features in
         Set<File> serverConfigs = new HashSet<>();
         Set<File> locationsChecked = new HashSet<>(); // Directories we checked for client/server XML files.
@@ -553,12 +615,38 @@ public class FeatureReplacementAction implements RepeatTestAction {
                 ClientConfigurationFactory.toFile(configFile, clientConfig);
             }
         }
-
         // Make sure config updates are pushed to the liberty install's copy of the servers & clients
         for (String serverName : servers)
             LibertyServerFactory.getLibertyServer(serverName);
         for (String clientName : clients)
             LibertyClientFactory.getLibertyClient(clientName);
+    }
+
+    @Override
+    public void cleanup() {
+        if (optionsFileBackupMapping.isEmpty()) // Nothing to clean up
+            return;
+        // Undo changes done to jvm.options
+        for (Entry<File, File> mapping : optionsFileBackupMapping.entrySet()) {
+            File original = mapping.getKey();
+            File backup = mapping.getValue();
+            Log.info(c, "cleanup", "Restoring " + original + " from " + backup);
+            try {
+                FileUtils.recursiveDelete(original);
+                FileUtils.copyDirectory(backup, original);
+            } catch (Exception e) {
+                throw new RuntimeException("Exception restoring backup for file " + original, e);
+            }
+        }
+        optionsFileBackupMapping.clear();
+        // Clean up backup folder
+        Path backupsDir = Paths.get("publish/backups");
+        try {
+            Log.info(c, "cleanup", "Deleting backups directory.");
+            FileUtils.recursiveDelete(backupsDir.toFile());
+        } catch (IOException e) {
+            Log.error(c, "Problems deleting backup directory", e);
+        }
     }
 
     /**
@@ -645,6 +733,120 @@ public class FeatureReplacementAction implements RepeatTestAction {
         // (e.g. jsonb-1.0 is EE8 only) so in this case return null
         Log.info(c, methodName, "Remove feature [ " + originalFeature + " ]: No replacement is available");
         return null;
+    }
+
+    /**
+     * Goes through all the servers and clients setting the specified JVM options
+     */
+    private void setJvmOptions() throws IOException {
+        final String m = "setJvmOptions";
+
+        Path publishDir = Paths.get("publish");
+        Path backupsDir = Paths.get("publish/backups");
+
+        Set<File> serverOptions = new HashSet<>();
+        Set<File> locationsChecked = new HashSet<>(); // Directories we checked for client/server options files.
+        Set<String> servers = new HashSet<>(); // All Servers found
+        Log.info(c, m, "Checking all servers for jvm.options files");
+        File serverFolder = new File(pathToAutoFVTTestServers);
+
+        // Find all of the server jvm.options to add options
+        if (serverFolder.exists()) {
+            for (File f : serverFolder.listFiles()) {
+                if (f.isDirectory()) {
+                    servers.add(f.getName());
+                }
+            }
+        }
+        locationsChecked.add(serverFolder);
+
+        // Go through all the servers
+        for (String serverName : servers) {
+            Set<File> optionsFound = findFile(new File(pathToAutoFVTTestServers + serverName), "jvm.options");
+            // If options file doesn't exist
+            if (optionsFound.isEmpty()) {
+                // Create it
+                File jvmOptionsCreated = new File(pathToAutoFVTTestServers + serverName + "/jvm.options");
+                if (jvmOptionsCreated.createNewFile()) {
+                    Log.info(c, m, "Successfully created jvm.options in: " + serverName);
+                    optionFilesCreated.add(jvmOptionsCreated);
+                } else
+                    Log.info(c, m, "Failed to create jvm.options in: " + serverName);
+                optionsFound.add(jvmOptionsCreated);
+            }
+            serverOptions.addAll(optionsFound);
+        }
+
+        Set<File> clientOptions = new HashSet<>();
+        Set<String> clients = new HashSet<>(); // All clients found
+        File clientFolder = new File(pathToAutoFVTTestClients);
+        // Find all jvm.options in the clients
+        clientOptions.addAll(findFile(clientFolder, "jvm.options"));
+        if (clientFolder.exists()) {
+            for (File f : clientFolder.listFiles()) {
+                if (f.isDirectory()) {
+                    clients.add(f.getName());
+                }
+            }
+        }
+
+        // Go through all the clients
+        for (String clientName : clients) {
+            Set<File> optionsFound = findFile(new File(pathToAutoFVTTestClients + clientName), "jvm.options");
+            // If options file doesn't exist
+            if (optionsFound.isEmpty()) {
+                // Create it
+                File jvmOptionsCreated = new File(pathToAutoFVTTestClients + clientName + "/jvm.options");
+                if (jvmOptionsCreated.createNewFile()) {
+                    Log.info(c, m, "Successfully created jvm.options in: " + clientName);
+                    optionFilesCreated.add(jvmOptionsCreated);
+                } else
+                    Log.info(c, m, "Failed to create jvm.options in: " + clientName);
+                optionsFound.add(jvmOptionsCreated);
+            }
+            clientOptions.addAll(optionsFound);
+        }
+        locationsChecked.add(clientFolder);
+
+        Log.info(c, m, "Adding options in files: " + serverOptions.toString() + "  and  " + clientOptions.toString());
+
+        // change all the jvm.options files
+        assertTrue("There were no servers/clients found in the following folders."
+                   + ". To use a BetaOptionsAction, there must be 1 or more servers/clients in any of the following locations: " + locationsChecked,
+                   (serverOptions.size() > 0 || clientOptions.size() > 0));
+
+        Set<File> optionFilesOriginal = new HashSet<>();
+        optionFilesOriginal.addAll(clientOptions);
+        optionFilesOriginal.addAll(serverOptions);
+        for (File optionsFile : optionFilesOriginal) {
+            Log.info(c, m, "Modifying options file: " + optionsFile.getAbsolutePath());
+            if (!optionsFile.exists() || !optionsFile.canRead() || !optionsFile.canWrite()) {
+                Log.info(c, m, "File did not exist or was not readable: " + optionsFile.getAbsolutePath());
+                continue;
+            }
+
+            try (FileWriter optionsWriter = new FileWriter(optionsFile, true);
+                            BufferedWriter bw = new BufferedWriter(optionsWriter);) {
+                Path backupFile = backupsDir.resolve(publishDir.relativize(optionsFile.toPath()));
+                Files.createDirectories(backupFile.getParent());
+                FileUtils.copyDirectory(optionsFile, backupFile.toFile());
+                optionsFileBackupMapping.put(optionsFile, backupFile.toFile());
+
+                // Add new line if file already has content
+                if (optionsFile.length() != 0)
+                    bw.newLine();
+
+                for (String option : this.optionsToAdd) {
+                    bw.write(option);
+                    bw.newLine();
+                }
+            }
+        }
+        // Make sure options updates are pushed to the liberty install's copy of the servers & clients
+        for (String serverName : servers)
+            LibertyServerFactory.getLibertyServer(serverName);
+        for (String clientName : clients)
+            LibertyClientFactory.getLibertyClient(clientName);
     }
 
     private static boolean removeWildcardFeature(Set<String> features, String removeFeature) {

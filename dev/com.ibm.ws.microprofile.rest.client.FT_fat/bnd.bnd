@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2019 IBM Corporation and others.
+# Copyright (c) 2019, 2021 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -14,7 +16,7 @@ bVersion=1.0
 src: \
   fat/src,\
   test-applications/retryApp/src,\
-  test-applications/timeoutApp/src,\
+  test-applications/timeoutApp/src
 
 fat.project: true
 
@@ -33,4 +35,6 @@ fat.project: true
   com.ibm.websphere.javaee.jsonb.1.0;version=latest
 
 tested.features: \
-  servlet-4.0, jsonp-1.1, jaxrsclient-2.1, mpRestClient-1.3, mpRestClient-1.4, mpConfig-2.0, mpRestClient-2.0, mpFaultTolerance-3.0
+  servlet-4.0, jsonp-1.1, jaxrsclient-2.1, mpRestClient-1.3, mpRestClient-1.4, mpConfig-2.0, mpRestClient-2.0, mpFaultTolerance-3.0, jsonb-1.0,\
+  restfulwsclient-3.0, transportsecurity-1.0, mpconfig-3.0, servlet-5.0, concurrent-2.0, mpfaulttolerance-4.0, restfulws-3.0, jsonb-2.0, jsonp-2.0, mprestclient-3.0, cdi-3.0,\
+  restfulwsclient-3.1, jsonb-3.0, jsonp-2.1, restfulws-3.1, cdi-4.0, servlet-6.0, mpfaulttolerance-2.1

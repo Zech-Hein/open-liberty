@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation and others.
+ * Copyright (c) 2017,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,6 +36,8 @@ public class FederatedRepository extends ConfigElement {
     private ConfigElementList<Realm> realms;
     private String searchTimeout;
     private ConfigElementList<SupportedEntityType> supportedEntityTypes;
+    private String failedLoginDelayMin;
+    private String failedLoginDelayMax;
 
     /**
      * @return the extendedProperty
@@ -89,6 +93,24 @@ public class FederatedRepository extends ConfigElement {
      */
     public ConfigElementList<SupportedEntityType> getSupportedEntityTypes() {
         return (supportedEntityTypes == null) ? (supportedEntityTypes = new ConfigElementList<SupportedEntityType>()) : supportedEntityTypes;
+    }
+
+    /**
+     * Get the failedLoginDelayMin, it is a string because the metatype type is duration
+     *
+     * @return failedLoginDelayMin
+     */
+    public String getFailedLoginDelayMin() {
+        return failedLoginDelayMin;
+    }
+
+    /**
+     * Get the failedLoginDelayMax, it is a string because the metatype type is duration
+     *
+     * @return failedLoginDelayMax
+     */
+    public String getFailedLoginDelayMax() {
+        return failedLoginDelayMax;
     }
 
     /**
@@ -155,6 +177,26 @@ public class FederatedRepository extends ConfigElement {
         this.supportedEntityTypes = supportedEntityTypes;
     }
 
+    /**
+     * Set the failedLoginDelayMin, it is a string because the metatype type is duration
+     *
+     * @param failedLoginDelayMin
+     */
+    @XmlAttribute(name = "failedLoginDelayMin")
+    public void setFailedLoginDelayMin(String failedLoginDelayMin) {
+        this.failedLoginDelayMin = failedLoginDelayMin;
+    }
+
+    /**
+     * Set the failedLoginDelayMax, it is a string because the metatype type is duration
+     *
+     * @param failedLoginDelayMax
+     */
+    @XmlAttribute(name = "failedLoginDelayMax")
+    public void setFailedLoginDelayMax(String failedLoginDelayMax) {
+        this.failedLoginDelayMax = failedLoginDelayMax;
+    }
+
     @Override
     public String toString() {
         StringBuffer sb = new StringBuffer();
@@ -184,6 +226,12 @@ public class FederatedRepository extends ConfigElement {
         }
         if (supportedEntityTypes != null) {
             sb.append("supportedEntityTypes=\"").append(supportedEntityTypes).append("\" ");;
+        }
+        if (failedLoginDelayMin != null) {
+            sb.append("failedLoginDelayMin=\"").append(failedLoginDelayMin).append("\"");
+        }
+        if (failedLoginDelayMax != null) {
+            sb.append("failedLoginDelayMax=\"").append(failedLoginDelayMax).append("\"");
         }
 
         sb.append("}");

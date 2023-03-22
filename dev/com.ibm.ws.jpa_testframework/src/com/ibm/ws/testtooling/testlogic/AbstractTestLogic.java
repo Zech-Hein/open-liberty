@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -191,49 +193,6 @@ public abstract class AbstractTestLogic {
         cleanupDatabase(em, tj, testEntityEnumArr);
     }
 
-    public enum JPAProviderImpl {
-        OPENJPA,
-        ECLIPSELINK,
-        HIBERNATE;
-    }
-
-    public JPAProviderImpl getJPAProviderImpl(EntityManager em) {
-        if (em == null) {
-            return null;
-        }
-
-        String delegateClassStr = em.getDelegate().getClass().getName();
-        if (delegateClassStr == null) {
-            return null;
-        }
-
-        if (delegateClassStr.toLowerCase().contains("openjpa")) {
-            return JPAProviderImpl.OPENJPA;
-        }
-
-        if (delegateClassStr.toLowerCase().contains("com.ibm")) {
-            return JPAProviderImpl.OPENJPA;
-        }
-
-        if (delegateClassStr.toLowerCase().contains("eclipse")) {
-            return JPAProviderImpl.ECLIPSELINK;
-        }
-
-        if (delegateClassStr.toLowerCase().contains("hibernate")) {
-            return JPAProviderImpl.HIBERNATE;
-        }
-
-        return null;
-    }
-
-    public JPAProviderImpl getJPAProviderImpl(JPAResource jpaRsc) {
-        if (jpaRsc == null) {
-            return null;
-        }
-
-        return getJPAProviderImpl(jpaRsc.getEm());
-    }
-
     protected String toBeanMethod(String prefix, String fieldName) {
         return prefix + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1, fieldName.length());
     }
@@ -400,6 +359,11 @@ public abstract class AbstractTestLogic {
         return instFeatureSet.contains("persistence-3.0");
     }
 
+    protected boolean isUsingJPA31Feature() {
+        Set<String> instFeatureSet = getInstalledFeatures();
+        return instFeatureSet.contains("persistence-3.1");
+    }
+
     protected boolean isUsingJPA21ContainerFeature(boolean onlyContainerFeature) {
         Set<String> instFeatureSet = getInstalledFeatures();
         if (onlyContainerFeature && instFeatureSet.contains("jpa-2.1"))
@@ -419,5 +383,12 @@ public abstract class AbstractTestLogic {
         if (onlyContainerFeature && instFeatureSet.contains("persistence-3.0"))
             return false;
         return instFeatureSet.contains("persistenceContainer-3.0");
+    }
+
+    protected boolean isUsingJPA31ContainerFeature(boolean onlyContainerFeature) {
+        Set<String> instFeatureSet = getInstalledFeatures();
+        if (onlyContainerFeature && instFeatureSet.contains("persistence-3.1"))
+            return false;
+        return instFeatureSet.contains("persistenceContainer-3.1");
     }
 }

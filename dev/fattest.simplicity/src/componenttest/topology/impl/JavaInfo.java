@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,15 +13,19 @@
 package componenttest.topology.impl;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
-
+import java.net.URISyntaxException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.ibm.websphere.simplicity.log.Log;
+import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 
 /**
  * A class used for identifying properties of a JDK other
@@ -92,6 +98,7 @@ public class JavaInfo {
     final Vendor VENDOR;
     final int SERVICE_RELEASE;
     final int FIXPACK;
+    Optional<Boolean> criuSupported = Optional.empty();
 
     private JavaInfo(String jdk_home, int major, int minor, int micro, Vendor v, int sr, int fp) {
         JAVA_HOME = jdk_home;
@@ -129,7 +136,7 @@ public class JavaInfo {
         String vendor = System.getProperty("java.vendor").toLowerCase();
         if (vendor.contains("openj9"))
             VENDOR = Vendor.OPENJ9;
-        else if (detectIBMJava())
+        else if (vendor.contains("ibm") || vendor.contains("j9"))
             VENDOR = Vendor.IBM;
         else if (vendor.contains("oracle"))
             VENDOR = Vendor.SUN_ORACLE;
@@ -181,20 +188,6 @@ public class JavaInfo {
         Log.info(c, "<init>", this.toString());
     }
 
-    private static boolean detectIBMJava() {
-        return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
-            @Override
-            public Boolean run() {
-                try {
-                    Class.forName("com.ibm.security.auth.module.Krb5LoginModule");
-                    return true;
-                } catch (ClassNotFoundException e) {
-                    return false;
-                }
-            }
-        });        
-    }
-
     public int majorVersion() {
         return MAJOR;
     }
@@ -207,6 +200,60 @@ public class JavaInfo {
         return MICRO;
     }
 
+    private static final Map<String, Boolean> systemClassAvailability = new ConcurrentHashMap<>();
+
+    /**
+     * In rare cases where different behaviour is performed based on the JVM vendor
+     * this method should be used to test for a unique JVM class provided by the
+     * vendor rather than using the vendor method. For example if on JVM provides a
+     * different Kerberos login module testing for that login module being loadable
+     * before configuring to use it is preferable to using the vendor data.
+     *
+     * New users of this method should consider adding their class name in
+     * JavaInfoTest in the com.ibm.ws.java11_fat project.
+     *
+     * @param  className the name of a class in the JVM to test for
+     * @return           true if the class is available, false otherwise.
+     */
+    public static boolean isSystemClassAvailable(String className) {
+        return systemClassAvailability.computeIfAbsent(className, (k) -> AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+            @Override
+            @FFDCIgnore(ClassNotFoundException.class)
+            public Boolean run() {
+                try {
+                    // Using ClassLoader.findSystemClass() instead of
+                    // Class.forName(className, false, null) because Class.forName with a null
+                    // ClassLoader only looks at the boot ClassLoader with Java 9 and above
+                    // which doesn't look at all the modules available to the findSystemClass.
+                    systemClassAccessor.getSystemClass(className);
+                    return true;
+                } catch (ClassNotFoundException e) {
+                    //No FFDC needed
+                    return false;
+                }
+            }
+        }));
+    }
+
+    private static final SystemClassAccessor systemClassAccessor = new SystemClassAccessor();
+
+    private static final class SystemClassAccessor extends ClassLoader {
+        public Class<?> getSystemClass(String className) throws ClassNotFoundException {
+            return findSystemClass(className);
+        }
+    }
+
+    /**
+     * @deprecated
+     *             This method should not be used to determine behaviour based on the Java vendor.
+     *             Instead if there are behaviour differences between JVMs a test should be performed
+     *             to detect the actual capability used before making a decision. For example if there
+     *             is a different class on one JVM that needs to be used vs another an attempt should
+     *             be made to load the class and take the code path.
+     *
+     * @return     the detected vendor of the JVM
+     */
+    @Deprecated
     public Vendor vendor() {
         return VENDOR;
     }
@@ -221,6 +268,67 @@ public class JavaInfo {
 
     public int fixpack() {
         return FIXPACK;
+    }
+
+    /**
+     * For debug purposes only
+     *
+     * @return a String containing basic info about the JDK
+     */
+    public String debugString() {
+        return "Vendor = " + vendor() + ", Version = " + majorVersion() + "." + minorVersion();
+    }
+
+    synchronized public Boolean isCriuSupported() {
+        return criuSupported.orElseGet(() -> probeCriuSupport());
+    }
+
+    /**
+     * Check for criu support by invoking a criu operation in a forked jvm.
+     * As a side effect, update this instance of JavaInfo with the result of the check.
+     *
+     * @return Boolean indicating if criu is supported.
+     */
+    private Boolean probeCriuSupport() {
+        final String method = "probeCriuSupport";
+        //Find path to fattest.simplicity.jar jar on file system (the jar containing this class).
+        String simplicityJar;
+        try {
+            simplicityJar = new File(componenttest.topology.impl.probe.CriuSupport.class.getProtectionDomain()
+                            .getCodeSource()
+                            .getLocation()
+                            .toURI()).getPath();
+        } catch (URISyntaxException e) {
+            throw new Error(e);
+        }
+        ProcessBuilder procBuilder = new ProcessBuilder(javaHome() + "/bin/java", "-XX:+EnableCRIUSupport", //
+                        "-cp", simplicityJar, "componenttest.topology.impl.probe.CriuSupport");
+        Process proc;
+        try {
+            proc = procBuilder.start();
+            proc.waitFor();
+            BufferedReader br = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+            String line;
+            int lines = 0;
+            //If there is any error output then criu support not present (or could not be determined).
+            while ((line = br.readLine()) != null) {
+                if (lines == 0) {
+                    Log.info(c, method, "STDERROR from probeCRIUSupport: ");
+                }
+                lines++;
+                Log.info(c, method, "STDERR: " + line);
+            }
+            if (lines == 0) {
+                criuSupported = Optional.of(Boolean.TRUE);
+            } else {
+                criuSupported = Optional.of(Boolean.FALSE);
+            }
+        } catch (IOException | InterruptedException ex) {
+            Log.info(c, method, "Exception launching process to probe for criu support:" + ex);
+            criuSupported = Optional.of(Boolean.FALSE);
+        }
+        Log.info(c, method, "Executed isCriuSupported on Jinfo: " + this);
+        return criuSupported.get();
     }
 
     private static JavaInfo runJavaVersion(String javaHome) throws IOException {
@@ -316,6 +424,8 @@ public class JavaInfo {
 
     @Override
     public String toString() {
-        return "major=" + MAJOR + "  minor=" + MINOR + " service release=" + SERVICE_RELEASE + " fixpack=" + FIXPACK + "  vendor=" + VENDOR + "  javaHome=" + JAVA_HOME;
+        return "major=" + MAJOR + ",  minor=" + MINOR + ", service release=" + SERVICE_RELEASE
+               + ", fixpack=" + FIXPACK + ",  vendor=" + VENDOR
+               + ",  javaHome=" + JAVA_HOME + ", criuSupported=" + criuSupported;
     }
 }

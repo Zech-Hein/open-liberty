@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -49,6 +51,7 @@ import com.ibm.oauth.core.api.oauth20.client.OAuth20ClientProvider;
 import com.ibm.oauth.core.api.oauth20.token.OAuth20Token;
 import com.ibm.oauth.core.internal.oauth20.OAuth20Constants;
 import com.ibm.websphere.security.UserRegistry;
+import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.security.intfc.WSSecurityService;
 import com.ibm.ws.security.oauth20.api.OAuth20EnhancedTokenCache;
 import com.ibm.ws.security.oauth20.api.OAuth20Provider;
@@ -138,10 +141,12 @@ public class OidcEndpointServicesTest {
     @Before
     public void setUp() {
         paramNames.add(OAuth20Constants.ACCESS_TOKEN);
+        System.setProperty(ProductInfo.BETA_EDITION_JVM_PROPERTY, "false");
     }
 
     @After
     public void tearDown() {
+        System.clearProperty(ProductInfo.BETA_EDITION_JVM_PROPERTY);
         if (configUtils != null) {
             configUtils.deactivate(cc);
         }

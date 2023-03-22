@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2020 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,8 +16,7 @@
  */
 // Global vars
 ext.autoFvtDir = new File(project.buildDir, 'autoFVT')
-
-ext.testcontainersVersion = '1.15.3'
+ext.distsDirectory= new File(project.buildDir, 'distributions')
 
 // Local vars
 File publishDir = new File(autoFvtDir, 'publish')
@@ -28,7 +29,7 @@ if (isAutomatedBuild && project.file('fat').exists()) {
   release {
     doLast {
       delete autoFvtDir
-      delete distsDir
+      delete distsDirectory
     }
   }
 }
@@ -48,22 +49,25 @@ configurations {
 
 dependencies {
   derby 'org.apache.derby:derby:10.11.1.1'
-  
+
   jdbcDrivers 'com.ibm.db2:jcc:11.1.4.4',
-		'org.postgresql:postgresql:42.2.5',
+		'org.postgresql:postgresql:42.4.2',
 		'com.microsoft.sqlserver:mssql-jdbc:9.2.1.jre8',
 		'org.apache.derby:derbyclient:10.11.1.1',
 		'org.apache.derby:derby:10.11.1.1',
-		'com.oracle.database.jdbc.debug:ojdbc8_g:21.1.0.0'
+		'com.oracle.database.jdbc.debug:ojdbc8_g:21.8.0.0'
 
-  jakartaTransformer 'biz.aQute.bnd:biz.aQute.bnd.transform:5.3.0',
-       'commons-cli:commons-cli:1.4',
-       'org.slf4j:slf4j-simple:1.7.30',
-       'org.slf4j:slf4j-api:1.7.26',
-       'org.eclipse.transformer:org.eclipse.transformer:0.2.0',
-       'org.eclipse.transformer:org.eclipse.transformer.cli:0.2.0'
-       
-  testcontainers project(':io.openliberty.org.testcontainers')
+  jakartaTransformer 'biz.aQute.bnd:biz.aQute.bnd.transform:6.3.0',
+       'commons-cli:commons-cli:1.5.0',
+       project(':com.ibm.ws.org.slf4j.api'),
+       project(':com.ibm.ws.org.slf4j.simple'),
+       'org.eclipse.transformer:org.eclipse.transformer:0.5.0',
+       'org.eclipse.transformer:org.eclipse.transformer.jakarta:0.5.0',
+       'org.eclipse.transformer:org.eclipse.transformer.cli:0.5.0',
+       'org.eclipse.transformer:org.eclipse.transformer.bnd.analyzer:0.5.0'
+
+  testcontainers project(':io.openliberty.org.testcontainers'),
+        project(':com.ibm.ws.org.slf4j.api')
 
 }
 
@@ -88,6 +92,7 @@ task addJakartaTransformer(type: Copy) {
 }
 
 task copyTestContainers(type: Copy) {
+  dependsOn ':io.openliberty.org.testcontainers:assembleTestContainerData'
   mustRunAfter jar
   from configurations.testcontainers
   into new File(autoFvtDir, 'lib')
@@ -150,7 +155,15 @@ task autoFVT {
       include 'asm-all-5.2.jar'
       include 'org.apache.aries.util-*.jar'
       include 'osgi.core*.jar'
-      include 'jackson*.jar'
+      include 'jsch-*.jar'
+    }
+    
+    // Copy the jackson jar, use the liberty project rather than mavenlibs
+    // to ensure versions match
+    copy {
+      from project(':io.openliberty.com.fasterxml.jackson').buildDir
+      include 'io.openliberty.com.fasterxml.jackson.jar'
+      into new File(autoFvtDir, 'build/lib')
     }
 
     // Copy the com.ibm.ws.junit.extensions jar
@@ -159,10 +172,10 @@ task autoFVT {
       include 'com.ibm.ws.junit.extensions.jar'
       into new File(autoFvtDir, 'build/lib')
     }
-      
+
     // Copy the infra jar
     copy {
-      from cnf.file('mavenlibs/infra.buildtasks-core-4.0.0.jar')
+      from cnf.file('mavenlibs/infra.buildtasks-core-7.0.2.jar')
       into new File(autoFvtDir, 'build/lib')
     }
 
@@ -172,7 +185,7 @@ task autoFVT {
       include '*.jar'
       into new File(autoFvtDir, 'build/lib')
     }
-    
+
     // Include JSON-P processor implementation
     copy {
       from project(':com.ibm.ws.org.glassfish.json').buildDir
@@ -204,39 +217,39 @@ task autoFVT {
 
     // Create a fat.bnd.properties file that contains metadata about the FAT
     def bndProps = new Properties()
-    
+
     // By default, load up all properties with certain prefixes from bndWorkspace
     bndWorkspace.getProject(project.getProjectDir()).getProperties().each { k, v ->
       if(k.startsWith("test.") || k.startsWith("fat."))
         bndProps.setProperty(k, v);
     }
-    
+
     // Check for minimum java level for test execution:
-    def minJavaLevel = bnd('fat.minimum.java.level', bnd('javac.source'))
+    def minJavaLevel = bnd.get('fat.minimum.java.level', bnd.get('javac.source'))
     bndProps.setProperty('fat.minimum.java.level', minJavaLevel)
-    bndProps.setProperty('micro.version', bnd('libertyBundleMicroVersion'))
-    
+    bndProps.setProperty('micro.version', bnd.get('libertyBundleMicroVersion'))
+
     File bndPropsFile = new File(autoFvtDir, 'fat.bnd.properties')
     def bndWriter = new FileWriter(bndPropsFile)
     try {
-    	bndProps.store(bndWriter, null)
+      bndProps.store(bndWriter, null)
     } finally {
       bndWriter.close()
     }
-    
+
     // Create a fat.sys.properties file that contains metadata about the FAT
     def sysProps = new Properties()
-    
+
     // By default, load up all properties with certain prefixes from System
     System.getProperties().each { k, v ->
       if(k.startsWith("test.") || k.startsWith("fat.") || k.startsWith("fattest."))
         sysProps.setProperty(k, v);
     }
-    
+
     File sysPropsFile = new File(autoFvtDir, 'fat.sys.properties')
     def sysWriter = new FileWriter(sysPropsFile)
     try {
-    	sysProps.store(sysWriter, null)
+      sysProps.store(sysWriter, null)
     } finally {
       sysWriter.close()
     }
@@ -270,6 +283,7 @@ task autoFVT {
       from project.file('publish/files'), new File(publishDir, 'files')
       include '**/*'
       into new File(autoFvtDir, 'lib/LibertyFATTestFiles')
+      duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
     // Copy the publish directory (minus the 'files' directory)
@@ -286,7 +300,7 @@ task autoFVT {
       include 'com.ibm.ws.logging.core.jar'
       into new File(autoFvtDir, 'lib')
     }
-    
+
     // Copy all non-java app resources, such as *.html or *.jsp
     copy {
       includeEmptyDirs = false
@@ -308,7 +322,7 @@ task autoFVT {
     // Produce a list of features tested by this FAT
     def featureDeps = [] as Set
     // Include features added explictly via bnd.bnd
-    def testedFeatures = bnd('tested.features')
+    def testedFeatures = bnd.get('tested.features')
     if(testedFeatures != null)
       testedFeatures.split(',').each{ featureDeps.add(it.trim().toLowerCase()) }
     // Scan publish/ dir for features
@@ -340,8 +354,8 @@ task autoFVT {
     if(featureDeps.size() > 0) {
       println "This FAT tests the following features: " + featureDeps
       def fatDeps = new groovy.json.JsonBuilder()
-      def root = fatDeps { 
-    	  "feature-deps" featureDeps
+      def root = fatDeps {
+    	"feature-deps" featureDeps
       }
       new File(autoFvtDir, 'fat-metadata.json').write(new groovy.json.JsonBuilder(root).toPrettyString())
     } else {
@@ -366,7 +380,7 @@ task zipAutoFVT(type: Zip) {
 task zipProjectFVT(type: Zip) {
   dependsOn zipAutoFVT
   baseName project.name
-  into project.name + '/build/lib', {from "${distsDir}/autoFVT.zip"}
+  into project.name + '/build/lib', {from "${distsDirectory}/autoFVT.zip"}
   into project.name, {from 'build-test.xml'}
 }
 
@@ -388,16 +402,16 @@ task trySkipFat(type: JavaExec) {
   dependsOn autoFVT
   dependsOn ':build.changeDetector:assemble'
   inputs.file(new File(autoFvtDir, 'fat-metadata.json'))
-  
+
   main = 'com.ibm.ws.infra.depchain.ChangeDetector'
   classpath = project(':build.changeDetector').sourceSets.main.runtimeClasspath
-    
+
   args '--wlp', project(':build.image').projectDir.toString() + '/wlp',
        '--git-diff', System.getProperty('git_diff', 'UNSET'),
        '--deps', autoFvtDir.toString() + '/fat-metadata.json',
        '--fat-name', project.name,
        '--output', autoFvtDir.toString() + '/canSkipFat'
-       
+
   doLast {
     if (new File(autoFvtDir, 'canSkipFat').exists()) {
       println "Disabling FAT bucket " + project.name + " from running based on modified files"
@@ -424,9 +438,9 @@ task runfat(type: Exec) {
     args "-f", new File(autoFvtDir, 'TestBuild.xml')
   }
 
-  doLast {    
+  doLast {
     // We can have this here because this task only ever runs locally, and thus is OK to unconditionally fail
-    // the build. If we ever run FATs in remote builds, we should also gate this on a property like 
+    // the build. If we ever run FATs in remote builds, we should also gate this on a property like
     // 'is.running.remote.build' so we don't fail the entire build whenever a testcase fails
     if(new File(autoFvtDir, "output/fail.log").exists())
       throw new GradleException("The FAT bucket has test failures! See the logs and results for details.")
@@ -471,7 +485,7 @@ ext.gitClone = { proj, branch = 'NOT_SET', folder = '', site = 'git@github.com',
        branch = "release"
     }
   }
-  
+
   // Default the destination folder to the project name
   if( folder == null || folder.length() == 0 ){
     folder = proj
@@ -482,27 +496,27 @@ ext.gitClone = { proj, branch = 'NOT_SET', folder = '', site = 'git@github.com',
 
   // Intended Behavior: If running locally use git directly
   // TODO add conditional here once EBC cloning is implemented.
-  // Suggestion: !isAutomatedBuild - do not use [fat.test.localrun] as this is only know at runtime and not build time. 
-  if( true ) { 
+  // Suggestion: !isAutomatedBuild - do not use [fat.test.localrun] as this is only know at runtime and not build time.
+  if( true ) {
     File repoDir = new File(gitReposDir, folder)
     String into = repoDir.getAbsolutePath()
-     
+
     String url = " " + site + ":" + org + "/" + proj + ".git "
     String cmd = "git clone --depth 1 --single-branch --branch " + branch + " " + url + " " + into
-      
+
     delete into
     mkdir into
-    
+
     def proc = cmd.execute()
     proc.in.eachLine { line -> println cmd + ':\n' + line }
     proc.err.eachLine { line -> println cmd + ':\n' + line }
     proc.waitFor()
-    
-  } else { // TODO Non-local cloning is not implemented for now 
+
+  } else { // TODO Non-local cloning is not implemented for now
     // Make use of the EBC clone mechanism
     project.logger.lifecycle('ebc clone')
-    ebcClone(url) 
-    
+    ebcClone(url)
+
     //EBC clones in dev/../../../<repo>
     File ebcCloneDir = new File( project, "./../../../" )
     copy {
@@ -513,8 +527,66 @@ ext.gitClone = { proj, branch = 'NOT_SET', folder = '', site = 'git@github.com',
   }
 }
 
+ext.gitCloneTemp = { proj, branch = 'move-from-smallrye', folder = '', site = 'git@github.com', org = 'yasmin-aumeeruddy' ->
+
+  // We need to know which MP project at least
+  if( proj == null || proj.length() == 0 ){
+    project.logger.lifecycle("The first parameter to task clone is the project name and cannot be defaulted");
+    return
+  }
+
+  /* Default the branch to release but allow -Dbranch= or a parameter coming in
+  if( "NOT_SET".equals( branch ) ){
+    String branchProp = System.getProperty('branch')
+    if( branchProp != null && branchProp.length() > 0 ){
+       branch = branchProp
+    }else{
+       branch = "release"
+    }
+  }*/
+
+  // Default the destination folder to the project name
+  if( folder == null || folder.length() == 0 ){
+    folder = proj
+  }
+
+  //Staging area parent folder to enable copying all subfolders.
+  File gitReposDir = new File(project.buildDir, 'gitRepos')
+
+  // Intended Behavior: If running locally use git directly
+  // TODO add conditional here once EBC cloning is implemented.
+  // Suggestion: !isAutomatedBuild - do not use [fat.test.localrun] as this is only know at runtime and not build time.
+  if( true ) {
+    File repoDir = new File(gitReposDir, folder)
+    String into = repoDir.getAbsolutePath()
+
+    String url = " " + site + ":" + org + "/" + proj + ".git "
+    String cmd = "git clone --depth 1 --single-branch --branch " + branch + " " + url + " " + into
+
+    delete into
+    mkdir into
+
+    def proc = cmd.execute()
+    proc.in.eachLine { line -> println cmd + ':\n' + line }
+    proc.err.eachLine { line -> println cmd + ':\n' + line }
+    proc.waitFor()
+
+  } else { // TODO Non-local cloning is not implemented for now
+    // Make use of the EBC clone mechanism
+    project.logger.lifecycle('ebc clone')
+    ebcClone(url)
+
+    //EBC clones in dev/../../../<repo>
+    File ebcCloneDir = new File( project, "./../../../" )
+    copy {
+      from ebcCloneDir
+      include proj
+      into gitReposDir
+    }
+  }
+}
 def ebcClone(String url, String branch, String repoPath){
-  // TODO Non-local cloning is not implemented for now  
+  // TODO Non-local cloning is not implemented for now
 }
 
 build {
@@ -526,13 +598,18 @@ build {
 }
 
 buildfat {
- dependsOn cleanFat
- dependsOn assemble
- dependsOn build
- dependsOn zipProjectFVT
+  dependsOn cleanFat
+  dependsOn assemble
+  dependsOn build
+  dependsOn zipProjectFVT
 }
 
 task buildandrun {
- dependsOn buildfat
- dependsOn runfat
+  dependsOn buildfat
+  dependsOn runfat
+}
+
+task buildFatAndRelease {
+  dependsOn buildfat
+  dependsOn release
 }

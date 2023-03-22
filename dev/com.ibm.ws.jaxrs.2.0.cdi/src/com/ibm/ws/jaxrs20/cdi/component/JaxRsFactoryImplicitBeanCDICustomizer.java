@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,7 +22,6 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +89,7 @@ public class JaxRsFactoryImplicitBeanCDICustomizer implements JaxRsFactoryBeanCu
     private CDIService cdiService;
 
     //The key is Object to match afterServiceInvoke.
-    private final Map<Object, CreationalContext<?>> creationalContextsToRelease = new HashMap<>();
+    private final Map<Object, CreationalContext<?>> creationalContextsToRelease = new ConcurrentHashMap<>();
 
     private static List<String> validRequestScopeList = new ArrayList<>();
     private static List<String> validSingletonScopeList = new ArrayList<>();

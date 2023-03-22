@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2016, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -84,7 +86,7 @@ public class ConfigFieldInjectionBean {
     String MISSING_KEY_WITH_DEFAULT_VALUE;
 
     /**
-     * This is the sanity test to check PIZZA_GOOD_KEY will be resolved to a good Pizza. The default value is not used.
+     * This is the test to check PIZZA_GOOD_KEY will be resolved to a good Pizza. The default value is not used.
      */
     @Inject
     @ConfigProperty(name = "PIZZA_GOOD_KEY", defaultValue = "")

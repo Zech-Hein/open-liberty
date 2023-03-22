@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2021 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,6 +36,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 import com.ibm.websphere.simplicity.log.Log;
 
+import componenttest.custom.junit.runner.RepeatTestFilter;
 import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyClient;
@@ -144,6 +147,9 @@ public class ShrinkHelper {
      * Writes an application to a a file in the 'publish/servers/<server_name>/apps/' directory
      * with the file name returned by a.getName(), which should include the
      * file type extension (.ear, .war, .jar, .rar, etc)
+     * <p>
+     * Note that if you're deploying to a running server, this method will wait for the application to start before returning unless you pass the
+     * {@link DeployOptions#DISABLE_VALIDATION DISABLE_VALIDATION} option.
      *
      * @param server  The server to publish the application to
      * @param a       The archive to export as a file
@@ -216,7 +222,9 @@ public class ShrinkHelper {
      * @param printArchiveContents Whether or not to log the contents of the archive being exported
      */
     public static Archive<?> exportArtifact(Archive<?> a, String dest, boolean printArchiveContents) {
-        return exportArtifact(a, dest, printArchiveContents, false);
+        // overwrite by default when transforming to EE9 to EE10
+        return exportArtifact(a, dest, printArchiveContents,
+                              RepeatTestFilter.isAnyRepeatActionActive(JakartaEE9Action.ID, JakartaEE10Action.ID));
     }
 
     /**
@@ -250,9 +258,9 @@ public class ShrinkHelper {
         exportedArchives.add(outputFile);
         if (outputFile.exists() && !overWrite) {
             Log.info(ShrinkHelper.class, "exportArtifact", "Not exporting artifact because it already exists at " + outputFile.getAbsolutePath());
-            if (JakartaEE9Action.isActive()) {
+            if (RepeatTestFilter.isRepeatActionActive(JakartaEE9Action.ID)) {
                 JakartaEE9Action.transformApp(outputFile.toPath());
-            } else if (JakartaEE10Action.isActive()) {
+            } else if (RepeatTestFilter.isRepeatActionActive(JakartaEE10Action.ID)) {
                 JakartaEE10Action.transformApp(outputFile.toPath());
             }
             return a;
@@ -265,9 +273,9 @@ public class ShrinkHelper {
         }
         if (printArchiveContents)
             Log.info(ShrinkHelper.class, "exportArtifact", a.toString(true));
-        if (JakartaEE9Action.isActive()) {
+        if (RepeatTestFilter.isRepeatActionActive(JakartaEE9Action.ID)) {
             JakartaEE9Action.transformApp(outputFile.toPath());
-        } else if (JakartaEE10Action.isActive()) {
+        } else if (RepeatTestFilter.isRepeatActionActive(JakartaEE10Action.ID)) {
             JakartaEE10Action.transformApp(outputFile.toPath());
         }
         return a;
@@ -531,5 +539,4 @@ public class ShrinkHelper {
         exportUserFeatureArchive(server, jar, DeployOptions.OVERWRITE);
         return jar;
     }
-
 }

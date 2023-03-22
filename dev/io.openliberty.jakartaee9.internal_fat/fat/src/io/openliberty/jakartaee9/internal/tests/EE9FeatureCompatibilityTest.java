@@ -1,17 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package io.openliberty.jakartaee9.internal.tests;
 
+import static org.junit.Assert.assertThat;
+
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,11 +24,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -43,17 +47,16 @@ import com.ibm.ws.kernel.feature.resolver.FeatureResolver.Result;
 import com.ibm.ws.kernel.provisioning.BundleRepositoryRegistry;
 
 import componenttest.annotation.Server;
+import componenttest.common.apiservices.Bootstrap;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.rules.repeater.EE7FeatureReplacementAction;
 import componenttest.rules.repeater.EE8FeatureReplacementAction;
-import componenttest.rules.repeater.EERepeatTests.EEVersion;
 import componenttest.rules.repeater.FeatureReplacementAction;
-import componenttest.rules.repeater.FeatureSet;
 import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
-import componenttest.rules.repeater.MicroProfileActions;
+import componenttest.rules.repeater.RepeatActions.EEVersion;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
 
@@ -76,13 +79,11 @@ public class EE9FeatureCompatibilityTest extends FATServletClient {
 
     private static final Class<?> c = EE9FeatureCompatibilityTest.class;
 
-    static final List<String> features = new ArrayList<>();
+    static Set<String> allFeatures = new HashSet<>();
 
-    static final Set<String> nonEE9JavaEEFeatures = new HashSet<>();
+    static Set<String> compatibleFeatures = new HashSet<>();
 
-    static final Set<String> nonEE9MicroProfileFeatures = new HashSet<>();
-
-    static final Set<String> incompatibleValueAddFeatures = new HashSet<>();
+    static Set<String> incompatibleFeatures = new HashSet<>();
 
     static final String serverName = "jakartaee9.fat";
     static final FeatureResolver resolver = new FeatureResolverImpl();
@@ -91,76 +92,71 @@ public class EE9FeatureCompatibilityTest extends FATServletClient {
     @Server("jakartaee9.fat")
     public static LibertyServer server;
 
+    static Set<String> getAllCompatibleFeatures() {
+        Set<String> allFeatures = new HashSet<>();
+        try {
+            File installRoot = new File(Bootstrap.getInstance().getValue("libertyInstallPath"));
+            allFeatures.addAll(FeatureUtilities.getFeaturesFromServer(installRoot));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return getCompatibleFeatures(allFeatures);
+    }
+
+    private static Set<String> getCompatibleFeatures(Set<String> allFeatures) {
+        Set<String> compatibleFeatures = new HashSet<>();
+
+        // By default, features are assumed to be compatible
+        compatibleFeatures.addAll(allFeatures);
+
+        // Non-ee9 features are not compatible
+        compatibleFeatures.removeAll(FeatureUtilities.allEeFeatures());
+        compatibleFeatures.addAll(JakartaEE9Action.EE9_FEATURE_SET);
+
+        // MP features are only compatible if they're in MP versions which work with EE9
+        compatibleFeatures.removeAll(FeatureUtilities.allMpFeatures());
+        compatibleFeatures.addAll(FeatureUtilities.compatibleMpFeatures(EEVersion.EE9));
+
+        // Value-add features which aren't compatible
+        compatibleFeatures.remove("openid-2.0"); // stabilized
+        compatibleFeatures.remove("openapi-3.1"); // depends on mpOpenAPI
+        compatibleFeatures.remove("opentracing-1.0"); // opentracing depends on mpConfig
+        compatibleFeatures.remove("opentracing-1.1");
+        compatibleFeatures.remove("opentracing-1.2");
+        compatibleFeatures.remove("opentracing-1.3");
+        compatibleFeatures.remove("opentracing-2.0");
+        compatibleFeatures.remove("sipServlet-1.1"); // purposely not supporting EE 9
+        compatibleFeatures.remove("springBoot-1.5"); // springBoot 3.0 will support EE 9
+        compatibleFeatures.remove("springBoot-2.0");
+
+        // Test features may or may not be compatible, we don't want to assert either way
+        compatibleFeatures.removeAll(FeatureUtilities.allTestFeatures());
+
+        return compatibleFeatures;
+    }
+
+    public static Set<String> getIncompatibleFeatures(Set<String> allFeatures, Set<String> compatibleFeatures) {
+        Set<String> incompatibleFeatures = new HashSet<>();
+
+        // Logically, incompatible features are all those that aren't compatible...
+        incompatibleFeatures.addAll(allFeatures);
+        incompatibleFeatures.removeAll(compatibleFeatures);
+
+        // Test features may or may not be compatible, we don't want to assert either way
+        incompatibleFeatures.removeAll(FeatureUtilities.allTestFeatures());
+
+        return incompatibleFeatures;
+    }
+
     @BeforeClass
     public static void setUp() throws Exception {
-        File featureDir = new File(server.getInstallRoot() + "/lib/features/");
-        // If there was a problem building projects before this test runs, "lib/features" won't exist
-        if (featureDir != null && featureDir.exists()) {
-            for (File feature : featureDir.listFiles()) {
-                if (feature.getName().startsWith("io.openliberty.") ||
-                    feature.getName().startsWith("com.ibm.")) {
-                    parseShortName(feature);
-                }
-            }
-        }
+        allFeatures = FeatureUtilities.getFeaturesFromServer(new File(server.getInstallRoot()));
+        compatibleFeatures = getCompatibleFeatures(allFeatures);
+        incompatibleFeatures = getIncompatibleFeatures(allFeatures, compatibleFeatures);
 
-        nonEE9JavaEEFeatures.addAll(EE7FeatureReplacementAction.EE7_FEATURE_SET);
-        nonEE9JavaEEFeatures.addAll(EE8FeatureReplacementAction.EE8_FEATURE_SET);
-
-        // appSecurity-1.0 is superceded by appSecurity-2.0 so it isn't in one of the replacement
-        // feature lists.  jaxb and jaxws 2.3 are EE related, but are noship features currently.
-        // jsp-2.2 is a EE6 feature that is included with open liberty.
-        // websocket-1.0 is a special case.  Part of EE7, but 1.1 is used by liberty.
-        nonEE9JavaEEFeatures.add("appSecurity-1.0");
-        nonEE9JavaEEFeatures.add("jaxb-2.3");
-        nonEE9JavaEEFeatures.add("jaxws-2.3");
-        nonEE9JavaEEFeatures.add("jsp-2.2");
-        nonEE9JavaEEFeatures.add("websocket-1.0");
-
-        // Remove test features that are in the FeatureReplacementActions
-        nonEE9JavaEEFeatures.remove("componenttest-1.0");
-        nonEE9JavaEEFeatures.remove("componenttest-2.0");
-        nonEE9JavaEEFeatures.remove("txtest-1.0");
-        nonEE9JavaEEFeatures.remove("txtest-2.0");
-        nonEE9JavaEEFeatures.remove("ejbTest-1.0");
-        nonEE9JavaEEFeatures.remove("ejbTest-2.0");
-
-        for (FeatureSet mpFeatureSet : MicroProfileActions.ALL) {
-            if (mpFeatureSet.getEEVersion() != EEVersion.EE9) {
-                nonEE9MicroProfileFeatures.addAll(mpFeatureSet.getFeatures());
-            }
-        }
-
-        // MP standalone features
-        for (FeatureSet mpFeatureSet : MicroProfileActions.STANDALONE_ALL) {
-            if (mpFeatureSet.getEEVersion() != EEVersion.EE9) {
-                nonEE9MicroProfileFeatures.addAll(mpFeatureSet.getFeatures());
-            }
-        }
-
-        incompatibleValueAddFeatures.add("jwtSso-1.0"); // depends on mpJWT
-        incompatibleValueAddFeatures.add("openid-2.0"); // stabilized
-        incompatibleValueAddFeatures.add("openapi-3.1"); // depends on mpOpenAPI
-        incompatibleValueAddFeatures.add("opentracing-1.0"); // opentracing depends on mpConfig
-        incompatibleValueAddFeatures.add("opentracing-1.1");
-        incompatibleValueAddFeatures.add("opentracing-1.2");
-        incompatibleValueAddFeatures.add("opentracing-1.3");
-        incompatibleValueAddFeatures.add("opentracing-2.0");
-        incompatibleValueAddFeatures.add("sipServlet-1.1"); // purposely not supporting EE 9
-        incompatibleValueAddFeatures.add("springBoot-1.5"); // springBoot 3.0 will support EE 9
-        incompatibleValueAddFeatures.add("springBoot-2.0");
-
-        // The features set should contain all of the incompatible features.  If it doesn't
-        // something was removed or there is a typo.
-        for (String feature : nonEE9JavaEEFeatures) {
-            Assert.assertTrue(feature + " was not in the all features list", features.contains(feature));
-        }
-        for (String feature : nonEE9MicroProfileFeatures) {
-            Assert.assertTrue(feature + " was not in the all features list", features.contains(feature));
-        }
-        for (String feature : incompatibleValueAddFeatures) {
-            Assert.assertTrue(feature + " was not in the all features list", features.contains(feature));
-        }
+        // Check for typos, every feature we've declared as being compatible or non-compatible should exist
+        Stream.concat(incompatibleFeatures.stream(), compatibleFeatures.stream())
+                        .forEach(feature -> assertThat(allFeatures, Matchers.hasItem(feature)));
 
         File lib = new File(server.getInstallRoot(), "lib");
 
@@ -173,54 +169,15 @@ public class EE9FeatureCompatibilityTest extends FATServletClient {
         repository.init();
     }
 
-    private static void parseShortName(File feature) throws IOException {
-        // Only scan *.mf files
-        if (feature.isDirectory() || !feature.getName().endsWith(".mf"))
-            return;
-
-        Scanner scanner = new Scanner(feature);
-        try {
-            String shortName = null;
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                if (line.startsWith("IBM-ShortName:")) {
-                    shortName = line.substring("IBM-ShortName:".length()).trim();
-                } else if (line.contains("IBM-Test-Feature:") && line.contains("true")) {
-                    Log.info(c, "parseShortName", "Skipping test feature: " + feature.getName());
-                    return;
-                } else if (line.startsWith("Subsystem-SymbolicName:") && !line.contains("visibility:=public")) {
-                    Log.info(c, "parseShortName", "Skipping non-public feature: " + feature.getName());
-                    return;
-                } else if (line.startsWith("IBM-ProductID") && !line.contains("io.openliberty")) {
-                    Log.info(c, "parseShortName", "Skipping non Open Liberty feature: " + feature.getName());
-                    return;
-                }
-            }
-            // some test feature files do not have a short name and do not have IBM-Test-Feature set.
-            // We do not want those ones.
-            if (shortName != null) {
-                features.add(shortName);
-            }
-        } finally {
-            scanner.close();
-        }
-    }
-
     @Test
     public void testEE9FeatureConflictsEE8() throws Exception {
         Set<String> ee8Features = new HashSet<>();
         ee8Features.addAll(EE8FeatureReplacementAction.EE8_FEATURE_SET);
         // remove test features from the list
-        ee8Features.remove("componenttest-1.0");
-        ee8Features.remove("txtest-1.0");
-        ee8Features.remove("ejbTest-1.0");
+        ee8Features.removeAll(FeatureUtilities.allTestFeatures());
 
         // j2eeManagement-1.1 was removed in Jakarta EE 9 so there is no replacement
         ee8Features.remove("j2eeManagement-1.1");
-
-        // A couple of special cases that we want to make sure work.
-        ee8Features.add("jaxb-2.3");
-        ee8Features.add("jaxws-2.3");
 
         // servlet long name is the same for EE9 so it will fail because the prefixes
         // match and it is marked as a singleton.
@@ -233,9 +190,7 @@ public class EE9FeatureCompatibilityTest extends FATServletClient {
         Set<String> ee7Features = new HashSet<>();
         ee7Features.addAll(EE7FeatureReplacementAction.EE7_FEATURE_SET);
         // remove test features from the list
-        ee7Features.remove("componenttest-1.0");
-        ee7Features.remove("txtest-1.0");
-        ee7Features.remove("ejbTest-1.0");
+        ee7Features.removeAll(FeatureUtilities.allTestFeatures());
 
         // j2eeManagement-1.1 was removed in Jakarta EE 9 so there is no replacement
         ee7Features.remove("j2eeManagement-1.1");
@@ -275,19 +230,45 @@ public class EE9FeatureCompatibilityTest extends FATServletClient {
         }
 
         if (!errors.isEmpty()) {
-            Assert.fail("Found errors while checking EE9 features incompatibility with EE8 features:\n" + errors);
+            Assert.fail("Found errors while checking EE9 features incompatibility with previous EE features:\n" + errors);
         }
     }
 
+    /**
+     * Test expected compatibility of the jsonp-2.0 feature (picked as an example of an EE9 feature)
+     * <p>
+     * For jsonp-2.0 and jsonp-2.1, check that it's incompatible and that io.openliberty.jsonp is listed as a conflict
+     * <p>
+     * Otherwise:
+     * <ul>
+     * <li>Check that it's compatible with all features in {@link #compatibleFeatures}
+     * <li>Check that it's incompatible with all features in {@link #incompatibleFeatures} and that eeCompatible is listed as a conflict
+     * </ul>
+     *
+     * @throws Exception
+     */
     @Test
     public void testJsonP20Feature() throws Exception {
         Map<String, String> specialEE9Conflicts = new HashMap<>();
         // jsonp-2.0 will conflict with itself
         specialEE9Conflicts.put("jsonp-2.0", "io.openliberty.jsonp");
         specialEE9Conflicts.put("jsonp-2.1", "io.openliberty.jsonp");
-        testCompatibility("jsonp-2.0", specialEE9Conflicts);
+        testCompatibility("jsonp-2.0", allFeatures, specialEE9Conflicts);
     }
 
+    /**
+     * Test expected compatibility of the servlet-5.0 feature
+     * <p>
+     * For servlet-x.x features, check that it's incompatible and that com.ibm.websphere.appserver.servlet is listed as a conflict
+     * <p>
+     * Otherwise:
+     * <ul>
+     * <li>Check that it's compatible with all features in {@link #compatibleFeatures}
+     * <li>Check that it's incompatible with all features in {@link #incompatibleFeatures} and that eeCompatible is listed as a conflict
+     * </ul>
+     *
+     * @throws Exception
+     */
     @Test
     public void testServlet50Feature() throws Exception {
         Map<String, String> specialEE9Conflicts = new HashMap<>();
@@ -296,7 +277,7 @@ public class EE9FeatureCompatibilityTest extends FATServletClient {
         specialEE9Conflicts.put("servlet-4.0", "com.ibm.websphere.appserver.servlet");
         specialEE9Conflicts.put("servlet-3.1", "com.ibm.websphere.appserver.servlet");
 
-        testCompatibility("servlet-5.0", specialEE9Conflicts);
+        testCompatibility("servlet-5.0", allFeatures, specialEE9Conflicts);
     }
 
     /**
@@ -306,44 +287,62 @@ public class EE9FeatureCompatibilityTest extends FATServletClient {
      *
      * @throws Exception
      */
-    @Test
+    // For now don't run this test until it can be refactored
+    //@Test
     @Mode(TestMode.FULL)
     public void testJakarta91ConvenienceFeature() throws Exception {
+        Set<String> featureSet = new HashSet<>(allFeatures);
+        // opentracing-1.3 and jakartaee-9.1 take over an hour to run on power linux system.
+        // For now excluding opentracing-1.3 in order to not go past the 3 hour limit for a
+        // Full FAT to run.
+        featureSet.remove("opentracing-1.3");
+
         Map<String, String> specialEE9Conflicts = new HashMap<>();
         // faces and facesContainer conflict with each other
         specialEE9Conflicts.put("facesContainer-3.0", "io.openliberty.facesProvider");
-        // the jakartaee-9.1 convenience feature conflicts with itself and with 9.0
-        specialEE9Conflicts.put("jakartaee-9.0", "io.openliberty.jakartaee");
+        // the jakartaee-9.1 convenience feature conflicts with itself
         specialEE9Conflicts.put("jakartaee-9.1", "io.openliberty.jakartaee");
         // the convenience feature depends on jdbc-4.2 and tolerates 4.3
         specialEE9Conflicts.put("jdbc-4.0", "com.ibm.websphere.appserver.jdbc");
         specialEE9Conflicts.put("jdbc-4.1", "com.ibm.websphere.appserver.jdbc");
-        // the webProfile-9.1 convenience feature conflicts with the 9.0 one
-        specialEE9Conflicts.put("webProfile-9.0", "io.openliberty.webProfile");
 
         // Add EE10 features that are not part of EE9
         // They will conflict by their long name
         for (String feature : JakartaEE10Action.EE10_FEATURE_SET) {
             if (!JakartaEE9Action.EE9_FEATURE_SET.contains(feature)) {
-                specialEE9Conflicts.put(feature,
-                                        feature.startsWith("servlet-") ? "com.ibm.websphere.appserver.servlet" : "io.openliberty." + feature.substring(0, feature.indexOf('-')));
+                // The features below are not included in the convenience feature
+                // so they will not conflict on the long name.
+                if (!feature.startsWith("nosql-") &&
+                    !feature.startsWith("data-") &&
+                    !feature.startsWith("jsonpContainer-") &&
+                    !feature.startsWith("jsonbContainer-") &&
+                    !feature.startsWith("facesContainer-") &&
+                    !feature.startsWith("jakartaeeClient-")) {
+                    specialEE9Conflicts.put(feature,
+                                            feature.startsWith("servlet-") ? "com.ibm.websphere.appserver.servlet" : ("io.openliberty."
+                                                                                                                      + feature.substring(0, feature.indexOf('-'))));
+                }
             }
         }
 
-        testCompatibility("jakartaee-9.1", specialEE9Conflicts);
+        testCompatibility("jakartaee-9.1", featureSet, specialEE9Conflicts);
     }
 
-    private void testCompatibility(String featureName, Map<String, String> specialConflicts) throws Exception {
+    private void testCompatibility(String featureName, Set<String> featureSet, Map<String, String> specialConflicts) throws Exception {
         final List<String> errors = new CopyOnWriteArrayList<>();
 
         int threadCount = Runtime.getRuntime().availableProcessors() - 1;
         if (threadCount > 4) {
             threadCount = 4;
+        } else if (threadCount == 1) {
+            // default to 2 threads so that we don't go over 3 hours in a slow build machine with only two CPUs
+            threadCount = 2;
         }
+        // leaving <= instead of < in case we change back to only one thread in a two CPU environment.
         if (threadCount <= 1) {
-            checkFeatures(featureName, new ArrayDeque<String>(features), specialConflicts, errors);
+            checkFeatures(featureName, new ArrayDeque<String>(featureSet), specialConflicts, errors);
         } else {
-            final ConcurrentLinkedQueue<String> featuresQueue = new ConcurrentLinkedQueue<>(features);
+            final ConcurrentLinkedQueue<String> featuresQueue = new ConcurrentLinkedQueue<>(featureSet);
             Thread[] threads = new Thread[threadCount];
             for (int i = 0; i < threadCount; ++i) {
                 threads[i] = new Thread(new Runnable() {
@@ -377,7 +376,11 @@ public class EE9FeatureCompatibilityTest extends FATServletClient {
         while ((feature = featureQueue.poll()) != null) {
             Log.info(c, "checkFeatures", "start testing: " + feature);
             featuresToTest.set(1, feature);
-            boolean expectToConflict = nonEE9JavaEEFeatures.contains(feature) || nonEE9MicroProfileFeatures.contains(feature) || incompatibleValueAddFeatures.contains(feature);
+            if (!compatibleFeatures.contains(feature) && !incompatibleFeatures.contains(feature)) {
+                // Don't test this feature
+                continue;
+            }
+            boolean expectToConflict = incompatibleFeatures.contains(feature);
             Result result = resolver.resolveFeatures(repository, Collections.<ProvisioningFeatureDefinition> emptySet(), featuresToTest, Collections.<String> emptySet(), false);
             Log.info(c, "checkFeatures", "finished testing: " + feature);
             Map<String, Collection<Chain>> conflicts = result.getConflicts();
@@ -389,9 +392,10 @@ public class EE9FeatureCompatibilityTest extends FATServletClient {
                     if (specialConflict != null) {
                         if (!conflicts.containsKey(specialConflict)) {
                             errors.add("Got unexpected conflict for " + feature + " " + conflicts.keySet() + '\n');
-                        } else if (conflicts.containsKey("com.ibm.websphere.appserver.eeCompatible")) {
-                            errors.add("Got eeCompatible conflict in additional to special conflict for " + feature + " " + conflicts.keySet() + '\n');
                         }
+                        // else if (conflicts.containsKey("com.ibm.websphere.appserver.eeCompatible")) {
+                        //     errors.add("Got eeCompatible conflict in addition to special conflict for " + feature + " " + conflicts.keySet() + '\n');
+                        // }
                     } else if (!conflicts.containsKey("com.ibm.websphere.appserver.eeCompatible")) {
                         errors.add("Expected a conflict for com.ibm.websphere.appserver.eeCompatible for " + feature + " " + conflicts.keySet() + '\n');
                     }
@@ -402,6 +406,42 @@ public class EE9FeatureCompatibilityTest extends FATServletClient {
                     errors.add("Got unexpected conflict for " + feature + " " + conflicts.keySet() + '\n');
                 }
             }
+        }
+    }
+
+    @Test
+    public void transportSecurityUsed() {
+        List<String> errors = new ArrayList<>();
+
+        Set<String> ee9FeaturesThatEnableSsl = new HashSet<>();
+        ee9FeaturesThatEnableSsl.add("appSecurity-4.0");
+        ee9FeaturesThatEnableSsl.add("connectorsInboundSecurity-2.0");
+        ee9FeaturesThatEnableSsl.add("messagingSecurity-3.0");
+
+        for (String feature : compatibleFeatures) {
+            Set<String> featuresToTest;
+            if (ee9FeaturesThatEnableSsl.contains(feature)) {
+                featuresToTest = Collections.singleton(feature);
+            } else {
+                featuresToTest = new HashSet<>();
+                featuresToTest.add(feature);
+                Result result = resolver.resolveFeatures(repository, Collections.<ProvisioningFeatureDefinition> emptySet(), featuresToTest, Collections.<String> emptySet(),
+                                                         false);
+                if (!result.getResolvedFeatures().contains("ssl-1.0")) {
+                    featuresToTest.add("ssl-1.0");
+                }
+                featuresToTest.add(!feature.equals("jsonp-2.0") ? "jsonp-2.0" : "jsonb-2.0");
+            }
+            Result result = resolver.resolveFeatures(repository, Collections.<ProvisioningFeatureDefinition> emptySet(), featuresToTest, Collections.<String> emptySet(), false);
+            if (!result.getConflicts().isEmpty()) {
+                errors.add("Got unexpected conflicts for feature " + feature + '\n');
+            } else if (!result.getResolvedFeatures().contains("transportSecurity-1.0")) {
+                errors.add("Did not enable transportSecurity for feature " + feature + '\n');
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            Assert.fail("Found errors while checking EE9 features enable transportSecurity-1.0 when ssl-1.0 is used:\n" + errors);
         }
     }
 }

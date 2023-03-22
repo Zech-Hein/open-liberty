@@ -1,9 +1,11 @@
 <%--
-    Copyright (c) 2014 IBM Corporation and others.
+    Copyright (c) 2014, 2022 IBM Corporation and others.
     All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
+    are made available under the terms of the Eclipse Public License 2.0
     which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    http://www.eclipse.org/legal/epl-2.0/
+    
+    SPDX-License-Identifier: EPL-2.0
 
     Contributors:
         IBM Corporation - initial API and implementation
@@ -29,7 +31,34 @@
 <script>svg4everybody(); // run it now or whenever you are ready</script>
 
 <%@ include file="jsShared/bidiConfig.jsp"%>
-<script src="dojo/dojo.js" data-dojo-config="<%=dojoConfigString%>"></script>
+<script src="jsShared/utils/globalization.js"></script>
+<script type="text/javascript">
+  var languageLocale = globalization.getLanguageCode();
+</script>
+<%
+    if (hasBidi.length() == 0) {
+%>
+<script type="text/javascript">
+      var dojoConfig = {
+        locale: languageLocale
+      };
+</script>
+<%
+    } else {
+%>
+<script type="text/javascript">
+      var dojoConfig = {
+        locale: languageLocale,
+        has: {
+          'adminCenter-bidi': true,
+          'dojo-bidi': true
+        }
+      };
+</script>
+<%
+    }
+%>
+<script src="dojo/dojo.js"></script>
 
 <script type="text/javascript">
   // On IE and old versions of FF (like 17), location.origin doesn't exist so create it. Consider something like 'Modernizer' instead.
@@ -44,7 +73,7 @@
       breadcrumbImg = "images/breadcrumb-dashboard-S.png";
     }
     document.getElementById("explore_tab_title").innerHTML = i18n.EXPLORE;
-    document.documentElement.setAttribute("lang", dojo.locale);
+    document.documentElement.setAttribute("lang", languageLocale);
   });
 </script>
 <script>

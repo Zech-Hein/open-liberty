@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2020 IBM Corporation and others.
+ * Copyright (c) 2013, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,6 +30,7 @@ import com.ibm.websphere.simplicity.config.dsprops.testrules.DataSourcePropertie
 import com.ibm.websphere.simplicity.config.dsprops.testrules.DataSourcePropertiesSkipRule;
 import com.ibm.websphere.simplicity.log.Log;
 
+import componenttest.app.AssertionErrorSerializer;
 import componenttest.app.FATServlet;
 import componenttest.custom.junit.runner.RepeatTestFilter;
 import componenttest.topology.impl.LibertyServer;
@@ -80,7 +83,49 @@ public class FATServletClient {
      * @param testName the servlet test method name
      */
     public static void runTest(LibertyServer server, String path, String testName) throws Exception {
-        HttpUtils.findStringInReadyUrl(server, getPathAndQuery(path, testName), FATServletClient.SUCCESS);
+        //HttpUtils.findStringInReadyUrl(server, getPathAndQuery(path, testName), FATServletClient.SUCCESS);
+        String response = HttpUtils.getHttpResponseAsString(server, getPathAndQuery(path, testName));
+        assertTestResponse(response);
+    }
+
+    /**
+     * Check whether the response from a test servlet indicates a success and throw an exception if not.
+     *
+     * @param response the FATServlet response
+     */
+    public static void assertTestResponse(String response) {
+        if (!response.contains(FATServletClient.SUCCESS)) {
+            if (response.contains(AssertionErrorSerializer.START_TAG) &&
+                response.contains(AssertionErrorSerializer.END_TAG)) {
+                AssertionError error = parseAssertionError(response);
+                throw error;
+            }
+            fail(response);
+        }
+    }
+
+    /**
+     * Parse and deserialize a response string to extract an AssertionError instance.
+     * The response string must contain some JSON that represents a serialized AssertionError.
+     * The JSON String is wrapped by START_TAG and END_TAG
+     *
+     * @param  response              The response String that contains the serialized AssertionError as json
+     * @return                       an instance of AssertionError
+     * @throws IllegalStateException if the START_TAG or END_TAG can not be found in the response string
+     */
+    private static AssertionError parseAssertionError(String response) {
+
+        int startIdx = response.indexOf(AssertionErrorSerializer.START_TAG);
+        int endIdx = response.indexOf(AssertionErrorSerializer.END_TAG);
+
+        if (startIdx < 0 || endIdx < 0) {
+            throw new IllegalStateException("AssertionError tags not found in response: " + response);
+        }
+
+        String json = response.substring(startIdx + AssertionErrorSerializer.START_TAG.length(), endIdx);
+
+        AssertionError e = AssertionErrorSerializer.deserialize(json);
+        return e;
     }
 
     /**
@@ -150,6 +195,19 @@ public class FATServletClient {
      * @return test method name without the RepeatTests suffix.
      */
     public String getTestMethodSimpleName() {
+        return getTestMethodSimpleName(testName);
+    }
+
+    /**
+     * Returns the test method name without the RepeatTests suffix.
+     *
+     * For example, when using RepeatTests with EE7_FEATURES, the suffix _EE7_FEATURES is added
+     * to provide unique test names for junit reporting purposes. The simple test method name
+     * dose not include the suffix.
+     *
+     * @return test method name without the RepeatTests suffix.
+     */
+    public static String getTestMethodSimpleName(TestName testName) {
         String testMethodName = testName.getMethodName();
         String currentAction = RepeatTestFilter.getRepeatActionsAsString();
         if (currentAction != null && testMethodName.endsWith(currentAction)) {

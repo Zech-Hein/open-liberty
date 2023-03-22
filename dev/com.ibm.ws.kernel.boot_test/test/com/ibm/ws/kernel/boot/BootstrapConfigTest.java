@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2010, 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -724,7 +726,7 @@ public class BootstrapConfigTest {
             // Invoke configure with property indicating that the server should be created
             bc.verifyProcess(VerifyServer.CREATE, null);
 
-            //Sanity check that a server was created
+            //Test that a server was created
             assertTrue("new server should have been created", newServerDir.exists() && newServerDir.isDirectory());
             assertEquals("intended server should be created", newServerDir.getCanonicalFile(), bc.configDir.getCanonicalFile());
 
@@ -777,7 +779,7 @@ public class BootstrapConfigTest {
             // Invoke configure with property indicating that the server should be created
             bc.verifyProcess(VerifyServer.CREATE, null);
 
-            //Sanity check that a server was created
+            //Test that a server was created
             assertTrue("new server should have been created", newServerDir.exists() && newServerDir.isDirectory());
             assertEquals("intended server should be created", newServerDir.getCanonicalFile(), bc.configDir.getCanonicalFile());
 
@@ -907,7 +909,7 @@ public class BootstrapConfigTest {
             }
         }
 
-        // sanity check the calculated directories
+        // Test the calculated directories
         assertEquals(bc.outputDir, bc.workarea.getParentFile());
     }
 

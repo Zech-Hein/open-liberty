@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017,2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -176,7 +178,8 @@ public class ConfigRESTHandler extends ConfigBasedRESTHandler {
             // Don't display items starting with config. or service. or ibm.extends (added by config service)
             // Also don't display items added by app-defined resources
             if (key.startsWith("config.") || key.startsWith("service.") || key.startsWith("ibm.extends") ||
-                key.equals("creates.objectClass") || key.equals("jndiName.unique")) {
+                key.equals("creates.objectClass") || key.equals("jndiName.unique") ||
+                key.startsWith("osgi.ds.")) {
                 continue;
             }
 

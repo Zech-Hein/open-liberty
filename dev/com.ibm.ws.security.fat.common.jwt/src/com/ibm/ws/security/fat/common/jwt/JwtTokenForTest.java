@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -207,11 +209,11 @@ public class JwtTokenForTest {
 
         processJWS(jws);
     }
-    
+
     public String getJwsString() {
         return jwsString;
     }
-    
+
     public String getJweString() {
         return jweString;
     }
@@ -319,6 +321,8 @@ public class JwtTokenForTest {
      */
     public static Map<String, Object> mapClaimsFromJsonAsStrings(String jsonFormattedString) throws Exception {
         HashMap<String, Object> map = new HashMap<String, Object>();
+        Log.info(thisClass, "claimsFromJson", "jsonFormattedString: " + jsonFormattedString);
+        Log.info(thisClass, "claimsFromJson", "jsonFormattedString type: " + jsonFormattedString.getClass());
         if (jsonFormattedString == null) {
             return map;
         }
@@ -330,22 +334,31 @@ public class JwtTokenForTest {
             Entry<String, JsonValue> entry = iterator.next();
             String key = entry.getKey();
             Object value = entry.getValue();
-//            Log.info(thisClass, "claimsFromJson", "Key: " + key + " Object type: " + value.getClass());
+            Log.info(thisClass, "claimsFromJson", "Content: Key: " + key + " Value: " + value.toString());
+            Log.info(thisClass, "claimsFromJson", "Type: Key: " + key + " Object type: " + value.getClass());
             if (value instanceof JsonString) {
-//                Log.info(thisClass, "claimsFromJson", "String");
+                Log.info(thisClass, "claimsFromJson", "String");
                 map.put(key, value);
             } else if (value instanceof JsonArray) {
-//                Log.info(thisClass, "claimsFromJson", "JsonArray");
+                Log.info(thisClass, "claimsFromJson", "JsonArray");
                 List<String> arr = new ArrayList<String>();
                 for (int i = 0; i < ((JsonArray) value).size(); i++) {
                     arr.add(((JsonArray) value).get(i).toString());
                 }
                 map.put(key, arr);
             } else if (value instanceof JsonObject) {
-//                Log.info(thisClass, "claimsFromJson", "JsonObject");
-                map.put(key, mapClaimsFromJsonAsStrings(value.toString()));
+//                if (value.toString().equals("{}")) {
+//                    map.put(key, mapClaimsFromJsonAsStrings(((JsonObject) value).toString()));
+//                } else {
+                Log.info(thisClass, "claimsFromJson", "JsonObject");
+                try {
+                    map.put(key, mapClaimsFromJsonAsStrings(value.toString()));
+                } catch (javax.json.stream.JsonParsingException e) {
+                    map.put(key, value);
+                }
+//                }
             } else {
-//                Log.info(thisClass, "claimsFromJson", "Other");
+                Log.info(thisClass, "claimsFromJson", "Other");
                 map.put(key, value.toString());
             }
         }

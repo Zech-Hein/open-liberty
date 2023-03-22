@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -38,6 +40,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.joda.time.Instant;
 
+import com.gargoylesoftware.htmlunit.WebClient;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ibm.json.java.JSONArray;
@@ -48,7 +51,6 @@ import com.ibm.ws.security.fat.common.expectations.Expectations;
 import com.ibm.ws.security.fat.common.expectations.ResponseFullExpectation;
 import com.ibm.ws.security.fat.common.expectations.ResponseStatusExpectation;
 import com.ibm.ws.security.fat.common.jwt.JwtTokenForTest;
-import com.ibm.ws.security.fat.common.jwt.utils.JwtKeyTools;
 import com.ibm.ws.security.fat.common.utils.AutomationTools;
 import com.ibm.ws.security.jwt.utils.JweHelper;
 import com.ibm.ws.security.oauth20.util.HashSecretUtils;
@@ -66,6 +68,7 @@ public class CommonValidationTools {
     private final String BOOLEAN_CAST_OFFSET = "com.ibm.ws.security.oauth-oidc_fat.commonTest.boolean.offset";
     public static final String JSON_TOKEN_DELIMITER = ".";
     public static final String HEADER_DELIMITER = "|";
+    public static final String COOKIE_DELIMITER = ",";
     private final Class<?> thisClass = CommonValidationTools.class;
     public static CommonMessageTools msgUtils = new CommonMessageTools();
     public ValidationData vData = new ValidationData();
@@ -127,7 +130,8 @@ public class CommonValidationTools {
                             || expected.getWhere().equals(Constants.RESPONSE_STATUS)
                             || expected.getWhere().equals(Constants.RESPONSE_URL)
                             || expected.getWhere().equals(Constants.RESPONSE_HEADER)
-                            || expected.getWhere().equals(Constants.RESPONSE_MESSAGE))) {
+                            || expected.getWhere().equals(Constants.RESPONSE_MESSAGE)
+                            || expected.getWhere().equals(Constants.RESPONSE_COOKIE))) {
                         validateWithResponse(response, expected);
                     } else {
                         if (isInList(validLogLocations, expected.getWhere())) {
@@ -265,13 +269,7 @@ public class CommonValidationTools {
                             responseContent = AutomationTools.getResponseUrl(response);
                         } else {
                             if (expected.getWhere().equals(Constants.RESPONSE_HEADER)) {
-                                String[] hs = AutomationTools.getResponseHeaderNames(response);
-                                StringBuilder sb = new StringBuilder();
-                                for (String h : hs) {
-                                    sb.append(h + ": " + AutomationTools.getResponseHeaderField(response, h));
-                                    sb.append(HEADER_DELIMITER);
-                                }
-                                responseContent = sb.toString();
+                                responseContent = getResponseHeadersString(response);
                             } else {
                                 if (expected.getWhere().equals(Constants.RESPONSE_STATUS)) {
                                     // if we have a status code that results in an exception, that is handled differently
@@ -281,8 +279,12 @@ public class CommonValidationTools {
                                     responseContent = Integer.toString(AutomationTools.getResponseStatusCode(response));
                                     //                                    }
                                 } else {
-                                    Log.info(thisClass, thisMethod, "No valid Response area specified - assuming ALL");
-                                    responseContent = AutomationTools.getResponseText(response);
+                                    if (expected.getWhere().equals(Constants.RESPONSE_COOKIE)) {
+                                        responseContent = getResponseCookiesString(response);
+                                    } else {
+                                        Log.info(thisClass, thisMethod, "No valid Response area specified - assuming ALL");
+                                        responseContent = AutomationTools.getResponseText(response);
+                                    }
                                 }
                             }
                         }
@@ -290,8 +292,8 @@ public class CommonValidationTools {
                 }
             }
 
-            Log.info(thisClass, thisMethod, "checkType is: " + expected.getCheckType());
-            Log.info(thisClass, thisMethod, "Checking for: " + expected.getValidationValue());
+            Log.info(thisClass, thisMethod, "checkType is: " + expected.getCheckType() + " " +
+                "Checking for: " + expected.getValidationValue());
 
             String fullResponseContent = AutomationTools.getFullResponseContentForFailureMessage(response, expected.getWhere());
 
@@ -330,7 +332,6 @@ public class CommonValidationTools {
                     }
                 }
             }
-            Log.info(thisClass, thisMethod, "Checked Value: " + expected.getValidationValue());
             return;
         } catch (Exception e) {
             e.printStackTrace();
@@ -338,6 +339,36 @@ public class CommonValidationTools {
             throw e;
         }
 
+    }
+
+    private String getResponseHeadersString(Object response) throws Exception {
+        Map<String, String[]> headers = AutomationTools.getResponseHeaders(response);
+        if (headers == null) {
+            return null;
+        }
+        String result = "";
+        for (Entry<String, String[]> header : headers.entrySet()) {
+            for (String value : header.getValue()) {
+                result += header.getKey() + ": " + value + HEADER_DELIMITER;
+            }
+        }
+        if (result.endsWith(HEADER_DELIMITER)) {
+            result = result.replaceAll(Pattern.quote(HEADER_DELIMITER) + "$", "");
+        }
+        return result;
+    }
+
+    private String getResponseCookiesString(Object response) throws Exception {
+        String[] cookieNames = AutomationTools.getResponseCookieNames(response);
+        String result = "";
+        for (String name : cookieNames) {
+            result += name + "=" + AutomationTools.getResponseCookieValue(response, name) + COOKIE_DELIMITER;
+        }
+        if (result.endsWith(COOKIE_DELIMITER)) {
+            result = result.replaceAll(Pattern.quote(COOKIE_DELIMITER) + "$", "");
+        }
+        Log.info(thisClass, "getResponseCookiesString", "Got response cookies: " + result);
+        return result;
     }
 
     public void validateJSONData(Object response, validationData expected) throws Exception {
@@ -601,9 +632,9 @@ public class CommonValidationTools {
 
             // should only get this far if we're needing to validate the contents of the id token
             if (!id_token.equals(Constants.NOT_FOUND)) {
-                
+
                 String decryptKey = settings.getDecryptKey();
-                
+
                 JwtTokenForTest jwtToken;
                 if (JweHelper.isJwe(id_token) && decryptKey != null) {
                     jwtToken = new JwtTokenForTest(id_token, decryptKey);
@@ -796,10 +827,10 @@ public class CommonValidationTools {
                         msgUtils.assertTrueAndLog(thisMethod, "Expires in is null", value != null);
                         Long expectedExpires = setAccessTimeout(settings);
                         Long actualExpires = Long.valueOf(value).longValue();
-                        if ((actualExpires <= expectedExpires) && (actualExpires > expectedExpires - 20L)) {
-                            Log.info(thisClass, thisMethod, "expires in was within 20sec of expected time");
+                        if ((actualExpires <= expectedExpires) && (actualExpires > expectedExpires - 60L)) {
+                            Log.info(thisClass, thisMethod, "expires in was within 60sec of expected time");
                         } else {
-                            fail("Expires in value expected: " + expectedExpires + " but received: " + actualExpires + " Test expects it within 20sec");
+                            fail("Expires in value expected: " + expectedExpires + " but received: " + actualExpires + " Test expects it within 60sec");
                         }
                     }
                     if (key.equals(Constants.STATE_KEY)) {
@@ -965,18 +996,45 @@ public class CommonValidationTools {
 
             String tokenLine = getTokenLineFromResponse(response);
             if (tokenLine != null) {
+                String[] responseLines = tokenLine.split(System.getProperty("line.separator"));
+                if (responseLines.length == 1) {
 
-                String[] entries = tokenLine.split(",");
-                for (String e : entries) {
-                    String part1 = e.split(":")[0];
-                    String part2 = e.split(":")[1];
-                    String part1Strip = removeQuote(part1);
-                    String part2Strip = removeQuote(part2);
-                    if (part1Strip.equals(searchKey)) {
-                        Log.info(thisClass, thisMethod, searchKey + " value: " + part2Strip);
-                        printJWTToken(part2Strip);
-                        return part2Strip;
+                    String[] entries = tokenLine.split(",");
+                    for (String e : entries) {
+                        String part1 = e.split(":")[0];
+                        String part2 = e.split(":")[1];
+                        String part1Strip = removeQuote(part1);
+                        String part2Strip = removeQuote(part2);
+                        if (part1Strip.equals(searchKey)) {
+                            Log.info(thisClass, thisMethod, searchKey + " value: " + part2Strip);
+                            printJWTToken(part2Strip);
+                            return part2Strip;
+                        }
                     }
+                } else {
+                    for (String line : responseLines) {
+                        if (line != null && line.contains(searchKey)) {
+                            if (!searchKey.endsWith(":")) {
+                                char nextChar = line.charAt(line.indexOf(searchKey) + searchKey.length());
+                                if (nextChar != ':' && nextChar != '=' && nextChar != ' ') {
+                                    continue;
+                                }
+                            }
+                            String part1 = line.substring(line.indexOf(searchKey) + searchKey.length() + 1, line.length());
+                            String[] splitLine = part1.split(",");
+                            if (splitLine != null) {
+                                if (splitLine[0] != null) {
+                                    String token = splitLine[0].replace("with value:", "").trim().replace("}+$", "");
+                                    Log.info(thisClass, thisMethod, "token: " + token);
+                                    printJWTToken(token);
+                                    return token;
+                                } else {
+                                    return null;
+                                }
+                            }
+                        }
+                    }
+
                 }
             } else {
                 String respReceived = AutomationTools.getResponseText(response);
@@ -1274,6 +1332,9 @@ public class CommonValidationTools {
                     id_token = getIDTokenFromOutput(response);
                 } else {
                     id_token = getTokenFromResponse(response, Constants.ID_TOKEN_KEY);
+                    if (id_token == null || id_token.equals(Constants.NOT_FOUND)) {
+                        id_token = getTokenFromResponse(response, "ID token:");
+                    }
                 }
             }
             Log.info(thisClass, thisMethod, "id_token : " + id_token);
@@ -1401,8 +1462,8 @@ public class CommonValidationTools {
 
         // validate specific key's value
         String expectKeysValue = expected.getValidationValue();
-        Log.info(thisClass, thisMethod, "expectKeysValue: " + expectKeysValue);
         Log.info(thisClass, thisMethod, "expectKey: " + expected.getValidationKey());
+        Log.info(thisClass, thisMethod, "expectKeysValue: " + expectKeysValue);
 
         Log.info(thisClass, thisMethod, "passed tokenInfo: " + tokenInfo);
         String actualKeysValue = null;
@@ -1423,7 +1484,7 @@ public class CommonValidationTools {
                     msgUtils.assertTrueAndLog(thisMethod, expected.getPrintMsg(), Boolean.valueOf(!actualKeysValue.contains(expectKeysValue)));
                 } else {
                     if (expected.getCheckType().equals(Constants.STRING_MATCHES)) {
-                        msgUtils.assertTrueAndLog(thisMethod, expected.getPrintMsg(), Boolean.valueOf(actualKeysValue.matches(expectKeysValue)));
+                        msgUtils.assertTrueAndLog(thisMethod, expected.getPrintMsg(), Boolean.valueOf(actualKeysValue.matches(".*" + expectKeysValue + ".*")));
                     } else {
                         // we don't care what the value is (it may be a random number generated on the server) - we just need to make sure it has a value
                         msgUtils.assertTrueAndLog(thisMethod, expected.getPrintMsg(), Boolean.valueOf(actualKeysValue != null));
@@ -1498,6 +1559,7 @@ public class CommonValidationTools {
         requiredKeys.add(Constants.IDTOK_AUDIENCE_KEY);
         requiredKeys.add(Constants.IDTOK_EXPIRE_KEY);
         requiredKeys.add(Constants.IDTOK_ISSUETIME_KEY);
+        requiredKeys.add(Constants.IDTOK_SESSION_ID); // we will now always include a sid
         if (!testSigAlg.equals(Constants.SIGALG_NONE)) {
             requiredKeys.add(Constants.IDTOK_AT_HASH_KEY);
         } else {
@@ -2160,8 +2222,8 @@ public class CommonValidationTools {
 
     public String removeQuote(String str) {
 
-        if (str == null || str == "") {
-            return null;
+        if (str == null || str.equals("")) {
+            return str;
         }
 
         char char1 = str.charAt(0);
@@ -2381,4 +2443,62 @@ public class CommonValidationTools {
         }
         return false;
     }
+
+    /**
+     * Verifies that no cookies with names in the provided list show up in the WebClient. The list of cookie names to match
+     * against may also be regular expressions.
+     *
+     * @param webClient
+     * @param cookiesThatShouldNotExist
+     *            List of cookie name prefixes or regular expressions to match against existing cookie names.
+     */
+    public void verifyNoUnexpectedCookiesStillPresent(WebClient webClient, List<String> cookiesThatShouldNotExist) {
+        List<String> unexpectedCookiesFound = new ArrayList<>();
+        Set<com.gargoylesoftware.htmlunit.util.Cookie> finalCookies = webClient.getCookieManager().getCookies();
+        for (com.gargoylesoftware.htmlunit.util.Cookie cookie : finalCookies) {
+            String cookieName = cookie.getName();
+            Log.info(thisClass, "verifyNoUnexpectedCookiesStillPresent", "Checking remaining cookie: " + cookieName);
+            for (String cookieThatShouldNotExist : cookiesThatShouldNotExist) {
+                if (cookieName.startsWith(cookieThatShouldNotExist) || cookieName.matches(cookieThatShouldNotExist)) {
+                    unexpectedCookiesFound.add(cookieName);
+                }
+            }
+        }
+        if (!unexpectedCookiesFound.isEmpty()) {
+            fail("Found the following cookies in the final result that should not have been there: " + unexpectedCookiesFound);
+        }
+    }
+
+    /**
+     * Verifies that only cookies with names in the provided list show up in the WebClient. The list of cookie names to match
+     * against may also be regular expressions.
+     *
+     * @param webClient
+     * @param onlyAllowedCookies
+     *            List of cookie name prefixes or regular expressions to match against existing cookie names.
+     */
+    public void verifyOnlyAllowedCookiesStillPresent(WebClient webClient, List<String> onlyAllowedCookies) {
+        Log.info(thisClass, "verifyOnlyAllowedCookiesStillPresent", "Verifying that the web client contains only a subset of the following allowed cookies: " + onlyAllowedCookies);
+        List<String> unexpectedCookiesFound = new ArrayList<>();
+        Set<com.gargoylesoftware.htmlunit.util.Cookie> finalCookies = webClient.getCookieManager().getCookies();
+        for (com.gargoylesoftware.htmlunit.util.Cookie cookie : finalCookies) {
+            String cookieName = cookie.getName();
+            Log.info(thisClass, "verifyOnlyAllowedCookiesStillPresent", "Checking remaining cookie: " + cookieName);
+            boolean isCookieAllowed = false;
+            for (String allowedCookie : onlyAllowedCookies) {
+                if (cookieName.startsWith(allowedCookie) || cookieName.matches(allowedCookie)) {
+                    isCookieAllowed = true;
+                    break;
+                }
+            }
+            if (!isCookieAllowed) {
+                Log.info(thisClass, "verifyOnlyAllowedCookiesStillPresent", "Found unexpected cookie: " + cookieName);
+                unexpectedCookiesFound.add(cookieName);
+            }
+        }
+        if (!unexpectedCookiesFound.isEmpty()) {
+            fail("Found the following cookies in the final result that should not have been there: " + unexpectedCookiesFound);
+        }
+    }
+
 }

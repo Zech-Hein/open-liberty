@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -37,6 +39,7 @@ import componenttest.annotation.Server;
 import componenttest.annotation.TestServlet;
 import componenttest.annotation.TestServlets;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -71,7 +74,7 @@ public class BeanVal20Test extends FATServletClient {
         JavaArchive multipleValidationXmlEjb2_jar = buildJavaArchive("MultipleValidationXmlEjb2.jar", "bval.v20.ejb2.*");
         WebArchive multipleValidationXmlWeb_war = buildDefaultApp("MultipleValidationXmlWeb.war", "bval.v20.multixml.*");
 
-        if (JakartaEE9Action.isActive()) {
+        if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
             multipleValidationXmlEjb1_jar.move("/META-INF/constraints/constraints-house_EE9.xml", "/META-INF/constraints/constraints-house.xml");
             multipleValidationXmlEjb2_jar.move("/META-INF/constraints/constraints-house_EE9.xml", "/META-INF/constraints/constraints-house.xml");
             multipleValidationXmlWeb_war.move("/WEB-INF/constraints3/constraints-house_EE9.xml", "/WEB-INF/constraints3/constraints-house.xml");

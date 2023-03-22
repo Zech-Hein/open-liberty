@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,7 +17,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -28,6 +29,7 @@ import com.ibm.websphere.simplicity.log.Log;
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
+import componenttest.topology.impl.JavaInfo;
 
 /**
  *
@@ -216,12 +218,22 @@ public class RealFlushTest {
         Log.info(c, testName, "------- PrintlnFloat ------");
         server.setMarkToEndOfLog();
         getHttpServlet("/RealFlushTestApp/printTests/printlnFloat");
-        Assert.assertNotNull("222222222 NOT FOUND", server.waitForStringInLogUsingMark("2.22222224E8"));
+        if (JavaInfo.forServer(server).majorVersion() >= 19) {
+            Assert.assertNotNull("222222222 NOT FOUND", server.waitForStringInLogUsingMark("2.2222222E8"));
+        }
+        else {
+            Assert.assertNotNull("222222222 NOT FOUND", server.waitForStringInLogUsingMark("2.22222224E8"));
+        }
 
         Log.info(c, testName, "------- PrintFloat ------");
         server.setMarkToEndOfLog();
         getHttpServlet("/RealFlushTestApp/printTests/printFloat");
-        Assert.assertNotNull("222222222 NOT FOUND", server.waitForStringInLogUsingMark("2.22222224E8"));
+        if (JavaInfo.forServer(server).majorVersion() >= 19) {
+            Assert.assertNotNull("222222222 NOT FOUND", server.waitForStringInLogUsingMark("2.2222222E8"));
+        }
+        else {
+            Assert.assertNotNull("222222222 NOT FOUND", server.waitForStringInLogUsingMark("2.22222224E8"));
+        }
 
     }
 
@@ -326,8 +338,8 @@ public class RealFlushTest {
     @AfterClass
     public static void completeTest() throws Exception {
         if (server != null && server.isStarted()) {
-            server.removeAllInstalledAppsForValidation();
             server.stopServer("CWWKW1001W");
+            server.removeAllInstalledAppsForValidation();
         }
     }
 }

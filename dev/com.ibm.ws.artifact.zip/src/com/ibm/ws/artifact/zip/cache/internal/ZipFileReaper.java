@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,8 +14,6 @@ package com.ibm.ws.artifact.zip.cache.internal;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 //import java.util.function.Consumer;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -34,6 +35,7 @@ import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.artifact.zip.cache.ZipCachingProperties;
 import com.ibm.ws.artifact.zip.internal.SystemUtils;
+import com.ibm.ws.kernel.service.util.KeyBasedLockStore;
 
 /**
  * Reaper facility for managing ZipFiles.
@@ -450,7 +452,7 @@ public class ZipFileReaper {
                         break;
                     }
 
-                    nextReapAt = SystemUtils.getNanoTime();
+                    nextReapAt = System.nanoTime();
 
                     if ( doDebug ) {
                         Tr.debug(tc, methodName + " Reap [ " + reaper.fromInitial_s(nextReapAt) + " ]");
@@ -521,7 +523,7 @@ public class ZipFileReaper {
                 reaper.reaperLock.releaseWriteLock();
             }
 
-            long shutdownAt = SystemUtils.getNanoTime();
+            long shutdownAt = System.nanoTime();
             if ( doDebug ) {
                 Tr.debug(tc, methodName + " Shutting down [ " + reaper.fromInitial_s(shutdownAt) + " ]");
             }
@@ -532,7 +534,7 @@ public class ZipFileReaper {
                 reaper.reaperLock.releaseWriteLock();
             }
 
-            long stopAt = SystemUtils.getNanoTime();
+            long stopAt = System.nanoTime();
             if ( doDebug ) {
                 Tr.debug(tc, methodName + " Stop [ " + reaper.fromInitial_s(stopAt) + " ]");
             }
@@ -543,7 +545,7 @@ public class ZipFileReaper {
 
     @Trivial
     public ZipFileReaper(String reaperName) {
-        this( reaperName, SystemUtils.getNanoTime() );
+        this( reaperName, System.nanoTime() );
     }
 
     @Trivial
@@ -575,7 +577,7 @@ public class ZipFileReaper {
               quickPendMin, quickPendMax,
               slowPendMin, slowPendMax,
               errorHandler,
-              SystemUtils.getNanoTime() );
+              System.nanoTime() );
     }
 
     @Trivial
@@ -590,7 +592,7 @@ public class ZipFileReaper {
               quickPendMin, quickPendMax,
               slowPendMin, slowPendMax,
               ZipFileReaper.NULL_ERROR_HANDLER,
-              SystemUtils.getNanoTime() );
+              System.nanoTime() );
     }
 
     private static void validate(
@@ -907,55 +909,17 @@ public class ZipFileReaper {
 
     private static final class ZipFilePathLock { }
 
-    static ReferenceQueue<ZipFilePathLock> refQueue = new ReferenceQueue<>();
-    private static ConcurrentHashMap<String, ZipFilePathLockRef> zipFilePathLockMap = new ConcurrentHashMap<>();
-
-    private static final class ZipFilePathLockRef extends WeakReference<ZipFilePathLock> {
-        final String  key;
-        @Trivial
-        public ZipFilePathLockRef(ZipFilePathLock referent, String keyValue) {
-                super(referent, refQueue);
-                key = keyValue;
+    private static KeyBasedLockStore<String, ZipFilePathLock> zipFilePathLockStore = new KeyBasedLockStore<>(new Supplier<ZipFilePathLock>() {
+        @Override
+        public ZipFilePathLock get() {
+            return new ZipFilePathLock();
         }
-    }
-
-    @Trivial
-    private final ZipFilePathLock getLockForPath(String path) {
-        poll();
-        ZipFilePathLockRef lockRef = zipFilePathLockMap.get(path);
-        ZipFilePathLock lock = lockRef != null ? lockRef.get() : null;
-        if (lock != null) {
-            return lock;
-        }
-
-        lock = new ZipFilePathLock();
-
-        while (true) {
-            ZipFilePathLockRef retVal = zipFilePathLockMap.putIfAbsent(path, new ZipFilePathLockRef(lock, path));
-            if (retVal == null) {
-                return lock;
-            }
-
-            ZipFilePathLock retLock = retVal.get();
-            if (retLock != null) {
-                return retLock;
-            }
-            zipFilePathLockMap.remove(path, retVal);
-        }
-    }
-
-    @Trivial
-    private final void poll() {
-        ZipFilePathLockRef lockRef;
-        while ((lockRef = (ZipFilePathLockRef) refQueue.poll()) != null) {
-            zipFilePathLockMap.remove(lockRef.key, lockRef);
-        }
-    }
+    });
     
     public ZipFileData.ZipFileState getState(String path) {
         reaperLock.acquireReadLock();
         try {
-            ZipFilePathLock lock = getLockForPath(path);
+            ZipFilePathLock lock = zipFilePathLockStore.getLock(path);
             synchronized (lock) {
                 ZipFileData data = storage.get(path);
                 if ( data == null ) {
@@ -1526,7 +1490,7 @@ public class ZipFileReaper {
 
     @Trivial
     public ZipFile open(String path) throws IOException, ZipException {
-        return open( path, SystemUtils.getNanoTime() );
+        return open( path, System.nanoTime() );
     }
 
     @Trivial
@@ -1548,7 +1512,7 @@ public class ZipFileReaper {
                 throw new IOException("Cannot open [ " + path + " ]: ZipFile cache is inactive");
             }
 
-            ZipFilePathLock lock = getLockForPath(path);
+            ZipFilePathLock lock = zipFilePathLockStore.getLock(path);
             synchronized (lock) {
                 ZipFileData data = storage.get(path);
                 ZipFile zipFile;
@@ -1641,7 +1605,7 @@ public class ZipFileReaper {
     }
 
     public ZipFileData.ZipFileState close(String path) {
-        return close( path, SystemUtils.getNanoTime() );
+        return close( path, System.nanoTime() );
     }
 
     public ZipFileData.ZipFileState close(String path, long closeAt) {
@@ -1661,7 +1625,7 @@ public class ZipFileReaper {
                 return null;
             }
 
-            ZipFilePathLock lock = getLockForPath(path);
+            ZipFilePathLock lock = zipFilePathLockStore.getLock(path);
 
             synchronized (lock) {
                 ZipFileData data = storage.get(path);
@@ -1779,7 +1743,7 @@ public class ZipFileReaper {
             // the data structures.
             if ( ripestPending != null ) {
                 String ripestPath = ripestPending.path;
-                ZipFilePathLock lock2 = getLockForPath(ripestPath);
+                ZipFilePathLock lock2 = zipFilePathLockStore.getLock(ripestPath);
                 synchronized (lock2) {
                     // need to check if the data was removed or if the zip file was re-opened
                     // while we were waiting for the lock.
@@ -1843,7 +1807,7 @@ public class ZipFileReaper {
             } else {
                 for ( Map.Entry<String, ZipFileData> reaperEntry : storage.entrySet() ) {
                     output.println();
-                    synchronized (getLockForPath(reaperEntry.getKey())) {
+                    synchronized (zipFilePathLockStore.getLock(reaperEntry.getKey())) {
                         reaperEntry.getValue().introspect(output, introspectAt);
                     }
                 }

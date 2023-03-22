@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2020 IBM Corporation and others.
+ * Copyright (c) 2011, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,6 +33,7 @@ import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.websphere.security.audit.AuditEvent;
 import com.ibm.websphere.security.web.PasswordExpiredException;
 import com.ibm.websphere.security.web.UserRevokedException;
+import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.kernel.security.thread.ThreadIdentityException;
 import com.ibm.ws.kernel.security.thread.ThreadIdentityManager;
 import com.ibm.ws.security.SecurityService;
@@ -39,6 +42,7 @@ import com.ibm.ws.security.authentication.AuthenticationException;
 import com.ibm.ws.security.authentication.AuthenticationService;
 import com.ibm.ws.security.authentication.UnauthenticatedSubjectService;
 import com.ibm.ws.security.authentication.cache.AuthCacheService;
+import com.ibm.ws.security.authentication.principals.WSPrincipal;
 import com.ibm.ws.security.authentication.utility.SubjectHelper;
 import com.ibm.ws.security.collaborator.CollaboratorUtils;
 import com.ibm.ws.security.context.SubjectManager;
@@ -79,6 +83,8 @@ public class AuthenticateApi {
     protected static final WebReply DENY_AUTHN_FAILED = new DenyReply("AuthenticationFailed");
     private Subject logoutSubject = null;
     private final String SECURITY_CONTEXT = "SECURITY_CONTEXT";
+    private static final String JASPIC_PROVIDER_CLEANING_SUBJECT = "JASPIC_PROVIDER_CLEANING_SUBJECT";
+    private static final String JASPIC_PROVIDER_PERFORMED_REQUEST_LOGOUT = "JASPIC_PROVIDER_PERFORMED_REQUEST_LOGOUT";
 
     public AuthenticateApi(SSOCookieHelper ssoCookieHelper,
                            AtomicServiceReference<SecurityService> securityServiceRef,
@@ -239,12 +245,30 @@ public class AuthenticateApi {
             if (!bInitUserName) {
                 bInitUserName = true;
                 userName = getSessionUserName(req, res);
+                if (userName == null || "anonymous".equals(userName)) {
+                    userName = getUserNameFromCallerSubject();
+                }
             }
             UnprotectedResourceService service = unprotectedResourceServiceRef.getService(serviceId);
             boolean bLogout = service.logout(req, res, userName);
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
                 Tr.debug(tc, "logout return " + bLogout + " on service " + service);
         }
+    }
+
+    String getUserNameFromCallerSubject() {
+        if (!ProductInfo.getBetaEdition()) {
+            return null;
+        }
+        Subject subject = subjectManager.getCallerSubject();
+        if (subject != null && !subjectHelper.isUnauthenticated(subject)) {
+            Set<WSPrincipal> wsPrincipals = subject.getPrincipals(WSPrincipal.class);
+            if (!wsPrincipals.isEmpty()) {
+                WSPrincipal principal = wsPrincipals.iterator().next();
+                return principal.getName();
+            }
+        }
+        return null;
     }
 
     void postLogout(HttpServletRequest req, HttpServletResponse res) {
@@ -322,7 +346,7 @@ public class AuthenticateApi {
      */
     private void addToLoggedOutTokenCache(String tokenString) {
         String tokenValue = "userName";
-        LoggedOutTokenCacheImpl.getInstance().addTokenToDistributedMap(tokenString, tokenValue);
+        LoggedOutTokenCacheImpl.getInstance().put(tokenString, tokenValue);
     }
 
     /**
@@ -371,9 +395,14 @@ public class AuthenticateApi {
                     if (val != null && val.length() > 0) {
                         try {
                             authCacheService.remove(val);
-                            //Add token to the logged out cache if enabled
-                            if (config.isTrackLoggedOutSSOCookiesEnabled())
+
+                            /*
+                             * Add token to the logged out cache if enabled. It will be enabled if the trackLoggedOutSSOCookies
+                             * configuration attribute is set to true or if we are using JCache.
+                             */
+                            if (config.isTrackLoggedOutSSOCookiesEnabled() || LoggedOutTokenCacheImpl.getInstance().shouldTrackTokens()) {
                                 addToLoggedOutTokenCache(val);
+                            }
                         } catch (Exception e) {
                             String user = req.getRemoteUser();
                             if (user == null) {
@@ -603,23 +632,37 @@ public class AuthenticateApi {
      * JASPI authentication and if enabled will attempt to call the JASPI provider's
      * cleanSubject method, and will always call the main logout method.
      *
-     * @param res
+     * Per section 3.10.4 of the Jakarta Authentication (JASPIC) specification,
+     * if logout is called in the context of a call it made to cleanSubject,
+     * it must not recall cleanSubject.
+     *
+     * @param req
      * @param resp
      * @param webAppSecConfig
      */
-    public void logoutServlet30(HttpServletRequest res,
+    public void logoutServlet30(HttpServletRequest req,
                                 HttpServletResponse resp,
                                 WebAppSecurityConfig webAppSecConfig) throws ServletException {
         JaspiService jaspiService = getJaspiService();
         if (jaspiService != null) {
-            try {
-                jaspiService.logout(res, resp, webAppSecConfig);
-            } catch (AuthenticationException e) {
-                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-                    Tr.debug(tc, "AuthenticationException invoking JASPI service logout", e);
+
+            // "If logout is called in the context of a call it made to cleanSubject, it must not recall cleanSubject"
+            if (!Boolean.parseBoolean((String) req.getAttribute(JASPIC_PROVIDER_CLEANING_SUBJECT))) {
+                try {
+                    req.setAttribute(JASPIC_PROVIDER_CLEANING_SUBJECT, "true");
+                    jaspiService.logout(req, resp, webAppSecConfig);
+                } catch (AuthenticationException e) {
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                        Tr.debug(tc, "AuthenticationException invoking JASPI service logout", e);
+                } finally {
+                    req.removeAttribute(JASPIC_PROVIDER_CLEANING_SUBJECT);
+                }
             }
         }
-        logout(res, resp, webAppSecConfig);
+
+        if (!Boolean.parseBoolean((String) req.getAttribute(JASPIC_PROVIDER_PERFORMED_REQUEST_LOGOUT))) {
+            logout(req, resp, webAppSecConfig);
+        }
     }
 
     public WebReply createReplyForAuthnFailure(AuthenticationResult authResult, String realm) {

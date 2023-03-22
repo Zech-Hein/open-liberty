@@ -1,16 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.jdbc.fat.krb5;
-
-import static org.junit.Assert.assertTrue;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,7 +48,7 @@ import jdbc.krb5.oracle.web.OracleKerberosTestServlet;
 
 @RunWith(FATRunner.class)
 @Mode(TestMode.FULL)
-@MaximumJavaLevel(javaLevel = 15) // TODO The current Oracle JDBC driver (ojdbc8_g.jar v21.1.0.0) only supports Java 8-15, modify/remove this line once it supports 16+
+@MaximumJavaLevel(javaLevel = 15) // TODO The current Oracle JDBC driver (ojdbc8_g.jar v21.8.0.0) only supports Java 8-15, modify/remove this line once it supports 16+
 public class OracleKerberosTest extends FATServletClient {
 
     private static final Class<?> c = OracleKerberosTest.class;
@@ -77,7 +77,7 @@ public class OracleKerberosTest extends FATServletClient {
         ShrinkHelper.defaultDropinApp(server, APP_NAME, "jdbc.krb5.oracle.web");
 
         server.addEnvVar("ORACLE_DBNAME", oracle.getDatabaseName());
-        server.addEnvVar("ORACLE_HOSTNAME", oracle.getContainerIpAddress());
+        server.addEnvVar("ORACLE_HOSTNAME", oracle.getHost());
         server.addEnvVar("ORACLE_PORT", "" + oracle.getMappedPort(1521));
         server.addEnvVar("ORACLE_USER", oracle.getUsername());
         server.addEnvVar("ORACLE_PASS", oracle.getPassword());
@@ -136,22 +136,6 @@ public class OracleKerberosTest extends FATServletClient {
             config.getKerberos().keytab = originalKeytab;
             updateConfigAndWait(config);
         }
-    }
-
-    /**
-     * Test the hidden <i>sendGSSCredentialOnOracleBuilder</i> Datasource property.
-     * <p>
-     * This confirms that when the property is set on a datasource we will use the path through the OracleHelper
-     * class which creates a connection using the OracleConnectionBuilder, and sends the GSS credential via
-     * the Connection Builder API.
-     */
-    @Test
-    @AllowedFFDC
-    public void testGSSCredentialOnOracleBuilder() throws Exception {
-        server.setMarkToEndOfLog(server.getMostRecentTraceFile());
-        FATServletClient.runTest(server, APP_NAME + "/OracleKerberosTestServlet", testName);
-        int log = server.waitForMultipleStringsInLogUsingMark(3, "Using Connection Builder path for Kerberos", server.getMostRecentTraceFile());
-        assertTrue("Expected 3 Connection Builder strings in trace. Found: " + log, log == 3);
     }
 
     private static class IBMJava8Rule implements TestRule {

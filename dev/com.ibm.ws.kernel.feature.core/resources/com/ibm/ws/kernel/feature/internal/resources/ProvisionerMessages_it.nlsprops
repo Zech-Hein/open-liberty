@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2010, 2020 IBM Corporation and others.
+# Copyright (c) 2010, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -69,8 +71,7 @@ BUNDLE_MATCH_WARNING=CWWKF0010W: \u00c8 presente pi\u00f9 di un bundle corrispon
 BUNDLE_MATCH_WARNING.explanation=Un elemento di definizione della funzione corrisponde a pi\u00f9 bundle. Ci\u00f2 potrebbe verificarsi perch\u00e9 il filtro \u00e8 troppo generico o perch\u00e9 nell'immagine sono presenti bundle obsoleti che corrispondono al filtro.
 BUNDLE_MATCH_WARNING.useraction=Verificare che il filtro sia sufficientemente specifico e che venga utilizzata un'immagine di installazione pulita.
 
-SERVER_STARTED=CWWKF0011I: Il server {0} \u00e8 pronto per "un pianeta pi\u00f9 intelligente". \
-Server {0} avviato in {1} secondi.
+SERVER_STARTED=CWWKF0011I: Il server {0} \u00e8 pronto per "un pianeta pi\u00f9 intelligente". Server {0} avviato in {1} secondi.
 SERVER_STARTED.explanation=Il server \u00e8 stato avviato correttamente.
 SERVER_STARTED.useraction=Non \u00e8 richiesta alcuna azione.
 
@@ -203,9 +204,7 @@ UPDATE_WRONG_PROCESS_TYPE_DEPENDENCY_CLIENT_ERROR.useraction=Rimuovere la funzio
 # CWWK0042E  {0} = feature Name: {1} = server name 
 UPDATE_MISSING_CORE_FEATURE_ERROR=CWWKF0042E: Impossibile trovare una definizione di funzione per la funzione {0}.  Provare ad eseguire il comando bin/installUtility install {0},  per installare la funzione. In alternativa \u00e8 possibile eseguire il comando bin/installUtility install {1},  per installare tutte le funzioni cui fa riferimento questa configurazione.
 UPDATE_MISSING_CORE_FEATURE_ERROR.explanation=Il gestore funzioni non \u00e8 stato in grado di trovare una definizione per la funzione specificata.
-UPDATE_MISSING_CORE_FEATURE_ERROR.useraction=Verificare che il nome della funzione specificata sia scritto correttamente.  \
-Verificare anche che  la definizione di funzione esista e sia leggibile nella directory lib/features.  \
-Se la funzione non esiste, tentare di eseguire il comando bin/installUtility install nome_funzione,  per installare tutte le funzioni cui fa riferimento questa configurazione.
+UPDATE_MISSING_CORE_FEATURE_ERROR.useraction=Verificare che il nome della funzione specificata sia scritto correttamente.  Verificare anche che  la definizione di funzione esista e sia leggibile nella directory lib/features.  Se la funzione non esiste, tentare di eseguire il comando bin/installUtility install nome_funzione,  per installare tutte le funzioni cui fa riferimento questa configurazione.
 
 # CWWK0043E  {0} = EeProgModel1: {1} = EeProgModel2: {2} = configuredFeature1: {3} = configuredFeature2: {4} EePlaformCommonToProgModels 
 UPDATE_CONFLICT_INCOMPATIBLE_EE_FEATURES_SAME_PLATFORM_ERROR=CWWKF0043E: La funzione configurata {2} di {0} \u00e8 incompatibile con la funzione configurata {3} di {1}.  La configurazione include una combinazione incompatibile di funzioni {4} non supportata.  Aggiornare la configurazione per utilizzare le versioni compatibili delle funzioni configurate che supportino i modelli di programmazione {0} o {1}.

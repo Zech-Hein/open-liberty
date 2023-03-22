@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,18 +32,19 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import test.common.SharedOutputManager;
-
 import com.ibm.oauth.core.api.OAuthComponentInstance;
 import com.ibm.oauth.core.api.attributes.AttributeList;
 import com.ibm.oauth.core.api.error.oauth20.OAuth20InternalException;
 import com.ibm.oauth.core.api.oauth20.token.OAuth20Token;
+import com.ibm.oauth.core.api.oauth20.token.OAuth20TokenCache;
 import com.ibm.oauth.core.internal.oauth20.OAuth20ComponentInternal;
 import com.ibm.oauth.core.internal.oauth20.OAuth20Constants;
 import com.ibm.oauth.core.internal.oauth20.config.OAuth20ConfigProvider;
 import com.ibm.oauth.core.internal.oauth20.token.OAuth20TokenFactory;
 import com.ibm.ws.security.oauth20.api.OidcOAuth20ClientProvider;
 import com.ibm.ws.security.oauth20.plugins.OidcBaseClient;
+
+import test.common.SharedOutputManager;
 
 public class OIDCGrantTypeHandlerCodeImplTest {
 
@@ -66,6 +69,7 @@ public class OIDCGrantTypeHandlerCodeImplTest {
     final OAuth20Token refresh = mock.mock(OAuth20Token.class, "refresh");
     final OAuth20ComponentInternal componentInternal = mock.mock(OAuth20ComponentInternal.class, "componentInternal");
     final OAuth20ConfigProvider oauth20ConfigProvider = mock.mock(OAuth20ConfigProvider.class, "oauth20ConfigProvider");
+    final OAuth20TokenCache tokenCache = mock.mock(OAuth20TokenCache.class, "tokenCache");
     final OAuthComponentInstance oauthComponentInstance = mock.mock(OAuthComponentInstance.class, "oauuthComponentInstance");
     final IDTokenHandler idTokenHandler = mock.mock(IDTokenHandler.class, "idTokenhandler");
     final OidcOAuth20ClientProvider oidcOauth20ClientProvider = mock.mock(OidcOAuth20ClientProvider.class, "oidcOauth20ClientProvider");
@@ -157,12 +161,18 @@ public class OIDCGrantTypeHandlerCodeImplTest {
                     will(returnValue(componentInternal));
                     allowing(componentInternal).get20Configuration();
                     will(returnValue(oauth20ConfigProvider));
+                    allowing(componentInternal).getTokenCache();
+                    will(returnValue(tokenCache));
+                    allowing(tokenCache).get(OAuth20Constants.THIRD_PARTY_ID_TOKEN_PREFIX + "authorization_code_string");
+                    will(returnValue(null));
                     allowing(oauth20ConfigProvider).getMaxAuthGrantLifetimeSeconds();
                     will(returnValue(3600)); // 1 hour
                     allowing(oauth20ConfigProvider).getCodeLifetimeSeconds();
                     will(returnValue(300)); // 5 minutes
                     allowing(code).getType();
                     will(returnValue("authorization_code"));
+                    allowing(code).getTokenString();
+                    will(returnValue("authorization_code_string"));
                     allowing(code).getExtensionProperties(); //
                     will(returnValue(blueMap)); //
                     allowing(access).getType();

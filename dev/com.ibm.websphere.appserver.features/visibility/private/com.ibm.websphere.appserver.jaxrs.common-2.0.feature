@@ -14,11 +14,12 @@ IBM-API-Package: \
   com.ibm.websphere.jaxrs20.multipart; type="ibm-api", \
   com.ibm.websphere.jaxrs.providers.json4j; type="ibm-api"
 IBM-SPI-Package: com.ibm.wsspi.webservices.handler
--features=com.ibm.websphere.appserver.optional.jaxb-2.2; ibm.tolerates:="2.3", \
+-features=com.ibm.websphere.appserver.optional.jaxb-2.2, \
   com.ibm.websphere.appserver.json-1.0, \
   com.ibm.websphere.appserver.containerServices-1.0, \
   com.ibm.websphere.appserver.injection-1.0, \
   com.ibm.websphere.appserver.servlet-3.1, \
+  io.openliberty.servlet.internal-3.1, \
   com.ibm.websphere.appserver.classloading-1.0, \
   com.ibm.websphere.appserver.javax.jaxrs-2.0, \
   com.ibm.websphere.appserver.globalhandler-1.0

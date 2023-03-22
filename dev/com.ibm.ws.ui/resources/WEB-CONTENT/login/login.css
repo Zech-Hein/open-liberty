@@ -1,20 +1,22 @@
 /*******************************************************************************
- * Copyright (c) 2016 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 @font-face {
-    font-family: 'HelvNeueRoman';
-    src: url('../fonts/helvetica-neue-roman.woff');
+    font-family: "IBM Plex Sans Regular";
+    src: url("../fonts/IBMPlexSans-Regular.woff");
 }
 
 * {
-    font-family: 'HelvNeueRoman', Helvetica, Arial, sans-serif;
+    font-family: 'IBM Plex Sans Regular', Helvetica, Arial, sans-serif;
     font-weight: lighter;
     text-shadow: none;
 }
@@ -126,7 +128,7 @@ noscript {
 
 #login {
     position: absolute;
-    width: 380px;
+    width: 400px; /* make it wider to remove the horizontal scrollbar */
     top: 40%;
     left: 50%;
     margin-top: -200px;
@@ -197,7 +199,7 @@ noscript {
 
 .login-footer {
     font-size: 14px;
-    color: #F5CF3E;
+    color: black;
     margin: 10px 0 0 0;
 }
 
@@ -222,7 +224,7 @@ footer {
     font-size: 14px;
     margin-left: 20px;
     margin-top: 30px;
-    opacity: 0.5;
+    opacity: 0.6; /* increase to 0.6 to meet the minimum text contrast of 4.5 with its background */
     width: 325px;
     text-align: left;
     vertical-align: top;

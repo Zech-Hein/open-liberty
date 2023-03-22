@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,6 +34,7 @@ import com.ibm.ws.artifact.ArtifactListenerSelector;
 import com.ibm.ws.artifact.loose.internal.LooseArchive.EntryInfo;
 import com.ibm.ws.ffdc.FFDCFilter;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
+import com.ibm.wsspi.artifact.ArtifactContainer;
 import com.ibm.wsspi.artifact.ArtifactNotifier;
 import com.ibm.wsspi.artifact.DefaultArtifactNotification;
 import com.ibm.wsspi.kernel.filemonitor.FileMonitor;
@@ -101,8 +104,9 @@ public class LooseArtifactNotifier implements ArtifactNotifier, com.ibm.ws.kerne
     }
 
     private void verifyTargets(ArtifactNotification targets) throws IllegalArgumentException {
-        if (targets.getContainer().getRoot() != root) {
-            throw new IllegalArgumentException();
+        ArtifactContainer targetRoot = targets.getContainer().getRoot();
+        if (targetRoot != root) {
+            throw new IllegalArgumentException("Target root [ " + targetRoot + " ] does not match notification root [ " + root + " ]");
         }
     }
 

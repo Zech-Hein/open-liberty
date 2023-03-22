@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -58,6 +60,8 @@ public class OpentracingContainerFilter implements ContainerRequestFilter, Conta
 
     private OpentracingFilterHelper helper;
 
+    private boolean spanErrorLogged = false;
+
     OpentracingContainerFilter(OpentracingFilterHelper helper) {
         setFilterHelper(helper);
     }
@@ -83,8 +87,21 @@ public class OpentracingContainerFilter implements ContainerRequestFilter, Conta
             }
         }
 
+        String buildSpanName = null;
+        if (helper != null) {
+            buildSpanName = helper.getBuildSpanName(incomingRequestContext, resourceInfo);
+            if (buildSpanName == null) {
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, methodName + " skipping not traced method");
+                }
+                incomingRequestContext.setProperty(SERVER_SPAN_SKIPPED_ID, true);
+                return;
+            }
+        }
+
         URI incomingUri = incomingRequestContext.getUriInfo().getRequestUri();
-        String incomingURL = incomingUri.toURL().toString();
+        String  incomingURL = incomingUri.toURL().toString();
+
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, methodName + " incomingURL", incomingURL);
         }
@@ -96,36 +113,20 @@ public class OpentracingContainerFilter implements ContainerRequestFilter, Conta
             Tr.debug(tc, methodName + " priorContext", priorOutgoingContext);
         }
 
-        /*
-         * Removing filter processing until microprofile spec for it is approved. Expect to add this code
-         * back in 1Q18 - smf
-         */
-        // boolean process = OpentracingService.process(incomingUri, SpanFilterType.INCOMING);
-        boolean process = true;
-
-        String buildSpanName;
-        if (helper != null) {
-            buildSpanName = helper.getBuildSpanName(incomingRequestContext, resourceInfo);
-            if (buildSpanName == null) {
-                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                    Tr.debug(tc, methodName + " skipping not traced method");
-                }
-                process = false;
-            }
-        } else {
+        if (buildSpanName == null) {
             buildSpanName = incomingURL;
         }
 
-        if (process) {
-            Tracer.SpanBuilder spanBuilder = tracer.buildSpan(buildSpanName);
-            spanBuilder.withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_SERVER);
-            spanBuilder.withTag(Tags.HTTP_URL.getKey(), incomingURL);
-            spanBuilder.withTag(Tags.HTTP_METHOD.getKey(), incomingRequestContext.getMethod());
-            spanBuilder.withTag(Tags.COMPONENT.getKey(), TAG_COMPONENT_JAXRS);
-            if (priorOutgoingContext != null) {
-                spanBuilder.asChildOf(priorOutgoingContext);
-            }
+        Tracer.SpanBuilder spanBuilder = tracer.buildSpan(buildSpanName);
+        spanBuilder.withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_SERVER);
+        spanBuilder.withTag(Tags.HTTP_URL.getKey(), incomingURL);
+        spanBuilder.withTag(Tags.HTTP_METHOD.getKey(), incomingRequestContext.getMethod());
+        spanBuilder.withTag(Tags.COMPONENT.getKey(), TAG_COMPONENT_JAXRS);
+        if (priorOutgoingContext != null) {
+            spanBuilder.asChildOf(priorOutgoingContext);
+        }
 
+        try {
             Scope scope = spanBuilder.startActive(true);
 
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
@@ -133,9 +134,13 @@ public class OpentracingContainerFilter implements ContainerRequestFilter, Conta
             }
 
             incomingRequestContext.setProperty(SERVER_SPAN_PROP_ID, scope);
+        } catch (NoSuchMethodError e) {
+            if (!spanErrorLogged) {
+                Tr.error(tc, "OPENTRACING_COULD_NOT_START_SPAN", e);
+                spanErrorLogged = true;
+            }
         }
-
-        incomingRequestContext.setProperty(SERVER_SPAN_SKIPPED_ID, !process);
+        incomingRequestContext.setProperty(SERVER_SPAN_SKIPPED_ID, false);
     }
 
     /** {@inheritDoc} */

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation and others.
+ * Copyright (c) 2017, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,7 +23,7 @@ import com.ibm.websphere.simplicity.ShrinkHelper;
 import componenttest.annotation.Server;
 import componenttest.annotation.TestServlet;
 import componenttest.custom.junit.runner.FATRunner;
-import componenttest.rules.repeater.FeatureReplacementAction;
+import componenttest.rules.repeater.MicroProfileActions;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -33,12 +35,15 @@ public class MultiClientCdiTest extends FATServletClient {
     final static String SERVER_NAME = "mpRestClient10.multi.client.cdi";
 
     @ClassRule
-    public static RepeatTests r = RepeatTests.withoutModification()
-        .andWith(FATSuite.MP_REST_CLIENT_WITH_CONFIG("1.1", SERVER_NAME))
-        .andWith(FATSuite.MP_REST_CLIENT_WITH_CONFIG(FeatureReplacementAction.EE8_FEATURES(), "1.2", SERVER_NAME))
-        .andWith(FATSuite.MP_REST_CLIENT_WITH_CONFIG(FeatureReplacementAction.EE8_FEATURES(), "1.3", SERVER_NAME))
-        .andWith(FATSuite.MP_REST_CLIENT_WITH_CONFIG(FeatureReplacementAction.EE8_FEATURES(), "1.4", SERVER_NAME))
-        .andWith(FATSuite.MP_REST_CLIENT_WITH_CONFIG(FeatureReplacementAction.EE8_FEATURES(), "2.0", SERVER_NAME));
+    public static RepeatTests r = MicroProfileActions.repeat(SERVER_NAME, 
+                                                             MicroProfileActions.MP13, //mpRestClient-1.0
+                                                             MicroProfileActions.MP20, // 1.1
+                                                             MicroProfileActions.MP22, // 1.2
+                                                             MicroProfileActions.MP30, // 1.3
+                                                             MicroProfileActions.MP33, // 1.4
+                                                             MicroProfileActions.MP40, // 2.0
+                                                             MicroProfileActions.MP50, // 3.0
+                                                             MicroProfileActions.MP60);// 3.0+EE10
 
     private static final String appName = "multiClientCdiApp";
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -196,7 +198,7 @@ class JsMsgObject {
       throws MessageDecodeFailedException {
     if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) SibTr.entry(this, tc, "JsMsgObject", new Object[]{headerSchema, payloadSchema, rawMessage, offset, length, conn});
 
-    /* Sanity check the supplied parameter values to check consistency */
+    /* Evaluate the supplied parameter values to check consistency */
     if (rawMessage.length-offset < length || length < IDS_LENGTH + ArrayUtil.INT_SIZE) {
       String msg = "Invalid message buffer (buffer size="+rawMessage.length+" offset="+offset+" length="+length+"). ";
 
@@ -474,7 +476,7 @@ class JsMsgObject {
         SibTr.debug(this, tc, "buffers: ", new Object[] { outP, out0, out1 });
       }
 
-      // Sanity check the length of the header section
+      // Evaluate the length of the header section
       if (rawHeader.length-hdrOffset < hdrLength || hdrLength < IDS_LENGTH + ArrayUtil.INT_SIZE) {
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) SibTr.debug(this, tc, "Message buffer size too small: "+rawHeader.length);
         throw new MessageDecodeFailedException("Invalid message buffer (buffer size too small)");

@@ -1,16 +1,31 @@
 /*******************************************************************************
- * Copyright (c) 2015 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-var editorForm = (function() {
+ var editorForm = (function() {
     "use strict";
+
+
+    // Returns true if current node is supported by validation API
+    var isValidationSupportedOnNode = function (nodeName) {
+        return validationUtils.isSupportedNode(nodeName);
+    };
+
+    
+    // Set validation metadata properties for the model window to use
+    var getMetaDataStringForTestButton = function (nodeName) {
+        return validationUtils.getMetaDataStringForTestButton(nodeName);
+    };
+
 
     var renderEditorForm = function(element) {
 
@@ -77,10 +92,32 @@ var editorForm = (function() {
 
                 editorForm.append("<a href=\"#\" draggable=\"false\" role=\"button\" " + deleteButtonEnablement + " id=\"removeButton\" class=\"btn btn-default\">" + editorMessages.REMOVE + "</a>");
 
+                var nodeName = element.nodeName;
+                var attr_id_hidden_val;
                 // Add "Test" button only if the element is supported by the validator APIs
-                var validatorList = editor.getValidatorList();
-                if(validatorList && $.inArray(element.nodeName, validatorList) !== -1) {
-                    editorForm.append("<a draggable=\"false\" role=\"button\" id=\"testButton\" class=\"btn btn-default\">" + editorMessages.TEST + "</a>");
+                if(isValidationSupportedOnNode(nodeName)) {
+                    var validatorMetaDataParameters = getMetaDataStringForTestButton(nodeName);
+                    editorForm.append("<a href=\"#\" draggable=\"false\" role=\"button\" id=\"testButton\" class=\"btn btn-default\"" + validatorMetaDataParameters + ">" + editorMessages.TEST + "</a>");
+                    // handle the element dataSource nested case
+                    if (elementPath.length > 2) {
+                        // nested-under-singleton
+                        if (element.parentElement.nodeName === 'transaction') {
+                            if (element.id) {
+                                attr_id_hidden_val = element.parentElement.nodeName + "/" + nodeName + "[" + element.id + "]";
+                            } else {
+                                attr_id_hidden_val = element.parentElement.nodeName + "/" + nodeName + ".needed-index";
+                            }
+                        } else { // nested
+                            // parent nodeName has id
+                            if (element.parentElement.id) {
+                                if (element.id) {
+                                    attr_id_hidden_val = element.parentElement.nodeName + "[" + element.parentElement.id + "]/" + nodeName + "[" + element.id + "]";
+                                } else {
+                                    attr_id_hidden_val = element.parentElement.nodeName + "[" + element.parentElement.id + "]/" + nodeName + ".needed-index";
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Create form
@@ -108,16 +145,17 @@ var editorForm = (function() {
                 // Process element text value (if present)
                 if(schemaUtils.elementContainsText(elementDeclaration)) {
 
-                    var clearElementAction = $("<a role=\"button\" class=\"form-control-feedback clearInputFeedbackAction\" href=\"#\" draggable=\"false\" title=\"" + editorMessages.CLEAR + "\"><img src=\"img/entryfield-clear-D.png\" alt=\"" + editorMessages.CLEAR + "\"></a>");
+                    var clearElementAction = $("<a role=\"button\" class=\"clearInputFeedbackAction border border-start-0 ps-1\" href=\"#\" draggable=\"false\" title=\"" + editorMessages.CLEAR + "\"><img src=\"img/entryfield-clear-D.png\" alt=\"" + editorMessages.CLEAR + "\"></a>");
 
-                    var controlContainer = $("<div style=\"position:relative\" />");
+                    var controlContainer = $("<div style=\"position:relative\" class=\"input-group\" />");
 
-                    var formGroup = $("<div class=\"form-group has-feedback\"/>");
-                    var controlLabel = $("<label for=\"element_text_value\">" + editorMessages.VALUE + "</label>");
+                    var formGroup = $("<div class=\"\"/>");
+                    var controlLabel = $("<label class=\"form-label\" for=\"element_text_value\">" + editorMessages.VALUE + "</label>");
                     var control = $("<input id=\"element_text_value\" type=\"text\" spellcheck=\"false\" autocorrect=\"off\" autocapitalize=\"off\" class=\"form-control\" />");
                     var elementValue = element.textContent;
                     if(elementValue !== null && elementValue !== undefined && elementValue.length > 0) {
                         control.attr("value", elementValue);
+                        control.addClass("border-end-0");
                     } else {
                         clearElementAction.addClass("hidden");
                     }
@@ -163,10 +201,15 @@ var editorForm = (function() {
 
                 // Process attributes (if present)
                 var attributes = schemaUtils.getAttributes(elementDeclaration);
+                var attrIdFound = false;
                 attributes.forEach(function(attribute) {
 
                     // Obtain attribute name
                     var attributeName = attribute.getAttribute("name");
+
+                    if (attributeName === 'id') {
+                        attrIdFound = true;
+                    }
 
                     // Obtain attribute value
                     var attributeValue = element.getAttribute(attribute.getAttribute("name"));
@@ -188,8 +231,8 @@ var editorForm = (function() {
                     }
 
                     // Crate group and label
-                    var formGroup = $("<div class=\"form-group has-feedback\"/>");
-                    var controlLabel = $("<label for=\"attribute_" + attributeName + "\">" + attributeLabel + "</label>");
+                    var formGroup = $("<div class=\"\"/>");
+                    var controlLabel = $("<label class=\"form-label\" for=\"attribute_" + attributeName + "\">" + attributeLabel + "</label>");
 
                     // Create control
                     var control = $("<input spellcheck=\"false\" autocorrect=\"off\" autocapitalize=\"off\" id=\"attribute_" + attributeName + "\" type=\"text\" class=\"form-control\">");
@@ -244,12 +287,14 @@ var editorForm = (function() {
                     }
 
 
-                    var clearAttributeAction = $("<a role=\"button\" class=\"form-control-feedback clearInputFeedbackAction\" href=\"#\" draggable=\"false\" title=\"" + editorMessages.CLEAR + "\"><img src=\"img/entryfield-clear-D.png\" alt=\"" + editorMessages.CLEAR + "\"></a>");
+                    var clearAttributeAction = $("<a role=\"button\" class=\"clearInputFeedbackAction border border-start-0 ps-1\" href=\"#\" draggable=\"false\" title=\"" + editorMessages.CLEAR + "\"><img src=\"img/entryfield-clear-D.png\" alt=\"" + editorMessages.CLEAR + "\"></a>");
                     if(attributeValue === null || attributeValue === undefined) {
                         clearAttributeAction.addClass("hidden");
+                    } else {
+                        control.addClass("border-end-0");
                     }
 
-                    var controlContainer = $("<div style=\"position:relative\" />");
+                    var controlContainer = $("<div style=\"position:relative\" class=\"input-group\" />");
 
                     controlContainer.append(control);
 
@@ -263,12 +308,12 @@ var editorForm = (function() {
                     var inputGroup = null;
                     if(!readOnly) {
                         if(schemaUtils.hasPossibleValues(attribute)) {
-                            inputGroup = $("<div class=\"input-group\">");
+                            inputGroup = $("<div class=\"\">");
                             var button = $("<a href=\"#\" draggable=\"false\" class=\"btn btn-default editorFormFieldButton dialogEnumerationSelectButton\" role=\"button\">" + editorMessages.SELECT + "</a>");
                             var span = $("<span class=\"input-group-btn\"></span>");
                             span.append(button);
+                            controlContainer.append(span);
                             inputGroup.append(controlContainer);
-                            inputGroup.append(span);
                             button.data("inputControl", control.get(0));
                             button.data("attribute", attribute);
                             control.data("possibleValues", schemaUtils.getPossibleValues(attribute));
@@ -313,6 +358,14 @@ var editorForm = (function() {
 
                 // Add form to controls panel
                 editorForm.append(form);
+
+                // checking if ID exists, if not create it
+                if (!attrIdFound && attr_id_hidden_val) {
+                    // create a hidden attribute_id
+                    var attrID = $("<div id=\"attribute_id" + "\"type=\"text\">" + "ID" + "</div>").addClass("hidden");
+                    attrID.val(attr_id_hidden_val);
+                    editorForm.append(attrID);
+                }
             }
         }
 
@@ -338,7 +391,6 @@ var editorForm = (function() {
     };
 
 
-
     var validateInputControl = function(inputJQueryObject, onlyFixValues) {
         var validation = validateInputControlValue(inputJQueryObject);
         var errorMessageControl = $(".input-error-message", inputJQueryObject.parent().parent());
@@ -350,9 +402,15 @@ var editorForm = (function() {
                 inputJQueryObject.css("border-color", "#a91024");
                 errorMessageControl.text(validation);
                 errorMessageControl.removeClass("input-error-message-inactive");
+                if(inputJQueryObject.next()) {
+                    inputJQueryObject.next().addClass("clearInputFeedbackAction_error");
+                }
             }
         } else {
             inputJQueryObject.css("border-color", "");
+            if(inputJQueryObject.next()) {
+                inputJQueryObject.next().removeClass("clearInputFeedbackAction_error");
+            }
             errorMessageControl.text("");
             errorMessageControl.addClass("input-error-message-inactive");
         }
@@ -471,6 +529,7 @@ var editorForm = (function() {
                         opacity: 1
                     }, 2 * editor.ANIMATION_TIME_UNIT);
                 }
+                target.addClass("border-end-0");
             } else if(attributeName === null || attributeName === undefined) {
                 if(!clearControl.hasClass("hidden")) {
                     clearControl.stop();
@@ -478,6 +537,7 @@ var editorForm = (function() {
                         opacity: 0
                     }, 200, function() {
                         clearControl.addClass("hidden");
+                        target.removeClass("border-end-0");
                     });
                 }
             }
@@ -522,6 +582,7 @@ var editorForm = (function() {
             control.attr("placeholder", control.data("clearPlaceholder"));
             control.val("");
             control.trigger("input");
+            control.removeClass("border-end-0");
             $(event.currentTarget).addClass("hidden");
         });
 
@@ -547,12 +608,6 @@ var editorForm = (function() {
         $("#editorForm").on("click", "#unrecognizedElementSwitchToSourceLink", function(event) {
             event.preventDefault();
             editor.switchToSourceView();
-        });
-
-        // Handle test button
-        $("#editorForm").on("click", "#testButton", function(event) {
-            event.preventDefault();
-            $("#dialogDatasourceValidateElement").modal("show");
         });
 
     });

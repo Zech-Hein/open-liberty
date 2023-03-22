@@ -1,15 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.rest.handler.config.fat;
 
+import static com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions.SERVER_ONLY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -40,7 +43,9 @@ import com.ibm.websphere.simplicity.ShrinkHelper;
 
 import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.Server;
+import componenttest.annotation.SkipIfSysProp;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -65,7 +70,7 @@ public class ConfigRESTHandlerAppDefinedResourcesTest extends FATServletClient {
                         .addAsModule(ejb)
                         .addAsModule(web)
                         .addAsModule(emb_rar);
-        ShrinkHelper.exportToServer(server, "apps", app);
+        ShrinkHelper.exportToServer(server, "apps", app, SERVER_ONLY);
         server.addInstalledAppForValidation(APP_NAME);
 
         ResourceAdapterArchive tca_rar = ShrinkWrap.create(ResourceAdapterArchive.class, "ConfigTestAdapter.rar")
@@ -77,7 +82,7 @@ public class ConfigRESTHandlerAppDefinedResourcesTest extends FATServletClient {
                                         .addClass("org.test.config.jmsadapter.JMSTopicConnectionImpl")
                                         .addClass("org.test.config.jmsadapter.ManagedJMSTopicConnectionFactoryImpl")
                                         .addClass("org.test.config.jmsadapter.NoOpSessionImpl"));
-        ShrinkHelper.exportToServer(server, "connectors", tca_rar);
+        ShrinkHelper.exportToServer(server, "connectors", tca_rar, SERVER_ONLY);
 
         FATSuite.setupServerSideAnnotations(server);
 
@@ -441,6 +446,7 @@ public class ConfigRESTHandlerAppDefinedResourcesTest extends FATServletClient {
      * output to test a connection.
      */
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testAppDefinedDataSourceInJavaGlobalAndTestConnection() throws Exception {
         JsonObject ds = new HttpsRequest(server, "/ibm/api/config/dataSource/dataSource%5Bjava:global%2Fenv%2Fjdbc%2Fds4%5D")
                         .run(JsonObject.class);
@@ -1171,6 +1177,7 @@ public class ConfigRESTHandlerAppDefinedResourcesTest extends FATServletClient {
                    "jakarta.resource.ResourceException" // expected: Value 1:05:30 is not supported for agedTimeout
     })
     @Test
+    @SkipIfSysProp(SkipIfSysProp.OS_IBMI) //Skip on IBM i due to additional Db2 JDBC driver in JDK
     public void testValidateAppDefinedDataSources() throws Exception {
         JsonArray array = new HttpsRequest(server, "/ibm/api/validation/dataSource?auth=container&authAlias=derbyAuth3")
                         .run(JsonArray.class);
@@ -1198,7 +1205,8 @@ public class ConfigRESTHandlerAppDefinedResourcesTest extends FATServletClient {
         assertNotNull(stack.get(1));
         assertNotNull(stack.get(2));
         assertNotNull(err, cause = failure.getJsonObject("cause"));
-        assertEquals(err, JakartaEE9Action.isActive() ? "jakarta.resource.ResourceException" : "javax.resource.ResourceException", cause.getString("class"));
+        assertEquals(err, JakartaEE9Action.isActive() || JakartaEE10Action.isActive() ? "jakarta.resource.ResourceException" : "javax.resource.ResourceException",
+                     cause.getString("class"));
         assertNotNull(err, message = cause.getString("message"));
         assertTrue(err, message.startsWith("J2CA8011E") && message.contains("1:05:30"));
         assertNotNull(err, stack = cause.getJsonArray("stack"));
@@ -1320,7 +1328,7 @@ public class ConfigRESTHandlerAppDefinedResourcesTest extends FATServletClient {
         assertNotNull(err, j = j.getJsonObject("info"));
         assertEquals(err, "IBM", j.getString("jmsProviderName"));
         assertEquals(err, "1.0", j.getString("jmsProviderVersion"));
-        assertEquals(err, JakartaEE9Action.isActive() ? "3.0" : "2.0", j.getString("jmsProviderSpecVersion"));
+        assertEquals(err, getExpectedJmsProviderSpecVersion(), j.getString("jmsProviderSpecVersion"));
         assertEquals(err, "clientID", j.getString("clientID"));
     }
 
@@ -1341,7 +1349,7 @@ public class ConfigRESTHandlerAppDefinedResourcesTest extends FATServletClient {
         assertNotNull(err, j = j.getJsonObject("info"));
         assertEquals(err, "IBM", j.getString("jmsProviderName"));
         assertEquals(err, "1.0", j.getString("jmsProviderVersion"));
-        assertEquals(err, JakartaEE9Action.isActive() ? "3.0" : "2.0", j.getString("jmsProviderSpecVersion"));
+        assertEquals(err, getExpectedJmsProviderSpecVersion(), j.getString("jmsProviderSpecVersion"));
     }
 
     /**
@@ -1366,5 +1374,15 @@ public class ConfigRESTHandlerAppDefinedResourcesTest extends FATServletClient {
         assertEquals(err, "88.105.137", j.getString("jmsProviderVersion"));
         assertEquals(err, "2.0", j.getString("jmsProviderSpecVersion"));
         assertEquals(err, "AppDefinedClientId", j.getString("clientID"));
+    }
+
+    private String getExpectedJmsProviderSpecVersion() {
+        if (JakartaEE10Action.isActive()) {
+            return "3.1";
+        } else if (JakartaEE9Action.isActive()) {
+            return "3.0";
+        } else {
+            return "2.0";
+        }
     }
 }

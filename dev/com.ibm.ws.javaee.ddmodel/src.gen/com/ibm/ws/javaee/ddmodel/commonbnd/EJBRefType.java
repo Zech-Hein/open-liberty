@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation and others.
+ * Copyright (c) 2017,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -60,12 +62,10 @@ public class EJBRefType extends com.ibm.ws.javaee.ddmodel.DDParser.ElementConten
     @Override
     public boolean handleChild(DDParser parser, String localName) throws DDParser.ParseException {
         if (xmi && "bindingEjbRef".equals(localName)) {
-            this.bindingEjbRef = new com.ibm.ws.javaee.ddmodel.CrossComponentReferenceType("bindingEjbRef", parser.crossComponentDocumentType);
+            this.bindingEjbRef = new com.ibm.ws.javaee.ddmodel.CrossComponentReferenceType("bindingEjbRef", parser.getCrossComponentType());
             parser.parse(bindingEjbRef);
             com.ibm.ws.javaee.dd.common.EJBRef referent = this.bindingEjbRef.resolveReferent(parser, com.ibm.ws.javaee.dd.common.EJBRef.class);
-            if (referent == null) {
-                DDParser.unresolvedReference("bindingEjbRef", this.bindingEjbRef.getReferenceString());
-            } else {
+            if (referent != null) {
                 this.name = parser.parseString(referent.getName());
             }
             return true;

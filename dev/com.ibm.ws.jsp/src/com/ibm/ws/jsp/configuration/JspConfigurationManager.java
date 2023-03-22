@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2004 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,6 +20,7 @@ import java.util.logging.Logger;
 
 import com.ibm.ws.jsp.Constants;
 import com.ibm.ws.jsp.JspCoreException;
+import com.ibm.ws.jsp.PagesVersionHandler;
 import com.ibm.ws.jsp.configuration.JspConfigPropertyGroup;
 import com.ibm.ws.jsp.configuration.JspConfiguration;
 import com.ibm.ws.webcontainer.util.URIMatcher;
@@ -156,6 +159,10 @@ public class JspConfigurationManager {
                 if(propertyGroup.getErrorOnUndeclaredNamespace()!=null)
                     configuration.setErrorOnUndeclaredNamespace(Boolean.valueOf(propertyGroup.getErrorOnUndeclaredNamespace()));
 
+                if(PagesVersionHandler.isPages31OrHigherLoaded()){
+                    if(propertyGroup.getErrorOnELNotFound()!=null)
+                        configuration.setErrorOnELNotFound(Boolean.valueOf(propertyGroup.getErrorOnELNotFound()));
+                }
 
                 /* Liberty: JspConfigProperty is not used in Liberty. All values are in JspConfigPropertyGroup.
                 for (Iterator pgitr = propertyGroup.iterator(); pgitr.hasNext();) {

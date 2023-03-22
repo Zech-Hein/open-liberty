@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -77,9 +79,7 @@ public class SAMLSSLConfigTests extends SAMLConfigCommonTests {
      * signed, it needs to be at least as strong as what the config specifies
      */
     // @Mode(TestMode.LITE)
-    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException" })
-    @ExpectedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @ExpectedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException","org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void test_config_wantAssertionsSigned_false_withWeakerIDPSig() throws Exception {
 
@@ -108,9 +108,7 @@ public class SAMLSSLConfigTests extends SAMLConfigCommonTests {
      * signed, we must be able to validate the cert
      */
     // @Mode(TestMode.LITE)
-    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException" })
-    @ExpectedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @ExpectedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void test_config_wantAssertionsSigned_false_certMissingFromIDPMetaData() throws Exception {
 
@@ -302,9 +300,7 @@ public class SAMLSSLConfigTests extends SAMLConfigCommonTests {
      * the signer when the IDP uses SHA256, but should fail if SHA1 is used.
      */
     @Mode(TestMode.LITE)
-    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException" })
-    @ExpectedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @ExpectedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException","org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void test_config_signatureMethodAlgorithm_SHA256() throws Exception {
 
@@ -362,9 +358,7 @@ public class SAMLSSLConfigTests extends SAMLConfigCommonTests {
      * (note that this server config also specifies a funky filter for the
      * default sp config (it is normally equiv to a *))
      */
-    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException" })
-    @ExpectedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @ExpectedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @ExpectedFFDC(value = { "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Mode(TestMode.LITE)
     @Test
     public void test_config_signatureMethodAlgorithm_weakAlgIgnored_useFormLogin() throws Exception {

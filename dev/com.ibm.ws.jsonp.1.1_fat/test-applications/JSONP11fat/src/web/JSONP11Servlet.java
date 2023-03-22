@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,7 @@
 package web;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import javax.json.Json;
@@ -20,6 +23,7 @@ import javax.json.JsonObject;
 import javax.json.JsonPatch;
 import javax.json.JsonPointer;
 import javax.json.JsonString;
+import javax.json.spi.JsonProvider;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,6 +35,12 @@ import componenttest.app.FATServlet;
 @SuppressWarnings("serial")
 @WebServlet(urlPatterns = "/JSONP11Servlet")
 public class JSONP11Servlet extends FATServlet {
+    
+    @Test
+    public void testJSONProvider(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        JsonProvider jp = JsonProvider.provider();
+        assertNotNull(jp);
+    }
 
     @Test
     public void testJSONPointer(HttpServletRequest request, HttpServletResponse response) throws Exception {

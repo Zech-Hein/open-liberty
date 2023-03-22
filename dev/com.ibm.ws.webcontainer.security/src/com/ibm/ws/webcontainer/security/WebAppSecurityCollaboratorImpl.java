@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2020 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,6 +18,7 @@ import java.security.Principal;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,6 +68,7 @@ import com.ibm.ws.webcontainer.security.internal.DenyReply;
 import com.ibm.ws.webcontainer.security.internal.FormLoginExtensionProcessor;
 import com.ibm.ws.webcontainer.security.internal.FormLogoutExtensionProcessor;
 import com.ibm.ws.webcontainer.security.internal.HTTPSRedirectHandler;
+import com.ibm.ws.webcontainer.security.internal.JCacheLoggedOutCookieCache;
 import com.ibm.ws.webcontainer.security.internal.PermitReply;
 import com.ibm.ws.webcontainer.security.internal.ReturnReply;
 import com.ibm.ws.webcontainer.security.internal.SRTServletRequestUtils;
@@ -98,6 +102,8 @@ import com.ibm.wsspi.webcontainer.security.SecurityViolationException;
 import com.ibm.wsspi.webcontainer.servlet.IExtendedRequest;
 import com.ibm.wsspi.webcontainer.servlet.IServletContext;
 import com.ibm.wsspi.webcontainer.webapp.WebAppConfig;
+
+import io.openliberty.jcache.CacheService;
 
 public class WebAppSecurityCollaboratorImpl implements IWebAppSecurityCollaborator, WebAppAuthorizationHelper {
     private static final TraceComponent tc = Tr.register(WebAppSecurityCollaboratorImpl.class);
@@ -153,7 +159,6 @@ public class WebAppSecurityCollaboratorImpl implements IWebAppSecurityCollaborat
     protected HTTPSRedirectHandler httpsRedirectHandler;
 
     protected AuditManager auditManager;
-    public HashMap<String, Object> extraAuditData = new HashMap<String, Object>();
 
     protected WebAuthenticatorProxy authenticatorProxy;
     protected WebProviderAuthenticatorProxy providerAuthenticatorProxy;
@@ -331,6 +336,24 @@ public class WebAppSecurityCollaboratorImpl implements IWebAppSecurityCollaborat
         webAppSecurityConfigchangeListenerRef.removeReference(ref);
     }
 
+    /**
+     * Set the {@link CacheService} for the logged out cookie cache on this {@link WebAppSecurityCollaboratorImpl}.
+     *
+     * @param service the {@link CacheService}
+     */
+    protected void setLoggedOutCookieCacheService(CacheService service) {
+        LoggedOutCookieCacheHelper.setLoggedOutCookieCacheService(new JCacheLoggedOutCookieCache(service));
+    }
+
+    /**
+     * Unset the {@link CacheService} for the logged out cookie cache on this {@link WebAppSecurityCollaboratorImpl}.
+     *
+     * @param service the {@link CacheService}
+     */
+    protected void unsetLoggedOutCookieCacheService(CacheService service) {
+        LoggedOutCookieCacheHelper.setLoggedOutCookieCacheService(null);
+    }
+
     protected void activate(ComponentContext cc, Map<String, Object> props) {
         isActive = true;
         locationAdminRef.activate(cc);
@@ -378,7 +401,7 @@ public class WebAppSecurityCollaboratorImpl implements IWebAppSecurityCollaborat
         webAppSecConfig = newWebAppSecConfig;
         updateComponents();
         if (deltaMap != null) {
-            notifyWebAppSecurityConfigChangeListeners(new ArrayList(deltaMap.keySet()));
+            notifyWebAppSecurityConfigChangeListeners(new ArrayList<String>(deltaMap.keySet()));
         }
         Tr.audit(tc, "WEB_APP_SECURITY_CONFIGURATION_UPDATED", deltaString);
     }
@@ -479,13 +502,13 @@ public class WebAppSecurityCollaboratorImpl implements IWebAppSecurityCollaborat
          * Tried to future-proof this check by iterating over all the
          * installed features and finding the version of appSecurity installed,
          * but that introduced a performance degradation. So for now, checking
-         * for the appSecurity-3.0/4.0 features directly.
+         * for the appSecurity-3.0/4.0/5.0 features directly.
          */
         if (WebContainer.getServletContainerSpecLevel() < WebContainer.SPEC_LEVEL_40) {
             return false;
         }
         Set<String> features = provisionerService.getInstalledFeatures();
-	return features.contains("appSecurity-3.0") || features.contains("appSecurity-4.0");
+        return features.contains("appSecurity-3.0") || features.contains("appSecurity-4.0") || features.contains("appSecurity-5.0") || features.contains("mpJwt-2.1");
     }
 
     /**
@@ -596,12 +619,9 @@ public class WebAppSecurityCollaboratorImpl implements IWebAppSecurityCollaborat
                 performSecurityChecks(req, resp, receivedSubject, webSecurityContext);
             }
 
-            if (req != null) {
-                extraAuditData.put("HTTP_SERVLET_REQUEST", req);
-            }
             //auditManager.setHttpServletRequest(req);
 
-            performDelegation(servletName);
+            performDelegation(req, servletName);
 
             syncToOSThread(webSecurityContext);
         }
@@ -860,22 +880,35 @@ public class WebAppSecurityCollaboratorImpl implements IWebAppSecurityCollaborat
         return authResult;
     }
 
-    private void performDelegation(String servletName) {
+    private void performDelegationAudit(HttpServletRequest req, Subject callerSubject, String roleName, Subject delegationSubject, boolean success,
+                                        AuthenticationService authService) {
+        String outcome = success ? AuditConstants.SUCCESS : AuditConstants.FAILURE;
 
-        Subject delegationSubject = subjectManager.getCallerSubject();
-        if (delegationSubject != null && delegationSubject.getPublicCredentials(WSCredential.class) != null
-            && delegationSubject.getPublicCredentials(WSCredential.class).iterator() != null &&
-            delegationSubject.getPublicCredentials(WSCredential.class).iterator().hasNext()) {
-            WSCredential credential = delegationSubject.getPublicCredentials(WSCredential.class).iterator().next();
+        // if HttpRequest is null, the audit does nothing, so don't call it if null
+        if (req == null || !Audit.isAuditRequired(Audit.EventID.SECURITY_AUTHN_DELEGATION_01, outcome)) {
+            return;
+        }
+
+        HashMap<String, Object> extraAuditData = new HashMap<String, Object>();
+
+        if (req != null) {
+            extraAuditData.put("HTTP_SERVLET_REQUEST", req);
+        }
+
+        Set<WSCredential> publicCredentials = (callerSubject == null ? null : callerSubject.getPublicCredentials(WSCredential.class));
+        Iterator<WSCredential> it = null;
+        if (publicCredentials != null && (it = publicCredentials.iterator()) != null && it.hasNext()) {
+            WSCredential credential = it.next();
             try {
                 extraAuditData.put("REALM", credential.getRealmName());
             } catch (CredentialExpiredException e) {
             } catch (CredentialDestroyedException e) {
             }
         }
+
         ArrayList<String> delUsers = new ArrayList<String>();
-        if (delegationSubject != null) {
-            String buff = delegationSubject.toString();
+        if (callerSubject != null) {
+            String buff = getSubjectToString(callerSubject);
             if (buff != null) {
                 int a = buff.indexOf("accessId");
                 if (a != -1) {
@@ -889,77 +922,54 @@ public class WebAppSecurityCollaboratorImpl implements IWebAppSecurityCollaborat
 
             }
         }
-        SecurityMetadata secMetadata = getSecurityMetadata();
-        if (secMetadata != null) {
-            String roleName = secMetadata.getRunAsRoleForServlet(servletName);
-            String invalidUser = "";
-            if (roleName != null) {
-                extraAuditData.put("RUN_AS_ROLE", roleName);
 
-                try {
-                    SecurityService securityService = securityServiceRef.getService();
-                    AuthenticationService authService = securityService.getAuthenticationService();
-                    delegationSubject = authService.delegate(roleName, getApplicationName());
-                    if (delegationSubject != null) {
-                        String buff = delegationSubject.toString();
-                        if (buff != null) {
-                            int a = buff.indexOf("accessId");
-                            if (a != -1) {
-                                buff = buff.substring(a + 9);
-                                a = buff.indexOf(",");
-                                if (a != -1) {
-                                    buff = buff.substring(0, a);
-                                    delUsers.add(buff);
-                                }
-                            }
-
-                        }
-                    } else {
-                        invalidUser = authService.getInvalidDelegationUser();
-                        delUsers.add(invalidUser);
-                    }
-
-                    extraAuditData.put("DELEGATION_USERS_LIST", delUsers);
-                    //auditManager.setDelegatedUsers(delUsers);
-                    //Audit.audit(Audit.EventID.SECURITY_AUTHN_DELEGATION_01, auditManager, AuditConstants.SUCCESS, Integer.valueOf(200));
-                    if (delegationSubject != null) {
-                        Audit.audit(Audit.EventID.SECURITY_AUTHN_DELEGATION_01, extraAuditData, AuditConstants.SUCCESS, Integer.valueOf(200));
-                    } else {
-                        Audit.audit(Audit.EventID.SECURITY_AUTHN_DELEGATION_01, extraAuditData, AuditConstants.FAILURE, Integer.valueOf(401));
-
-                    }
-
-                } catch (IllegalArgumentException e) {
-                    if (delegationSubject != null) {
-                        String buff = delegationSubject.toString();
-                        if (buff != null) {
-                            int a = buff.indexOf("accessId");
-                            if (a != -1) {
-                                buff = buff.substring(a + 9);
-                                a = buff.indexOf(",");
-                                if (a != -1) {
-                                    buff = buff.substring(0, a);
-                                    delUsers.add(buff);
-                                }
-                            }
-
-                        }
-                    } else {
-                        SecurityService securityService = securityServiceRef.getService();
-                        AuthenticationService authService = securityService.getAuthenticationService();
-                        invalidUser = authService.getInvalidDelegationUser();
-                        delUsers.add(invalidUser);
-                        extraAuditData.put(DELEGATION_USERS_LIST, delUsers);
-                    }
-
-                    //Audit.audit(Audit.EventID.SECURITY_AUTHN_DELEGATION_01, auditManager, AuditConstants.FAILURE, Integer.valueOf(401));
-                    Audit.audit(Audit.EventID.SECURITY_AUTHN_DELEGATION_01, extraAuditData, AuditConstants.FAILURE, Integer.valueOf(401));
-
-                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                        Tr.debug(tc, "Exception performing delegation.", e);
+        extraAuditData.put("RUN_AS_ROLE", roleName);
+        if (delegationSubject == null) {
+            String invalidUser = authService.getInvalidDelegationUser();
+            delUsers.add(invalidUser);
+        } else if (delegationSubject != callerSubject) {
+            String buff = getSubjectToString(delegationSubject);
+            if (buff != null) {
+                int a = buff.indexOf("accessId");
+                if (a != -1) {
+                    buff = buff.substring(a + 9);
+                    a = buff.indexOf(",");
+                    if (a != -1) {
+                        buff = buff.substring(0, a);
+                        delUsers.add(buff);
                     }
                 }
+
             }
+        }
+
+        extraAuditData.put("DELEGATION_USERS_LIST", delUsers);
+
+        Audit.audit(Audit.EventID.SECURITY_AUTHN_DELEGATION_01, extraAuditData, outcome, success ? Integer.valueOf(200) : Integer.valueOf(401));
+    }
+
+    private void performDelegation(HttpServletRequest req, String servletName) {
+
+        Subject callerSubject = subjectManager.getCallerSubject();
+
+        SecurityMetadata secMetadata = getSecurityMetadata();
+        String roleName = secMetadata == null ? null : secMetadata.getRunAsRoleForServlet(servletName);
+
+        Subject delegationSubject = callerSubject;
+        if (roleName != null) {
+            SecurityService securityService = securityServiceRef.getService();
+            AuthenticationService authService = securityService.getAuthenticationService();
+            boolean success;
+            try {
+                delegationSubject = authService.delegate(roleName, getApplicationName());
+                success = delegationSubject != null;
+            } catch (IllegalArgumentException e) {
+                success = false;
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "Exception performing delegation.", e);
+                }
+            }
+            performDelegationAudit(req, callerSubject, roleName, delegationSubject, success, authService);
         }
         if (delegationSubject != null) {
             subjectManager.setInvocationSubject(delegationSubject);
@@ -1737,5 +1747,23 @@ public class WebAppSecurityCollaboratorImpl implements IWebAppSecurityCollaborat
         int statusCode = Integer.valueOf(webReply.getStatusCode());
         Audit.audit(Audit.EventID.SECURITY_AUTHN_01, webRequest, authResult, statusCode);
         Audit.audit(Audit.EventID.SECURITY_AUTHZ_01, webRequest, authResult, uriName, statusCode);
+    }
+
+    /**
+     * Get the toString for a Subject. Even though the {@link Subject#toString()} method doesn't declare that
+     * it throws a SecurityException, if there is a missing credential permission, you can get one.
+     *
+     * @param subject The Subject to get the toString for.
+     * @return The string representation of the Subject.
+     */
+    @Sensitive
+    private String getSubjectToString(Subject subject) {
+        return AccessController.doPrivileged(new PrivilegedAction<String>() {
+
+            @Override
+            public String run() {
+                return subject.toString();
+            }
+        });
     }
 }

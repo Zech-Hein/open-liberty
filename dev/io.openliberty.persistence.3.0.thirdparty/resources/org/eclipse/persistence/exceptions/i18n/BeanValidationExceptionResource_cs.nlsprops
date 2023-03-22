@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -31,8 +33,7 @@
 
 7501=Re\u017eim ov\u011b\u0159en\u00ed platnosti objekt\u016f typu bean je u objektu marshaller {0} nastaven na nepodporovanou hodnotu "{1}".
 
-7510=U objektu bean u objektu marshaller {0} byla poru\u0161ena omezen\u00ed:
-{1}{2}
+7510=U objektu bean u objektu marshaller {0} byla poru\u0161ena omezen\u00ed:\n{1}{2}
 
-7525=Nelze prov\u00e9st anal\u00fdzu vlastnosti {0}, proto\u017ee je anotov\u00e1na anotac\u00ed @NotNull a m\u00e1 atribut "xs: nillable = true".
+7525=Nelze prov\u00e9st anal\u00fdzu vlastnosti "{0}", proto\u017ee je anotov\u00e1na anotac\u00ed @NotNull a m\u00e1 atribut "xs: nillable = true".
 

@@ -1,16 +1,18 @@
 ###############################################################################
-# Copyright (c) 2017 IBM Corporation and others.
+# Copyright (c) 2017, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 ###############################################################################
 #CMVCPATHNAME ws/code/jsp/src/com/ibm/ws/jsp/resources/messages.nlsprops
-#COMPONENTPREFIX JSPG
-#COMPONENTNAMEFOR JSPG jsp
+#COMPONENTPREFIX JSPG CWWJS
+#COMPONENTNAMEFOR JSPG CWWJS jsp
 #ISMESSAGEFILE TRUE
 #NLS_MESSAGEFORMAT_VAR
 #NLS_ENCODING=UNICODE
@@ -1259,6 +1261,14 @@ system.java.compiler.not.found=JSPG0304W: The JSP attribute, useJDKCompiler, is 
 system.java.compiler.not.found.explanation=The JSP container was unable to find the system compiler, which usually indicates that the Java SDK jar file, tools.jar, was not found in the class path.
 system.java.compiler.not.found.useraction=Ensure that the Java SDK jar file, tools.jar, is in the class path and verify that the Java SDK supports the Java Compiler API. See Java Specification Request 199 for more information.
 
-jsp.feature.not.loaded.correctly=CWWJS0001: The JSP [Pages] feature did not load with an acceptable version.
-jsp.feature.not.loaded.correctly.explanation=The JSP [Pages] feature is loaded with a version that corresponds to the Java [Jakarta] EE specification of that JSP [Pages] feature. The feature was loaded with no version defined.
-jsp.feature.not.loaded.correctly.useraction=Check the server.xml file for existence of either a JSP [Pages] feature. Only one should be specified.
+jsp.feature.not.loaded.correctly=CWWJS0001E: The Pages feature (formerly JSP) did not load with an acceptable version.
+jsp.feature.not.loaded.correctly.explanation=The feature loaded without an acceptable version. The application might behave differently than expected.
+jsp.feature.not.loaded.correctly.useraction=Check the server.xml file for the existence of multiple Pages (JSP) features. The file must specify no more than one Pages (JSP) feature.
+
+jsp.error.page.invalid.erroronelnotfound=CWWJS0002E: Invalid value for errorOnELNotFound attribute
+jsp.error.page.invalid.erroronelnotfound.explanation=
+jsp.error.page.invalid.erroronelnotfound.useraction=
+
+jsp.isthreadsafe.warning=CWWJS0003W: The Pages 3.1 specification strongly advises Pages developers not to use the deprecated page directive isThreadSafe.
+jsp.isthreadsafe.warning.explanation=SingleThreadModel was removed from Servlet 6.0. Pages 3.1 deprecated isThreadSafe with plans to remove it in a future Pages update.
+jsp.isthreadsafe.warning.useraction=Remove the isThreadSafe directive from all pages.

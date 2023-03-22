@@ -1,12 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
- *     IBM Corporation - initial API and implementation
+ * IBM Corporation - initial API and implementation
  *******************************************************************************/
 
 package com.ibm.ws.security.social.fat.utils;
@@ -84,7 +86,7 @@ public class SocialMessageConstants extends MessageConstants {
     public static final String CWWKS1617E_USERINFO_WITH_BAD_ACCESS_TOKEN = "CWWKS1617E";
     public static final String CWWKS1713E_SCOPE_INVALID = "CWWKS1713E";
     public static final String CWWKO0801E_CANNOT_INIT_SSL = "CWWKO0801E";
-    public static final String CWWKS5500E_BAD_CONFIG_PARAM = "CWWKS5500E";
+    public static final String CWWKS5390E_BAD_CONFIG_PARAM = "CWWKS5390E";
 
     // messages from oidc code that social will now encounter.
     public static final String CWWKS1708E_UNABLE_TO_CONTACT_PROVIDER = "CWWKS1708E";

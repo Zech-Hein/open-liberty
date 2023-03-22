@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.rmi.CORBA.Util;
 
 import org.apache.felix.scr.ext.annotation.DSExt;
 import org.omg.CORBA.LocalObject;
@@ -48,6 +52,8 @@ import com.ibm.ws.transport.iiop.spi.ServerPolicySource;
 import com.ibm.ws.transport.iiop.spi.SubsystemFactory;
 import com.ibm.wsspi.kernel.service.utils.ConcurrentServiceReferenceMap;
 
+import io.openliberty.checkpoint.spi.CheckpointPhase;
+
 /**
  * Provides access to the ORB.
  */
@@ -70,11 +76,20 @@ public class ORBWrapperInternal extends ServerPolicySourceImpl implements ORBRef
     private final Map<String, Object> extraConfig = new HashMap<>();
 
     private final transient ConcurrentServiceReferenceMap<String, AdapterActivatorOp> map = new ConcurrentServiceReferenceMap<>(KEY);
+    
+    private final CheckpointPhase checkpointPhase = CheckpointPhase.getPhase();
 
+    
     @Activate
     protected void activate(Map<String, Object> properties, ComponentContext cc) throws Exception {
         map.activate(cc);
         super.activate(properties, cc.getBundleContext());
+        try {
+            if (checkpointPhase != CheckpointPhase.INACTIVE) {
+                Util.createValueHandler().getRunTimeCodeBase();
+            }
+        } catch (Exception e) {
+        }
         try {
             if (endpoints.isEmpty()) {
                 this.orb = configAdapter.createClientORB(properties, subsystemFactories);

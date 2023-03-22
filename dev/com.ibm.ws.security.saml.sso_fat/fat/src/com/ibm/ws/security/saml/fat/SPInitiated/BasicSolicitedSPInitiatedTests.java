@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -220,7 +222,7 @@ public class BasicSolicitedSPInitiatedTests extends BasicSAMLTests {
         // make sure we get to the login page, make sure we get the saml response and finally get to the test app
         List<validationData> expectations = helpers.setDefaultGoodSAMLExpectationsThroughACSOnly(SAMLConstants.BUILD_POST_SP_INITIATED_REQUEST, testSettings, null);
         expectations = vData.addExpectation(expectations, SAMLConstants.INVOKE_DEFAULT_APP, SAMLConstants.RESPONSE_TITLE, SAMLConstants.STRING_CONTAINS, "Did not land on default app", null, SAMLConstants.APP1_TITLE);
-        helpers.setSimpleServletExpecatations(expectations, testSettings);
+        helpers.setSimpleServletExpectations(expectations, testSettings);
 
         Object somePage = helpers.buildSolicitedSPInitiatedRequest(_testName, webClient, updatedTestSettings, expectations, method);
 

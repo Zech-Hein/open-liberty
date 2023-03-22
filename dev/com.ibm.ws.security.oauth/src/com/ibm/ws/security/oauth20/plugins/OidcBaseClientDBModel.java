@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -41,11 +43,11 @@ public class OidcBaseClientDBModel {
 
     public OidcBaseClientDBModel(String componentId,
             String clientId,
-            String clientSecret,
+            @Sensitive String clientSecret,
             String displayName,
             String redirectUri,
             int enabled,
-            JsonObject clientMetadata) {
+            @Sensitive JsonObject clientMetadata) {
         this.componentId = componentId;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
@@ -86,6 +88,7 @@ public class OidcBaseClientDBModel {
     /**
      * @return the clientSecret
      */
+    @Sensitive
     public String getClientSecret() {
         return clientSecret;
     }
@@ -93,7 +96,7 @@ public class OidcBaseClientDBModel {
     /**
      * @param clientSecret the clientSecret to set
      */
-    public void setClientSecret(String clientSecret) {
+    public void setClientSecret(@Sensitive String clientSecret) {
         this.clientSecret = clientSecret;
     }
 

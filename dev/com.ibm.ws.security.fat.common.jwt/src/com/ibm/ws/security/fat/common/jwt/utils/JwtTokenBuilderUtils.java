@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,6 +14,7 @@ package com.ibm.ws.security.fat.common.jwt.utils;
 
 import java.security.Key;
 import java.util.List;
+import java.util.Random;
 
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jwt.NumericDate;
@@ -60,6 +63,7 @@ public class JwtTokenBuilderUtils {
         builder.setSubject("testuser");
         builder.setRealmName("BasicRealm");
         builder.setTokenType("Bearer");
+        builder.setClaim(PayloadConstants.SESSION_ID, randomSessionId());
         builder = builder.setAlorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
         builder = builder.setHSAKey("mySharedKeyNowHasToBeLongerStrongerAndMoreSecure");
         //  setup for encryption - tests can override the following values
@@ -199,6 +203,7 @@ public class JwtTokenBuilderUtils {
         payload.put("key2", "my.dog.has.fleas");
         payload.put("key3", "testing.to.bump.up.part.count");
         payload.put("key4", "hereWe.goAgain");
+        payload.put(PayloadConstants.SESSION_ID, randomSessionId());
         if (extraPayload != null && !extraPayload.isEmpty()) {
             for (NameValuePair claim : extraPayload) {
                 payload.put(claim.getName(), claim.getValue());
@@ -210,4 +215,22 @@ public class JwtTokenBuilderUtils {
 
     }
 
+    /**
+     * generate a random 20 digit sid to be used for the sid. It just has to be random enough to be unique for our testing.
+     *
+     * @return - random string
+     */
+    public static String randomSessionId() {
+
+        int length = 20;
+        StringBuffer sid = new StringBuffer(length);
+        Random rand = new Random();
+
+        for (int n = 0; n < length; n++) {
+            int randomNumber = rand.nextInt(9);
+            sid.append(randomNumber);
+        }
+
+        return sid.toString();
+    }
 }

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -128,6 +130,8 @@ public class HpelHelper {
 //        addSystemPropertyIfPresent(result, "ws.ext.dirs"); // WAS specific
         addSystemPropertyIfPresent(result, "java.class.path");
         addSystemPropertyIfPresent(result, "java.library.path");
+        addSystemPropertyIfPresent(result, "wlp.install.dir");
+        addSystemPropertyIfPresent(result, "server.config.dir");
         // Add property to know if server is configured to convert depricated
         // messages or not.
 //        addSystemPropertyIfPresent(result, "com.ibm.websphere.logging.messageId.version");// WAS specific

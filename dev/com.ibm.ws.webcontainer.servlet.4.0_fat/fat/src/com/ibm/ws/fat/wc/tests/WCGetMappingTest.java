@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2021 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -23,6 +25,7 @@ import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.HttpUtils;
 
@@ -107,11 +110,26 @@ public class WCGetMappingTest {
      *
      * @throws Exception
      */
+
+    /*
+     * Servlet 6.0 - Updated: https://jakarta.ee/specifications/servlet/6.0/apidocs/jakarta.servlet/jakarta/servlet/http/httpservletrequest#getHttpServletMapping()
+     *
+     * The httpServletMapping for Async dispatch is now setting to the current servlet; thus the mappingMatch, matchValue, pattern and servletName are all changed.
+     * pathAsyncMatch (GetMappingAsyncServlet servlet) dispatches async to / (GetMappingTestServlet servlet). The httpServletMapping set to GetMappingTestServlet.
+     *
+     * reference the matching values example here: https://jakarta.ee/specifications/servlet/6.0/apidocs/jakarta.servlet/jakarta/servlet/http/httpservletmapping
+     */
     @Test
     @Mode(TestMode.FULL)
     public void test_HttpServletRequestGetMapping_ContextRootMapping_Async() throws Exception {
-        HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=/",
-                                       "ServletMapping values: mappingMatch: EXACT matchValue: pathAsyncMatch pattern: /pathAsyncMatch servletName: GetMappingAsyncServlet");
+        if (JakartaEE10Action.isActive()) {
+            LOG.info("Servlet 6.0 test_HttpServletRequestGetMapping_ContextRootMapping_Async");
+            HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=/",
+                                           "ServletMapping values: mappingMatch: CONTEXT_ROOT matchValue:  pattern:  servletName: GetMappingTestServlet");
+        } else {
+            HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=/",
+                                           "ServletMapping values: mappingMatch: EXACT matchValue: pathAsyncMatch pattern: /pathAsyncMatch servletName: GetMappingAsyncServlet");
+        }
     }
 
     /**
@@ -158,11 +176,22 @@ public class WCGetMappingTest {
      *
      * @throws Exception
      */
+
+    /*
+     * Servlet 6.0 see above update
+     *
+     */
     @Test
     @Mode(TestMode.FULL)
     public void test_HttpServletRequestGetMapping_PathMapping_Async() throws Exception {
-        HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=pathMatch/testPath",
-                                       "ServletMapping values: mappingMatch: EXACT matchValue: pathAsyncMatch pattern: /pathAsyncMatch servletName: GetMappingAsyncServlet");
+        if (JakartaEE10Action.isActive()) {
+            LOG.info("Servlet 6.0 test_HttpServletRequestGetMapping_PathMapping_Async");
+            HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=pathMatch/testPath",
+                                           "ServletMapping values: mappingMatch: PATH matchValue: testPath pattern: /pathMatch/* servletName: GetMappingTestServlet");
+        } else {
+            HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=pathMatch/testPath",
+                                           "ServletMapping values: mappingMatch: EXACT matchValue: pathAsyncMatch pattern: /pathAsyncMatch servletName: GetMappingAsyncServlet");
+        }
     }
 
     /**
@@ -209,11 +238,22 @@ public class WCGetMappingTest {
      *
      * @throws Exception
      */
+
+    /*
+     * Servlet 6.0 see above update
+     * "dispatchPath=invalid" will be served by a default servlet mapping (GetMappingTestServlet has one)
+     */
     @Test
     @Mode(TestMode.FULL)
     public void test_HttpServletRequestGetMapping_DefaultMapping_Async() throws Exception {
-        HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=invalid",
-                                       "ServletMapping values: mappingMatch: EXACT matchValue: pathAsyncMatch pattern: /pathAsyncMatch servletName: GetMappingAsyncServlet");
+        if (JakartaEE10Action.isActive()) {
+            LOG.info("Servlet 6.0 test_HttpServletRequestGetMapping_DefaultMapping_Async");
+            HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=invalid",
+                                           "ServletMapping values: mappingMatch: DEFAULT matchValue:  pattern: / servletName: GetMappingTestServlet");
+        } else {
+            HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=invalid",
+                                           "ServletMapping values: mappingMatch: EXACT matchValue: pathAsyncMatch pattern: /pathAsyncMatch servletName: GetMappingAsyncServlet");
+        }
     }
 
     /**
@@ -260,11 +300,21 @@ public class WCGetMappingTest {
      *
      * @throws Exception
      */
+
+    /*
+     * Servlet 6.0 update
+     */
     @Test
     @Mode(TestMode.FULL)
     public void test_HttpServletRequestGetMapping_ExactMapping_Async() throws Exception {
-        HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=exactMatch",
-                                       "ServletMapping values: mappingMatch: EXACT matchValue: pathAsyncMatch pattern: /pathAsyncMatch servletName: GetMappingAsyncServlet");
+        if (JakartaEE10Action.isActive()) {
+            LOG.info("Servlet 6.0 test_HttpServletRequestGetMapping_ExactMapping_Async");
+            HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=exactMatch",
+                                           "ServletMapping values: mappingMatch: EXACT matchValue: exactMatch pattern: /exactMatch servletName: GetMappingTestServlet");
+        } else {
+            HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=exactMatch",
+                                           "ServletMapping values: mappingMatch: EXACT matchValue: pathAsyncMatch pattern: /pathAsyncMatch servletName: GetMappingAsyncServlet");
+        }
     }
 
     /**
@@ -315,11 +365,22 @@ public class WCGetMappingTest {
      *
      * @throws Exception
      */
+
+    /*
+     * Servlet 6.0 update
+     *
+     */
     @Test
     @Mode(TestMode.FULL)
     public void test_HttpServletRequestGetMapping_ExtensionMapping_Async() throws Exception {
-        HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=extensionMatch.extension",
-                                       "ServletMapping values: mappingMatch: EXACT matchValue: pathAsyncMatch pattern: /pathAsyncMatch servletName: GetMappingAsyncServlet");
+        if (JakartaEE10Action.isActive()) {
+            LOG.info("Servlet 6.0 test_HttpServletRequestGetMapping_ExtensionMapping_Async");
+            HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=extensionMatch.extension",
+                                           "ServletMapping values: mappingMatch: EXTENSION matchValue: extensionMatch pattern: *.extension servletName: GetMappingTestServlet");
+        } else {
+            HttpUtils.findStringInReadyUrl(server, "/" + APP_NAME + "/pathAsyncMatch?dispatchPath=extensionMatch.extension",
+                                           "ServletMapping values: mappingMatch: EXACT matchValue: pathAsyncMatch pattern: /pathAsyncMatch servletName: GetMappingAsyncServlet");
+        }
     }
 
     /**

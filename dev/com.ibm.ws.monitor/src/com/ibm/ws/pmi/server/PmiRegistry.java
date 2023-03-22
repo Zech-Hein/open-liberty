@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2006 IBM Corporation and others.
+ * Copyright (c) 1997, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,6 +35,8 @@
 package com.ibm.ws.pmi.server;
 
 import java.lang.management.ManagementFactory;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -61,9 +65,9 @@ import com.ibm.ws.pmi.wire.WpdCollection;
 public class PmiRegistry implements PmiConstants {
     public static final String COPYRIGHT = "Copyright (c) 2000, 2004 IBM Corporation and others.\n" +
                                            " All rights reserved. This program and the accompanying materials\n" +
-                                           " are made available under the terms of the Eclipse Public License v1.0\n" +
+                                           " are made available under the terms of the Eclipse Public License 2.0\n" +
                                            " which accompanies this distribution, and is available at\n" +
-                                           " http://www.eclipse.org/legal/epl-v10.html\n" +
+                                           " http://www.eclipse.org/legal/epl-2.0/\n" +
                                            " \n" +
                                            " Contributors:\n" +
                                            "     IBM Corporation - initial API and implementation";
@@ -111,7 +115,7 @@ public class PmiRegistry implements PmiConstants {
         setInstrumentationLevel(defaultLevel);
         //disabled = false;
         try {
-            MBeanServer mServer = ManagementFactory.getPlatformMBeanServer();
+            MBeanServer mServer = AccessController.doPrivileged((PrivilegedAction<MBeanServer>) () -> ManagementFactory.getPlatformMBeanServer());
             ObjectName pmiMBean = new ObjectName(PmiConstants.MBEAN_NAME);
             mServer.registerMBean(PmiCollaboratorFactory.getPmiCollaborator(), pmiMBean);
             printAllMBeans();
@@ -126,7 +130,7 @@ public class PmiRegistry implements PmiConstants {
 
     private static void printAllMBeans() {
         /*
-         * MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+         * MBeanServer mbs = AccessController.doPrivileged((PrivilegedAction<MBeanServer>) () -> ManagementFactory.getPlatformMBeanServer());
          * System.out.println("COUNT = " + mbs.getMBeanCount());
          * //ObjectName name = new ObjectName("name=Perf");
          * Set<ObjectInstance> allPerfMBeans = mbs.queryMBeans(null, null);

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,7 +24,7 @@ import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
 import com.ibm.websphere.security.saml2.Saml20Token;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 
 /**
  *
@@ -55,8 +57,7 @@ public class PropagationHelperImpl {
                 //compress and Base64 encode
                 byte[] compressedTokenBytes = compressSamlToken(samlString);
                 base64Saml = Base64Coder.base64EncodeToString(compressedTokenBytes);
-            }
-            else {
+            } else {
                 byte output[] = null;
                 try {
                     output = samlString.getBytes("UTF-8");
@@ -67,8 +68,7 @@ public class PropagationHelperImpl {
                 }
                 if (output != null) {
                     base64Saml = Base64Coder.base64EncodeToString(output);
-                }
-                else {
+                } else {
                     if (tc.isDebugEnabled()) {
                         Tr.debug(tc, "Error while trying to get token bytes using utf-8:");
                     }
@@ -98,8 +98,7 @@ public class PropagationHelperImpl {
             }
             if (output != null) {
                 gzip.write(output);
-            }
-            else {
+            } else {
                 if (tc.isDebugEnabled()) {
                     Tr.debug(tc, "Error while trying to get token bytes using utf-8:");
                 }

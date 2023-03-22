@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2021 IBM Corporation and others.
+ * Copyright (c) 2019, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,11 +13,23 @@
 package componenttest.topology.database.container;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.testcontainers.containers.Db2Container;
 import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.MSSQLServerContainer;
+import org.testcontainers.containers.OracleContainer;
 import org.testcontainers.containers.output.OutputFrame;
+import org.testcontainers.utility.DockerImageName;
 
 import com.ibm.websphere.simplicity.config.DataSourceProperties;
+import com.ibm.websphere.simplicity.config.dsprops.Properties_db2_jcc;
+import com.ibm.websphere.simplicity.config.dsprops.Properties_derby_client;
+import com.ibm.websphere.simplicity.config.dsprops.Properties_derby_embedded;
+import com.ibm.websphere.simplicity.config.dsprops.Properties_microsoft_sqlserver;
+import com.ibm.websphere.simplicity.config.dsprops.Properties_oracle;
+import com.ibm.websphere.simplicity.config.dsprops.Properties_postgresql;
 import com.ibm.websphere.simplicity.log.Log;
 
 /**
@@ -23,37 +37,37 @@ import com.ibm.websphere.simplicity.log.Log;
  */
 @SuppressWarnings("rawtypes")
 public enum DatabaseContainerType {
-    DB2("jcc.jar", "org.testcontainers.containers.Db2Container", "Properties_db2_jcc"),
-    Derby("derby.jar", "componenttest.topology.database.container.DerbyNoopContainer", "Properties_derby_embedded"),
-    DerbyClient("derbyclient.jar", "componenttest.topology.database.container.DerbyClientContainer", "Properties_derby_client"),
-    Oracle("ojdbc8_g.jar", "componenttest.topology.database.container.OracleContainer", "Properties_oracle"),
-    Postgres("postgresql.jar", "componenttest.topology.database.container.PostgreSQLContainer", "Properties_postgresql"),
-    SQLServer("mssql-jdbc.jar", "org.testcontainers.containers.MSSQLServerContainer", "Properties_microsoft_sqlserver");
+    DB2("jcc.jar", Db2Container.class.getCanonicalName(), Properties_db2_jcc.class, //
+        DockerImageName.parse("kyleaure/db2:1.0").asCompatibleSubstituteFor("ibmcom/db2")),
+    Derby("derby.jar", DerbyNoopContainer.class.getCanonicalName(), Properties_derby_embedded.class, DockerImageName.parse("")),
+    DerbyClient("derbyclient.jar", DerbyClientContainer.class.getCanonicalName(), Properties_derby_client.class, DockerImageName.parse("")),
+    Oracle("ojdbc8_g.jar", OracleContainer.class.getCanonicalName(), Properties_oracle.class, //
+           DockerImageName.parse("gvenzl/oracle-xe:21.3.0-full-faststart")),
+    Postgres("postgresql.jar", PostgreSQLContainer.class.getCanonicalName(), Properties_postgresql.class, //
+             DockerImageName.parse("postgres:14.1-alpine")),
+    SQLServer("mssql-jdbc.jar", MSSQLServerContainer.class.getCanonicalName(), Properties_microsoft_sqlserver.class, //
+              DockerImageName.parse("mcr.microsoft.com/mssql/server:2019-CU18-ubuntu-20.04"));
 
     private final String driverName;
     private final Class<DataSourceProperties> dsPropsClass;
     private final Class<? extends JdbcDatabaseContainer> containerClass;
+    private final DockerImageName imageName;
 
     @SuppressWarnings("unchecked")
-    DatabaseContainerType(final String driverName, final String containerClassName, final String dataSourcePropertiesClassName) {
+    DatabaseContainerType(final String driverName, final String containerClassName, final Class dsPropsClass, final DockerImageName imageName) {
         this.driverName = driverName;
 
         //Use reflection to get classes at runtime.
-        Class containerClass = null, dsPropsClass = null;
+        Class containerClass = null;
         try {
             containerClass = Class.forName(containerClassName);
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException("Could not find the container class: " + containerClassName + " for testconatiner type: " + this.name(), e);
         }
 
-        try {
-            dsPropsClass = Class.forName("com.ibm.websphere.simplicity.config.dsprops." + dataSourcePropertiesClassName);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("Could not find the datasource properties class: " + dataSourcePropertiesClassName + " for testconatiner type: " + this.name(), e);
-        }
-
         this.containerClass = containerClass;
         this.dsPropsClass = dsPropsClass;
+        this.imageName = imageName;
     }
 
     /**
@@ -86,6 +100,15 @@ public enum DatabaseContainerType {
     }
 
     /**
+     * Returns the default image name for this testcontainer type.
+     *
+     * @return String - Image Name
+     */
+    public DockerImageName getImageName() {
+        return imageName;
+    }
+
+    /**
      * Returns an instance of this testcontainer's datasource properties.
      */
     public DataSourceProperties getDataSourceProps() throws ReflectiveOperationException {
@@ -111,6 +134,16 @@ public enum DatabaseContainerType {
             if (elem.getContainerClass() == cont.getClass())
                 return elem;
         throw new IllegalArgumentException("Unrecognized JdbcDatabaseContainer class: " + cont.getClass().getCanonicalName());
+    }
+
+    public static List<String> images() {
+        ArrayList<String> images = new ArrayList<>();
+        for (DatabaseContainerType elem : values()) {
+            if (!elem.getImageName().getUnversionedPart().isEmpty()) {
+                images.add(elem.getImageName().asCanonicalNameString());
+            }
+        }
+        return images;
     }
 
     //Private Method: used to setup logging for containers to this class.

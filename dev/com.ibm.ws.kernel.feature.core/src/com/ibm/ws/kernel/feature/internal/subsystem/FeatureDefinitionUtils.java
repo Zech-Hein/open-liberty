@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -86,6 +88,7 @@ public class FeatureDefinitionUtils {
     public final static Collection<String> ALLOWED_ON_CLIENT_ONLY_FEATURES = Arrays.asList("com.ibm.websphere.appserver.javaeeClient-7.0",
                                                                                            "com.ibm.websphere.appserver.javaeeClient-8.0",
                                                                                            "io.openliberty.jakartaeeClient-9.1",
+                                                                                           "io.openliberty.jakartaeeClient-10.0",
                                                                                            "com.ibm.websphere.appserver.appSecurityClient-1.0");
 
     public static final String NL = "\r\n";

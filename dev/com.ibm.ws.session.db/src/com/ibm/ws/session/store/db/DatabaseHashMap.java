@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 1997, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -48,6 +50,8 @@ import com.ibm.ws.session.store.common.BackedSession;
 import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
 import com.ibm.wsspi.resource.ResourceConfig;
 import com.ibm.wsspi.session.IStore;
+
+import io.openliberty.checkpoint.spi.CheckpointPhase;
 
 //PK78174 BEGIN
 //import com.ibm.wsspi.runtime.service.WsServiceRegistry;
@@ -240,8 +244,14 @@ public class DatabaseHashMap extends BackedHashMap {
             tableName = smc.getTableNameValue();
         }
         suspendedTransactions = new Hashtable();
-        getDataSource();
-        initDBSettings();
+        if (CheckpointPhase.getPhase().restored()) {
+            // Only do this if we are restored (not during checkpoint).
+            // This is the "normal" case.
+            // In the checkpoint case we will lazily get it on the restore side.
+            getDataSource();
+            initDBSettings();
+        }
+
     }
 
     /*
@@ -364,6 +374,12 @@ public class DatabaseHashMap extends BackedHashMap {
                     }
                     mediumColSize = MEDIUMCOL_SIZE_DB2;
                     largeColSize = LARGECOL_SIZE_DB2;
+                    if (_smc.isUsingMultirow() && _smc.getRowSizeLimit()*1048576 > largeColSize) {
+                        largeColSize = _smc.getRowSizeLimit()*1048576;
+                        if (com.ibm.websphere.ras.TraceComponent.isAnyTracingEnabled() && LoggingUtil.SESSION_LOGGER_WAS.isLoggable(Level.FINE)) {
+                            LoggingUtil.SESSION_LOGGER_WAS.logp(Level.FINE, methodClassName, methodNames[INIT_DB_SETTINGS], "DB2 row size limit : " + largeColSize);
+                        }
+                    }
                     usingDB2 = true;
 
                     //For SolidDB, which is a subset of DB2
@@ -506,7 +522,7 @@ public class DatabaseHashMap extends BackedHashMap {
                     }
                 } // Oracle case to be handled later
             } //PM27191 END
-        } else if (usingPostgreSQL) {
+        } else if (usingPostgreSQL && _smc.isUsingCustomSchemaName()) {
             qualifierName = dmd.getUserName();
         }
         
@@ -622,16 +638,21 @@ public class DatabaseHashMap extends BackedHashMap {
                         String configTableSpaceName = _smc.getTableSpaceName();
                         if (configTableSpaceName != null && !configTableSpaceName.equals("") && configTableSpaceName.length() != 0)
                             tableSpaceName = " in " + configTableSpaceName;
-                        if (usingSolidDB)
+                        if (usingSolidDB) {
                             s.executeUpdate("create table "
                                         + tableName
                                         + " (id varchar(128) not null, propid varchar(128) not null, appname varchar(128) not null, listenercnt smallint, lastaccess bigint, creationtime bigint, maxinactivetime integer, username varchar(256), small varchar("
                                         + smallColSize + "), medium long varchar, large BLOB(2M)) " + tableSpaceName);
-                        else
+                        } else {
+                            int rowSize = 2;
+                            if (_smc.isUsingMultirow() && _smc.getRowSizeLimit() > rowSize) {
+                                rowSize = _smc.getRowSizeLimit();
+                            }
                             s.executeUpdate("create table "
                                         + tableName
                                         + " (id varchar(128) not null, propid varchar(128) not null, appname varchar(128) not null, listenercnt smallint, lastaccess bigint, creationtime bigint, maxinactivetime integer, username varchar(256), small varchar("
-                                        + smallColSize + ") for bit data, medium long varchar for bit data, large BLOB(2M)) " + tableSpaceName);
+                                        + smallColSize + ") for bit data, medium long varchar for bit data, large BLOB(" + rowSize + "M)) " + tableSpaceName);
+                        }
                     }
                 }
                 //            } catch (com.ibm.ejs.cm.portability.TableAlreadyExistsException eee) {
@@ -2851,6 +2872,12 @@ public class DatabaseHashMap extends BackedHashMap {
     protected void performInvalidation() {
         if (com.ibm.websphere.ras.TraceComponent.isAnyTracingEnabled() && LoggingUtil.SESSION_LOGGER_WAS.isLoggable(Level.FINE)) {
             LoggingUtil.SESSION_LOGGER_WAS.entering(methodClassName, methodNames[PERFORM_INVALIDATION]);
+        }
+
+        synchronized (this) {
+            if (!initialized) {
+                return;
+            }
         }
 
         long now = System.currentTimeMillis();

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2004 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,6 +24,7 @@ import org.w3c.dom.NodeList;
 
 import com.ibm.ws.jsp.Constants;
 import com.ibm.ws.jsp.JspCoreException;
+import com.ibm.ws.jsp.PagesVersionHandler;
 import com.ibm.ws.jsp.configuration.JspConfiguration;
 import com.ibm.ws.jsp.translator.JspTranslationException;
 import com.ibm.ws.jsp.translator.visitor.configuration.JspVisitorUsage;
@@ -289,14 +292,48 @@ public abstract class JspVisitor {
                     visitJspParamEnd(jspElement);
                 }
                 else if (jspElementType.equals(Constants.JSP_PARAMS_TYPE)) {
-                    visitJspParamsStart(jspElement);
-                    processChildren(jspElement);
-                    visitJspParamsEnd(jspElement);
+                    if(PagesVersionHandler.isPages30OrLowerLoaded()){
+                        visitJspParamsStart(jspElement);
+                        processChildren(jspElement);
+                        visitJspParamsEnd(jspElement);
+                    } else {
+                        // Changed for Page 3.1. jsp:params is a no-op (as it must be a child of jsp:plugin)
+                        // JSP must still valid contents/syntax within (3.1 Spec, section 5.8 <jsp:params>)
+                        if(this.getClass().equals(com.ibm.ws.jsp.translator.visitor.validator.ValidateJspVisitor.class)){
+                            if(com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable(Level.FINEST)){
+                                logger.logp(Level.FINEST, CLASS_NAME, "processJspElement","Processing Validation for the jsp:params element");
+                            }
+                            visitJspParamsStart(jspElement);
+                            processChildren(jspElement);
+                            visitJspParamsEnd(jspElement);    
+                        } else {
+                            if(com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable(Level.FINEST)){
+                                logger.logp(Level.FINEST, CLASS_NAME, "processJspElement","Skipping the jsp:params element as it is a no operation for Pages 3.1+");
+                            }
+                        }
+                    }
                 }
                 else if (jspElementType.equals(Constants.JSP_FALLBACK_TYPE)) {
-                    visitJspFallbackStart(jspElement);
-                    processChildren(jspElement);
-                    visitJspFallbackEnd(jspElement);
+                    if(PagesVersionHandler.isPages30OrLowerLoaded()){
+                        visitJspFallbackStart(jspElement);
+                        processChildren(jspElement);
+                        visitJspFallbackEnd(jspElement);
+                    } else {
+                        // Changed for Page 3.1. jsp:fallback is a no-op (as it must be a child of jsp:plugin)
+                        // JSP must still valid contents/syntax within (3.1 Spec, section 5.9 <jsp:fallback>)
+                        if(this.getClass().equals(com.ibm.ws.jsp.translator.visitor.validator.ValidateJspVisitor.class)){
+                            if(com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable(Level.FINEST)){
+                                logger.logp(Level.FINEST, CLASS_NAME, "processJspElement","Processing Validation for the jsp:fallback element");
+                            }
+                            visitJspFallbackStart(jspElement);
+                            processChildren(jspElement);
+                            visitJspFallbackEnd(jspElement);    
+                        } else {
+                            if(com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable(Level.FINEST)){
+                                logger.logp(Level.FINEST, CLASS_NAME, "processJspElement","Skipping the jsp:fallback element as it is a no operation for Pages 3.1+");
+                            }
+                        }
+                    }
                 }
                 else if (jspElementType.equals(Constants.JSP_INCLUDE_TYPE)) {
                     visitJspIncludeStart(jspElement);
@@ -324,9 +361,25 @@ public abstract class JspVisitor {
                     visitJspSetPropertyEnd(jspElement);
                 }
                 else if (jspElementType.equals(Constants.JSP_PLUGIN_TYPE)) {
-                    visitJspPluginStart(jspElement);
-                    processChildren(jspElement);
-                    visitJspPluginEnd(jspElement);
+                    if(PagesVersionHandler.isPages30OrLowerLoaded()){
+                        visitJspPluginStart(jspElement);
+                        processChildren(jspElement);
+                        visitJspPluginEnd(jspElement);
+                    } else {
+                        // Changed for Page 3.1. jsp:plugin is a no-op, but JSP must still valid contents within (3.1 Spec, section 5.7 <jsp:plugin>)
+                        if(this.getClass().equals(com.ibm.ws.jsp.translator.visitor.validator.ValidateJspVisitor.class)){
+                            if(com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable(Level.FINEST)){
+                                logger.logp(Level.FINEST, CLASS_NAME, "processJspElement","Processing Validation for the jsp:plugin element");
+                            }
+                            visitJspPluginStart(jspElement);
+                            processChildren(jspElement);
+                            visitJspPluginEnd(jspElement);      
+                        } else {
+                            if(com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable(Level.FINEST)){
+                                logger.logp(Level.FINEST, CLASS_NAME, "processJspElement","Skipping the jsp:plugin element as it is a no operation for Pages 3.1+");
+                            }
+                        }
+                    }
                 }
                 else if (jspElementType.equals(Constants.JSP_ATTRIBUTE_TYPE)) {
                     visitJspAttributeStart(jspElement);

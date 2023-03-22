@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -46,7 +48,7 @@ public class FileContainerFactory implements ArtifactContainerFactoryHelper, Con
     private BundleContext ctx = null;
 
     protected synchronized void activate(ComponentContext ctx) {
-        //need to get this into containers for the notifier.. 
+        //need to get this into containers for the notifier..
         this.ctx = ctx.getBundleContext();
     }
 
@@ -68,7 +70,7 @@ public class FileContainerFactory implements ArtifactContainerFactoryHelper, Con
     @Override
     public synchronized ArtifactContainerFactory getContainerFactory() {
         if (containerFactory == null) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Null container factory");
         }
         return containerFactory;
     }
@@ -76,7 +78,7 @@ public class FileContainerFactory implements ArtifactContainerFactoryHelper, Con
     @Override
     public synchronized BundleContext getBundleContext() {
         if (ctx == null) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Null bundle context");
         }
         return ctx;
     }

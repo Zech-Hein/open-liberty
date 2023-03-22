@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 IBM Corporation and others.
+ * Copyright (c) 2015,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,6 +15,7 @@ package com.ibm.ws.ejbcontainer.security.internal.jacc;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ejb.EnterpriseBean;
 import javax.security.auth.Subject;
@@ -47,11 +50,9 @@ public class EJBJaccAuthorizationHelper implements EJBAuthorizationHelper {
         this.jaccServiceRef = jaccServiceRef;
     }
 
-    public HashMap<String, Object> ejbAuditHashMap = new HashMap<String, Object>();
-
     protected AuditManager auditManager;
 
-    public void populateAuditEJBHashMap(EJBRequestData request) {
+    public void populateAuditEJBHashMap(EJBRequestData request, Map<String, Object> ejbAuditHashMap) {
         EJBMethodMetaData methodMetaData = request.getEJBMethodMetaData();
         Object[] methodArguments = request.getMethodArguments();
         String applicationName = methodMetaData.getEJBComponentMetaData().getJ2EEName().getApplication();
@@ -85,7 +86,7 @@ public class EJBJaccAuthorizationHelper implements EJBAuthorizationHelper {
      * <li>is the subject authorized to any of the required roles</li>
      *
      * @param methodMetaData the info on the EJB method to call
-     * @param subject the subject authorize
+     * @param subject        the subject authorize
      * @throws EJBAccessDeniedException when the subject is not authorized to the EJB
      */
     @Override
@@ -104,7 +105,9 @@ public class EJBJaccAuthorizationHelper implements EJBAuthorizationHelper {
         String beanName = methodMetaData.getEJBComponentMetaData().getJ2EEName().getComponent();
         List<Object> methodParameters = null;
 
-        populateAuditEJBHashMap(request);
+        HashMap<String, Object> ejbAuditHashMap = new HashMap<String, Object>();
+
+        populateAuditEJBHashMap(request, ejbAuditHashMap);
 
         Object bean = request.getBeanInstance();
         EnterpriseBean ejb = null;

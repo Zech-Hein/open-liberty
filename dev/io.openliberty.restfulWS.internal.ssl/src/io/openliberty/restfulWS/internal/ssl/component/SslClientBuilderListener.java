@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,8 +19,9 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.ClientBuilder;
 
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -34,10 +37,10 @@ import com.ibm.wsspi.ssl.SSLSupport;
 import io.openliberty.org.jboss.resteasy.common.client.JAXRSClientConstants;
 import io.openliberty.restfulWS.client.ClientBuilderListener;
 
-@Component(property = { "service.vendor=IBM" })
+@Component(immediate = true, property = { "service.vendor=IBM" }, service = ClientBuilderListener.class)
 public class SslClientBuilderListener implements ClientBuilderListener {
 
-    private JSSEHelper jsseHelper;
+    private static JSSEHelper jsseHelper;
 
     @Reference(name = "SSLSupportService",
                service = SSLSupport.class,
@@ -56,16 +59,19 @@ public class SslClientBuilderListener implements ClientBuilderListener {
     }
 
     @Override
-    public void building(ClientBuilder clientBuilder) {
+    public void building(ClientBuilder clientBuilder) { // for JAX-RS clients
         Object sslRef = clientBuilder.getConfiguration().getProperty(JAXRSClientConstants.SSL_REFKEY);
         try {
-            getSSLContext(toString(sslRef)).ifPresent(clientBuilder::sslContext);
+            SSLContext sslContext = ((ResteasyClientBuilder) clientBuilder).getSSLContext();
+            if (sslContext == null) {
+                getSSLContext(toRefString(sslRef)).ifPresent(clientBuilder::sslContext);
+            }
         } catch (SSLException ex) {
             throw new IllegalStateException(ex);
         }
     }
 
-    private Optional<SSLContext> getSSLContext(String sslRef) throws SSLException {
+    static Optional<SSLContext> getSSLContext(String sslRef) throws SSLException {
         if (jsseHelper == null) {
             return Optional.empty();
         }
@@ -91,7 +97,7 @@ public class SslClientBuilderListener implements ClientBuilderListener {
         }
     }
 
-    private String toString(Object o) {
+    static String toRefString(Object o) {
         if (o instanceof Supplier) {
             o = ((Supplier<?>)o).get();
         }

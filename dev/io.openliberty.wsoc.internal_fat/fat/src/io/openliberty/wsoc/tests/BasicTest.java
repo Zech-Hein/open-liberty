@@ -1,14 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2021 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package io.openliberty.wsoc.tests;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 
 import java.io.File;
 import java.util.logging.Logger;
@@ -33,6 +39,9 @@ import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.EmptyAction;
+import componenttest.rules.repeater.JakartaEE10Action;
+import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.HttpUtils;
 import io.openliberty.wsoc.tests.all.AnnotatedTest;
@@ -134,7 +143,7 @@ public class BasicTest {
         }
 
         if (LS != null && LS.isStarted()) {
-            LS.stopServer("CWWKH0023E", "CWWKH0020E", "CWWKH0039E", "CWWKH0040E", "SRVE8115W", "SRVE0190E");
+            LS.stopServer("CWWKH0023E", "CWWKH0020E", "CWWKH0039E", "CWWKH0040E", "SRVE8115W", "SRVE0190E", "SRVE0777E", "SRVE0315E", "SRVE8094W");
         }
         bwst.tearDown();
     }
@@ -214,6 +223,31 @@ public class BasicTest {
         };
         WebBrowser browser = WebBrowserFactory.getInstance().createWebBrowser((File) null);
         this.verifyResponse(browser, "/basic/URIOverlapping.html", expectedInResponse);
+    }
+
+    @Mode(TestMode.FULL)
+    // We expect to see an IllegalStateException due to invalid state when deploying endpoint.addsclosed
+    // We also expect to see java.io.IOException: Stream is closed when the request fails to process due to the IllegalStateException
+    // for why we are using AllowedFFDC instead of ExpectedFFDC - see comment #1 at the top of the file
+    @AllowedFFDC(value = { "java.lang.IllegalStateException", "java.io.IOException" }, repeatAction = { EmptyAction.ID, JakartaEE9Action.ID })
+    // We allow the FFDC due to "Websocket request processed but provided upgrade header "null" does not match websocket" when upgrading request
+    @AllowedFFDC({ "java.lang.Exception" })
+    @Test
+    public void testAddEndpointOutisdeDeploymentPhase() throws Exception {
+        // New test for WebSocket 2.1 change to allow adding endpoints outside of initialization/deployment phase of web application https://github.com/jakartaee/websocket/issues/211
+        
+        // Call to open the connection to the servlet. Need to add getResponseCode to actually complete the connection but test doesn't care about the response
+        // We just check the logs for the expected new endpoint added or not
+        HttpUtils.getHttpConnectionWithAnyResponseCode(LS, "/basic/addEndpoint").getResponseCode();
+        
+        // This test causes SRVE0777E: Exception thrown by application class ServerContainerExt.addEndpoint which is expected
+        // Also cause SRVE0315E An exception occurred: java.lang.Throwable: java.lang.IllegalStateException: endpoint.addsclosed also expected
+        // and SRVE8094W WARNING: Cannot set header. Response already committed to show up
+        if(JakartaEE10Action.isActive()){
+            assertNotNull("Endpoint should have been added!", LS.waitForStringInLog("CWWKH0046I: Adding a WebSocket ServerEndpoint with the following URI: /newEchoEndpointAdded"));
+        }else{
+            assertNull("Endpoint should NOT have been added!", LS.waitForStringInLog("CWWKH0046I: Adding a WebSocket ServerEndpoint with the following URI: /newEchoEndpointAdded"));
+        }
     }
 
     @Mode(TestMode.FULL)
@@ -823,14 +857,26 @@ public class BasicTest {
 
     @Mode(TestMode.FULL)
     @Test
-    public void TestPathParamOnOpenAndTestOnClose() throws Exception {
-        ppt.TestOnOpenAndTestOnClose();
+    public void TestPathParamOnOpen() throws Exception {
+        ppt.TestPathParamOnOpen();
     }
 
     @Mode(TestMode.FULL)
     @Test
-    public void TestSSCPathParamOnOpenAndTestOnClose() throws Exception {
-        this.runAsLSAndVerifyResponse("PathParamTest", "TestOnOpenAndTestOnClose");
+    public void TestPathParamOnClose() throws Exception {
+        ppt.TestPathParamOnClose();
+    }
+
+    @Mode(TestMode.FULL)
+    @Test
+    public void TestSSCPathParamOnOpen() throws Exception {
+        this.runAsLSAndVerifyResponse("PathParamTest", "TestPathParamOnOpen");
+    }
+
+    @Mode(TestMode.FULL)
+    @Test
+    public void TestSSCPathParamOnClose() throws Exception {
+        this.runAsLSAndVerifyResponse("PathParamTest", "TestPathParamOnClose");
     }
 
     /*

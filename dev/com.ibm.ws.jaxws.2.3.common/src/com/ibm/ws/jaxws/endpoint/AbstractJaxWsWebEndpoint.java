@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,6 +17,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -38,13 +44,21 @@ import org.apache.cxf.transport.servlet.BaseUrlHelper;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.jaxws.JaxWsConstants;
+
+import org.apache.cxf.ext.logging.LoggingFeature;
+import org.apache.cxf.feature.Feature;
+
 import com.ibm.ws.jaxws.metadata.EndpointInfo;
 import com.ibm.ws.jaxws.metadata.JaxWsModuleMetaData;
 import com.ibm.ws.jaxws.support.JaxWsInstanceManager;
 import com.ibm.ws.jaxws.support.JaxWsInstanceManager.InterceptException;
 import com.ibm.ws.jaxws.support.LibertyJaxWsCompatibleWSDLGetInterceptor;
+import com.ibm.ws.jaxws.support.LibertyLoggingInInterceptor;
+import com.ibm.ws.jaxws.support.LibertyLoggingOutInterceptor;
 import com.ibm.ws.jaxws.utils.JaxWsUtils;
 import com.ibm.ws.jaxws.utils.StringUtils;
+import org.apache.cxf.ext.logging.LoggingFeature;
+import org.apache.cxf.Bus;
 
 public abstract class AbstractJaxWsWebEndpoint implements JaxWsWebEndpoint {
 
@@ -141,7 +155,58 @@ public abstract class AbstractJaxWsWebEndpoint implements JaxWsWebEndpoint {
     }
 
     protected void enableLogging(EndpointInfo libertyEndpointInfo) {
-        // Replaced by FeatureLogging for jaxws-2.3 and xmlWS-3.0 
+        Map<String, String> endpointProperties = libertyEndpointInfo.getEndpointProperties();
+
+        if (null != endpointProperties && Boolean.valueOf(endpointProperties.get(JaxWsConstants.ENABLE_lOGGINGINOUTINTERCEPTOR))) {
+            // If we're here we know this property is set in the config and is true. We enable pretty logging of the SOAP Message
+            // by LibertyLoggingIn(Out)Interceptors
+            // TODO Create a way of enabling and disabling logging for individual endpoints. 
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, JaxWsConstants.ENABLE_lOGGINGINOUTINTERCEPTOR
+                             + " has been enabled, enabling SOAP Message Logging with the LibertyLoggingInInterceptor and LibertyLoggingOutInterceptor");
+            }
+            
+            if(this.jaxWsModuleMetaData != null) {
+   
+                if( jaxWsModuleMetaData.getServerMetaData().getServerBus() != null ) {
+
+                    Bus bus = jaxWsModuleMetaData.getServerMetaData().getServerBus();
+                
+                    Collection<Feature> featureList = bus.getFeatures();
+                
+                    if( !featureList.contains(LoggingFeature.class)) {
+                        LoggingFeature loggingFeature = new LoggingFeature();
+
+                    
+                        if (!featureList.contains(loggingFeature)) {
+                            loggingFeature.setPrettyLogging(true);
+                            loggingFeature.initialize(bus);
+                            featureList.add(loggingFeature);
+                            bus.setFeatures(featureList);
+                        }
+                        
+                    }
+                } else if ( jaxWsModuleMetaData.getClientMetaData() != null ) {
+                    Bus bus = jaxWsModuleMetaData.getClientMetaData().getClientBus();
+                    
+                    Collection<Feature> featureList = bus.getFeatures();
+                    
+                    if(!featureList.contains(LoggingFeature.class)) {
+                        LoggingFeature loggingFeature = new LoggingFeature();
+
+                        
+                        if (!featureList.contains(loggingFeature)) {
+                            loggingFeature.setPrettyLogging(true);
+                            loggingFeature.initialize(bus);
+                            
+                            featureList.add(loggingFeature);
+                            bus.setFeatures(featureList);
+                        }
+                    }
+                }
+            } 
+
+        }
     }
 
     public AbstractHTTPDestination getDestination() {
@@ -161,10 +226,22 @@ public abstract class AbstractJaxWsWebEndpoint implements JaxWsWebEndpoint {
      * {@inheritDoc}
      */
     @Override
-    public void invoke(HttpServletRequest request, HttpServletResponse response) throws ServletException {
+    public void invoke(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
         try {
             updateDestination(request);
-            destination.invoke(servletConfig, servletConfig.getServletContext(), request, response);
+            final HttpServletRequest req = request;
+            final HttpServletResponse resp = response;
+            try {
+                AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
+                    @Override
+                    public Void run() throws IOException {
+                        destination.invoke(servletConfig, servletConfig.getServletContext(), req, resp);
+                        return null;
+                    }
+                });
+            } catch (PrivilegedActionException pae) {
+                throw (IOException) pae.getException();
+            }
         } catch (IOException e) {
             throw new ServletException(e);
         }
@@ -186,7 +263,7 @@ public abstract class AbstractJaxWsWebEndpoint implements JaxWsWebEndpoint {
 
     /**
      * Configure common endpoint properties
-     * 
+     *
      * @param endpointInfo
      */
     protected void configureEndpointInfoProperties(EndpointInfo libertyEndpointInfo, org.apache.cxf.service.model.EndpointInfo cxfEndpointInfo) {
@@ -249,7 +326,7 @@ public abstract class AbstractJaxWsWebEndpoint implements JaxWsWebEndpoint {
 
     /**
      * Calculate the base URL based on the HttpServletRequest instance
-     * 
+     *
      * @param request
      * @return
      */
@@ -264,7 +341,7 @@ public abstract class AbstractJaxWsWebEndpoint implements JaxWsWebEndpoint {
         if (!"/".equals(pathInfo) || reqPrefix.endsWith("/")) {
             StringBuilder sb = new StringBuilder();
             // request.getScheme(), request.getLocalName() and request.getLocalPort()
-            // should be marginally cheaper - provided request.getLocalName() does 
+            // should be marginally cheaper - provided request.getLocalName() does
             // return the actual name used in request URI as opposed to localhost
             // consistently across the Servlet stacks
 

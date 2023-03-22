@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020,2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -119,7 +121,7 @@ public abstract class CAContainer extends GenericContainer<CAContainer> {
 	 */
 	public byte[] getAcmeCaIntermediateCertificate() throws Exception {
 		final String METHOD_NAME = "getAcmeCaIntermediateCertificate()";
-		String url = "https://" + this.getContainerIpAddress() + ":" + this.getMappedPort(dnsManagementPort)
+		String url = "https://" + this.getHost() + ":" + this.getMappedPort(dnsManagementPort)
 				+ "/intermediates/0";
 
 		try (CloseableHttpClient httpclient = AcmeFatUtils.getInsecureHttpsClient()) {
@@ -158,7 +160,7 @@ public abstract class CAContainer extends GenericContainer<CAContainer> {
 	 */
 	public byte[] getAcmeCaRootCertificate() throws Exception {
 		final String METHOD_NAME = "getAcmeCaRootCertificate()";
-		String url = "https://" + this.getContainerIpAddress() + ":" + this.getMappedPort(dnsManagementPort)
+		String url = "https://" + this.getHost() + ":" + this.getMappedPort(dnsManagementPort)
 				+ "/roots/0";
 
 		try (CloseableHttpClient httpclient = AcmeFatUtils.getInsecureHttpsClient()) {
@@ -198,7 +200,7 @@ public abstract class CAContainer extends GenericContainer<CAContainer> {
 	 */
 	public String getAcmeCertificateStatus(X509Certificate certificate) throws Exception {
 		final String METHOD_NAME = "getAcmeCertificateStatus()";
-		String url = "https://" + this.getContainerIpAddress() + ":" + this.getMappedPort(dnsManagementPort)
+		String url = "https://" + this.getHost() + ":" + this.getMappedPort(dnsManagementPort)
 				+ "/cert-status-by-serial/" + certificate.getSerialNumber().toString(16);
 
 		try (CloseableHttpClient httpclient = AcmeFatUtils.getInsecureHttpsClient()) {

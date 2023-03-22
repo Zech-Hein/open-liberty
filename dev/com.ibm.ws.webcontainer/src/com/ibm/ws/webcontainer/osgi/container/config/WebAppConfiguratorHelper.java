@@ -1,12 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2020 IBM Corporation and others.
+ * Copyright (c) 2011, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 //  CHANGE HISTORY
 //    Defect | Issue   Date            Modified By             Description
@@ -27,6 +26,7 @@ import java.util.Dictionary;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.security.RunAs;
 import javax.servlet.DispatcherType;
 import javax.servlet.MultipartConfigElement;
+import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebListener;
@@ -60,6 +61,7 @@ import com.ibm.ws.injectionengine.osgi.util.OSGiJNDIEnvironmentRefBindingHelper;
 import com.ibm.ws.javaee.dd.DeploymentDescriptor;
 import com.ibm.ws.javaee.dd.common.AdministeredObject;
 import com.ibm.ws.javaee.dd.common.ConnectionFactory;
+import com.ibm.ws.javaee.dd.common.ContextService;
 import com.ibm.ws.javaee.dd.common.DataSource;
 import com.ibm.ws.javaee.dd.common.Description;
 import com.ibm.ws.javaee.dd.common.DescriptionGroup;
@@ -72,6 +74,9 @@ import com.ibm.ws.javaee.dd.common.JMSDestination;
 import com.ibm.ws.javaee.dd.common.JNDIEnvironmentRef;
 import com.ibm.ws.javaee.dd.common.Listener;
 import com.ibm.ws.javaee.dd.common.MailSession;
+import com.ibm.ws.javaee.dd.common.ManagedExecutor;
+import com.ibm.ws.javaee.dd.common.ManagedScheduledExecutor;
+import com.ibm.ws.javaee.dd.common.ManagedThreadFactory;
 import com.ibm.ws.javaee.dd.common.MessageDestinationRef;
 import com.ibm.ws.javaee.dd.common.ParamValue;
 import com.ibm.ws.javaee.dd.common.PersistenceContextRef;
@@ -82,6 +87,7 @@ import com.ibm.ws.javaee.dd.common.ResourceRef;
 import com.ibm.ws.javaee.dd.common.wsclient.ServiceRef;
 import com.ibm.ws.javaee.dd.web.WebApp;
 import com.ibm.ws.javaee.dd.web.WebFragment;
+import com.ibm.ws.javaee.dd.web.common.AttributeValue;
 import com.ibm.ws.javaee.dd.web.common.CookieConfig;
 import com.ibm.ws.javaee.dd.web.common.Filter;
 import com.ibm.ws.javaee.dd.web.common.FilterMapping;
@@ -112,12 +118,16 @@ import com.ibm.ws.webcontainer.metadata.ResourceRefImpl;
 import com.ibm.ws.webcontainer.metadata.ServiceRefImpl;
 import com.ibm.ws.webcontainer.osgi.container.config.merge.AdministeredObjectComparator;
 import com.ibm.ws.webcontainer.osgi.container.config.merge.ConnectionFactoryComparator;
+import com.ibm.ws.webcontainer.osgi.container.config.merge.ContextServiceComparator;
 import com.ibm.ws.webcontainer.osgi.container.config.merge.DataSourceComparator;
 import com.ibm.ws.webcontainer.osgi.container.config.merge.EJBRefComparator;
 import com.ibm.ws.webcontainer.osgi.container.config.merge.EnvEntryComparator;
 import com.ibm.ws.webcontainer.osgi.container.config.merge.JMSConnectionFactoryComparator;
 import com.ibm.ws.webcontainer.osgi.container.config.merge.JMSDestinationComparator;
 import com.ibm.ws.webcontainer.osgi.container.config.merge.MailSessionComparator;
+import com.ibm.ws.webcontainer.osgi.container.config.merge.ManagedExecutorComparator;
+import com.ibm.ws.webcontainer.osgi.container.config.merge.ManagedScheduledExecutorComparator;
+import com.ibm.ws.webcontainer.osgi.container.config.merge.ManagedThreadFactoryComparator;
 import com.ibm.ws.webcontainer.osgi.container.config.merge.MessageDestinationRefComparator;
 import com.ibm.ws.webcontainer.osgi.container.config.merge.PersistenceContextRefComparator;
 import com.ibm.ws.webcontainer.osgi.container.config.merge.PersistenceUnitRefComparator;
@@ -179,12 +189,20 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
     private static final ConnectionFactoryComparator CF_COMPARATOR = new ConnectionFactoryComparator();
     
     private static final AdministeredObjectComparator ADMINISTERED_OBJECT_COMPARATOR = new AdministeredObjectComparator();
-    
+
+    private static final ContextServiceComparator CONTEXT_SERVICE_COMPARATOR = new ContextServiceComparator();
+
     private static final JMSConnectionFactoryComparator JMS_CF_COMPARATOR = new JMSConnectionFactoryComparator();
     
     private static final JMSDestinationComparator JMS_DESTINATION_COMPARATOR = new JMSDestinationComparator();
 
-    private final ServletConfigurator configurator;
+    private static final ManagedExecutorComparator MANAGED_EXECUTOR_COMPARATOR = new ManagedExecutorComparator();
+
+    private static final ManagedScheduledExecutorComparator MANAGED_SCHEDULED_EXECUTOR_COMPARATOR = new ManagedScheduledExecutorComparator();
+
+    private static final ManagedThreadFactoryComparator MANAGED_THREAD_FACTORY_COMPARATOR = new ManagedThreadFactoryComparator();
+
+    protected final ServletConfigurator configurator;
 
     private final List<Class<?>> listenerInterfaces;
     
@@ -222,7 +240,9 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
      */
     public static int getVersionId(String version) throws IllegalStateException {
         int versionID = 0;
-        if ("5.0".equals(version)) {
+        if ("6.0".equals(version)) {
+            versionID = 60;
+        }else if ("5.0".equals(version)) {
             versionID = 50;
         }else if ("4.0".equals(version)) {
             versionID = 40;
@@ -272,6 +292,10 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
     public static boolean isServletSpecLevel31OrHigher() {
         return ( getServletSpecLevel() >= com.ibm.ws.webcontainer.osgi.WebContainer.SPEC_LEVEL_31 );
     }    
+
+    public static boolean isServletSpecLevel50orLower() {
+        return ( getServletSpecLevel() <= com.ibm.ws.webcontainer.osgi.WebContainer.SPEC_LEVEL_50 );
+    }   
 
     /**
      * Answer the default version level.  Used to assign the version ID to a
@@ -496,13 +520,42 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
 
         // PI05845 end
 
-        public SessionCookieConfigImpl getSessionCookieConfig() {
-            SessionCookieConfigImpl sessionCookieConfigImpl = config.getSessionCookieConfig();
+        /*
+         * Servlet 6.0 - refactor to support new SessionCookieConfig APIs
+         */
+        public SessionCookieConfig getSessionCookieConfig() {
+
+            SessionCookieConfig sessionCookieConfigImpl = config.getSessionCookieConfig();
             if (sessionCookieConfigImpl == null) {
-                sessionCookieConfigImpl = new SessionCookieConfigImpl();
-                config.setSessionCookieConfig(sessionCookieConfigImpl);
+                if (isServletSpecLevel50orLower()) {    // For Servlet 6.0 - WebAppConfiguratorHelper60 will create it
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                        Tr.debug(tc, "getSessionCookieConfig was null; created new scc for <= servlet 5.0");
+                    }  
+                    sessionCookieConfigImpl = new SessionCookieConfigImpl();
+                    setSessionCookieConfig(sessionCookieConfigImpl);
+                }
             }
+            
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "getSessionCookieConfig return [{0}]", sessionCookieConfigImpl );
+            } 
             return sessionCookieConfigImpl;
+        }
+
+        /*
+         * since Servlet 6.0: support new SessionCookieConfig APIs
+         */
+        public void setSessionCookieConfig(SessionCookieConfig scc) {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "setSessionCookieConfig [{0}]", scc);
+            } 
+
+            config.setSessionCookieConfig(scc);
+        }
+        
+        //Servlet 6.0 - skip checking for %23 , %2e , %2f , %5c in URI
+        public void setSkipEncodedCharVerification() {
+            config.setSkipEncodedCharVerification();
         }
 
         public void cacheResults(ServletConfigurator configurator) {
@@ -778,8 +831,12 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
         configureEJBRefs(webApp.getEJBRefs());
         configureEJBLocalRefs(webApp.getEJBLocalRefs());
         configureConnectionFactories(webApp.getConnectionFactories());
+        configureContextServices(webApp.getContextServices());
         configureJMSConnectionFactories(webApp.getJMSConnectionFactories());
         configureJMSDestinations(webApp.getJMSDestinations());
+        configureManagedExecutors(webApp.getManagedExecutors());
+        configureManagedScheduledExecutors(webApp.getManagedScheduledExecutors());
+        configureManagedThreadFactories(webApp.getManagedThreadFactories());
         
         configureAdministeredObjects(webApp.getAdministeredObjects());
         // filter & filter-mapping
@@ -806,7 +863,11 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
         configureMessageDestinationRefs(webFragment.getMessageDestinationRefs());
         configurePersistenceUnitRefs(webFragment.getPersistenceUnitRefs());
         configurePersistenceContextRefs(webFragment.getPersistenceContextRefs());
+        configureContextServices(webFragment.getContextServices());
         configureDataSources(webFragment.getDataSources());
+        configureManagedExecutors(webFragment.getManagedExecutors());
+        configureManagedScheduledExecutors(webFragment.getManagedScheduledExecutors());
+        configureManagedThreadFactories(webFragment.getManagedThreadFactories());
         configureServiceRefs(webFragment.getServiceRefs());
         configureEJBRefs(webFragment.getEJBRefs());
         configureEJBLocalRefs(webFragment.getEJBLocalRefs());
@@ -1445,7 +1506,37 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
             }
         }
     }
-   
+
+    private void configureContextServices(List<ContextService> contextServices) {
+        Map<String, ConfigItem<ContextService>> configItemMap = configurator.getConfigItemMap("context-service");
+        for (ContextService contextService : contextServices) {
+            String name = contextService.getName();
+            if (name == null) {
+                continue;
+            }
+            ConfigItem<ContextService> existed = configItemMap.get(name);
+            if (existed == null) {
+                configItemMap.put(name, createConfigItem(contextService, CONTEXT_SERVICE_COMPARATOR));
+                webAppConfiguration.addRef(JNDIEnvironmentRefType.ContextService, contextService);
+            } else {
+                if (existed.getSource() == ConfigSource.WEB_XML && configurator.getConfigSource() == ConfigSource.WEB_FRAGMENT) {
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                        Tr.debug(this, tc, "context-service.name with value " + existed.getValue() +
+                                 " is configured in web.xml, the value " + name + " from web-fragment.xml in " +
+                                        configurator.getLibraryURI() + " is ignored");
+                    }
+                } else if (existed.getSource() == ConfigSource.WEB_FRAGMENT && configurator.getConfigSource() == ConfigSource.WEB_FRAGMENT
+                           && !existed.compareValue(contextService)) {
+                    configurator.addErrorMessage(Tr.formatMessage(tc, "WEB_FRAGMENT_XML_RESOURCE_CONFLICT",
+                                                                  "context-service",
+                                                                  name,
+                                                                  existed.getLibraryURI(),
+                                                                  configurator.getLibraryURI()));
+                }
+            }
+        }
+    }
+
     /**
      * To configure JMS ConnectionFactory
      * @param jmsConnFactories
@@ -1514,7 +1605,97 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
             }
         }
     }
-    
+
+    private void configureManagedExecutors(List<ManagedExecutor> executors) {
+        Map<String, ConfigItem<ManagedExecutor>> configItemMap = configurator.getConfigItemMap("managed-executor");
+        for (ManagedExecutor executor : executors) {
+            String name = executor.getName();
+            if (name == null) {
+                continue;
+            }
+            ConfigItem<ManagedExecutor> existed = configItemMap.get(name);
+            if (existed == null) {
+                configItemMap.put(name, createConfigItem(executor, MANAGED_EXECUTOR_COMPARATOR));
+                webAppConfiguration.addRef(JNDIEnvironmentRefType.ManagedExecutor, executor);
+            } else {
+                if (existed.getSource() == ConfigSource.WEB_XML && configurator.getConfigSource() == ConfigSource.WEB_FRAGMENT) {
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                        Tr.debug(this, tc, "managed-executor.name with value " + existed.getValue() +
+                                 " is configured in web.xml, the value " + name + " from web-fragment.xml in " +
+                                        configurator.getLibraryURI() + " is ignored");
+                    }
+                } else if (existed.getSource() == ConfigSource.WEB_FRAGMENT && configurator.getConfigSource() == ConfigSource.WEB_FRAGMENT
+                           && !existed.compareValue(executor)) {
+                    configurator.addErrorMessage(Tr.formatMessage(tc, "WEB_FRAGMENT_XML_RESOURCE_CONFLICT",
+                                                                  "managed-executor",
+                                                                  name,
+                                                                  existed.getLibraryURI(),
+                                                                  configurator.getLibraryURI()));
+                }
+            }
+        }
+    }
+
+    private void configureManagedScheduledExecutors(List<ManagedScheduledExecutor> executors) {
+        Map<String, ConfigItem<ManagedScheduledExecutor>> configItemMap = configurator.getConfigItemMap("managed-scheduled-executor");
+        for (ManagedScheduledExecutor executor : executors) {
+            String name = executor.getName();
+            if (name == null) {
+                continue;
+            }
+            ConfigItem<ManagedScheduledExecutor> existed = configItemMap.get(name);
+            if (existed == null) {
+                configItemMap.put(name, createConfigItem(executor, MANAGED_SCHEDULED_EXECUTOR_COMPARATOR));
+                webAppConfiguration.addRef(JNDIEnvironmentRefType.ManagedScheduledExecutor, executor);
+            } else {
+                if (existed.getSource() == ConfigSource.WEB_XML && configurator.getConfigSource() == ConfigSource.WEB_FRAGMENT) {
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                        Tr.debug(this, tc, "managed-scheduled-executor.name with value " + existed.getValue() +
+                                 " is configured in web.xml, the value " + name + " from web-fragment.xml in " +
+                                        configurator.getLibraryURI() + " is ignored");
+                    }
+                } else if (existed.getSource() == ConfigSource.WEB_FRAGMENT && configurator.getConfigSource() == ConfigSource.WEB_FRAGMENT
+                           && !existed.compareValue(executor)) {
+                    configurator.addErrorMessage(Tr.formatMessage(tc, "WEB_FRAGMENT_XML_RESOURCE_CONFLICT",
+                                                                  "managed-scheduled-executor",
+                                                                  name,
+                                                                  existed.getLibraryURI(),
+                                                                  configurator.getLibraryURI()));
+                }
+            }
+        }
+    }
+
+    private void configureManagedThreadFactories(List<ManagedThreadFactory> threadFactories) {
+        Map<String, ConfigItem<ManagedThreadFactory>> configItemMap = configurator.getConfigItemMap("managed-thread-factory");
+        for (ManagedThreadFactory threadFactory : threadFactories) {
+            String name = threadFactory.getName();
+            if (name == null) {
+                continue;
+            }
+            ConfigItem<ManagedThreadFactory> existed = configItemMap.get(name);
+            if (existed == null) {
+                configItemMap.put(name, createConfigItem(threadFactory, MANAGED_THREAD_FACTORY_COMPARATOR));
+                webAppConfiguration.addRef(JNDIEnvironmentRefType.ManagedThreadFactory, threadFactory);
+            } else {
+                if (existed.getSource() == ConfigSource.WEB_XML && configurator.getConfigSource() == ConfigSource.WEB_FRAGMENT) {
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                        Tr.debug(this, tc, "managed-thread-factory.name with value " + existed.getValue() +
+                                 " is configured in web.xml, the value " + name + " from web-fragment.xml in " +
+                                        configurator.getLibraryURI() + " is ignored");
+                    }
+                } else if (existed.getSource() == ConfigSource.WEB_FRAGMENT && configurator.getConfigSource() == ConfigSource.WEB_FRAGMENT
+                           && !existed.compareValue(threadFactory)) {
+                    configurator.addErrorMessage(Tr.formatMessage(tc, "WEB_FRAGMENT_XML_RESOURCE_CONFLICT",
+                                                                  "managed-thread-factory",
+                                                                  name,
+                                                                  existed.getLibraryURI(),
+                                                                  configurator.getLibraryURI()));
+                }
+            }
+        }
+    }
+
     private void configureEJBRefs(List<EJBRef> ejbRefs) {
         Map<String, ConfigItem<EJBRef>> ejbRefConfigItemMap = configurator.getConfigItemMap("ejb-ref");
         Set<String> additiveEJBRefNames = configurator.getContextSet("ejb-ref-name");
@@ -2404,7 +2585,7 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
             Tr.entry(tc, methodName, "WebAppConfiguration [ " + displayName + " ]");
         }        
-        
+
         WebAnnotations webAnnotations = configurator.getWebAnnotations();
 
         removeFromRequiredClasses(webServletClassNames, "Servlet");
@@ -2477,9 +2658,13 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
         }                
     }
 
-    private void configureSessionConfig(SessionConfig sessionConfig) {
+    protected void configureSessionConfig(SessionConfig sessionConfig) {
         if (sessionConfig == null) {
             return;
+        }
+        
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.debug(tc, "configureSessionConfig ");
         }
 
         Map<String, ConfigItem<String>> sessionConfigItemMap = configurator.getConfigItemMap("session-config");
@@ -2499,7 +2684,7 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
         CookieConfig cookieConfig = sessionConfig.getCookieConfig();
         if (cookieConfig != null) {
 
-            SessionCookieConfigImpl sessionCookieConfigImpl = webAppConfiguration.getSessionCookieConfig();
+            SessionCookieConfigImpl sessionCookieConfigImpl = (SessionCookieConfigImpl) webAppConfiguration.getSessionCookieConfig();
 
             String cookieComment = cookieConfig.getComment();
             if (cookieComment != null) {
@@ -3186,7 +3371,7 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
     // Convenience methods that forward to the configurator
     //
 
-    private <T> ConfigItem<T> createConfigItem(T value) {
+    protected <T> ConfigItem<T> createConfigItem(T value) {
         return this.configurator.createConfigItem(value);
     }
 
@@ -3194,7 +3379,7 @@ public class WebAppConfiguratorHelper implements ServletConfiguratorHelper {
         return this.configurator.createConfigItem(value, comparator);
     }
 
-    private <T> void validateDuplicateConfiguration(String parentElementName,
+    protected <T> void validateDuplicateConfiguration(String parentElementName,
                                                     String elementName,
                                                     T currentValue,
                                                     ConfigItem<T> existedConfigItem) {

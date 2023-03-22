@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2020 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -93,8 +95,11 @@ public class RecLogServiceImpl {
     /**
      * Driven by the runtime during server startup. This 'hook' is used to perform
      * recovery log service initialization.
+     *
+     * @throws RecoveryFailedException
+     * @throws InternalLogException
      */
-    public void startRecovery(RecoveryLogFactory fac) {
+    public void startRecovery(RecoveryLogFactory fac) throws RecoveryFailedException, InternalLogException {
         if (tc.isEntryEnabled())
             Tr.entry(tc, "startRecovery", fac);
 
@@ -109,14 +114,14 @@ public class RecLogServiceImpl {
                 Tr.debug(tc, "Local recovery failed.");
             if (tc.isEntryEnabled())
                 Tr.exit(tc, "start", "RuntimeError");
-            throw new RuntimeException("Unable to complete local recovery processing", exc);
+            throw exc;
         } catch (InternalLogException ile) {
             FFDCFilter.processException(ile, "com.ibm.ws.recoverylog.spi.RecLogServiceImpl.startRecovery", "478", this);
             if (tc.isDebugEnabled())
                 Tr.debug(tc, "Local recovery not attempted.", ile);
             if (tc.isEntryEnabled())
                 Tr.exit(tc, "start", "RuntimeError");
-            throw new RuntimeException("Unable to complete local recovery processing", ile);
+            throw ile;
         }
 
         startPeerRecovery(director);

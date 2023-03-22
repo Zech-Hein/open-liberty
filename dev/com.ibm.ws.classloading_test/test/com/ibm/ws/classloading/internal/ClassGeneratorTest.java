@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,20 +19,20 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collections;
 
-import junit.framework.Assert;
-
 import org.jmock.Mockery;
 import org.junit.Test;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 
-import test.common.ComponentContextMockery;
-
 import com.ibm.ws.classloading.ClassGenerator;
 import com.ibm.wsspi.adaptable.module.Container;
 
+import junit.framework.Assert;
+import test.common.ComponentContextMockery;
+
 public class ClassGeneratorTest {
-    public static class GeneratedClass {}
+    public static class GeneratedClass {
+    }
 
     @Test
     public void testClassGenerator() throws Exception {
@@ -84,6 +86,10 @@ public class ClassGeneratorTest {
         } catch (ClassNotFoundException e) {
             // expected.
         }
+
+        // ClassGenerator has not been added, so this load should fail by returning null
+        // since using the loadClassNoException method.
+        Assert.assertNull(loader.loadClassNoException(GeneratedClass.class.getName()));
 
         service.addGenerator(genRef[0]);
 

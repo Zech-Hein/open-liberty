@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2020 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -54,8 +56,6 @@ public class JWKProvider {
     protected PrivateKey privateKey = null;
 
     protected String publicKeyKid = null;
-
-    private KeyAlgorithmChecker keyAlgChecker = new KeyAlgorithmChecker();
 
     protected JWKProvider() {
         this(DEFAULT_KEY_SIZE, RS256, DEFAULT_ROTATION_TIME);
@@ -142,14 +142,14 @@ public class JWKProvider {
     }
 
     boolean isValidJwkAlgorithm(String alg) {
-        return keyAlgChecker.isRSAlgorithm(alg) || keyAlgChecker.isESAlgorithm(alg);
+        return KeyAlgorithmChecker.isRSAlgorithm(alg) || KeyAlgorithmChecker.isESAlgorithm(alg);
     }
 
     JWK generateJwkForValidAlgorithmWithExistingKeys(String alg, int size, PublicKey publicKey, PrivateKey privateKey) {
         JWK jwk = null;
-        if (keyAlgChecker.isRSAlgorithm(alg)) {
+        if (KeyAlgorithmChecker.isRSAlgorithm(alg)) {
             jwk = generateRsaJwkWithExistingKeys(alg, publicKey, privateKey);
-        } else if (keyAlgChecker.isESAlgorithm(alg)) {
+        } else if (KeyAlgorithmChecker.isESAlgorithm(alg)) {
             jwk = generateEcJwkWithExistingKeys(alg, publicKey, privateKey);
         }
         if (jwk != null) {
@@ -174,9 +174,9 @@ public class JWKProvider {
 
     JWK generateJwkForValidAlgorithm(String alg, int size) {
         JWK jwk = null;
-        if (keyAlgChecker.isRSAlgorithm(alg)) {
+        if (KeyAlgorithmChecker.isRSAlgorithm(alg)) {
             jwk = generateRsaJWK(alg, size);
-        } else if (keyAlgChecker.isESAlgorithm(alg)) {
+        } else if (KeyAlgorithmChecker.isESAlgorithm(alg)) {
             jwk = generateEcJwk(alg);
         }
         return jwk;

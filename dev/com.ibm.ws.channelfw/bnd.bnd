@@ -1,9 +1,11 @@
 #*******************************************************************************
 # Copyright (c) 2021 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -25,7 +27,9 @@ IBM-Default-Config: OSGI-INF/wlp/defaultInstances.xml
 # file, and place an @version javadoc tag in package-level javadoc. 
 # Append ";provide:=true" if this bundle also provides an implementation
 # for the exported API.
-Export-Package: com.ibm.websphere.channelfw*;provide:=true, \
+
+# The tcp/udp internal packages are needed by OSGi for *ChannelFactory::active
+Export-Package: com.ibm.websphere.channelfw*;-split-package:=merge-last; provide:=true, \
 	com.ibm.wsspi.channelfw*;provide:=true, \
 	com.ibm.wsspi.connmgmt;provide:=true, \
 	com.ibm.wsspi.tcpchannel;provide:=true, \
@@ -46,7 +50,7 @@ Private-Package: com.ibm.io.async, \
 	com.ibm.ws.tcpchannel.internal.resources, \
 	com.ibm.ws.udpchannel.internal, \
 	com.ibm.ws.udpchannel.internal.resources
-	
+
 Include-Resource: \
     OSGI-INF=resources/OSGI-INF
 
@@ -85,7 +89,9 @@ instrument.disabled: true
 	com.ibm.ws.kernel.security.thread,\
 	com.ibm.ws.kernel.boot.core;version=latest, \
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest, \
-	com.ibm.ws.wsbytebuffer
+	com.ibm.ws.wsbytebuffer, \
+	io.openliberty.endpoint, \
+	io.openliberty.accesslists.internal
 
 #  <property name="unittest.prop.com.ibm.ws.logging.exception.log.enabled" value="false" />
 #  file /dev/com.ibm.ws.channelfw/unittestports.properties

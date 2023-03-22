@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,6 +29,8 @@ import java.util.Set;
 
 import javax.security.auth.Subject;
 
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.keys.HmacKey;
 import org.osgi.service.component.ComponentContext;
 
@@ -42,8 +46,9 @@ import com.ibm.oauth.core.internal.oauth20.tokentype.OAuth20TokenTypeHandler;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Sensitive;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
+import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.security.SecurityService;
 import com.ibm.ws.security.common.claims.UserClaims;
 import com.ibm.ws.security.common.claims.UserClaimsRetrieverService;
@@ -67,6 +72,8 @@ import com.ibm.ws.webcontainer.security.jwk.JSONWebKey;
 import com.ibm.ws.webcontainer.security.openidconnect.OidcServerConfig;
 import com.ibm.wsspi.security.openidconnect.IDTokenMediator;
 
+import io.openliberty.security.common.jwt.JwtParsingUtils;
+
 /*
  * This is a singleton instance.
  * Do not use it for multiple instance
@@ -85,6 +92,8 @@ public class IDTokenHandler implements OAuth20TokenTypeHandler {
 
     private static final int IDTOKEN_LIFETIME_DEFAULT = 7200;
     private volatile SecurityService securityService;
+
+    private static boolean issuedBetaMessage = false;
 
     /** {@inheritDoc} */
     @Override
@@ -123,6 +132,7 @@ public class IDTokenHandler implements OAuth20TokenTypeHandler {
         String stateId = getStateId(tokenMap);
         String[] scopes = tokenMap.get(OAuth20Constants.SCOPE);
         String grantType = OAuth20Util.getValueFromMap(OAuth20Constants.GRANT_TYPE, tokenMap);
+        String thirdPartyIDToken = OAuth20Util.getValueFromMap(OAuth20Constants.THIRD_PARTY_ID_TOKEN, tokenMap);
 
         OidcServerConfig oidcServerConfig = OIDCProvidersConfig.getOidcServerConfigForOAuth20Provider(componentId);
         int lifetime = getLifetime(oidcServerConfig);
@@ -130,7 +140,7 @@ public class IDTokenHandler implements OAuth20TokenTypeHandler {
         String signatureAlgorithm = oidcServerConfig.getSignatureAlgorithm();
 
         if ("none".equals(signatureAlgorithm)) {// no need to sign
-            Payload payload = createPayload(tokenMap, oidcServerConfig);
+            Payload payload = createPayload(tokenMap, thirdPartyIDToken, oidcServerConfig);
             Object signingKey = getSigningKey(signatureAlgorithm, sharedKey, oidcServerConfig);
             idTokenString = createIdTokenAsString(payload, signatureAlgorithm, signingKey, accessToken);
         } else {
@@ -170,9 +180,9 @@ public class IDTokenHandler implements OAuth20TokenTypeHandler {
             }
 
             if (jsonFromSpi == null) {
-                Map<String, Object> userClaims = getCustomClaims(tokenMap, oidcServerConfig);
+                Map<String, Object> customClaims = getCustomClaims(tokenMap, thirdPartyIDToken, oidcServerConfig);
                 if (accessTokenHash != null) {
-                    userClaims.put(AT_HASH, accessTokenHash);
+                    customClaims.put(AT_HASH, accessTokenHash);
                 }
                 OAuth20Provider oauth20Provider = ProvidersService.getOAuth20Provider(componentId);
                 boolean useMicroProfileTokenFormat = false;//oauth20Provider == null? false: oauth20Provider.isMpJwt(); //Aruna TODO:
@@ -183,7 +193,7 @@ public class IDTokenHandler implements OAuth20TokenTypeHandler {
                                                              scopes,
                                                              lifetime,
                                                              tokenMap,
-                                                             userClaims,
+                                                             customClaims,
                                                              jwtData,
                                                              useMicroProfileTokenFormat);
             }
@@ -215,6 +225,12 @@ public class IDTokenHandler implements OAuth20TokenTypeHandler {
         if (idMediators.hasNext()) {
             IDTokenMediator idMediator = idMediators.next();
 
+            // remove third party id token from token map if not running in beta mode
+            // while feature is still being developed (issue 16298)
+            if (tokenMap.containsKey(OAuth20Constants.THIRD_PARTY_ID_TOKEN) && !isRunningBetaMode()) {
+                tokenMap.remove(OAuth20Constants.THIRD_PARTY_ID_TOKEN);
+            }
+
             idStr = idMediator.mediateToken(tokenMap);
         }
         return idStr;
@@ -244,12 +260,12 @@ public class IDTokenHandler implements OAuth20TokenTypeHandler {
         return stateId;
     }
 
-    private Payload createPayload(@Sensitive Map<String, String[]> tokenMap, OidcServerConfig oidcServerConfig) {
+    private Payload createPayload(@Sensitive Map<String, String[]> tokenMap, String thirdPartyToken, OidcServerConfig oidcServerConfig) {
         Payload payload = new Payload();
         addRequiredClaims(payload, tokenMap, oidcServerConfig);
         validateRequiredClaims(payload);
         addOptionalClaims(payload, tokenMap, oidcServerConfig);
-        addCustomClaims(payload, tokenMap, oidcServerConfig);
+        addCustomClaims(payload, tokenMap, thirdPartyToken, oidcServerConfig);
         addExternalClaims(payload, tokenMap);
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "debug:" + payload);
@@ -354,34 +370,82 @@ public class IDTokenHandler implements OAuth20TokenTypeHandler {
         if (oidcServerConfig.isJTIClaimEnabled()) {
             payload.put(JTI_CLAIM, OAuthUtil.getRandom(16));
         }
+        payload.put(OIDCConstants.PAYLOAD_SESSION_ID, JwtCreator.generateSidClaimValue());
     }
 
-    private void addCustomClaims(Payload payload, @Sensitive Map<String, String[]> tokenMap, OidcServerConfig oidcServerConfig) {
-        Map<String, Object> userClaims = getCustomClaims(tokenMap, oidcServerConfig);
-        if (userClaims != null) {
-            payload.putAll(userClaims);
+    private void addCustomClaims(Payload payload, @Sensitive Map<String, String[]> tokenMap, String thirdPartyIDToken, OidcServerConfig oidcServerConfig) {
+        Map<String, Object> customClaims = getCustomClaims(tokenMap, thirdPartyIDToken, oidcServerConfig);
+        if (customClaims != null) {
+            payload.putAll(customClaims);
         }
     }
 
-    private Map<String, Object> getCustomClaims(@Sensitive Map<String, String[]> tokenMap, OidcServerConfig oidcServerConfig) {
+    private Map<String, Object> getCustomClaims(@Sensitive Map<String, String[]> tokenMap, String thirdPartyIDToken, OidcServerConfig oidcServerConfig) {
+        Map<String, Object> customClaims = new HashMap<String, Object>();
         if (oidcServerConfig.isCustomClaimsEnabled()) {
-            UserClaimsRetrieverService userClaimsRetrieverService = ConfigUtils.getUserClaimsRetrieverService();
-            if (userClaimsRetrieverService != null) {
-                String username = OAuth20Util.getValueFromMap(OAuth20Constants.USERNAME, tokenMap);
-                String groupIdentifier = oidcServerConfig.getGroupIdentifier();
-                UserClaims oauthUserClaims = userClaimsRetrieverService.getUserClaims(username, groupIdentifier);
-                if (oauthUserClaims != null) { // userName != null
-                    if (oauthUserClaims.isEnabled()) {
-                        OidcUserClaims oidcUserClaims = new OidcUserClaims(oauthUserClaims);
-                        oidcUserClaims.addExtraClaims(oidcServerConfig);
-                        return oidcUserClaims.asMap();
-                    } else {
-                        return oauthUserClaims.asMap();
-                    }
+            Map<String, Object> userClaims = getUserClaims(tokenMap, oidcServerConfig);
+            customClaims.putAll(userClaims);
+
+            Map<String, Object> thirdPartyClaims = getThirdPartyIDTokenClaims(thirdPartyIDToken, oidcServerConfig);
+            customClaims.putAll(thirdPartyClaims);
+        }
+        return customClaims;
+    }
+
+    private Map<String, Object> getUserClaims(@Sensitive Map<String, String[]> tokenMap, OidcServerConfig oidcServerConfig) {
+        UserClaimsRetrieverService userClaimsRetrieverService = ConfigUtils.getUserClaimsRetrieverService();
+        if (userClaimsRetrieverService != null) {
+            String username = OAuth20Util.getValueFromMap(OAuth20Constants.USERNAME, tokenMap);
+            String groupIdentifier = oidcServerConfig.getGroupIdentifier();
+            UserClaims oauthUserClaims = userClaimsRetrieverService.getUserClaims(username, groupIdentifier);
+            if (oauthUserClaims != null) { // userName != null
+                if (oauthUserClaims.isEnabled()) {
+                    OidcUserClaims oidcUserClaims = new OidcUserClaims(oauthUserClaims);
+                    oidcUserClaims.addExtraClaims(oidcServerConfig);
+                    return oidcUserClaims.asMap();
+                } else {
+                    return oauthUserClaims.asMap();
                 }
             }
         }
         return new HashMap<String, Object>();
+    }
+
+    private Map<String, Object> getThirdPartyIDTokenClaims(String thirdPartyIDToken, OidcServerConfig oidcServerConfig) {
+        Map<String, Object> thirdPartyIDTokenClaims = new HashMap<String, Object>();
+        if (thirdPartyIDToken == null || thirdPartyIDToken.isEmpty()) {
+            return thirdPartyIDTokenClaims;
+        }
+        try {
+            Set<String> allowedThirdPartyIDTokenClaims = oidcServerConfig.getThirdPartyIDTokenClaims();
+            if (!allowedThirdPartyIDTokenClaims.isEmpty() && isRunningBetaMode()) {
+                JwtContext jwtContext = JwtParsingUtils.parseJwtWithoutValidation(thirdPartyIDToken);
+                JwtClaims jwtClaims = jwtContext.getJwtClaims();
+                Map<String, Object> jwtClaimsMap = jwtClaims.getClaimsMap();
+
+                for (String thirdPartyClaim : allowedThirdPartyIDTokenClaims) {
+                    if (jwtClaimsMap.containsKey(thirdPartyClaim)) {
+                        thirdPartyIDTokenClaims.put(thirdPartyClaim, jwtClaimsMap.get(thirdPartyClaim));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Tr.error(tc, "OIDC_SERVER_THIRDPARTY_IDTOKEN_ERROR", new Object[] { oidcServerConfig.getProviderId(), e.getLocalizedMessage() });
+        }
+        return thirdPartyIDTokenClaims;
+    }
+
+    boolean isRunningBetaMode() {
+        if (!ProductInfo.getBetaEdition()) {
+            return false;
+        } else {
+            // Running beta exception, issue message if we haven't already issued one for this class
+            if (!issuedBetaMessage) {
+                Tr.info(tc, "BETA: A beta method has been invoked for the class " + this.getClass().getName() + " for the first time.");
+                issuedBetaMessage = !issuedBetaMessage;
+            }
+            return true;
+        }
     }
 
     @Sensitive

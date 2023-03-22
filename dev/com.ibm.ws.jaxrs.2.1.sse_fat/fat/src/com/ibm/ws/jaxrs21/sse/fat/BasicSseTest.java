@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2021 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,7 @@
 package com.ibm.ws.jaxrs21.sse.fat;
 
 import static componenttest.annotation.SkipForRepeat.EE9_FEATURES;
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -83,7 +86,7 @@ public class BasicSseTest extends FATServletClient {
     }
 
     @Test
-    @SkipForRepeat(EE9_FEATURES) // per spec discussions, only unrecoverable connection-related errors should trigger onError
+    @SkipForRepeat({EE9_FEATURES, EE10_FEATURES}) // per spec discussions, only unrecoverable connection-related errors should trigger onError
     public void testErrorSse() throws Exception {
         runTest(server, SERVLET_PATH, "testErrorSse");
     }

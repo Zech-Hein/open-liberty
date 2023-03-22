@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,7 +13,7 @@
  *
  * The purpose of this class is to test if a Java archive is valid without actually reading the entire JAR.
  * This is especially useful in cases where the archive has a script attached at the front of the file.
- * Of course, this is more of a sanity check than a rigorous validation, which would require reading the whole file.
+ * Of course, this is more of a check than a rigorous validation, which would require reading the whole file.
  * 
  *     [ script ]                   <---- start of file  (optional)
  *     [ local file header 1 ]      <---- actual start of archive

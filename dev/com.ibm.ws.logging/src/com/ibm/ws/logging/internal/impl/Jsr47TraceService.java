@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -46,33 +48,41 @@ public class Jsr47TraceService extends BaseTraceService {
     }
 
     @Override
-    protected void registerLoggerHandlerSingleton() {}
+    protected void registerLoggerHandlerSingleton() {
+    }
 
     @Override
-    protected void unregisterLoggerHandlerSingleton() {}
+    protected void unregisterLoggerHandlerSingleton() {
+    }
 
     /** {@inheritDoc} */
     @Override
     protected void initializeWriters(LogProviderConfigImpl config) {
         if (!WsLogManager.isConfiguredByLoggingProperties()) {
             // createFileLog may or may not return the original log holder..
+            if (config.isRestore()) {
+                messagesLog = null;
+            }
             messagesLog = FileLogHolder.createFileLogHolder(messagesLog,
                                                             null,
                                                             config.getLogDirectory(),
                                                             config.getMessageFileName(),
                                                             config.getMaxFiles(),
                                                             config.getMaxFileBytes(),
-                                                            config.getNewLogsOnStart());
+                                                            config.getNewLogsOnStart(),
+                                                            config.isRestore());
 
             // Always create a traceLog when using Tr -- this file won't actually be
             // created until something is logged to it...
             traceLog = new TraceWriter() {
 
                 @Override
-                public void writeRecord(String record) {}
+                public void writeRecord(String record) {
+                }
 
                 @Override
-                public void close() throws IOException {}
+                public void close() throws IOException {
+                }
             };
         }
     }

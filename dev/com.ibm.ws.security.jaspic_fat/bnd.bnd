@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2020 IBM Corporation and others.
+# Copyright (c) 2020, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -24,7 +26,8 @@ src: \
 
 fat.project: true
 
-tested.features: expressionLanguage-4.0, appsecurity-4.0, servlet-5.0, cdi-3.0, pages-3.0, xmlBinding-3.0, appAuthentication-2.0, appAuthorization-2.0
+tested.features: expressionLanguage-4.0, appsecurity-4.0, servlet-5.0, cdi-3.0, pages-3.0, xmlBinding-3.0, appAuthentication-2.0, appAuthorization-2.0, \
+  expressionLanguage-5.0, appsecurity-5.0, servlet-6.0, cdi-4.0, pages-3.1, appAuthentication-3.0, appAuthorization-2.1
 
 -buildpath: \
     com.ibm.json4j;version=latest,\
@@ -33,7 +36,6 @@ tested.features: expressionLanguage-4.0, appsecurity-4.0, servlet-5.0, cdi-3.0, 
 	com.ibm.websphere.org.osgi.core;version=latest,\
 	com.ibm.websphere.org.osgi.service.component;version=latest,\
 	com.ibm.websphere.security;version=latest,\
-	com.ibm.ws.common.encoder;version=latest,\
 	com.ibm.ws.kernel.service;version=latest,\
 	com.ibm.ws.logging;version=latest,\
     com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
@@ -43,6 +45,5 @@ tested.features: expressionLanguage-4.0, appsecurity-4.0, servlet-5.0, cdi-3.0, 
 	com.ibm.ws.security.jaspic.test;version=latest,\
 	com.ibm.ws.security.token;version=latest,\
 	com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
-	fattest.simplicity;version=latest,\
 	org.apache.httpcomponents:httpclient;strategy=exact;version=4.1.2,\
 	org.apache.httpcomponents:httpcore;strategy=exact;version=4.1.2

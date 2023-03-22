@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -65,7 +67,7 @@ public class MP5CompatibleTest {
     }
 
     /**
-     * Just microProfile-5.0 ... Should always pass, a sanity check
+     * Just microProfile-5.0 ... Should always pass, a test
      *
      * @throws Exception
      */
@@ -95,8 +97,7 @@ public class MP5CompatibleTest {
             server.startServer();
             runGetMethod(200, "/helloworld/helloworld", MESSAGE);
         } finally {
-            server.stopServer();
-            //server.stopServer("CWMOT0010W"); //CWMOT0010W: OpenTracing cannot track JAX-RS requests because an OpentracingTracerFactory class was not provided or client libraries for tracing backend are not in the class path.
+            server.stopServer("CWMOT0010W"); //CWMOT0010W: OpenTracing cannot track JAX-RS requests because an OpentracingTracerFactory class was not provided or client libraries for tracing backend are not in the class path.
         }
     }
 

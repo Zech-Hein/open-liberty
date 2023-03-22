@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,14 +28,12 @@ import com.ibm.ws.security.oauth_oidc.fat.commonTest.TestSettings;
 import com.ibm.ws.security.openidconnect.server.fat.BasicTests.CommonTests.genericWebClientAuthCodeTest;
 
 import componenttest.annotation.AllowedFFDC;
-import componenttest.annotation.MinimumJavaLevel;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.topology.impl.LibertyServerWrapper;
 import componenttest.topology.utils.LDAPUtils;
 
-@MinimumJavaLevel(javaLevel = 7)
 @LibertyServerWrapper
 @Mode(TestMode.FULL)
 @AllowedFFDC({ "com.ibm.ws.security.registry.EntryNotFoundException" }) // Defect 261748
@@ -46,10 +46,10 @@ public class OIDCWebClientAuthCodeTest extends genericWebClientAuthCodeTest {
 
     @BeforeClass
     public static void setupBeforeTest() throws Exception {
-    	/*
-    	 * These tests have not been configured to run with the local LDAP server.
-    	 */
-    	Assume.assumeTrue(!LDAPUtils.USE_LOCAL_LDAP_SERVER);
+        /*
+         * These tests have not been configured to run with the local LDAP server.
+         */
+        Assume.assumeTrue(!LDAPUtils.USE_LOCAL_LDAP_SERVER);
         msgUtils.printClassName(thisClass.toString());
         Log.info(thisClass, "setupBeforeTest", "Prep for test");
         // add any additional messages that you want the "start" to wait for
@@ -74,7 +74,8 @@ public class OIDCWebClientAuthCodeTest extends genericWebClientAuthCodeTest {
         Log.info(thisClass, "setupBeforeTest", "inited tokenType to: " + tokenType);
 
         testSettings = new TestSettings();
-        testOPServer = commonSetUp("com.ibm.ws.security.openidconnect.server-1.0_fat", "server_orig.xml", Constants.OIDC_OP, extraApps, Constants.DO_NOT_USE_DERBY, extraMsgs, null, Constants.OIDC_OP, true, true, tokenType, certType);
+        testOPServer = commonSetUp("com.ibm.ws.security.openidconnect.server-1.0_fat", "server_orig.xml", Constants.OIDC_OP, extraApps, Constants.DO_NOT_USE_DERBY, extraMsgs, null,
+                                   Constants.OIDC_OP, true, true, tokenType, certType);
 
     }
 

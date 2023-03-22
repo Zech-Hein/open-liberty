@@ -1,0 +1,54 @@
+###############################################################################
+# Copyright (c) 2022 IBM Corporation and others.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License 2.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#     IBM Corporation - initial API and implementation
+###############################################################################
+#CMVCPATHNAME io.openliberty.security.jakartasec.3.0.internal/resources/io/openliberty/security/jakartasec/internal/resources/JakartaSecurity30Messages.nlsprops
+#COMPONENTPREFIX CWWKS
+#COMPONENTNAMEFOR WebSphere Application Server Jakarta Security 3.0
+#ISMESSAGEFILE TRUE
+#NLS_MESSAGEFORMAT_VAR
+#NLS_ENCODING=UNICODE
+# -------------------------------------------------------------------------------------------------
+
+# Message prefix block: 2500-2519
+
+#Note to translator, do not translate EL or OpenID
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG=CWWKS2500W: L''espressione Expression Language (EL) per l''attributo {0} dell''annotazione di definizione del meccanismo di autenticazione OpenID non pu\u00f2 essere risolta con un valore valido. Il valore fornito \u00e8 ''{1}''. Assicurarsi che l''espressione EL e il risultato siano validi e verificare che tutti i bean di riferimento che vengono utilizzati nell''espressione siano risolvibili. Viene utilizzato il valore dell''attributo predefinito pari a ''{2}''.
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG.explanation=L'attributo non pu\u00f2 essere risolto come espressione. \u00c8 possibile che il risultato della EL e il tipo di valore dell'attributo previsto non corrispondano. Ad esempio, se l'attributo previsto \u00e8 di tipo String, anche il risultato della EL deve essere di tipo String.
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG.useraction=Assicurarsi che l'annotazione contenga un valore di configurazione valido. Assicurarsi che le espressioni EL siano valide, che gli eventuali bean di riferimento nell'espressione siano risolvibili e che il tipo di risultato corrisponda all'attributo.
+
+JAKARTASEC_WARNING_CLAIM_DEF_CONFIG=CWWKS2501W: L''espressione Expression Language (EL) per l''attributo {0} dell''annotazione di definizione delle richieste non pu\u00f2 essere risolta con un valore valido. Il valore fornito \u00e8 ''{1}''. Assicurarsi che l''espressione EL e il risultato siano validi e verificare che tutti i bean di riferimento che vengono utilizzati nell''espressione siano risolvibili. Viene utilizzato il valore dell''attributo predefinito pari a ''{2}''.
+JAKARTASEC_WARNING_CLAIM_DEF_CONFIG.explanation=L'attributo non pu\u00f2 essere risolto come espressione. \u00c8 possibile che il risultato della EL e il tipo di valore dell'attributo previsto non corrispondano. Ad esempio, se l'attributo previsto \u00e8 di tipo String, anche il risultato della EL deve essere di tipo String.
+JAKARTASEC_WARNING_CLAIM_DEF_CONFIG.useraction=Assicurarsi che l'annotazione contenga un valore di configurazione valido. Assicurarsi che le espressioni EL siano valide, che gli eventuali bean di riferimento nell'espressione siano risolvibili e che il tipo di risultato corrisponda all'attributo.
+
+JAKARTASEC_WARNING_LOGOUT_DEF_CONFIG=CWWKS2502W: L''espressione Expression Language (EL) per l''attributo {0} dell''annotazione di definizione di logout non pu\u00f2 essere risolta con un valore valido. Il valore fornito \u00e8 ''{1}''. Assicurarsi che l''espressione EL e il risultato siano validi e verificare che tutti i bean di riferimento che vengono utilizzati nell''espressione siano risolvibili. Viene utilizzato il valore dell''attributo predefinito pari a ''{2}''.
+JAKARTASEC_WARNING_LOGOUT_DEF_CONFIG.explanation=L'attributo non pu\u00f2 essere risolto come espressione. \u00c8 possibile che il risultato della EL e il tipo di valore dell'attributo previsto non corrispondano. Ad esempio, se l'attributo previsto \u00e8 di tipo String, anche il risultato della EL deve essere di tipo String.
+JAKARTASEC_WARNING_LOGOUT_DEF_CONFIG.useraction=Assicurarsi che l'annotazione contenga un valore di configurazione valido. Assicurarsi che le espressioni EL siano valide, che gli eventuali bean di riferimento nell'espressione siano risolvibili e che il tipo di risultato corrisponda all'attributo.
+
+JAKARTASEC_WARNING_PROV_METADATA_CONFIG=CWWKS2503W: L''espressione Expression Language (EL) per l''attributo {0} dell''annotazione dei metadati del provider OpenID non pu\u00f2 essere risolta con un valore valido. Il valore fornito \u00e8 ''{1}''. Assicurarsi che l''espressione EL e il risultato siano validi e verificare che tutti i bean di riferimento che vengono utilizzati nell''espressione siano risolvibili. Viene utilizzato il valore dell''attributo predefinito pari a ''{2}''.
+JAKARTASEC_WARNING_PROV_METADATA_CONFIG.explanation=L'attributo non pu\u00f2 essere risolto come espressione. \u00c8 possibile che il risultato della EL e il tipo di valore dell'attributo previsto non corrispondano. Ad esempio, se l'attributo previsto \u00e8 di tipo String, anche il risultato della EL deve essere di tipo String.
+JAKARTASEC_WARNING_PROV_METADATA_CONFIG.useraction=Assicurarsi che l'annotazione contenga un valore di configurazione valido. Assicurarsi che le espressioni EL siano valide, che gli eventuali bean di riferimento nell'espressione siano risolvibili e che il tipo di risultato corrisponda all'attributo.
+
+CREDENTIAL_VALIDATION_ERROR=CWWKS2504E: Il client OpenID Connect {0} ha rilevato il seguente errore durante la convalida della credenziale per l''utente autenticato: {1}
+CREDENTIAL_VALIDATION_ERROR.explanation=Il client OpenID Connect ha rilevato un errore durante la convalida dei token restituiti dal provider OpenID Connect oppure si \u00e8 verificato un errore durante l'utilizzo delle informazioni nei token per creare la credenziale.
+CREDENTIAL_VALIDATION_ERROR.useraction=Per ulteriori informazioni, consultare l'errore nel messaggio.
+
+JAKARTASEC_WARNING_MISSING_SUBJECT_CLAIMS=CWWKS2505W: L''oggetto JSON delle richieste nel bean OpenIdContext non pu\u00f2 aggiungere il valore dell''oggetto per il client {0} perch\u00e9 il valore dell''oggetto manca dall''oggetto OpenIdClaims. 
+JAKARTASEC_WARNING_MISSING_SUBJECT_CLAIMS.explanation=All'oggetto OpenIdClaims nel bean OpenIdContext manca il valore dell'oggetto richiesto. Pertanto, non \u00e8 possibile impostare il valore del soggetto dell'oggetto JSON delle richieste.  
+JAKARTASEC_WARNING_MISSING_SUBJECT_CLAIMS.useraction=Esaminare i file di log per gli errori precedenti relativi all'autenticazione OpenID.
+
+JAKARTASEC_CLAIMS_PROCESSING_ERROR=CWWKS2506E: Il valore chiave della richiesta del client OpenID Connect {0} non \u00e8 corretto. Il valore \u00e8 {1} e il tipo previsto \u00e8 {2}. Errore: {3}.
+JAKARTASEC_CLAIMS_PROCESSING_ERROR.explanation=Il client OpenID Connect ha rilevato un errore durante la verifica del tipo previsto di campi nell'oggetto OpenID Claims. Un errore frequente \u00e8 che il tipo effettivo del valore restituito non corrisponde al tipo previsto.
+JAKARTASEC_CLAIMS_PROCESSING_ERROR.useraction=Per ulteriori informazioni, consultare l'errore nel messaggio.
+
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG_NEGATIVE_INT=CWWKS2507W: Il valore dell''attributo {0} dell''annotazione relativa alla definizione del meccanismo di autenticazione OpenID non deve essere un numero intero negativo. Se il valore dell''attributo \u00e8 un''espressione EL (Expression Language), non deve risolversi in un numero intero negativo. Il valore fornito \u00e8 ''{1}''. Invece, viene utilizzato il valore di attributo predefinito ''{2}''.
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG_NEGATIVE_INT.explanation=Il valore dell'attributo non deve essere un numero intero negativo. Se il valore dell'attributo \u00e8 un'espressione EL, il valore non deve risolversi in un numero intero negativo.
+JAKARTASEC_WARNING_OIDC_MECH_CONFIG_NEGATIVE_INT.useraction=Aggiornare l'attributo in modo che utilizzi un numero intero non negativo. Se il valore dell'attributo \u00e8 un'espressione EL, aggiornare il bean di riferimento in modo che si risolva in un numero intero non negativo.

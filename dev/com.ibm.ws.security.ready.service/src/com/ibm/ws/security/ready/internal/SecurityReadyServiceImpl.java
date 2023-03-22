@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,6 +14,8 @@ package com.ibm.ws.security.ready.internal;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -63,7 +67,8 @@ public class SecurityReadyServiceImpl implements SecurityReadyService {
     private volatile boolean securityReady = false;
 
     private ServiceRegistration<SecurityReadyService> reg;
-    private ComponentContext cc;
+
+    private volatile CountDownLatch securityReadyCDL = new CountDownLatch(1);
 
     @Reference(name = KEY_TOKEN_SERVICE, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL)
     protected void setTokenService(ServiceReference<TokenService> ref) {
@@ -133,7 +138,6 @@ public class SecurityReadyServiceImpl implements SecurityReadyService {
 
     protected void activate(ComponentContext cc) {
         Tr.info(tc, "SECURITY_SERVICE_STARTING");
-        this.cc = cc;
 
         tokenService.activate(cc);
         tokenManager.activate(cc);
@@ -144,12 +148,17 @@ public class SecurityReadyServiceImpl implements SecurityReadyService {
 
         activated = true;
 
+        Dictionary<String, Object> props = new Hashtable<String, Object>();
+        props.put("service.vendor", "IBM");
+        reg = cc.getBundleContext().registerService(SecurityReadyService.class, this, props);
+
         updateSecurityReadyState();
     }
 
     protected void deactivate(ComponentContext cc) {
         activated = false;
         securityReady = false;
+        securityReadyCDL = new CountDownLatch(1);
 
         Tr.info(tc, "SECURITY_SERVICE_STOPPED");
         tokenService.deactivate(cc);
@@ -162,6 +171,7 @@ public class SecurityReadyServiceImpl implements SecurityReadyService {
         if (reg != null) {
             reg.unregister();
         }
+
     }
 
     /**
@@ -212,19 +222,14 @@ public class SecurityReadyServiceImpl implements SecurityReadyService {
         if (unavailableServices == null) {
             Tr.info(tc, "SECURITY_SERVICE_READY");
             securityReady = true;
+            securityReadyCDL.countDown();
 
-            Dictionary<String, Object> props = new Hashtable<String, Object>();
-            props.put("service.vendor", "IBM");
-            reg = cc.getBundleContext().registerService(SecurityReadyService.class, this, props);
         } else {
             if (TraceComponent.isAnyTracingEnabled() && tc.isEventEnabled()) {
                 Tr.event(tc, "The following required security services are not available: " + unavailableServices);
             }
             securityReady = false;
-            if (reg != null) {
-                reg.unregister();
-                reg = null;
-            }
+            securityReadyCDL = new CountDownLatch(1);
         }
     }
 
@@ -237,5 +242,17 @@ public class SecurityReadyServiceImpl implements SecurityReadyService {
     @Override
     public boolean isSecurityReady() {
         return securityReady;
+    }
+
+    /**
+     * Provides a method that can be used to wait for the
+     * security service as a whole to be ready
+     *
+     * @return boolean, true if wait was successful, false if time limit was reached
+     * @throws InterruptedException
+     */
+    @Override
+    public boolean awaitSecurityReady(long timeout, TimeUnit unit) throws InterruptedException {
+        return securityReadyCDL.await(timeout, unit);
     }
 }

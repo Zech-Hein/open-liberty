@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,25 +28,35 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
 
     private static final Class<?> c = ArtifactoryImageNameSubstitutor.class;
 
+    private static final String artifactoryRegistryKey = "fat.test.artifactory.download.server";
+
     @Override
     public DockerImageName apply(DockerImageName original) {
-        // If we are using local docker, or a programmatically built image, or a registry was explicitly set,
-        // we don't want to perform any substitution -- just return the original
-        if (!ExternalTestServiceDockerClientStrategy.USE_REMOTE_DOCKER_HOST ||
-            isSyntheticImage(original) ||
-            (original.getRegistry() != null && !original.getRegistry().isEmpty())) {
+        // Priority 1: If we are using a synthetic image do not substitute nor cache
+        if (isSyntheticImage(original)) {
             return original;
         }
 
-        // Using remote docker, need to substitute image name to use private registry
+        // Priority 2: If registry was explicit set, do not substitute
+        if (original.getRegistry() != null && !original.getRegistry().isEmpty()) {
+            return ImageVerifier.collectImage(original);
+        }
+
+        // Priority 3: Ask the docker strategy if we should substitute the image.
+        // This takes into account local/remote docker and properties to force the use of Artifactory.
+        if (!ExternalTestServiceDockerClientStrategy.USE_ARTIFACTORY_NAME_SUBSTITUTION) {
+            return ImageVerifier.collectImage(original);
+        }
+
+        // Need to substitute image name to use private registry
         String privateImage = getPrivateRegistry() + '/' + original.asCanonicalNameString();
         Log.info(c, "apply", "Swapping docker image name from " + original.asCanonicalNameString() + " --> " + privateImage);
-        return DockerImageName.parse(privateImage).asCompatibleSubstituteFor(original);
+        return ImageVerifier.collectImage(original, DockerImageName.parse(privateImage).asCompatibleSubstituteFor(original));
     }
 
     @Override
     protected String getDescription() {
-        return "private artifactory registry substitutor";
+        return "ArtifactoryImageNameSubstitutor";
     }
 
     /**
@@ -56,18 +68,22 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
      */
     private static boolean isSyntheticImage(DockerImageName dockerImage) {
         String name = dockerImage.asCanonicalNameString();
-        boolean isSynthetic = name.startsWith("testcontainers/") && name.endsWith("latest");
-        if (isSynthetic) {
-            Log.warning(c, "WARNING: Cannot use private registry for programmatically built image " + name +
+        boolean isSynthetic = dockerImage.getRegistry().equals("localhost") && //
+                              dockerImage.getRepository().split("/")[0].equals("testcontainers") && //
+                              dockerImage.getVersionPart().equals("latest");
+        boolean isCommittedImage = dockerImage.getRepository().equals("sha256");
+        if (isSynthetic || isCommittedImage) {
+            Log.warning(c, "WARNING: Cannot use private registry for programmatically built or committed image " + name +
                            ". Consider using a pre-built image instead.");
         }
-        return isSynthetic;
+        return isSynthetic || isCommittedImage;
     }
 
-    public static String getPrivateRegistry() {
-        String artifactoryServer = System.getProperty("fat.test.artifactory.download.server");
-        if (artifactoryServer == null || artifactoryServer.isEmpty() || artifactoryServer.startsWith("${"))
-            throw new IllegalStateException("No private registry configured. System property 'fat.test.artifactory.download.server' was: " + artifactoryServer);
+    static String getPrivateRegistry() {
+        String artifactoryServer = System.getProperty(artifactoryRegistryKey);
+        if (artifactoryServer == null || artifactoryServer.isEmpty() || artifactoryServer.startsWith("${") || artifactoryServer.equals("null"))
+            throw new IllegalStateException("No private registry configured. System property '" + artifactoryRegistryKey + "' was: " + artifactoryServer + "  "
+                                            + "Ensure artifactory properties are set in gradle.startup.properties");
         if (artifactoryServer.startsWith("na.") || artifactoryServer.startsWith("eu."))
             artifactoryServer = artifactoryServer.substring(3);
         return "wasliberty-docker-remote." + artifactoryServer;
@@ -84,5 +100,4 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
             throw new RuntimeException(e);
         }
     }
-
 }

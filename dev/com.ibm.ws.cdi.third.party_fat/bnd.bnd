@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2018, 2021 IBM Corporation and others.
+# Copyright (c) 2018, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -14,11 +16,7 @@ bVersion=1.0
 # Define the bundle for this FAT
 
 src: \
-	fat/src,\
-	test-applications/hibernateSearchTest.war/src,\
-	test-applications/CDIInEntityListernersTest.war/src,\
-	test-applications/CDIInEntityListernersTestEarLib.jar/src,\
-	test-applications/deltaspikeTest.war/src
+	fat/src
 	
 tested.features:\
         cdi-2.0,\
@@ -30,7 +28,13 @@ tested.features:\
         pages-3.0,\
         servlet-5.0,\
         persistencecontainer-3.0,\
-        persistence-3.0
+        persistence-3.0,\
+        enterprisebeanslite-4.0,\
+        cdi-4.0,\
+        persistence-3.1,\
+        pages-3.1,\
+        servlet-6.0,\
+        xmlBinding-4.0
 	
 test.project: true
 
@@ -62,7 +66,9 @@ test.project: true
 	org.apache.deltaspike.cdictrl:deltaspike-cdictrl-weld;version=1.5.0,\
 	org.apache.deltaspike.modules:deltaspike-scheduler-module-api;version=1.5.0,\
 	org.apache.deltaspike.modules:deltaspike-scheduler-module-impl;version=1.5.0,\
-        com.ibm.websphere.javaee.transaction.1.2;version=latest,\
-        com.ibm.websphere.javaee.persistence.2.0;version=latest,\
-        org.hibernate.common.hibernate-commons-annotations;version=5.1.0.Final,\
-        org.hibernate.search-engine;version=5.11.2.Final
+	com.ibm.websphere.javaee.transaction.1.2;version=latest,\
+	com.ibm.websphere.javaee.persistence.2.0;version=latest,\
+	org.hibernate.common.hibernate-commons-annotations;version=5.1.0.Final,\
+	org.hibernate.search-engine;version=5.11.2.Final,\
+	com.ibm.ws.org.slf4j.jdk14;version=latest,\
+	io.openliberty.com.google.gson;version=latest

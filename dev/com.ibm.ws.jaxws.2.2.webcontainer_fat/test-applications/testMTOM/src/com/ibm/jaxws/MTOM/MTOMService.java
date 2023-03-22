@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,9 +18,11 @@ import java.util.Random;
 
 import javax.annotation.Resource;
 import javax.jws.WebService;
+import javax.xml.soap.SOAPMessage;
 import javax.xml.ws.BindingType;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
+import javax.xml.ws.handler.soap.SOAPMessageContext;
 import javax.xml.ws.soap.SOAPBinding;
 
 @WebService(serviceName = "MTOMService", endpointInterface = "com.ibm.jaxws.MTOM.MTOMInter", targetNamespace = "http://MTOMService/")
@@ -30,6 +34,12 @@ public class MTOMService implements MTOMInter {
 
     @Override
     public byte[] getAttachment() {
+
+        // Use existing test to verify that we can properly cast a the MessageContext to the SOAPMessageContext
+        SOAPMessageContext smc = (SOAPMessageContext) wsc.getMessageContext();
+        SOAPMessage message = smc.getMessage();
+        System.out.println(message.getContentDescription());
+
         byte[] barr = new byte[10000];
         Random r = new Random();
         r.nextBytes(barr);

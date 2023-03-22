@@ -1,28 +1,31 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2021 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.wsat.simpleclient.client.simple;
 
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Enumeration;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Enumeration;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
+import javax.annotation.Resource;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.RollbackException;
 import javax.transaction.Status;
 import javax.transaction.UserTransaction;
@@ -38,7 +41,17 @@ import com.ibm.tx.jta.ut.util.XAResourceInfoFactory;
 @WebServlet({ "/SimpleClientServlet" })
 public class SimpleClientServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	
+	private static final float DEFAULT_TIMEOUT = 40; // seconds
+	
+	private static final int NO_SLEEP = 0;
+	private static final int LONG_SLEEP = 1;
+	private static final int SHORT_SLEEP = 2;
 
+	private Instant tranEndTime;
+	
+	@Resource
+	UserTransaction ut;
 
     private static String TEST_NAME_PARAM = "testName";
 
@@ -63,6 +76,7 @@ public class SimpleClientServlet extends HttpServlet {
         response.getWriter().println(result);
     }
 
+    
 	protected String get(HttpServletRequest request) throws ServletException, IOException {
 		String output = "";
 		try {
@@ -75,6 +89,17 @@ public class SimpleClientServlet extends HttpServlet {
 			if (BASE_URL == null || BASE_URL.equals("")){
 				BASE_URL = "http://localhost:9992";
 			}
+			String perf = request.getParameter("perf");
+			if (perf != null && !perf.isEmpty()) {
+				int timeout = Math.round(DEFAULT_TIMEOUT / Float.parseFloat(perf));
+				ut.setTransactionTimeout(timeout);
+				System.out.println("Timeout adjusted to " + timeout);
+
+				// To all intents and purposes, tran is going to start now.
+				tranEndTime = Instant.now().plusSeconds((long)timeout);
+				System.out.println("Transaction is due to timeout at " + tranEndTime.toString());
+			}
+
 			String[] noXARes = new String[]{};
 			String[] OneXARes = new String[]{""}; 
 			String[] OneXAResVoteRollback = new String[]{"rollback"}; 
@@ -381,51 +406,51 @@ public class SimpleClientServlet extends HttpServlet {
 						"commit", XAResourceImpl.DIRECTION_ROLLBACK, "RollbackException");
 				break;
 			case 94:
-				output = execute(BASE_URL, noXARes, noXARes, 45, 0,
+				output = execute(BASE_URL, noXARes, noXARes, LONG_SLEEP, NO_SLEEP,
 						"commit", XAResourceImpl.DIRECTION_ROLLBACK, "RollbackException");
 				break;
 			case 95:
-				output = execute(BASE_URL, noXARes, noXARes, 10, 0,
+				output = execute(BASE_URL, noXARes, noXARes, SHORT_SLEEP, NO_SLEEP,
 						"commit", XAResourceImpl.DIRECTION_ROLLBACK, "NoException");
 				break;
 			case 96:
-				output = execute(BASE_URL, noXARes, noXARes, 45, 0,
+				output = execute(BASE_URL, noXARes, noXARes, LONG_SLEEP, NO_SLEEP,
 						"rollback", XAResourceImpl.DIRECTION_ROLLBACK, "NoException");
 				break;
 			case 97:
-				output = execute(BASE_URL, noXARes, noXARes, 20, 0,
+				output = execute(BASE_URL, noXARes, noXARes, SHORT_SLEEP, NO_SLEEP,
 						"rollback", XAResourceImpl.DIRECTION_ROLLBACK, "NoException");
 				break;
 			case 98:
-				output = execute(BASE_URL, TwoXARes, TwoXARes, 45, 0,
+				output = execute(BASE_URL, TwoXARes, TwoXARes, LONG_SLEEP, NO_SLEEP,
 						"commit", XAResourceImpl.DIRECTION_ROLLBACK, "RollbackException");
 				break;
 			case 99:
-				output = execute(BASE_URL, TwoXARes, TwoXARes, 20, 0,
+				output = execute(BASE_URL, TwoXARes, TwoXARes, SHORT_SLEEP, NO_SLEEP,
 						"commit", XAResourceImpl.DIRECTION_COMMIT, "NoException");
 				break;
 			case 100:
-				output = execute(BASE_URL, TwoXARes, TwoXARes, 45, 0,
+				output = execute(BASE_URL, TwoXARes, TwoXARes, LONG_SLEEP, NO_SLEEP,
 						"rollback", XAResourceImpl.DIRECTION_ROLLBACK, "NoException");
 				break;
 			case 101:
-				output = execute(BASE_URL, TwoXARes, TwoXARes, 20, 0,
+				output = execute(BASE_URL, TwoXARes, TwoXARes, SHORT_SLEEP, NO_SLEEP,
 						"rollback", XAResourceImpl.DIRECTION_ROLLBACK, "NoException");
 				break;
 			case 102:
-				output = execute(BASE_URL, TwoXARes, TwoXARes, 0, 45,
+				output = execute(BASE_URL, TwoXARes, TwoXARes, NO_SLEEP, LONG_SLEEP,
 						"commit", XAResourceImpl.DIRECTION_ROLLBACK, "RollbackException");
 				break;
 			case 103:
-				output = execute(BASE_URL, TwoXARes, TwoXARes, 0, 20,
+				output = execute(BASE_URL, TwoXARes, TwoXARes, NO_SLEEP, SHORT_SLEEP,
 						"commit", XAResourceImpl.DIRECTION_COMMIT, "NoException");
 				break;
 			case 104:
-				output = execute(BASE_URL, TwoXARes, TwoXARes, 0, 45,
+				output = execute(BASE_URL, TwoXARes, TwoXARes, NO_SLEEP, LONG_SLEEP,
 						"rollback", XAResourceImpl.DIRECTION_ROLLBACK, "NoException");
 				break;
 			case 105:
-				output = execute(BASE_URL, TwoXARes, TwoXARes, 0, 20,
+				output = execute(BASE_URL, TwoXARes, TwoXARes, NO_SLEEP, SHORT_SLEEP,
 						"rollback", XAResourceImpl.DIRECTION_ROLLBACK, "NoException");
 				break;
 			}
@@ -501,15 +526,11 @@ public class SimpleClientServlet extends HttpServlet {
 		int UTexpectedStatus = -1;
 		String output = "";
 		try {
-			// User Transaction Initialization
-			Context ctx = new InitialContext();
-			UserTransaction userTransaction = (UserTransaction) ctx
-					.lookup("java:comp/UserTransaction");
-			userTransaction.begin();
+			ut.begin();
 			System.out.println("execute userTransaction.begin()");
 			// Check User Transaction Status
 			UTexpectedStatus = Status.STATUS_ACTIVE;
-			UTstatus = userTransaction.getStatus();
+			UTstatus = ut.getStatus();
 			if (UTstatus != UTexpectedStatus){
 				String errorMessage = "1: UserTransaction Status not expected! Expected: "
 						+ UTexpectedStatus + "  Actual: " + UTstatus;
@@ -518,9 +539,9 @@ public class SimpleClientServlet extends HttpServlet {
 			}
 			
 			if(setRollbackOnly.equals("setRollbackOnlyBeforeWSCall")){
-				userTransaction.setRollbackOnly();
+				ut.setRollbackOnly();
 				UTexpectedStatus = Status.STATUS_MARKED_ROLLBACK;
-				UTstatus = userTransaction.getStatus();
+				UTstatus = ut.getStatus();
 				if (UTstatus != UTexpectedStatus){
 					String errorMessage = "2: UserTransaction Status not expected! Expected: "
 							+ UTexpectedStatus + "  Actual: " + UTstatus;
@@ -538,12 +559,14 @@ public class SimpleClientServlet extends HttpServlet {
 				System.out.println("execute enlistXAResouces(): " + result);
 			}
 			
+			final Duration serverSleepTime = calculateSleepTime(sleepTimeServer);
+
 			String output1 = "", output2 = "No second web service call.";
-			output1 = " Get response: " + callWebservice(BASE_URL, ParticipantXAResouces, expectedDirection, sleepTimeServer, true) + ".";
+			output1 = " Get response: " + callWebservice(BASE_URL, ParticipantXAResouces, expectedDirection, (int)serverSleepTime.getSeconds(), true) + ".";
 			System.out.println("execute callWebservice() 1: " + output1);
 			
 			if (BASE_URL2 != null && !BASE_URL2.equals("")){
-				UTstatus = userTransaction.getStatus();
+				UTstatus = ut.getStatus();
 				if (UTstatus != UTexpectedStatus) {
 					String errorMessage = "3: UserTransaction Status not expected! Expected: "
 							+ UTexpectedStatus + "  Actual: " + UTstatus;
@@ -551,16 +574,16 @@ public class SimpleClientServlet extends HttpServlet {
 					return errorMessage;
 				}
 				output2 = " Get response in the second call: "
-						+ callWebservice(BASE_URL2, ParticipantXAResoucesInSecondCall, expectedDirection, sleepTimeServer, !BASE_URL2.equals(BASE_URL)) + ".";
+						+ callWebservice(BASE_URL2, ParticipantXAResoucesInSecondCall, expectedDirection, (int)serverSleepTime.getSeconds(), !BASE_URL2.equals(BASE_URL)) + ".";
 				System.out.println("execute callWebservice() 2: " + output2);
 			}
 			
 			output += (output1 + output2); 
 			
 			if(setRollbackOnly.equals("setRollbackOnlyAfterWSCall")){
-				userTransaction.setRollbackOnly();
+				ut.setRollbackOnly();
 				UTexpectedStatus = Status.STATUS_MARKED_ROLLBACK;
-				UTstatus = userTransaction.getStatus();
+				UTstatus = ut.getStatus();
 				if (UTstatus != UTexpectedStatus){
 					String errorMessage = "4: UserTransaction Status not expected! Expected: "
 							+ UTexpectedStatus + "  Actual: " + UTstatus;
@@ -585,25 +608,22 @@ public class SimpleClientServlet extends HttpServlet {
 				}
 				System.out.println("execute enlistXAResouces(): " + result);
 			}
-			
-			if (sleepTimeClient > 0)
-			{
-				System.out.println(">>>>>>>>>Thread is hanging for " + sleepTimeClient + "seconds!");
-			  	Thread.sleep(sleepTimeClient * 1000);
-			  	System.out.println(">>>>>>>>>Woken up!");
-			}
+
+			final long sleepTime = calculateSleepTime(sleepTimeClient).getSeconds();
+			System.out.println(">>>>>>>>>Client thread is hanging for " + sleepTime + " seconds!");
+			Thread.sleep(sleepTime * 1000);
+		  	System.out.println(">>>>>>>>>Woken up!");
 
 			// User Transaction Commit / Rollback
 			System.out.println("execute commitRollback(): " + commitRollback);
 			if (commitRollback.equals("commit")) {
-				userTransaction.commit();
+				ut.commit();
 			} else if (commitRollback.equals("rollback")) {
-				userTransaction.rollback();
+				ut.rollback();
 			} else return output + " User transaction action error. Test failed.";
 			
 			if (expectResult.equals("NoException") &&  !output1.contains("failed") && !output2.contains("failed") &&
 					output1.contains("Transaction Manager Status: ACTIVE")
-					// || (sleepTimeServer > 0) && output1.contains("Sleep method successfully returns."))
 					&& (output2.contains("Transaction Manager Status: ACTIVE") || output2.contains("No second web service call."))){
 				return output + " Test passed.";
 			}else {
@@ -622,6 +642,37 @@ public class SimpleClientServlet extends HttpServlet {
 			e.printStackTrace();
 			return output + " Exception happens: " + e.toString() + ". Test failed.";
 		}
+	}
+	
+	
+	// Sleep tests are specified to either just timeout or just not timeout
+	// In the former case we'll sleep for just a bit longer than the remaining time in the tran (min 10s)
+	// In the latter we'll sleep for half the remaining time in the tran (max 10s)
+	private Duration calculateSleepTime(int type) {
+		Duration sleepTime;
+
+		final Duration limit = Duration.ofSeconds(10);
+		switch (type) {
+		case LONG_SLEEP:
+			// 1.5 times the time left in the tran
+			sleepTime = Duration.between(Instant.now(), tranEndTime).multipliedBy(3).dividedBy(2);
+			if (sleepTime.compareTo(limit) < 0) {
+				sleepTime = limit;
+			}
+			break;
+		case SHORT_SLEEP:
+			// 0.5 times the time left in the tran
+			sleepTime = Duration.between(Instant.now(), tranEndTime).multipliedBy(1).dividedBy(2);
+			if (sleepTime.compareTo(limit) > 0) {
+				sleepTime = limit;
+			}
+			break;
+		default:
+			sleepTime = Duration.ZERO;
+			break;
+		}
+		
+		return sleepTime;
 	}
 
 	private String callWebservice(String BASE_URL, String[] XAResouces, int expectedDirection, int sleepTimeServer, boolean clearXAResource)

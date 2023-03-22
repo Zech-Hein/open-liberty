@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +21,8 @@ var editorMessages = {
 "REMOVE": "제거",
 "TEST" : "테스트",
 "TEST_CONNECTION": "연결 테스트",
+"TEST_CONNECTION_DESCRIPTION": "연결을 테스트합니다.",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "연결 테스트를 위해 변경사항 저장",
 "DESCRIPTION": "설명",
 "PREVIOUS": "이전",
 "NEXT": "다음",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "하위 요소 제거 대화 상자",
 "VALIDATE_DATASOURCE_DIALOG": "데이터 소스 연결 유효성 검증 대화 상자",
 "VALIDATE_DATASOURCE": "데이터 소스 연결 테스트",
+"VALIDATE_CONNECTION_DIALOG":"연결 유효성 검증 대화 상자",
+"DEFAULT_AUTHENTICATION_ALIAS":"기본 인증",
+"SPECIFY_AUTHENTICATION_ALIAS":"인증 별명 지정",
+"LOGIN_CONFIG":"로그인 구성",
+"LOGIN_CONFIG_ID":"로그인 구성 ID",
+"ADD_LOGIN_CONFIG_PROPERTY":"로그인 구성 특성 추가",
+"KEY":"키",
+"CHOOSE_AN_OPTION":"옵션 선택",
 "ENUMERATION_SELECTION_DIALOG": "열거 선택 대화상자",
 "SAVE_BEFORE_CLOSING_DIALOG": "닫기 전에 저장 대화 상자",
 "ERROR_SAVING_FILE_DIALOG": "파일 저장 중 오류 대화 상자",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "인증 별명(선택사항)",
 "AUTH_ALIAS": "인증 별명",
 "CONTAINER_AUTHENTICATION": "컨테이너 인증",
+"RESOURCE_REFERENCE": "자원 참조",
 "NO_RESOURCE_REFERENCE": "자원 참조 없음",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "애플리케이션 인증을 사용하여 인증하는 자원 참조를 사용하여 연결을 테스트하십시오.",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "컨테이너 인증을 사용하여 인증하는 자원 참조를 사용하여 연결을 테스트하십시오.",
+"RESOURCE_REFERENCE_IN_USE": "직접 검색에 대한 컨테이너 인증을 사용할 수 있습니다. 연결 테스트는 구성된 기본 컨테이너 인증 데이터를 사용합니다.",
+"NO_RESOURCE_REFERENCE_IN_USE": "자원 참조를 사용하지 않고 연결을 테스트합니다.",
 "APPLICATION_AUTHENTICATION": "애플리케이션 인증",
 "CUSTOM_LOGIN_MODULE": "사용자 정의 로그인 모듈(선택사항)",
 "LOGIN_PROPERTIES": "로그인 특성(선택사항)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "기능을 선택하여 해당 설명을 봅니다.",
 "SUPPORT_MESSAGE" : "서버 구성은 집합체 제어기를 통해 액세스되는 Docker 컨테이너의 서버와 Node.js 서버에 사용할 수 없습니다.",
 "NO_ROLE_MESSAGE": "사용자가 구성을 변경할 수 있는 권한이 있는 역할에 없습니다. 파일은 읽기 전용 모드에서 사용할 수 있습니다.",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "집합체 멤버에 필요한 조치:",
 "RUN_UPDATE_HOST" : "rpcUser에 쓰기 권한이 있는 경로를 지정하는 '--hostWritePath'를 사용하여 'collective updateHost' 또는 'collective registerHost'를 실행하십시오. 올바른 호스트 신임 정보도 제공되어야 합니다.",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "/usr/bin에서 JAVA에 대한 링크 작성(예/: /usr/bin/java -> [pathToJAVA])",
 "JAVA_ON_PATH" : "JAVA를 PATH 환경 변수에 추가. Linux의 .bashrc에서 PATH 내보내기를 수행해야 합니다.", 
 "MORE_INFORMATION" : "자세한 정보는 다음을 참조하십시오. "
-
 };

@@ -34,18 +34,20 @@ WLP-AlsoKnownAs: jsp-3.0
 IBM-SPI-Package: com.ibm.wsspi.jsp.taglib.config
 Subsystem-Name: Jakarta Server Pages 3.0
 -features=com.ibm.websphere.appserver.servlet-5.0, \
+  io.openliberty.servlet.internal-5.0, \
   com.ibm.websphere.appserver.eeCompatible-9.0, \
   io.openliberty.jakarta.pages-3.0, \
   io.openliberty.expressionLanguage-4.0
--bundles=com.ibm.ws.org.eclipse.jdt.core.3.22.0, \
+-bundles=com.ibm.ws.org.eclipse.jdt.core, \
  io.openliberty.jakarta.jstl.2.0; location:="dev/api/spec/,lib/"; mavenCoordinates="jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:2.0.0", \
- com.ibm.ws.jsp.2.3.jakarta, \
+ com.ibm.ws.jsp.3.0.jakarta, \
  com.ibm.ws.jsp.jakarta, \
- io.openliberty.jstl.facade; start-phase:=CONTAINER_EARLY, \
+ io.openliberty.jstl.2.0.facade; start-phase:=CONTAINER_EARLY, \
  io.openliberty.org.apache.taglibs.standard
 -jars=com.ibm.websphere.appserver.spi.jsp; location:=dev/spi/ibm/, \
- com.ibm.websphere.javaee.jsp.tld.2.2.jakarta; location:=dev/api/spec/
+ io.openliberty.jakarta.pages.tld.3.0; location:=dev/api/spec/
 -files=dev/spi/ibm/javadoc/com.ibm.websphere.appserver.spi.jsp_1.0-javadoc.zip
-kind=beta
+kind=ga
 edition=core
 WLP-Activation-Type: parallel
+WLP-InstantOn-Enabled: true

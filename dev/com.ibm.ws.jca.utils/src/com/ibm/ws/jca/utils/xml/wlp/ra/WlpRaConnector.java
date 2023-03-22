@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,8 +19,9 @@ import javax.xml.bind.annotation.XmlType;
 import com.ibm.websphere.ras.annotation.Trivial;
 
 /**
- * ra.xml connector element. We are using this for now, until we get the STAX Parser implemented. If we do not go for the parser, then we can use
- * this with some refactoring such that there are implementations for all declared by Connector interface.
+ * ra.xml connector element. We are using this for now, until we get the STAX Parser implemented.
+ * If we do not go for the parser, then we can use this with some refactoring such that there
+ * are implementations for all declared by Connector interface.
  */
 @Trivial
 @XmlRootElement(name = "connector")

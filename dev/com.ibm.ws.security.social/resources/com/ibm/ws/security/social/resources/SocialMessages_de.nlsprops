@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2016, 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -16,7 +18,7 @@
 #NLS_MESSAGEFORMAT_VAR
 #NLS_ENCODING=UNICODE
 # -------------------------------------------------------------------------------------------------
-# Message prefix block: CWWKS5370 - CWWKS5499
+# Message prefix block: CWWKS5370 - CWWKS5499, CWWKS2350 - CWWKS2399
 ADD_ID={0} ({1})
 ADD_ID.explanation=Nur zur internen Verwendung.
 ADD_ID.useraction=Es ist keine Aktion erforderlich.
@@ -132,6 +134,14 @@ INTROSPECT_USER_API_INACTIVE.useraction=Check the response that is included in t
 USER_API_RESPONSE_NOT_AUTHENTICATED=CWWKS5389E: The user API response indicates that the user API request is not authenticated. Verify that the access token that is included in the user API request is valid and is associated with a known user.
 USER_API_RESPONSE_NOT_AUTHENTICATED.explanation=The access token that is in the user API request might be missing, expired, malformed, or otherwise not valid. The token might not be associated with a user that is known to the user API.
 USER_API_RESPONSE_NOT_AUTHENTICATED.useraction=Verify that an access token is included in the user API request. Ensure that the token is not expired or malformed. Verify that the user that is associated with the access token is known to the user API.
+
+INVALID_CONFIG_PARAM=CWWKS5390E: Der erforderliche Konfigurationsparameter {0} fehlt oder er hat den ung\u00fcltigen Wert {1}.
+INVALID_CONFIG_PARAM.explanation=Der Social Login-Laufzeitcode hat bei der Verarbeitung der Clientanforderung einen erforderlichen Parameter nicht gefunden.
+INVALID_CONFIG_PARAM.useraction=\u00dcberpr\u00fcfen Sie die Konfiguration und stellen Sie sicher, dass der fehlende Parameter korrekt angegeben wird.
+
+OIDC_CLIENT_DISCOVERY_SSL_ERROR=CWWKS5391E: Der Social Login-Client [{0}] konnte die OpenID Connect-Provider-Endpunktinformationen \u00fcber den Erkennungsendpunkt-URL [{1}] nicht abrufen. Aktualisieren Sie die Konfiguration f\u00fcr das Social Login (oidcLogin-Konfiguration) mit der richtigen HTTPS-Erkennungsendpunkt-URL.
+OIDC_CLIENT_DISCOVERY_SSL_ERROR.explanation=Die oidcLogin-Konfiguration ist f\u00fcr die Erkennung der OpenID Connect Provider-Endpunkte \u00fcber die Erkennungs-URL konfiguriert, aber der Erkennungsprozess ist fehlgeschlagen. Der Client kann die Authentifizierungsanforderung erst verarbeiten, wenn die Konfiguration des Erkennungsendpunkts richtig ist, oder die Erkennung erfolgreich war.
+OIDC_CLIENT_DISCOVERY_SSL_ERROR.useraction=Korrigieren Sie die oidcLogin-Konfiguration, um sicherzustellen, dass 1) die Erkennungsendpunkt-URL sich auf den richtigen OpenID Connect-Provider bezieht, 2) die Erkennungsendpunkt-URL HTTPs verwendet und 3) das SSL-Feature und die Keystoreelemente ordnungsgem\u00e4\u00df konfiguriert wurden, um eine Vertrauensbeziehung zum OpenID Connect-Provider herzustellen. 4) Stellen Sie sicher, dass der OpenID Connect-Providererkennungsendpunkt funktional ist. 
 
 SOCIAL_LOGIN_CONFIG_PROCESSED=CWWKS5400I: Die Social Login-Konfiguration [{0}] wurde erfolgreich verarbeitet.
 SOCIAL_LOGIN_CONFIG_PROCESSED.explanation=Die angegebene Social Login-Konfiguration wurde erfolgreich verarbeitet.
@@ -639,10 +649,9 @@ REQUEST_URL_NOT_VALID=CWWKS5499E: Das Social Login-Feature kann die Anforderung 
 REQUEST_URL_NOT_VALID.explanation=Die urspr\u00fcngliche Anforderungs-URL ist keine g\u00fcltige URL. Die URL enth\u00e4lt m\u00f6glicherweise ung\u00fcltige Zeichen oder die URL ist fehlerhaft.
 REQUEST_URL_NOT_VALID.useraction=Vergewissern Sie sich, dass die in der Nachricht angegebene Anforderungs-URL mit der urspr\u00fcnglichen Anforderungs-URL f\u00fcr die gesch\u00fctzte Ressource \u00fcbereinstimmt. Stellen Sie sicher, dass die URL korrekt formatiert ist und nur g\u00fcltige URI-Zeichen enth\u00e4lt.
 
-INVALID_CONFIG_PARAM=CWWKS5500E: Der erforderliche Konfigurationsparameter {0} fehlt oder er hat den ung\u00fcltigen Wert {1}.
-INVALID_CONFIG_PARAM.explanation=Der Social Login-Laufzeitcode hat bei der Verarbeitung der Clientanforderung einen erforderlichen Parameter nicht gefunden.
-INVALID_CONFIG_PARAM.useraction=\u00dcberpr\u00fcfen Sie die Konfiguration und stellen Sie sicher, dass der fehlende Parameter korrekt angegeben wird.
+# NOTE: Start of new message prefix CWWKS2350 - 2399
 
-OIDC_CLIENT_DISCOVERY_SSL_ERROR=CWWKS5501E: Der Social Login-Client [{0}] konnte die OpenID Connect-Provider-Endpunktinformationen \u00fcber den Erkennungsendpunkt-URL [{1}] nicht abrufen. Aktualisieren Sie die Konfiguration f\u00fcr das Social Login (oidcLogin-Konfiguration) mit der richtigen HTTPS-Erkennungsendpunkt-URL. 
-OIDC_CLIENT_DISCOVERY_SSL_ERROR.explanation=Die oidcLogin-Konfiguration ist f\u00fcr die Erkennung der OpenID Connect Provider-Endpunkte \u00fcber die Erkennungs-URL konfiguriert, aber der Erkennungsprozess ist fehlgeschlagen. Der Client kann die Authentifizierungsanforderung erst verarbeiten, wenn die Konfiguration des Erkennungsendpunkts richtig ist, oder die Erkennung erfolgreich war.
-OIDC_CLIENT_DISCOVERY_SSL_ERROR.useraction=Korrigieren Sie die oidcLogin-Konfiguration, um sicherzustellen, dass 1) die Erkennungsendpunkt-URL sich auf den richtigen OpenID Connect-Provider bezieht, 2) die Erkennungsendpunkt-URL HTTPs verwendet und 3) das SSL-Feature und die Keystoreelemente ordnungsgem\u00e4\u00df konfiguriert wurden, um eine Vertrauensbeziehung zum OpenID Connect-Provider herzustellen. 4) Stellen Sie sicher, dass der OpenID Connect-Providererkennungsendpunkt funktional ist. 
+BACKCHANNEL_REQUEST_NOT_SUPPORTED_CONFIG=CWWKS2350E: Die an [{0}] gesendete Back-Channel-Abmeldeanforderung wird von der Social-Media-Anmeldekonfiguration [{1}] nicht unterst\u00fctzt.
+BACKCHANNEL_REQUEST_NOT_SUPPORTED_CONFIG.explanation=Die Social-Media-Anmeldekonfiguration ist kein OpenID Connect-Client und unterst\u00fctzt daher keine Back-Channel-Abmeldung.
+BACKCHANNEL_REQUEST_NOT_SUPPORTED_CONFIG.useraction=Verwenden Sie den Abmeldeendpunkt, der f\u00fcr die Social-Media-Anmeldekonfiguration geeignet ist.
+

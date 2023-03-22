@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 IBM Corporation and others.
+ * Copyright (c) 2017, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -40,19 +42,19 @@ public class JSF23JPA22Test {
     public TestName name = new TestName();
 
     @Server("jsf23jpa22Server")
-    public static LibertyServer jsf23jpa22Server;
+    public static LibertyServer server;
 
     @BeforeClass
     public static void setup() throws Exception {
         // Start the server and use the class name so we can find logs easily.
-        jsf23jpa22Server.startServer(c.getSimpleName() + ".log");
+        server.startServer(c.getSimpleName() + ".log");
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
         // Stop the server
-        if (jsf23jpa22Server != null && jsf23jpa22Server.isStarted()) {
-            jsf23jpa22Server.stopServer();
+        if (server != null && server.isStarted()) {
+            server.stopServer();
         }
     }
 
@@ -69,6 +71,6 @@ public class JSF23JPA22Test {
         // If the features can not be loaded together we'll see one or more module resolution issues.
         // Setting timeout to 10 seconds as we don't want to wait for the default timeout.
         assertNull("The following message was found in the logs and should not have been: " + msgToSearchFor,
-                   jsf23jpa22Server.waitForStringInLog(msgToSearchFor, 10 * 1000));
+                   server.waitForStringInLog(msgToSearchFor, 10 * 1000));
     }
 }

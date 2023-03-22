@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -62,8 +64,8 @@ public class MultipleModuleDBRunAsTest extends JavaEESecTestBase {
     protected static String XML_DB_NAME = "multipleModuleRunAsDB.xml";
     protected static String APP_NAME = "multipleModuleRunAs";
     protected static String EAR_NAME = APP_NAME + ".ear";
-    protected static String APP_DB_NAME = "multipleDB";
-    protected static String WAR_DB_NAME = APP_DB_NAME + ".war";
+    protected static String APP_DB_NAME = "MultipleDBServlet";
+    protected static String WAR_DB_NAME = "multipleDB.war";
     protected static String APP1_SERVLET = "/" + MODULE1_ROOT + "/MultipleISFormRunAsServlet";
     protected static String APP2_SERVLET = "/" + MODULE2_ROOT + "/MultipleISCustomFormRunAsServlet";
 

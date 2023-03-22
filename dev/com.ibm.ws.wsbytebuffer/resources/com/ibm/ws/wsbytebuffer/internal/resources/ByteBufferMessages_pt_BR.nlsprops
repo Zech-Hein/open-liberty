@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2010 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -35,6 +37,6 @@ CONFIG_VALUE_NUMBER_EXCEPTION=CWWKO0602E: O componente WsByteBuffer gerou uma ex
 CONFIG_VALUE_NUMBER_EXCEPTION.explanation=Um valor da propriedade de configura\u00e7\u00e3o WsByteBuffer n\u00e3o \u00e9 um n\u00famero v\u00e1lido.
 CONFIG_VALUE_NUMBER_EXCEPTION.useraction=Corrija o erro de configura\u00e7\u00e3o.
 
-POOL_MISMATCH=CWWKO0603E: As especifica\u00e7\u00f5es de tamanhos de conjunto e profundidades de conjunto WsByteBuffer n\u00e3o possuem o mesmo n\u00famero de entradas. Tamanhos: {0}  Profundidades: {1}
+POOL_MISMATCH=CWWKO0603E: As especifica\u00e7\u00f5es de tamanhos de conjunto e profundidades de conjunto WsByteBuffer n\u00e3o possuem o mesmo n\u00famero de entradas.  Tamanhos: {0}  Profundidades: {1}
 POOL_MISMATCH.explanation=Os tamanhos de conjunto ou as profundidades de conjunto foram especificadas incorretamente.
 POOL_MISMATCH.useraction=Corrija o erro de configura\u00e7\u00e3o.

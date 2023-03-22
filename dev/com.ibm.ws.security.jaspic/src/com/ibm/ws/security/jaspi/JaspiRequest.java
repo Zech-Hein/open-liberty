@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -116,6 +118,7 @@ public class JaspiRequest {
     /**
      * The request is protected if there are required roles
      * or it's not mapped everyones role
+     *
      * @return true if there is a proected url.
      */
     public boolean isProtected() {
@@ -129,9 +132,16 @@ public class JaspiRequest {
     /**
      * Per section 3.9.3 of the JSR-196 (JASPIC) specification, when handling an HttpServletRequest.authenticate:
      * The MessageInfo map must unconditionally contain the javax.security.auth.message.MessagePolicy.isMandatory key (with associated true value).
+     * Per the Jakarta Authentication 3.0 specification, when handling an HttPServletRequest.authenticate:
+     * The MessageInfo map must unconditionally contain the jakarta.security.auth.message.MessagePolicy.isMandatory key (with associated true value)
+     * and the jakarta.servlet.http.isAuthenticationRequest key (with associated `true` value).
      */
     public boolean isMandatory() {
         return isProtected() || webRequest.isRequestAuthenticate();
+    }
+
+    public boolean isRequestAuthenticate() {
+        return webRequest.isRequestAuthenticate();
     }
 
     public String getApplicationName() {

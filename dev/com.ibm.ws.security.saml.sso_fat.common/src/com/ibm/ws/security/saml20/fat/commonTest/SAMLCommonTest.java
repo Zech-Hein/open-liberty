@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2021 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -1095,6 +1097,7 @@ public class SAMLCommonTest extends CommonTest {
         if (cipherMayExceed128) {
             addToAllowableTimeoutCount(1);
         }
+	helpers.pingExternalServer(_testName, idpServer.getHttpString() + "/idp/status", null, 30);
     }
 
     public static void startSPWithIDPServer(String spServer, String spServerCfg, List<String> spExtraMsgs, List<String> spExtraApps, Boolean spCopyDataFlag) throws Exception {

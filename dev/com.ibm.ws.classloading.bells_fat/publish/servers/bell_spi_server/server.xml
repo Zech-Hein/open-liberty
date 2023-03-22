@@ -1,0 +1,56 @@
+<server>
+    <featureManager>
+    	<feature>user.feature.meta.inf.services-1.0</feature>
+        <feature>servlet-3.1</feature>
+        <feature>bells-1.0</feature>
+        <feature>restConnector-2.0</feature>
+    </featureManager>
+
+    <include location="../fatTestPorts.xml"/>
+
+    <!-- SPI visibility tests use feature restConnector-2.0 to provide ibm-spi packages -->
+
+    <library id="testSpiVisible" name="testSpiVisible"
+            description="testSpiVisible">
+        <fileset dir="${server.output.dir}/sharedLib" includes="testSpiVisible.jar" />
+    </library>
+
+    <bell libraryRef="testSpiVisible" spiVisibility="true"/>
+
+    <library id="testNoSpiVisible" name="testNoSpiVisible"
+            description="testNoSpiVisible">
+        <fileset dir="${server.output.dir}/sharedLib" includes="testSpiVisible.jar" />
+    </library>
+
+    <bell libraryRef="testNoSpiVisible"/>
+
+    <!-- SPI visibility not supported for Liberty global shared library -->
+
+    <library id="global">
+        <fileset dir="${server.output.dir}/sharedLib" includes="testSpiVisible.jar" />
+    </library>
+
+    <bell libraryRef="global" spiVisibility="true"/>
+
+    <!--  BELL service permissions -->
+    <javaPermission
+        className="java.util.PropertyPermission"
+        name="className"
+        actions="read"
+        codebase="${server.config.dir}sharedLib/testSpiVisible.jar"/>
+    <javaPermission
+        className="java.util.PropertyPermission"
+        name="loadOp"
+        actions="read"
+        codebase="${server.config.dir}sharedLib/testSpiVisible.jar"/>
+
+    <application location="SpiVisibility.war">
+        <classloader commonLibraryRef="testSpiVisible"/>
+    </application>
+
+    <logging traceSpecification="com.ibm.ws.classloading.bells.internal.Bell=debug" traceFileName="trace.log" maxFileSize="100" maxFiles="10" />
+    <!--
+    <logging traceSpecification="ClassLoadingService=all:SharedLibrary=all:app.manager*=all:com.ibm.ws.classloader.*=all:com.ibm.ws.classloading.bells.internal.Bell=debug" traceFileName="trace.log" maxFileSize="100" maxFiles="10" />
+    -->
+</server>
+

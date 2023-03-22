@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,9 +15,9 @@ package com.ibm.ws.security.authorization.util;
 import java.lang.reflect.Method;
 import java.security.Principal;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
@@ -33,7 +35,7 @@ public class RoleMethodAuthUtil {
         }
     }
 
-    public static boolean parseMethodSecurity(Method method, Principal principal, Predicate<String> isUserInRoleFunction) throws UnauthenticatedException {
+    public static boolean parseMethodSecurity(Method method, Supplier<Principal> principal, Predicate<String> isUserInRoleFunction) throws UnauthenticatedException {
 
         boolean denyAll = getDenyAll(method);
         if (denyAll) {
@@ -46,14 +48,18 @@ public class RoleMethodAuthUtil {
         } else { // try RolesAllowed
             RolesAllowed rolesAllowed = getRolesAllowed(method);
             if (rolesAllowed != null) {
-
                 String[] theseroles = rolesAllowed.value();
                 if (LOG.isLoggable(Level.FINEST)) {
                     LOG.log(Level.FINEST, "found RolesAllowed in method: {} " + method.getName(),
                             new Object[] { theseroles });
                 }
-                checkAuthentication(principal);
-                return Stream.of(theseroles).anyMatch(isUserInRoleFunction);
+                for (String role : theseroles) {
+                    if (isUserInRoleFunction.test(role)) {
+                        return true;
+                    }
+                }
+                checkAuthentication(principal.get()); // throws UnauthenticatedException if not authenticated
+                return false; // authenticated, but not authorized
             } else {
                 boolean permitAll = getPermitAll(method);
                 if (permitAll) {
@@ -70,7 +76,7 @@ public class RoleMethodAuthUtil {
     }
 
     // parse security JSR250 annotations at the class level
-    private static boolean parseClassSecurity(Class<?> cls, Principal principal, Predicate<String> isUserInRoleFunction) throws UnauthenticatedException {
+    private static boolean parseClassSecurity(Class<?> cls, Supplier<Principal> principal, Predicate<String> isUserInRoleFunction) throws UnauthenticatedException {
 
         // try DenyAll
         DenyAll denyAll = cls.getAnnotation(DenyAll.class);
@@ -85,11 +91,16 @@ public class RoleMethodAuthUtil {
             if (rolesAllowed != null) {
                 String[] theseroles = rolesAllowed.value();
                 if (LOG.isLoggable(Level.FINEST)) {
-                    LOG.log(Level.FINEST, "found RolesAllowed in class level: {} " + cls.getName(),
+                    LOG.log(Level.FINEST, "found RolesAllowed in class: {} " + cls.getName(),
                             new Object[] { theseroles });
                 }
-                checkAuthentication(principal);
-                return Stream.of(theseroles).anyMatch(isUserInRoleFunction);
+                for (String role : theseroles) {
+                    if (isUserInRoleFunction.test(role)) {
+                        return true;
+                    }
+                }
+                checkAuthentication(principal.get()); // throws UnauthenticatedException if not authenticated
+                return false; // authenticated, but not authorized
             } else {
                 // if no annotations on method or class (or if class has @PermitAll), return true;
                 return true;

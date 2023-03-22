@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -115,11 +117,23 @@ public class ServerSchemaGenCommand extends UtilityTemplate {
         int retCode = 0;
         try {
             String[] mbeanParams = new String[4];
+
             // If no args, dump help and exit.
             if ((args == null) || (args.length == 0)) {
                 stdout.println(getScriptUsage());
                 return 0;
             }
+
+            // Is first parameter -help?
+            String arg0Lower = args[0].toLowerCase();
+
+            if (arg0Lower.equals("-help") || arg0Lower.equals("--help")) {
+                stdout.println(getScriptUsage());
+                stdout.println();
+                showUsageInfo();
+                return 0;
+            }
+
             // The server name should be the first argument.  Go find the
             // server.  If we can't find the server, print the help text.
             String userDir = getUserDir();
@@ -131,19 +145,20 @@ public class ServerSchemaGenCommand extends UtilityTemplate {
                 stdout.println(getScriptUsage());
                 return RC_SERVER_NOT_FOUND;
             }
+
             //TODO handle if server not started case
             //iterate remaining arguments and compose the mbean API
             for (int i = 1; i < args.length; i++) {
                 String arg = args[i];
                 String argToLower = arg.toLowerCase();
-                if (argToLower.contains("help")) {
-                    stdout.println(getScriptUsage());
-                    stdout.println();
-                    showUsageInfo();
-                    return 0;
-                }
+
                 if (arg.startsWith("-")) {
-                    if (argToLower.contains("-schemaversion")) {
+                    if (argToLower.equals("-help") || argToLower.equals("--help")) {
+                        stdout.println(getScriptUsage());
+                        stdout.println();
+                        showUsageInfo();
+                        return 0;
+                    } else if (argToLower.contains("-schemaversion")) {
                         mbeanParams[0] = getArgumentValue(args[i]);
                     } else if (argToLower.contains("-outputversion")) {
                         mbeanParams[1] = getArgumentValue(argToLower);
@@ -158,6 +173,7 @@ public class ServerSchemaGenCommand extends UtilityTemplate {
                     }
                 }
             }
+
             // invoke MBEAN
             retCode = invokeSchemaGen(serverName, mbeanParams);
         } catch (Throwable t) {
@@ -172,8 +188,15 @@ public class ServerSchemaGenCommand extends UtilityTemplate {
         // Check the output dir.. If the value isn't the same as the value the server is using we won't find the logs directory
         File logsDir = new File(getOutputDir(serverName) + serverName + File.separator + "logs");
         if (!logsDir.exists()) {
-            stderr.println(getMessage("server.output.logs.dir.not.found", serverName, logsDir.getAbsolutePath()));
-            return RC_SERVER_OUTPUT_NOT_FOUND;
+            // If the logs dir isn't there, then that probably means the server isn't running.  When the
+            // server is created, the logs directory will not exist until the server is run for the first time.
+            // In that case, it is better to make the logs dir here, which will avoid the message about the
+            // logs dir and eventually give the more important message that the server isn't running.
+            boolean logsDirCreated = logsDir.mkdir();
+            if (!logsDirCreated) {
+                stderr.println(getMessage("server.output.logs.dir.not.found", serverName, logsDir.getAbsolutePath()));
+                return RC_SERVER_OUTPUT_NOT_FOUND;
+            }
         }
 
         // The file containing the local connector URL is always in the

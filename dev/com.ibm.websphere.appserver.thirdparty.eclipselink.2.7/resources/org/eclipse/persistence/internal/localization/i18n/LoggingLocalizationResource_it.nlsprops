@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2014 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -727,6 +729,9 @@ toplink_severe=[EL Grave]:
 
 toplink_warning=[EL Avvertenza]: 
 
+unit_of_work_thread_info=L''unit\u00e0 di lavoro corrente nella sessione ({0}) \u00e8 stata creata da un altro thread (id: {1} nome: {2}), rispetto al thread corrente (id: {3} nome: {4})
+
+unit_of_work_thread_info_thread_dump=Thread di creazione (id: {0} nome: {1}) traccia stack: {2}Thread corrente (id: {3} nome: {4}) traccia stack:{5}\n
 unitofwork_identity_hashcode={0}Codice hash identit\u00e0 UnitOfWork: {1}
 
 update_all_fields_not_supported=La funzione CMP nativa Oc4j "update-all-fields" sull''entit\u00e0\u00a0({0}) non \u00e8 direttamente supportata in CMP  EclipseLink. Per i dettagli consultare il documento sulla migrazione.

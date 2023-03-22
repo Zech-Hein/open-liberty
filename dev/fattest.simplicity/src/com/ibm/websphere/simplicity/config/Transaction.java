@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,6 +32,9 @@ public class Transaction extends ConfigElement {
     private String transactionLogDirectory;
     private Integer transactionLogSize;
     private Boolean waitForRecovery;
+    private Boolean enableLogRetries;
+    private String retriableSqlCodes;
+    private String nonRetriableSqlCodes;
 
     @XmlAttribute(name = "acceptHeuristicHazard")
     public void setAcceptHeuristicHazard(Boolean acceptHeuristicHazard) {
@@ -157,6 +162,33 @@ public class Transaction extends ConfigElement {
         return this.waitForRecovery;
     }
 
+    @XmlAttribute(name = "enableLogRetries")
+    public void setEnableLogRetries(Boolean enableLogRetries) {
+        this.enableLogRetries = enableLogRetries;
+    }
+
+    public Boolean getEnableLogRetries() {
+        return this.enableLogRetries;
+    }
+
+    @XmlAttribute(name = "retriableSqlCodes")
+    public void setRetriableSqlCodes(String retriableSqlCodes) {
+        this.retriableSqlCodes = retriableSqlCodes;
+    }
+
+    public String getRetriableSqlCodes() {
+        return this.retriableSqlCodes;
+    }
+
+    @XmlAttribute(name = "nonRetriableSqlCodes")
+    public void setNonRetriableSqlCodes(String nonRetriableSqlCodes) {
+        this.nonRetriableSqlCodes = nonRetriableSqlCodes;
+    }
+
+    public String getNonRetriableSqlCodes() {
+        return this.nonRetriableSqlCodes;
+    }
+
     /**
      * Returns a String listing the properties and their values used on this
      * transaction element.
@@ -192,6 +224,12 @@ public class Transaction extends ConfigElement {
             buf.append("transactionLogSize=\"" + transactionLogSize + "\" ");
         if (waitForRecovery != null)
             buf.append("waitForRecovery=\"" + waitForRecovery + "\" ");
+        if (enableLogRetries != null)
+            buf.append("enableLogRetries=\"" + enableLogRetries + "\" ");
+        if (retriableSqlCodes != null)
+            buf.append("retriableSqlCodes=\"" + retriableSqlCodes + "\" ");
+        if (nonRetriableSqlCodes != null)
+            buf.append("nonRetriableSqlCodes=\"" + nonRetriableSqlCodes + "\" ");
         buf.append("}");
         return buf.toString();
     }

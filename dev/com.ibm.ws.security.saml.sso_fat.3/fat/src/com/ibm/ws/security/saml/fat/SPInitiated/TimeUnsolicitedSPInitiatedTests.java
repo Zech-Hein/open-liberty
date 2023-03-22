@@ -1,12 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
- *     IBM Corporation - initial API and implementation
+ * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.security.saml.fat.SPInitiated;
 
@@ -18,7 +20,7 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.log.Log;
-import com.ibm.ws.security.fat.common.actions.SecurityTestFeatureRepeatAction;
+import com.ibm.ws.security.fat.common.actions.SecurityTestRepeatAction;
 import com.ibm.ws.security.saml.fat.common.TimeSAMLTests;
 import com.ibm.ws.security.saml20.fat.commonTest.SAMLConstants;
 import com.ibm.ws.security.saml20.fat.commonTest.SAMLMessageConstants;
@@ -53,7 +55,7 @@ public class TimeUnsolicitedSPInitiatedTests extends TimeSAMLTests {
     private static final Class<?> thisClass = TimeUnsolicitedSPInitiatedTests.class;
 
     @ClassRule
-    public static RepeatTests r = RepeatTests.with(new SecurityTestFeatureRepeatAction("").fullFATOnly());
+    public static RepeatTests r = RepeatTests.with(new SecurityTestRepeatAction().fullFATOnly());
 
     @BeforeClass
     public static void setupBeforeTest() throws Exception {

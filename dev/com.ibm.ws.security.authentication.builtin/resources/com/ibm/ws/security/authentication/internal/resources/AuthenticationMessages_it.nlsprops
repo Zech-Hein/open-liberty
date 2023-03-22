@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2011 IBM Corporation and others.
+# Copyright (c) 2011, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -56,10 +58,6 @@ JAAS_WSLOGIN_MODULE_PROXY_NULL_OPTIONS=CWWKS1107E: Opzioni WSLoginModuleProxy nu
 JAAS_WSLOGIN_MODULE_PROXY_NULL_OPTIONS.explanation=L'autenticazione non \u00e8 riuscita perch\u00e9 l'elemento opzioni WSLoginModuleProxy \u00e8 null o vuoto.
 JAAS_WSLOGIN_MODULE_PROXY_NULL_OPTIONS.useraction=Verificare che la configurazione di WSLoginModuleProxy includa l'elemento opzioni.
 
-JAAS_WSLOGIN_MODULE_PROXY_DELEGATE_NOT_SET=CWWKS1108E: L'opzione delegate di WSLoginModuleProxy non \u00e8 impostata.
-JAAS_WSLOGIN_MODULE_PROXY_DELEGATE_NOT_SET.explanation=L'autenticazione non \u00e8 riuscita perch\u00e9 jaasLoginModule con id WSLoginModuleProxy non dispone dell'attributo delegate nell'elemento opzioni.
-JAAS_WSLOGIN_MODULE_PROXY_DELEGATE_NOT_SET.useraction=Verificare che il jaasLoginModule con id WSLoginModuleProxy includa l'attributo delegate sull'elemento opzioni.
-
 JAAS_PROXY_IS_NOT_SUPPORT_IN_SYSTEM_DEFAULT=CWWKS1109W: WSLoginModuleProxy non \u00e8 supportato in jaasLoginContextEntry system.DEFAULT.
 JAAS_PROXY_IS_NOT_SUPPORT_IN_SYSTEM_DEFAULT.explanation=WSLoginModuleProxy non \u00e8 supportato in jaasLoginContextEntry system.DEFAULT.
 JAAS_PROXY_IS_NOT_SUPPORT_IN_SYSTEM_DEFAULT.useraction=Rimuovere la voce proxy dall'attributo loginModuleRef di jaasLoginContextEntry system.DEFAULT.
@@ -83,3 +81,27 @@ JAAS_LOGIN_COLLECTIVE_PLUGIN_AVAILABLE.useraction=Non \u00e8 richiesta alcuna az
 JAAS_LOGIN_COLLECTIVE_PLUGIN_UNAVAILABLE=CWWKS1124I: Il plug-in di autenticazione collective con il nome classe {0} \u00e8 stato disattivato. 
 JAAS_LOGIN_COLLECTIVE_PLUGIN_UNAVAILABLE.explanation=Un plug-in di autenticazione collective \u00e8 stato disattivato e non \u00e8 pi\u00f9 disponibile per autenticare le richieste collective.
 JAAS_LOGIN_COLLECTIVE_PLUGIN_UNAVAILABLE.useraction=Non \u00e8 richiesta alcuna azione.
+
+JCACHE_AUTH_CACHE_CLEARED_ALL_ENTRIES=CWWKS1125I: La cache di autenticazione ha cancellato tutte le voci nella cache JCache {0}. 
+JCACHE_AUTH_CACHE_CLEARED_ALL_ENTRIES.explanation=La cache di autenticazione cancella tutte le voci nella cache JCache di backup quando viene modificata la configurazione della sicurezza o del registro utenti o quando viene richiamato l'MBean DeleteAuthCache. 
+JCACHE_AUTH_CACHE_CLEARED_ALL_ENTRIES.useraction=Non \u00e8 richiesta alcuna azione.
+
+JCACHE_AUTH_CACHE_SERIALIZATION_FAILED=CWWKS1126W: L''inserimento della voce per la chiave {0} nella cache di autenticazione JCache {1} non \u00e8 riuscito a causa di un errore di serializzazione. La voce verr\u00e0 inserita invece nella cache di autenticazione in memoria. L''eccezione \u00e8: {2}
+JCACHE_AUTH_CACHE_SERIALIZATION_FAILED.explanation=I contenuti della voce non sono stati serializzati quindi non sono stati memorizzati nella cache di autenticazione JCache.
+JCACHE_AUTH_CACHE_SERIALIZATION_FAILED.useraction=Indagare sull'eccezione inclusa nel messaggio e correggere la causa dell'errore.
+
+JCACHE_AUTH_CACHE_GET_FAILED=CWWKS1127E: Il richiamo della voce per la chiave {0} dalla cache di autenticazione JCache {1} non \u00e8 riuscito a causa di un errore. L''eccezione \u00e8: {2}
+JCACHE_AUTH_CACHE_GET_FAILED.explanation=Non \u00e8 possibile richiamare la voce dalla cache di autenticazione JCache.
+JCACHE_AUTH_CACHE_GET_FAILED.useraction=Indagare sull'eccezione inclusa nel messaggio e correggere la causa dell'errore.
+
+JCACHE_AUTH_CACHE_INSERT_FAILED=CWWKS1128E: L''inserimento della voce per la chiave {0} nella cache di autenticazione JCache {1} non \u00e8 riuscito a causa di un errore. L''eccezione \u00e8: {2}
+JCACHE_AUTH_CACHE_INSERT_FAILED.explanation=La voce non \u00e8 stata memorizzata nella cache di autenticazione JCache.
+JCACHE_AUTH_CACHE_INSERT_FAILED.useraction=Indagare sull'eccezione inclusa nel messaggio e correggere la causa dell'errore.
+
+JCACHE_AUTH_CACHE_REMOVE_FAILED=CWWKS1129E: La rimozione della voce per la chiave {0} nella cache di autenticazione JCache {1} non \u00e8 riuscita a causa di un errore. L''eccezione \u00e8: {2}
+JCACHE_AUTH_CACHE_REMOVE_FAILED.explanation=La voce non \u00e8 stata eliminata dalla cache di autenticazione JCache.
+JCACHE_AUTH_CACHE_REMOVE_FAILED.useraction=Indagare sull'eccezione inclusa nel messaggio e correggere la causa dell'errore.
+
+JCACHE_AUTH_CACHE_CLEAR_FAILED=CWWKS1130E: L''eliminazione della cache di autenticazione JCache {0} non \u00e8 riuscita a causa di un errore. L''eccezione \u00e8: {1}
+JCACHE_AUTH_CACHE_CLEAR_FAILED.explanation=Le voci non sono state eliminate dalla cache di autenticazione JCache.
+JCACHE_AUTH_CACHE_CLEAR_FAILED.useraction=Indagare sull'eccezione inclusa nel messaggio e correggere la causa dell'errore.

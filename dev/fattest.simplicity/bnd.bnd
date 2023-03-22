@@ -1,80 +1,86 @@
 #*******************************************************************************
-# Copyright (c) 2017, 2020 IBM Corporation and others.
+# Copyright (c) 2017, 2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
-bVersion=1.0
+bVersion=2.0
 
 Bundle-Name: FAT infrastructure
 Bundle-SymbolicName: fattest.simplicity
 Bundle-Description: FAT infrastructure; version=${bVersion}
 
 Export-Package: \
-	com.ibm.websphere.simplicity;version=1.0.16,\
-	com.ibm.websphere.simplicity.application;version=1.0.16,\
-	com.ibm.websphere.simplicity.beansxml;version=1.0.16,\
-	com.ibm.websphere.simplicity.config;version=1.0.16,\
-	com.ibm.websphere.simplicity.config.context;version=1.0.16,\
-	com.ibm.websphere.simplicity.config.dsprops;version=1.0.16,\
-	com.ibm.websphere.simplicity.config.dsprops.testrules;version=1.0.16,\
-	com.ibm.websphere.simplicity.config.wim;version=1.0.16,\
-	com.ibm.websphere.soe_reporting;version=1.0.16,\
-	com.ibm.ws.fat.util;version=1.0.16,\
-	com.ibm.ws.fat.util.browser;version=1.0.16,\
-	com.ibm.ws.fat.util.jmx;version=1.0.16,\
-	com.ibm.ws.fat.util.jmx.mbeans;version=1.0.16,\
-	com.ibm.ws.fat.util.tck;version=1.0.16,\
-	componenttest.annotation;version=1.0.16,\
-	componenttest.common.apiservices;version=1.0.16,\
-	componenttest.common.apiservices.cmdline;version=1.0.16,\
-	componenttest.containers;version=1.0.16,\
-	componenttest.custom.junit.runner;version=1.0.16,\
-	componenttest.exception;version=1.0.16,\
-	componenttest.logging.ffdc;version=1.0.16,\
-	componenttest.rules;version=1.0.16,\
-	componenttest.rules.repeater;version=1.0.16,\
-	componenttest.topology.database;version=1.0.16,\
-	componenttest.topology.database.container;version=1.0.16,\
-	componenttest.topology.impl;version=1.0.16,\
-	componenttest.topology.ldap;version=1.0.16,\
-	componenttest.topology.utils;version=1.0.16,\
-	componenttest.vulnerability;version=1.0.16
+        com.ibm.websphere.simplicity;version=2.0,\
+        com.ibm.websphere.simplicity.application;version=2.0,\
+        com.ibm.websphere.simplicity.beansxml;version=2.0,\
+        com.ibm.websphere.simplicity.config;version=2.0,\
+        com.ibm.websphere.simplicity.config.context;version=2.0,\
+        com.ibm.websphere.simplicity.config.dsprops;version=2.0,\
+        com.ibm.websphere.simplicity.config.dsprops.testrules;version=2.0,\
+        com.ibm.websphere.simplicity.config.wim;version=2.0,\
+        com.ibm.websphere.simplicity.config.cache;version=2.0,\
+        com.ibm.websphere.simplicity.log;version=2.0,\
+        com.ibm.websphere.soe_reporting;version=2.0,\
+        com.ibm.ws.fat.util;version=2.0,\
+        com.ibm.ws.fat.util.browser;version=2.0,\
+        com.ibm.ws.fat.util.jmx;version=2.0,\
+        com.ibm.ws.fat.util.jmx.mbeans;version=2.0,\
+        com.ibm.ws.fat.util.tck;version=2.0,\
+        componenttest.annotation;version=2.0,\
+        componenttest.common.apiservices;version=2.0,\
+        componenttest.common.apiservices.cmdline;version=2.0,\
+        componenttest.containers;version=2.0,\
+        componenttest.custom.junit.runner;version=2.0,\
+        componenttest.exception;version=2.0,\
+        componenttest.logging.ffdc;version=2.0,\
+        componenttest.rules;version=2.0,\
+        componenttest.rules.repeater;version=2.0,\
+        componenttest.topology.database;version=2.0,\
+        componenttest.topology.database.container;version=2.0,\
+        componenttest.topology.impl;version=2.0,\
+        componenttest.topology.ldap;version=2.0,\
+        componenttest.topology.utils;version=2.0,\
+        componenttest.topology.utils.tck;version=2.0,\
+        componenttest.vulnerability;version=2.0,\
+        io.openliberty.checkpoint.spi
 	
 Private-Package: \
 	componenttest.annotation.processor,\
-	componenttest.depchain
+	componenttest.depchain,\
+	componenttest.topology.impl.probe,\
+	com.ibm.websphere.simplicity.configuration
 
 Include-Resource: \
-    resources/init-sqlserver.sql=resources/init-sqlserver.sql, \
+    init-sqlserver.sql=resources/init-sqlserver.sql, \
 	META-INF=resources/META-INF
 
 test.project: true
 
+# These are the images used by the org.testcontainers and componenttest.topology.database.container packages
+fat.test.container.images: testcontainers/ryuk:0.3.4, testcontainers/sshd:1.1.0, kyleaure/db2:1.0, gvenzl/oracle-xe:21.3.0-full-faststart, postgres:14.1-alpine, mcr.microsoft.com/mssql/server:2019-CU18-ubuntu-20.04
+
 -buildpath: \
 	com.ibm.websphere.javaee.jaxb.2.2;version=latest,\
-	../build.sharedResources/lib/junit/old/junit.jar;version=file,\
-	com.ibm.ws.junit.extensions;version=latest,\
 	commons-httpclient:commons-httpclient;version=3.1,\
-	com.ibm.websphere.javaee.jsonp.1.0;version=latest,\
+	com.ibm.websphere.javaee.jsonp.1.1;version=latest,\
 	com.ibm.websphere.javaee.servlet.3.0;version=latest,\
 	io.openliberty.jakarta.servlet.5.0;version=latest,\
-	org.eclipse.transformer:org.eclipse.transformer.cli;version=0.2.0,\
-	biz.aQute.bnd:biz.aQute.bnd.transform;version=5.3.0,\
-	commons-cli:commons-cli;version=1.4,\
-	org.eclipse.transformer:org.eclipse.transformer;version=0.2.0,\
+	org.eclipse.transformer:org.eclipse.transformer.cli;version=0.5.0,\
+	org.eclipse.transformer:org.eclipse.transformer.bnd.analyzer;version=0.5.0,\
+	org.eclipse.transformer:org.eclipse.transformer.jakarta;version=0.5.0,\
+	org.eclipse.transformer:org.eclipse.transformer;version=0.5.0,\
+	biz.aQute.bnd:biz.aQute.bnd.transform;version=6.3.0,\
+	commons-cli:commons-cli;version=latest,\
 	com.ibm.ws.common.encoder;version=latest,\
 	com.ibm.ws.componenttest;version=latest,\
-	com.ibm.ws.componenttest:com.ibm.componenttest.common;version=1.0.0,\
-	com.ibm.ws.componenttest:com.ibm.ws.topology.helper;version=1.0.0,\
-	com.ibm.ws.componenttest:provider.api;version=1.0.0,\
-	com.ibm.ws.componenttest:public.api;version=1.0.0,\
-	com.ibm.ws.componenttest:fat.util;version=1.0.0,\
 	com.ibm.ws.timedexit.internal;version=latest,\
 	com.sun.xml.bind:jaxb-core;version=2.2.10,\
 	com.sun.xml.bind:jaxb-impl;version=2.2.10,\
@@ -96,4 +102,8 @@ test.project: true
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
 	io.openliberty.org.testcontainers;version=latest,\
 	com.ibm.websphere.javaee.cdi.1.2;version=latest,\
-	io.openliberty.jakarta.cdi.3.0;version=latest
+	io.openliberty.jakarta.cdi.3.0;version=latest,\
+	com.ibm.ws.kernel.boot;version=latest,\
+	io.openliberty.org.eclipse.openj9.criu;version=latest,\
+	com.ibm.ws.org.slf4j.api;version=latest,\
+	io.openliberty.com.fasterxml.jackson;version=latest

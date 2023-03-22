@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -56,13 +58,13 @@ public class WSPrincipal implements Principal, Serializable {
      * identity.
      *
      * @param securityName A String representing the user's name. Must not be <code>null</code> or empty.
-     * @param accessId A String representing the user's accessId.
+     * @param accessId     A String representing the user's accessId.
      * @see com.ibm.ws.security.AccessIdUtil#createAccessId(String, String, String)
      */
     public WSPrincipal(String securityName, String accessId, String authMethod) {
         if (securityName == null || securityName.isEmpty() ||
             authMethod == null || authMethod.isEmpty()) {
-            throw new IllegalArgumentException("Sanity check, null / empty values are invalid here");
+            throw new IllegalArgumentException("Check, null / empty values are invalid here");
         }
         this.securityName = securityName;
         this.accessId = accessId;

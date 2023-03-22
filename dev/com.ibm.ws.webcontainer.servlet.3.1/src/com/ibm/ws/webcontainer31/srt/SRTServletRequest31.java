@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -35,8 +37,8 @@ import com.ibm.websphere.servlet31.request.IRequest31;
 import com.ibm.ws.managedobject.ManagedObject;
 import com.ibm.ws.webcontainer.servlet.RequestUtils;
 import com.ibm.ws.webcontainer.srt.SRTInputStream;
+import com.ibm.ws.webcontainer.srt.SRTRequestContext;
 import com.ibm.ws.webcontainer.srt.SRTServletRequest;
-import com.ibm.ws.webcontainer.srt.SRTServletRequestThreadData;
 import com.ibm.ws.webcontainer.webapp.WebApp;
 import com.ibm.ws.webcontainer.webapp.WebAppDispatcherContext;
 import com.ibm.ws.webcontainer31.async.ThreadContextManager;
@@ -63,14 +65,14 @@ public class SRTServletRequest31 extends SRTServletRequest implements HttpServle
     
     public SRTServletRequest31(SRTConnectionContext31 context)
     {
-        this._connContext = context;
-        this._requestContext = new SRTRequestContext31(this);
-        this._in = createInputStream();
-            if (TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE)) {  //306998.15
-                logger.logp(Level.FINE, CLASS_NAME,"SRTServletRequest", "this->"+this+": " + "inputStream is of type --> " + this._in);
-        }
+        super(context);
     }
 
+    @Override
+    protected SRTRequestContext31 createRequestContext() {
+        return new SRTRequestContext31(this);
+    }
+    
     @Override
     public Object clone() throws CloneNotSupportedException {
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
@@ -121,7 +123,9 @@ public class SRTServletRequest31 extends SRTServletRequest implements HttpServle
 
             this._request = req;
             _srtRequestHelper = getRequestHelper();
-            SRTServletRequestThreadData.getInstance().init(null);
+
+            initRequestThreadData();
+            
             _in.init(_request.getInputStream());
             // begin 280584.1    SVT: StackOverflowError when installing app larger than 2GB    WAS.webcontainer    
             if( this.getContentLengthLong() > 0 ){            

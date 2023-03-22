@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -24,28 +26,34 @@ import com.ibm.ws.jaxrs21.client.fat.test.JAXRS21ClientLTPATest;
 import com.ibm.ws.jaxrs21.client.fat.test.JAXRS21ClientSSLProxyAuthTest;
 import com.ibm.ws.jaxrs21.client.fat.test.JAXRS21ClientSSLTest;
 import com.ibm.ws.jaxrs21.client.fat.test.JAXRS21ComplexClientTest;
+import com.ibm.ws.jaxrs21.client.fat.test.JAXRS21ExecutorsTest;
 import com.ibm.ws.jaxrs21.client.fat.test.JAXRS21ReactiveSampleTest;
 import com.ibm.ws.jaxrs21.client.fat.test.JAXRS21TimeoutClientTest;
 
 import componenttest.custom.junit.runner.AlwaysPassesTest;
+import componenttest.rules.repeater.FeatureReplacementAction;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.rules.repeater.RepeatTests;
 
 @RunWith(Suite.class)
 @SuiteClasses({ AlwaysPassesTest.class,
+                JAXRS21ClientCallbackTest.class,
+                JAXRS21ClientCompletionStageRxInvokerTest.class,
+                JAXRS21ClientCXFRxInvokerTest.class,
+                JAXRS21ClientJerseyRxInvokerTest.class,
+                JAXRS21ClientLTPATest.class,
                 JAXRS21ClientSSLProxyAuthTest.class,
                 JAXRS21ClientSSLTest.class,
-                JAXRS21ClientCallbackTest.class,
                 JAXRS21ComplexClientTest.class,
-                JAXRS21TimeoutClientTest.class,
-                JAXRS21ClientLTPATest.class,
-                JAXRS21ClientJerseyRxInvokerTest.class,
-                JAXRS21ClientCXFRxInvokerTest.class,
-//                JAXRS21ClientRestEasyRxInvokerTest.class,
-                JAXRS21ClientCompletionStageRxInvokerTest.class,
-                JAXRS21ReactiveSampleTest.class })
+                JAXRS21ExecutorsTest.class,
+                JAXRS21ReactiveSampleTest.class,
+                JAXRS21TimeoutClientTest.class
+                })
 public class FATSuite {
     @ClassRule
-    public static RepeatTests r = RepeatTests.withoutModification()
-                    .andWith(new JakartaEE9Action().alwaysAddFeature("jsonb-2.0"));
+    public static RepeatTests r = RepeatTests.withoutModificationInFullMode()
+                    .andWith(new JakartaEE9Action().alwaysAddFeature("jsonb-2.0").conditionalFullFATOnly(FeatureReplacementAction.GREATER_THAN_OR_EQUAL_JAVA_11))
+                    .andWith(new JakartaEE10Action().alwaysAddFeature("jsonb-3.0"));
+;
 }

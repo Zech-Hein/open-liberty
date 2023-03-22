@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2021 IBM Corporation and others.
+ * Copyright (c) 2018, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -22,6 +24,7 @@ import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.Cookie;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
+import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.security.fat.common.Constants;
 import com.ibm.ws.security.fat.common.exceptions.TestActionException;
 import com.ibm.ws.security.fat.common.logging.CommonFatLoggingUtils;
@@ -339,8 +342,37 @@ public class TestActions {
             throw new TestActionException(thisMethod, "An error occurred while performing form login.", e);
         }
     }
+    
+    public Page doConsent(Page consentPage, String selection) throws Exception {
+        String thisMethod = "doConsent";
+        loggingUtils.printMethodName(thisMethod);
 
-    public WebClient createWebClient() {
+        if (consentPage == null) {
+            throw new Exception("Cannot perform consent because the provided page object is null.");
+        }
+        if (!(consentPage instanceof HtmlPage)) {
+            throw new Exception("Cannot perform consent because the provided page object is not a " + HtmlPage.class.getName() + " instance. Page class is: "
+                    + consentPage.getClass().getName());
+        }
+        return doConsent((HtmlPage) consentPage, selection);
+    }
+    
+    public Page doConsent(HtmlPage consentPage, String selection) throws Exception {
+        String thisMethod = "doConsent";
+        loggingUtils.printMethodName(thisMethod);
+        if (consentPage == null) {
+            throw new Exception("Cannot perform consent because the provided page object is null.");
+        }
+        try {
+            Page postSubmissionPage = webFormUtils.getAndSubmitConsentForm(consentPage, selection);
+            loggingUtils.printResponseParts(postSubmissionPage, thisMethod, "Response from consent form submission:");
+            return postSubmissionPage;
+        } catch (Exception e) {
+            throw new TestActionException(thisMethod, "An error occurred while performing consent.", e);
+        }
+    }
+
+    public WebClient createWebClient() throws Exception {
         WebClient webClient = new WebClient();
         webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
         webClient.getOptions().setUseInsecureSSL(true);
@@ -371,5 +403,11 @@ public class TestActions {
         WebRequest request = new WebRequest(reqUrl, HttpMethod.POST);
         request.setRequestBody(body);
         return request;
+    }
+
+    public void testLogAndSleep(int timeToSleep) throws Exception {
+
+        Log.info(this.getClass(), "testLogAndSleep", "Sleeping for " + Integer.toString(timeToSleep));
+        Thread.sleep(timeToSleep * 1000);
     }
 }

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -149,10 +151,6 @@ public class CollectorJsonUtils_JSON {
         }
 
         StringBuilder formattedValue = new StringBuilder(CollectorJsonHelpers.formatMessage(message, maxFieldLength));
-        String throwable = logData.getThrowable();
-        if (throwable != null) {
-            formattedValue.append(CollectorJsonHelpers.LINE_SEPARATOR).append(throwable);
-        }
 
         String datetime = CollectorJsonHelpers.dateFormatTL.get().format(logData.getDatetime());
 
@@ -167,6 +165,14 @@ public class CollectorJsonUtils_JSON {
                    .addField(LogTraceData.getClassNameKey(JSON_KEY, isMessageEvent), logData.getClassName(), false, true)
                    .addField(LogTraceData.getSequenceKey(JSON_KEY, isMessageEvent), logData.getSequence(), false, true);
         //@formatter:on
+
+        //append Throwable information (i.e. ibm_exceptionName and ibm_stackTrace)
+        String exceptionName = logData.getExceptionName();
+        String throwable = logData.getThrowable();
+        if (exceptionName != null && throwable != null) {
+            jsonBuilder.addField(LogTraceData.getExceptionNameKey(JSON_KEY, isMessageEvent), exceptionName, false, true);
+            jsonBuilder.addField(LogTraceData.getStackTraceKey(JSON_KEY, isMessageEvent), throwable, false, true);
+        }
 
         ArrayList<KeyValuePair> extensions = null;
         KeyValuePairList kvpl = null;

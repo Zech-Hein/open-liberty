@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -121,7 +123,7 @@ public abstract class JSListImpl extends JSMessageData implements JMFList {
     this.element = element;
     this.indirect = indirect;
     length = ArrayUtil.readInt(contents, offset);      // 1st int value in buffer
-    JSListCoder.sanityCheck(length, contents, offset);
+    JSListCoder.evaluateMessageLength(length, contents, offset);
     length -= 4; // original length includes cache size
     if (cacheSize > length) {
       // This is a conservative check but will catch flagrant corruption
@@ -327,7 +329,7 @@ public abstract class JSListImpl extends JSMessageData implements JMFList {
         if (elem == nullIndicator) {
           elem = null;
         }
-        next = element.encodeValue(frame, next, elem, indirect, master);
+        next = element.encodeValue(frame, next, elem, indirect, primaryMessage);
       }
       if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) JmfTr.exit(this, tc, "encode", Integer.valueOf(next));
       return next;

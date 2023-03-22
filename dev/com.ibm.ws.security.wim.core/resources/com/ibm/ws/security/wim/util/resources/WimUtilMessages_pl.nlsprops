@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2012, 2021 IBM Corporation and others.
+# Copyright (c) 2012, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -32,9 +34,9 @@ INVALID_SUPPORTED_ENTITY_TYPE_DEFINITION=CWIMK0001E: Nie mo\u017cna zako\u0144cz
 INVALID_SUPPORTED_ENTITY_TYPE_DEFINITION.explanation= Typ jednostki musi mie\u0107 zdefiniowan\u0105 nazw\u0119 typu jednostki oraz co najmniej jedn\u0105 odpowiedni\u0105 w\u0142a\u015bciwo\u015b\u0107 wzgl\u0119dnej nazwy wyr\u00f3\u017cniaj\u0105cej (RDN).
 INVALID_SUPPORTED_ENTITY_TYPE_DEFINITION.useraction=Zmodyfikuj i popraw definicj\u0119 typu jednostki w pliku server.xml.
 
-INVALID_BASE_ENTRY_DEFINITION=CWIMK0002E: Nie mo\u017cna zako\u0144czy\u0107 operacji na rejestrze u\u017cytkownik\u00f3w. Definicja wpisu podstawowego {0} jest niepoprawna.  Popraw definicj\u0119 wpisu podstawowego w pliku server.xml. Przyk\u0142adowa sk\u0142adnia: <baseEntry name="..." baseDN="...."/>.
-INVALID_BASE_ENTRY_DEFINITION.explanation= Okre\u015blona definicja wpisu podstawowego jest niepoprawna. Sk\u0142adnia definiowania wpisu podstawowego to <baseEntry name="..." baseDN="...."/>.
-INVALID_BASE_ENTRY_DEFINITION.useraction= Zmodyfikuj i popraw definicj\u0119 wpisu podstawowego w pliku server.xml.
+INVALID_BASE_ENTRY_DEFINITION=CWIMK0002E: Nie mo\u017cna zako\u0144czy\u0107 operacji na rejestrze u\u017cytkownik\u00f3w. Definicja wpisu podstawowego {0} jest niepoprawna.  Popraw definicj\u0119 wpisu podstawowego w plikuserver.xml.
+INVALID_BASE_ENTRY_DEFINITION.explanation=Podana definicja wpisu podstawowego jest niepoprawna.
+INVALID_BASE_ENTRY_DEFINITION.useraction=Podaj poprawn\u0105 definicj\u0119 wpisu podstawowego w pliku server.xml.
 
 INVALID_REALM_DEFINITION=CWIMK0003E: Nie mo\u017cna zako\u0144czy\u0107 operacji na rejestrze u\u017cytkownik\u00f3w. Definicja dziedziny {0} jest niepoprawna. Popraw definicj\u0119 dziedziny w pliku server.xml.
 INVALID_REALM_DEFINITION.explanation= Brakuje znacznika dziedziny albo jest on niepoprawny z powodu braku wymaganego atrybutu.
@@ -71,6 +73,11 @@ FEDERATED_MANAGER_SERVICE_STOPPED.useraction=Nie jest wymagana \u017cadna czynno
 MISSING_REGISTRY_DEFINITION=CWIMK0011E: Nie mo\u017cna zako\u0144czy\u0107 operacji na rejestrze u\u017cytkownik\u00f3w. Nie znaleziono poprawnego rejestru u\u017cytkownik\u00f3w. Dodaj lub popraw definicj\u0119 rejestru w pliku server.xml.
 MISSING_REGISTRY_DEFINITION.explanation=Rejestr u\u017cytkownik\u00f3w nie zosta\u0142 zdefiniowany lub nie mo\u017cna go zainicjowa\u0107 z powodu b\u0142\u0119du konfiguracji. Poprawnym rejestrem u\u017cytkownik\u00f3w mo\u017ce by\u0107 rejestr LDAP lub inny obs\u0142ugiwany rejestr lub repozytorium.
 MISSING_REGISTRY_DEFINITION.useraction=Je\u015bli rejestr u\u017cytkownik\u00f3w zosta\u0142 zdefiniowany w pliku konfiguracyjnym, poszukaj w dziennikach b\u0142\u0119d\u00f3w konfiguracji wyst\u0119puj\u0105cych podczas uruchamiania. Dodaj lub popraw definicj\u0119 rejestru u\u017cytkownik\u00f3w w pliku server.xml.
+
+FAILED_LOGIN_DELAY_DISABLED=CWIMK0012W: Op\u00f3\u017anienie dla nieudanego logowania dla repozytori\u00f3w stowarzyszonych jest wy\u0142\u0105czone. To wy\u0142\u0105czenie nara\u017ca serwer na ataki polegaj\u0105ce na testowaniu kolejnych u\u017cytkownik\u00f3w. Aby w\u0142\u0105czy\u0107 op\u00f3\u017anienie dla nieudanego logowania, nale\u017cy usun\u0105\u0107 atrybuty repozytorium stowarzyszonego {0} oraz {1}, tak aby u\u017cywane by\u0142y domy\u015blne warto\u015bci minimalne i maksymalne wynosz\u0105ce odpowiednio 0 i 5000 milisekund. Alternatywnie mo\u017cna ustawi\u0107 warto\u015b\u0107 atrybutu repozytorium stowarzyszonego {1} na warto\u015b\u0107 wi\u0119ksz\u0105 od zera. 
+FAILED_LOGIN_DELAY_DISABLED.explanation=Je\u015bli op\u00f3\u017anienie dla nieudanego logowania jest wy\u0142\u0105czone, serwer jest nara\u017cony na atak polegaj\u0105cy na testowaniu kolejnych u\u017cytkownik\u00f3w.
+FAILED_LOGIN_DELAY_DISABLED.useraction=W\u0142\u0105cz op\u00f3\u017anienie dla nieudanego logowania, usuwaj\u0105c atrybuty w celu u\u017cycia domy\u015blnego minimalnego i maksymalnego op\u00f3\u017anienia dope\u0142niaj\u0105cego wynosz\u0105cego odpowiednio 0 i 5000 milisekund lub ustaw niestandardow\u0105 konfiguracj\u0119. 
+
 
 ENTITY_IDENTIFIER_NOT_SPECIFIED=CWIML1009E: Nie mo\u017cna zako\u0144czy\u0107 operacji na rejestrze u\u017cytkownik\u00f3w. Nie znaleziono identyfikatora jednostki. Okre\u015bl poprawny identyfikator jako parametr wej\u015bciowy. 
 ENTITY_IDENTIFIER_NOT_SPECIFIED.explanation=Identyfikator jednostki nie zosta\u0142 okre\u015blony. System nie mo\u017ce znale\u017a\u0107 jednostki. Nie mo\u017cna kontynuowa\u0107 operacji na rejestrze u\u017cytkownik\u00f3w przed znalezieniem tej jednostki. 
@@ -220,7 +227,7 @@ MISSING_REPOSITORIES_FOR_GROUPS_CONFIGURATION=CWIML1034E: Brak konfiguracji repo
 MISSING_REPOSITORIES_FOR_GROUPS_CONFIGURATION.explanation=Dla repozytorium nie zdefiniowano konfiguracji grupy wielu repozytori\u00f3w.
 MISSING_REPOSITORIES_FOR_GROUPS_CONFIGURATION.useraction=Przyczyn\u0119 niepowodzenia mo\u017cna znale\u017a\u0107 w pliku dziennika. Sprawd\u017a konfiguracj\u0119 repozytorium.
 
-ENTITY_TYPE_NOT_SUPPORTED=CWIML0510W: Podany typ jednostki {0} nie jest poprawny dla tej operacji.
+ENTITY_TYPE_NOT_SUPPORTED=CWIML0510W: Podany typ obiektu {0} nie jest poprawny dla tej operacji.
 ENTITY_TYPE_NOT_SUPPORTED.explanation=Za\u017c\u0105dano operacji na jednostce, lecz ta operacja nie obs\u0142uguje podanego typu jednostki.
 ENTITY_TYPE_NOT_SUPPORTED.useraction=Upewnij si\u0119, \u017ce jednostka podana w danych wej\u015bciowych nale\u017cy do obs\u0142ugiwanych typ\u00f3w jednostek. Usu\u0144 nieobs\u0142ugiwane typy jednostek z danych wej\u015bciowych.
 
@@ -253,7 +260,7 @@ ENTITY_SEARCH_FAILED.explanation=Nie mo\u017cna przeszuka\u0107 jednostki z powo
 ENTITY_SEARCH_FAILED.useraction=Przejrzyj komunikat o przyczynie i plik \u015bledzenia, aby okre\u015bli\u0107 przyczyn\u0119 niepowodzenia. Napraw b\u0142\u0105d i spr\u00f3buj ponownie.
 
 MISSING_OR_EMPTY_PASSWORD=CWIML4541E: Nie mo\u017cna zako\u0144czy\u0107 operacji logowania, poniewa\u017c nie podano has\u0142a lub jest ono puste.
-MISSING_OR_EMPTY_PASSWORD.explanation=Je\u015bli nazwa u\u017cytkownika zosta\u0142a okre\u015blona w procesie logowania, has\u0142o nie mo\u017ce mie\u0107 warto\u015bci NULL ani by\u0107 puste.
+MISSING_OR_EMPTY_PASSWORD.explanation=Je\u015bli podczas logowania okre\u015blono nazw\u0119 u\u017cytkownika, has\u0142o nie mo\u017ce by\u0107 puste ani mie\u0107 warto\u015bci null.
 MISSING_OR_EMPTY_PASSWORD.useraction=Podaj has\u0142o.
 
 CERTIFICATE_GENERATE_FAILED=CWIML3012E: Nie mo\u017cna zako\u0144czy\u0107 operacji logowania, poniewa\u017c nie powiod\u0142o si\u0119 wygenerowanie certyfikatu.

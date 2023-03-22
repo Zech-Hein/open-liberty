@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011 IBM Corporation and others.
+ * Copyright (c) 2011, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,12 +23,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 
-import test.common.SharedOutputManager;
-
 import com.ibm.ws.security.token.TokenService;
 import com.ibm.wsspi.security.ltpa.Token;
 import com.ibm.wsspi.security.token.AttributeNameConstants;
 import com.ibm.wsspi.security.token.SingleSignonToken;
+
+import test.common.SharedOutputManager;
 
 public class SingleSignonTokenImplTest {
     private final SharedOutputManager outputMgr = SharedOutputManager.getInstance();
@@ -47,7 +49,7 @@ public class SingleSignonTokenImplTest {
 
     @Before
     public void setUp() throws Exception {
-        singleSignonToken = new SingleSignonTokenImpl(tokenService);
+        singleSignonToken = new SingleSignonTokenImpl(tokenService, null);
     }
 
     /**

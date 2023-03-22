@@ -1,16 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package io.openliberty.microprofile.faulttolerance.tck;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +28,8 @@ import componenttest.custom.junit.runner.TestModeFilter;
 import componenttest.topology.impl.JavaInfo;
 import componenttest.topology.impl.JavaInfo.Vendor;
 import componenttest.topology.impl.LibertyServer;
-import componenttest.topology.utils.MvnUtils;
+import componenttest.topology.utils.tck.TCKResultsInfo.Type;
+import componenttest.topology.utils.tck.TCKRunner;
 
 /**
  * This is a test class that runs the whole Fault Tolerance 3.0 TCK. The TCK results
@@ -110,7 +112,7 @@ public class FaultToleranceTck30Launcher {
      */
     @Test
     @AllowedFFDC // The tested exceptions cause FFDC so we have to allow for this.
-    public void launchFaultToleranceTCK() throws Exception {
+    public void launchFaultTolerance30TCK() throws Exception {
         boolean isFullMode = TestModeFilter.shouldRun(TestMode.FULL);
 
         String suiteFileName = isFullMode ? "tck-suite.xml" : "tck-suite-lite.xml";
@@ -121,8 +123,11 @@ public class FaultToleranceTck30Launcher {
             additionalProps.put("timeoutMultiplier", "1.0");
         }
 
-        MvnUtils.runTCKMvnCmd(server, "com.ibm.ws.microprofile.faulttolerance.3.0_fat_tck", this.getClass() + ":launchFaultToleranceTCK", suiteFileName,
-                              additionalProps, Collections.emptySet());
+        String bucketName = "io.openliberty.microprofile.faulttolerance.3.0.internal_fat_tck";
+        String testName = this.getClass() + ":launchFaultTolerance30TCK";
+        Type type = Type.MICROPROFILE;
+        String specName = "Fault Tolerance";
+        TCKRunner.runTCK(server, bucketName, testName, type, specName, suiteFileName, additionalProps);
     }
 
 }

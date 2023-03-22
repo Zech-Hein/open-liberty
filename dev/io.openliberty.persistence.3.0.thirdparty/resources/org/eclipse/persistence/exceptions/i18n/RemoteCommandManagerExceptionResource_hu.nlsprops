@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -62,4 +64,6 @@
 22117=A munkamenet RemoteCommandManager le van z\u00e1rva, vagy nem lett inicializ\u00e1lva a bej\u00f6v\u0151 \u00fczenetek feldolgoz\u00e1sakor
 
 22118=JGroups kapcsolat l\u00e9trehoz\u00e1sa meghi\u00fasult a konfigur\u00e1ci\u00f3s f\u00e1jl haszn\u00e1lat\u00e1val: {0}
+
+22119=Hiba t\u00f6rt\u00e9nt a(z) {0} inicializ\u00e1l\u00e1sakor, adja hozz\u00e1 az org.eclipse.persistence.corba.jar f\u00e1jlt az oszt\u00e1ly\u00fatvonalhoz.
 

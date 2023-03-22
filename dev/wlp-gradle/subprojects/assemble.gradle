@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019,2020 IBM Corporation and others.
+ * Copyright (c) 2019,2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,20 +18,46 @@
  *
  * Configure 'assemble' to depend on above tasks.
  */
-def publishWlpJarDefault = parseBoolean(bnd('test.project', 'false')) ? 'true' : 'false'
-if (bnd('publish.tool.jar', '').empty && !parseBoolean(bnd('publish.wlp.jar.disabled', publishWlpJarDefault))) {
+configurations {
+   cleanPomClasspath
+} 
+
+dependencies {
+   cleanPomClasspath project(':build.cleanPom') 
+}
+
+task cleanAllEmbeddedPoms {
+    dependsOn jar
+    dependsOn ':build.cleanPom:jar'
+    doLast {
+      fileTree(project.buildDir).matching {
+      include "**/*.jar"
+          }.each { aFile ->
+            def myArgs = [
+              aFile, new File(project.buildDir, 'tmp')]                 
+            javaexec {
+                classpath configurations.cleanPomClasspath
+                main = 'io.openliberty.process.PostProcessBNDPom'
+                args = myArgs
+            }
+          }
+        }
+    }
+assemble.dependsOn cleanAllEmbeddedPoms
+
+
+
+def publishWlpJarDefault = parseBoolean(bnd.get('test.project', 'false')) ? 'true' : 'false'
+if (bnd.get('publish.tool.jar', '').empty && !parseBoolean(bnd.get('publish.wlp.jar.disabled', publishWlpJarDefault))) {
     task publishWLPJars(type: Copy) {
         dependsOn jar
-        if ( parseBoolean( bnd('jakartaeeMe', 'true'))) {
-            dependsOn jakartaeeTransform
-        }
         from project.buildDir
-        into buildImage.file('wlp/' + bnd('publish.wlp.jar.suffix', 'lib'))
-        include bnd('publish.wlp.jar.include', '*.jar')
+        into buildImage.file('wlp/' + bnd.get('publish.wlp.jar.suffix', 'lib'))
+        include bnd.get('publish.wlp.jar.include', '*.jar')
         def hasIFIXHeaders = [:]
         def fullVersions = [:]
-        if (parseBoolean(bnd('publish.wlp.jar.rename', 'true'))) {
-            def outerSymbolicName = bnd('Bundle-SymbolicName', project.name)
+        if (parseBoolean(bnd.get('publish.wlp.jar.rename', 'true'))) {
+            def outerSymbolicName = bnd.get('Bundle-SymbolicName', project.name)
             if (outerSymbolicName != null) {
                 int index = outerSymbolicName.indexOf(";")
                 if (index != -1) {
@@ -39,14 +67,17 @@ if (bnd('publish.tool.jar', '').empty && !parseBoolean(bnd('publish.wlp.jar.disa
 
             // store the full version information for the outer project from
             // the projects bnd.bnd file.  
-            def outerVersion = bnd('bVersion')
-            def outerFullVersion = bnd('bFullVersion')
+            def outerVersion = bnd.get('bVersion')
+            def outerFullVersion = bnd.get('bFullVersion')
             fullVersions.put(outerSymbolicName, outerFullVersion)
+
+            boolean outerFixHeaders = ((!bnd.get('IBM-Interim-Fixes', '').empty) || (!bnd.get('IBM-Test-Fixes', '').empty))
+            boolean subBundles = (!bnd.get('-sub', '').empty)
 
             // iFixed jars should get renamed with a qualifier so they can exist in the filesystem
             // next to the base version of the jar, *except* for jars that are directly
             // referenced in a tool script's classpath...
-            if (((!bnd('IBM-Interim-Fixes', '').empty) || (!bnd('IBM-Test-Fixes', '').empty))
+            if (outerFixHeaders && !subBundles
                     && (!project.name.equals("com.ibm.ws.kernel.boot"))
                     && (!project.name.equals("com.ibm.ws.kernel.boot.archive"))
                     && (!project.name.equals("com.ibm.ws.appclient.boot"))
@@ -54,8 +85,8 @@ if (bnd('publish.tool.jar', '').empty && !parseBoolean(bnd('publish.wlp.jar.disa
                 hasIFIXHeaders.put(outerSymbolicName, true)
             }
 
-            if (!bnd('-sub', '').empty) {
-                fileTree(dir: projectDir, include: bnd('-sub', '')).each { subBndFile ->
+            if (subBundles) {
+                fileTree(dir: projectDir, include: bnd.get('-sub', '')).each { subBndFile ->
                     Properties subBndProperties = new Properties()
                     subBndFile.withInputStream { subBndProperties.load(it) }
                     def symbolicName = subBndProperties.getProperty("Bundle-SymbolicName")
@@ -65,7 +96,7 @@ if (bnd('publish.tool.jar', '').empty && !parseBoolean(bnd('publish.wlp.jar.disa
                             symbolicName = symbolicName.substring(0, index).trim()
                         }
 
-                        if (subBndProperties.getProperty("IBM-Interim-Fixes") != null
+                        if (outerFixHeaders || subBndProperties.getProperty("IBM-Interim-Fixes") != null
                             || subBndProperties.getProperty("IBM-Test-Fixes") != null) {
                             hasIFIXHeaders.put(symbolicName, true)
                         }
@@ -75,7 +106,7 @@ if (bnd('publish.tool.jar', '').empty && !parseBoolean(bnd('publish.wlp.jar.disa
                         // This logic stores the correctly full bundle version
                         // for sub bundles in a project.
                         def subBVersion = subBndProperties.getProperty('bVersion')
-                        if (outerVersion.equals(subBVersion)) {
+                        if (subBVersion == null || outerVersion.equals(subBVersion)) {
                             fullVersions.put(symbolicName, outerFullVersion)
                         } else {
                             fullVersions.put(symbolicName, subBVersion + outerFullVersion.substring(outerVersion.length()))
@@ -94,10 +125,6 @@ if (bnd('publish.tool.jar', '').empty && !parseBoolean(bnd('publish.wlp.jar.disa
                 }
 
                 def selectedSymbolicName = symbolicName
-                // If the jar is jakartaee transformed, then see if the pre-transformed bundle has iFix headers.
-                if (it.getSourceName().equals(bnd('jakartaee.transform.jar.name', '')) || symbolicName.endsWith(".jakarta")) {
-                    selectedSymbolicName = outerSymbolicName
-                }
                     
                 if (!hasIFIXHeaders.get(selectedSymbolicName)) {
                     it.setName(symbolicName + "_" + fullVersion + ".jar")
@@ -110,81 +137,91 @@ if (bnd('publish.tool.jar', '').empty && !parseBoolean(bnd('publish.wlp.jar.disa
     assemble.dependsOn publishWLPJars
 }
 
-if (bnd('publish.wlp.jar.suffix', 'lib').contains('api/ibm') || bnd('publish.wlp.jar.suffix', 'lib').contains('spi/ibm')) {
+if (bnd.get('publish.wlp.jar.suffix', 'lib').contains('api/ibm') || bnd.get('publish.wlp.jar.suffix', 'lib').contains('spi/ibm')) {
     task publishJavadoc(type: Copy) {
         dependsOn zipJavadoc
-        from zipJavadoc
-        into rootProject.file("build.image/wlp/" + bnd('publish.wlp.jar.suffix', 'lib') + "/javadoc")
+        from new File(project.buildDir, 'distributions')
+        include bnd.get('publish.wlp.javadoc.include', '*javadoc.zip')
+        into rootProject.file("build.image/wlp/" + bnd.get('publish.wlp.jar.suffix', 'lib') + "/javadoc")
         rename '.javadoc.zip', "_${bnd.bVersion}-javadoc.zip"
     }
     assemble.dependsOn publishJavadoc
 }
 
-task publishToolScripts(type: Copy) {
-    enabled !bnd('publish.tool.script', '').empty
-    dependsOn jar
-    from cnf.file('resources/bin')
-    into buildImage.file('wlp/bin/' + bnd('publish.tool.script.subdir', ''))
-    fileMode 0755
-    rename 'tool(.*)', bnd('publish.tool.script') + '$1'
-    filter(org.apache.tools.ant.filters.ReplaceTokens,
-            tokens: [TOOL_JAR: bnd('publish.tool.script.subdir', '') + 'tools/' + bnd('publish.tool.jar', ''),
-                    TOOL_SCRIPT: bnd('publish.tool.script.subdir', '') + bnd('publish.tool.script', ''),
-                    TOOL_SCRIPT_DIR_LENGTH: bnd('publish.tool.script.dir.length', '5'),
-                    TOOL_SCRIPT_RELATIVE: bnd('publish.tool.script.relative', '')])
+if (!bnd.get('publish.tool.jar', '').empty) {
+    task publishToolScripts(type: Copy) {
+        enabled !bnd.get('publish.tool.script', '').empty
+        dependsOn jar
+        from cnf.file('resources/bin')
+        into buildImage.file('wlp/bin/' + bnd.get('publish.tool.script.subdir', ''))
+        fileMode 0755
+        rename 'tool(.*)', bnd.get('publish.tool.script') + '$1'
+        filter(org.apache.tools.ant.filters.ReplaceTokens,
+                tokens: [TOOL_JAR: bnd.get('publish.tool.script.subdir', '') + 'tools/' + bnd.get('publish.tool.jar', ''),
+                        TOOL_SCRIPT: bnd.get('publish.tool.script.subdir', '') + bnd.get('publish.tool.script', ''),
+                        TOOL_SCRIPT_DIR_LENGTH: bnd.get('publish.tool.script.dir.length', '5'),
+                        TOOL_SCRIPT_RELATIVE: bnd.get('publish.tool.script.relative', '')])
+    }
+
+    task publishToolJars(type: Copy) {
+        dependsOn jar
+        dependsOn publishToolScripts
+        from project.buildDir
+        into buildImage.file('wlp/bin/' + bnd.get('publish.tool.script.subdir', '') + 'tools')
+        include bnd.get('publish.tool.jar', '')
+    }
+    assemble.dependsOn publishToolJars
 }
 
-task publishToolJars(type: Copy) {
-    enabled !bnd('publish.tool.jar', '').empty
-    dependsOn jar
-    dependsOn publishToolScripts
-    from project.buildDir
-    into buildImage.file('wlp/bin/' + bnd('publish.tool.script.subdir', '') + 'tools')
-    include bnd('publish.tool.jar', '')
+if (project.file('resources/schemas').exists()) {
+    task publishSchemaResources(type: Copy) {
+        dependsOn jar
+        from project.file('resources/schemas')
+        into buildImage.file('wlp/dev/api/ibm/schema')
+    }
+    assemble.dependsOn publishSchemaResources
 }
-assemble.dependsOn publishToolJars
 
-task publishSchemaResources(type: Copy) {
-    dependsOn jar
-    from project.file('resources/schemas')
-    into buildImage.file('wlp/dev/api/ibm/schema')
+if (project.file('publish/platform').exists()) {
+    task publishPlatformManifests(type: Copy) {
+        dependsOn jar
+        from project.file('publish/platform')
+        into buildImage.file('wlp/lib/platform')
+        include '*.mf'
+        filter(org.apache.tools.ant.filters.ConcatFilter,
+                append: file(cnf.file('resources/IBM-ProductID.txt')))
+    }
+    assemble.dependsOn publishPlatformManifests
+
+    task publishPlatformFiles(type: Copy) {
+        dependsOn publishPlatformManifests
+        from project.file('publish/platform')
+        into buildImage.file('wlp/lib/platform')
+        exclude '*.mf'
+    }
+    assemble.dependsOn publishPlatformFiles
 }
-assemble.dependsOn publishSchemaResources
 
-task publishPlatformManifests(type: Copy) {
-    dependsOn jar
-    from project.file('publish/platform')
-    into buildImage.file('wlp/lib/platform')
-    include '*.mf'
-    filter(org.apache.tools.ant.filters.ConcatFilter,
-            append: file(cnf.file('resources/IBM-ProductID.txt')))
+if (project.file('publish/templates').exists()) {
+    task publishTemplates(type: Copy) {
+        dependsOn jar
+        from project.file('publish/templates')
+        into buildImage.file('wlp/templates')
+    }
+    assemble.dependsOn publishTemplates
 }
-assemble.dependsOn publishPlatformManifests
 
-task publishPlatformFiles(type: Copy) {
-    dependsOn publishPlatformManifests
-    from project.file('publish/platform')
-    into buildImage.file('wlp/lib/platform')
-    exclude '*.mf'
+if (project.file('publish/bin').exists()) {
+    task publishBinScripts(type: Copy) {
+        dependsOn jar
+        from project.file('publish/bin')
+        into buildImage.file('wlp/bin')
+        fileMode 0755
+    }
+    assemble.dependsOn publishBinScripts
 }
-assemble.dependsOn publishPlatformFiles
 
-task publishTemplates(type: Copy) {
-    dependsOn jar
-    from project.file('publish/templates')
-    into buildImage.file('wlp/templates')
-}
-assemble.dependsOn publishTemplates
-
-task publishBinScripts(type: Copy) {
-    dependsOn jar
-    from project.file('publish/bin')
-    into buildImage.file('wlp/bin')
-    fileMode 0755
-}
-assemble.dependsOn publishBinScripts
-
-if (parseBoolean(bnd('publish.wlp.clients', 'true'))) {
+if (parseBoolean(bnd.get('publish.wlp.clients', 'false'))) {
     task publishClientScripts(type: Copy) {
         dependsOn jar
         from project.file('publish/clients')
@@ -193,9 +230,11 @@ if (parseBoolean(bnd('publish.wlp.clients', 'true'))) {
     assemble.dependsOn publishClientScripts
 }
 
-task publishLibNative(type: Copy) {
-    dependsOn jar
-    from project.file('lib/native')
-    into buildImage.file('wlp/lib/native')
+if (project.file('lib/native').exists()) {
+    task publishLibNative(type: Copy) {
+        dependsOn jar
+        from project.file('lib/native')
+        into buildImage.file('wlp/lib/native')
+    }
+    assemble.dependsOn publishLibNative
 }
-assemble.dependsOn publishLibNative

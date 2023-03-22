@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,10 +29,11 @@ import javax.security.enterprise.AuthenticationStatus;
 import javax.security.enterprise.authentication.mechanism.http.AuthenticationParameters;
 import javax.security.enterprise.authentication.mechanism.http.HttpMessageContext;
 import javax.security.enterprise.credential.Credential;
-import javax.servlet.http.Cookie;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -482,7 +485,7 @@ public class LoginToContinueInterceptorTest {
         Properties props = new Properties();
         props.put(JavaEESecConstants.LOGIN_TO_CONTINUE_LOGINPAGE, LOGIN_PAGE);
         props.put(JavaEESecConstants.LOGIN_TO_CONTINUE_ERRORPAGE, ERROR_PAGE);
-        final Cookie[] cookies = {sessionCookie};
+        final Cookie[] cookies = { sessionCookie };
         Object expect = AuthenticationStatus.SUCCESS;
         withProps(props).withParams().withNoELP().withAuthParams(null).withReferrer();
         withJSecurityCheck("contextRoot/original.html").withSessionCookie(principal).withWasReqUrlCookie(true).withRemoveWasReqUrlCookie();
@@ -737,14 +740,11 @@ public class LoginToContinueInterceptorTest {
         final StringBuffer sb = new StringBuffer(ORIGINAL_URL);
         mockery.checking(new Expectations() {
             {
-                one(res).setStatus(HttpServletResponse.SC_FOUND);
                 one(req).getRequestURL();
                 will(returnValue(sb));
                 one(req).getContextPath();
                 will(returnValue(CONTEXT_ROOT));
-                one(res).sendRedirect(LOGIN_URL);
-                one(res).encodeURL(LOGIN_URL);
-                will(returnValue(LOGIN_URL));
+                one(hmc).redirect(LOGIN_URL);
             }
         });
         return this;
@@ -777,7 +777,7 @@ public class LoginToContinueInterceptorTest {
     @SuppressWarnings("unchecked")
     private LoginToContinueInterceptorTest withWasReqUrlCookie(boolean isExist) throws Exception {
         if (isExist) {
-            final Cookie [] cookies = {wasReqUrlCookie};
+            final Cookie[] cookies = { wasReqUrlCookie };
             mockery.checking(new Expectations() {
                 {
                     one(req).getCookies();

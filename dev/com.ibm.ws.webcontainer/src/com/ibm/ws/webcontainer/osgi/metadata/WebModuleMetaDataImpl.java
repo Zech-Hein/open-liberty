@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -37,6 +39,8 @@ public class WebModuleMetaDataImpl extends MetaDataImpl implements WebModuleMeta
     private BaseJspComponentMetaData jspComponentMetaData = null;
     private String sessionCookieNameInUse = null;
     public ServiceRegistration<?> mBeanServiceReg;
+    // Have 3 states to track: not checked (null), checked and doesn't have HAM (Boolean.FALSE), checked and has HAM (Boolean.TRUE)
+    private Boolean hasHAM = null;
 
     /**
      * @param slotCnt
@@ -169,4 +173,12 @@ public class WebModuleMetaDataImpl extends MetaDataImpl implements WebModuleMeta
         
     }
 
+    public boolean checkForHAM() {
+        // Only return false if it has been checked and found to be false.
+        return hasHAM != Boolean.FALSE;
+    }
+    
+    public void setHasHAM(boolean hamFound) {
+        hasHAM = (hamFound ? Boolean.TRUE : Boolean.FALSE);
+    }
 }

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2021 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,7 +14,10 @@ package com.ibm.ws.logging.internal.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -21,18 +26,23 @@ import java.security.PrivilegedExceptionAction;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.ibm.websphere.logging.WsLevel;
 import com.ibm.websphere.ras.Tr;
@@ -41,6 +51,7 @@ import com.ibm.websphere.ras.TruncatableThrowable;
 import com.ibm.ws.collector.manager.buffer.BufferManagerEMQHelper;
 import com.ibm.ws.collector.manager.buffer.BufferManagerImpl;
 import com.ibm.ws.collector.manager.buffer.SimpleRotatingSoftQueue;
+import com.ibm.ws.ffdc.FFDCConfigurator;
 import com.ibm.ws.kernel.boot.logging.LoggerHandlerManager;
 import com.ibm.ws.kernel.boot.logging.WsLogManager;
 import com.ibm.ws.logging.RoutedMessage;
@@ -129,6 +140,8 @@ import com.ibm.wsspi.logprovider.TrService;
  */
 public class BaseTraceService implements TrService {
 
+    protected boolean isCaptureSystemStreamsExecuted = false;
+
     static final PrintStream rawSystemOut = System.out;
     static final PrintStream rawSystemErr = System.err;
 
@@ -211,6 +224,15 @@ public class BaseTraceService implements TrService {
     /** Configured message Ids to be suppressed in console/message.log */
     private volatile Collection<String> hideMessageids;
 
+    /** The rollover start time for time based messages/trace.log rollover. */
+    private volatile String rolloverStartTime = "";
+
+    /** The rollover start time for time based messages/trace.log rollover. */
+    private volatile long rolloverInterval = -1;
+
+    /** The maximum FFDC file age before deletion. */
+    private volatile long maxFfdcAge = -1;
+
     /** Early msgs issued before MessageRouter is started. */
     protected volatile Queue<RoutedMessage> earlierMessages = new SimpleRotatingSoftQueue<RoutedMessage>(new RoutedMessage[100]);
     protected volatile Queue<RoutedMessage> earlierTraces = new SimpleRotatingSoftQueue<RoutedMessage>(new RoutedMessage[200]);
@@ -224,9 +246,22 @@ public class BaseTraceService implements TrService {
     protected volatile CollectorManagerPipelineUtils collectorMgrPipelineUtils = null;
     protected volatile Timer earlyMessageTraceKiller_Timer = new Timer();
 
+    private volatile Timer timedLogRollover_Timer = new Timer(true);
+
+    private volatile Timer ffdcCleanup_Timer = new Timer(true);
+
     protected volatile String serverName = null;
     protected volatile String wlpUserDir = null;
+
+    private boolean checkpoint = false;
+    private volatile boolean restore = false;
+
     private static final String OMIT_FIELDS_STRING = "@@@OMIT@@@";
+    private static final String ROLLOVER_START_TIME_FORMAT = "([0-1][0-9]|2[0-3]):[0-5][0-9]";
+    private boolean isLogRolloverScheduled = false;
+    private boolean isFfdcCleanupScheduled = false;
+
+    private static TraceComponent tc = Tr.register(BaseTraceService.class, NLSConstants.GROUP, NLSConstants.LOGGING_NLS);
 
     /** Flags for suppressing traceback output to the console */
     private static class StackTraceFlags {
@@ -241,6 +276,9 @@ public class BaseTraceService implements TrService {
             return new StackTraceFlags();
         }
     };
+
+    protected final static int BYTE_ARRAY_OUTPUT_BUFFER_THRESHOLD = ThreadLocalByteArrayOutputStream.getByteArrayOutputThreshold();
+    public static boolean isStackTraceSingleEntryEnabled = false;
 
     /**
      * Called from Tr.getDelegate when BaseTraceService delegate is created
@@ -313,11 +351,18 @@ public class BaseTraceService implements TrService {
     @Override
     public synchronized void update(LogProviderConfig config) {
         LogProviderConfigImpl trConfig = (LogProviderConfigImpl) config;
+        checkpoint = trConfig.isCheckpoint();
+        restore = trConfig.isRestore();
+        if (restore) {
+            registerLoggerHandlerSingleton();
+            captureSystemStreams();
+        }
         logHeader = trConfig.getLogHeader();
         javaLangInstrument = trConfig.hasJavaLangInstrument();
         consoleLogLevel = trConfig.getConsoleLogLevel();
         copySystemStreams = trConfig.copySystemStreams();
-        hideMessageids = trConfig.getMessagesToHide();
+        //Remove any items in hideMessageids that are empty strings. Create a "new" list as original is backed by an array and cannot be removed.
+        hideMessageids = trConfig.getMessagesToHide().stream().filter(s -> !s.isEmpty()).collect(Collectors.toList());
         //add hideMessageIds to log header, only for default logging, since for binary logging, the messages will be only hidden in console.log.
         //This is printed when its configured in bootstrap.properties
         if (hideMessageids.size() > 0 && !isHpelEnabled) {
@@ -344,6 +389,9 @@ public class BaseTraceService implements TrService {
             Tr.info(TraceSpecification.getTc(), msgKey, new Object[] { hideMessageids });
         }
 
+        scheduleTimeBasedLogRollover(trConfig);
+
+        scheduleFfdcFileDeletion(trConfig);
         /*
          * Need to know the values of wlpServerName and wlpUserDir
          * They are passed into the handlers for use as part of the jsonified output
@@ -372,9 +420,16 @@ public class BaseTraceService implements TrService {
         String messageFormat = trConfig.getMessageFormat();
         String consoleFormat = trConfig.getConsoleFormat();
 
-        //Retrieve the source lists of both message and console
-        List<String> messageSourceList = new ArrayList<String>(trConfig.getMessageSource());
-        List<String> consoleSourceList = new ArrayList<String>(trConfig.getConsoleSource());
+        /**
+         * Retrieve the format setting for our stack traces
+         */
+        isStackTraceSingleEntryEnabled = trConfig.isStackTraceSingleEntry();
+
+        /**
+         * Retrieve the source lists of both message and console and convert the lists to lower case.
+         */
+        List<String> messageSourceList = trConfig.getMessageSource().stream().map(String::toLowerCase).collect(Collectors.toList());
+        List<String> consoleSourceList = trConfig.getConsoleSource().stream().map(String::toLowerCase).collect(Collectors.toList());
 
         /*
          * Filter out Message and Trace from messageSourceList
@@ -674,6 +729,14 @@ public class BaseTraceService implements TrService {
         }
     }
 
+    private boolean isCheckpoint() {
+        return checkpoint;
+    }
+
+    private boolean isRestore() {
+        return restore;
+    }
+
     /**
      * common MessageLogHandlerUpdates
      */
@@ -698,9 +761,20 @@ public class BaseTraceService implements TrService {
 
         unregisterLoggerHandlerSingleton();
 
-        // Close writers, however they were allocated
-        LoggingFileUtils.tryToClose(messagesLog);
-        LoggingFileUtils.tryToClose(traceLog);
+        if (isCheckpoint() && !isRestore()) {
+            if (messageLogHandler != null) {
+                messageLogHandler.setWriter(systemOut);
+            }
+            TraceWriter traceWriter = traceLog;
+            traceLog = systemOut;
+
+            LoggingFileUtils.tryToClose(messagesLog);
+            LoggingFileUtils.tryToClose(traceWriter);
+        } else {
+            // Close writers, however they were allocated
+            LoggingFileUtils.tryToClose(messagesLog);
+            LoggingFileUtils.tryToClose(traceLog);
+        }
     }
 
     @Override
@@ -1213,6 +1287,10 @@ public class BaseTraceService implements TrService {
      *                   from bootstrap properties
      */
     protected void initializeWriters(LogProviderConfigImpl config) {
+        if (config.isRestore()) {
+            messagesLog = null;
+            traceLog = null;
+        }
         // createFileLog may or may not return the original log holder..
         messagesLog = FileLogHolder.createFileLogHolder(messagesLog,
                                                         newFileLogHeader(false, config),
@@ -1220,7 +1298,8 @@ public class BaseTraceService implements TrService {
                                                         config.getMessageFileName(),
                                                         config.getMaxFiles(),
                                                         config.getMaxFileBytes(),
-                                                        config.getNewLogsOnStart());
+                                                        config.getNewLogsOnStart(),
+                                                        config.isRestore());
 
         // Always create a traceLog when using Tr -- this file won't actually be
         // created until something is logged to it...
@@ -1236,18 +1315,171 @@ public class BaseTraceService implements TrService {
                                                          config.getTraceFileName(),
                                                          config.getMaxFiles(),
                                                          config.getMaxFileBytes(),
-                                                         config.getNewLogsOnStart());
+                                                         config.getNewLogsOnStart(),
+                                                         config.isRestore());
             if (!TraceComponent.isAnyTracingEnabled()) {
                 ((FileLogHolder) traceLog).releaseFile();
             }
         }
+    }
 
+    /**
+     * Schedule time based log rollover
+     */
+    private void scheduleTimeBasedLogRollover(LogProviderConfigImpl config) {
+        String rolloverStartTime = config.getRolloverStartTime();
+        long rolloverInterval = config.getRolloverInterval();
+
+        //if the rollover has already been scheduled, cancel it
+        //this is either a reschedule, or a unschedule
+        if (this.isLogRolloverScheduled) {
+            //null and empty rolloverStartTime are the same
+            if (rolloverStartTime == null)
+                rolloverStartTime = "";
+            //if neither of the rollover attributes change, return without rescheduling
+            if (this.rolloverStartTime.equals(rolloverStartTime) && this.rolloverInterval == rolloverInterval) {
+                return;
+            } else {
+                timedLogRollover_Timer.cancel();
+                timedLogRollover_Timer.purge();
+                this.isLogRolloverScheduled = false;
+            }
+        }
+
+        //if both rolloverStartTime and rolloverInterval are empty, return
+        if ((rolloverStartTime == null || rolloverStartTime.isEmpty()) && (rolloverInterval < 0)) {
+            // Tr.debug(tc, "No time based log rollover is scheduled.");
+            // Tr.debug(tc, "rolloverInterval=" + rolloverInterval);
+            // Tr.debug(tc, "rolloverStartTime=" + rolloverStartTime);
+            return;
+        }
+
+        //check and set time based log rollover values/defaults
+        //if rolloverInterval is less than 1 minute -- value returned from server.xml will round down to 0
+        if (rolloverInterval == 0) {
+            Tr.warning(tc, "LOG_ROLLOVER_INTERVAL_TOO_SHORT_WARNING");
+            rolloverInterval = LoggingConstants.ROLLOVER_INTERVAL_DEFAULT;
+        }
+        //set default of interval to 1d if startTime exists but interval does not
+        if (rolloverInterval < 0)
+            rolloverInterval = LoggingConstants.ROLLOVER_INTERVAL_DEFAULT;
+        if (!rolloverStartTime.isEmpty()) {
+            //check ISO date format matches HH:MM
+            if (!Pattern.matches(ROLLOVER_START_TIME_FORMAT, rolloverStartTime)) {
+                Tr.warning(tc, "LOG_ROLLOVER_START_TIME_FORMAT_WARNING");
+                rolloverStartTime = LoggingConstants.ROLLOVER_START_TIME_DEFAULT;
+            }
+        } else {
+            //set default of non-existing startTime if interval exists
+            rolloverStartTime = LoggingConstants.ROLLOVER_START_TIME_DEFAULT;
+        }
+
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.debug(tc, "Scheduling time based log rollover...");
+            Tr.debug(tc, "rolloverInterval=" + rolloverInterval);
+            Tr.debug(tc, "rolloverStartTime=" + rolloverStartTime);
+        }
+
+        this.rolloverStartTime = rolloverStartTime;
+        this.rolloverInterval = rolloverInterval;
+
+        //parse startTimeField
+        String[] hourMinPair = rolloverStartTime.split(":");
+        int startHour = Integer.parseInt(hourMinPair[0]);
+        int startMin = Integer.parseInt(hourMinPair[1]);
+
+        //set calendar start time
+        Calendar sched = Calendar.getInstance();
+        sched.set(Calendar.HOUR_OF_DAY, startHour);
+        sched.set(Calendar.MINUTE, startMin);
+        sched.set(Calendar.SECOND, 0);
+        sched.set(Calendar.MILLISECOND, 0);
+        Calendar currCal = Calendar.getInstance();
+
+        //calculate next rollover after server update
+        //if currTime before startTime, firstRollover = startTime - n(interval)
+        if (currCal.before(sched)) {
+            while (currCal.before(sched)) {
+                sched.add(Calendar.MINUTE, (int) rolloverInterval * (-1));
+            }
+            sched.add(Calendar.MINUTE, (int) rolloverInterval); //add back interval due to time overlap
+        }
+        //if currTime after startTime, firstRollover = startTime + n(interval)
+        else if (currCal.after(sched)) {
+            while (currCal.after(sched)) {
+                sched.add(Calendar.MINUTE, (int) rolloverInterval);
+            }
+        }
+        //if currTime == startTime, set first rollover to next rolloverInterval
+        else if (currCal.equals(sched)) {
+            sched.add(Calendar.MINUTE, (int) rolloverInterval);
+        }
+
+        Date firstRollover = sched.getTime();
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.debug(tc, "Log rollover settings updated - next rollover will be at ... " + sched.getTime());
+        }
+        //schedule rollover
+        timedLogRollover_Timer = new Timer(true);
+        TimedLogRoller tlr = new TimedLogRoller(messagesLog, traceLog);
+        timedLogRollover_Timer.scheduleAtFixedRate(tlr, firstRollover, rolloverInterval * 60000);
+        this.isLogRolloverScheduled = true;
+    }
+
+    /**
+     * Schedule FFDC file age based deletion
+     */
+    private void scheduleFfdcFileDeletion(LogProviderConfigImpl config) {
+        long maxFfdcAge = config.getMaxFfdcAge();
+        int startDelay = config.getFfdcCleanupStartDelay();
+
+        if (this.isFfdcCleanupScheduled) {
+            //Return if the ffdcMaxAge attribute doesn't change. Otherwise, cancel the schedule.
+            if (this.maxFfdcAge == maxFfdcAge) {
+                return;
+            } else {
+                ffdcCleanup_Timer.cancel();
+                ffdcCleanup_Timer.purge();
+                this.isFfdcCleanupScheduled = false;
+            }
+        }
+
+        if(maxFfdcAge < 0) {
+            return;
+        }
+
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.debug(tc, "Scheduling ffdc log cleanup...");
+            Tr.debug(tc, "maxFfdcAge=" + maxFfdcAge);
+        }
+
+        this.maxFfdcAge = maxFfdcAge;
+
+        //set calendar start time
+        Calendar sched = Calendar.getInstance();
+
+        if(startDelay < 0) {
+            sched.set(Calendar.HOUR_OF_DAY, 0);
+            sched.set(Calendar.MINUTE, 0);
+            sched.add(Calendar.DATE, 1);                //The cleanup will run everyday at midnight.
+        }
+        else {
+            sched.add(Calendar.SECOND, startDelay);      //Used for test cases in order to trigger the cleanup event after the configured delay.
+        }
+
+        Date firstFfdcCleanup = sched.getTime();
+
+        //schedule rollover
+        ffdcCleanup_Timer = new Timer(true);
+        TimedFfdcCleanup tlr = new TimedFfdcCleanup(maxFfdcAge);
+        ffdcCleanup_Timer.scheduleAtFixedRate(tlr, firstFfdcCleanup, 24 * 60 * 60000);
+        this.isFfdcCleanupScheduled = true;
     }
 
     private FileLogHeader newFileLogHeader(boolean trace, LogProviderConfigImpl config) {
         boolean isJSON = false;
         String messageFormat = config.getMessageFormat();
-        if (!trace && LoggingConstants.JSON_FORMAT.equals(messageFormat)) {
+        if (!trace && LoggingConstants.JSON_FORMAT.equals(messageFormat.toLowerCase())) {
             isJSON = true;
             String jsonHeader = constructJSONHeader(messageFormat, config);
             return new FileLogHeader(jsonHeader, trace, javaLangInstrument, isJSON);
@@ -1593,10 +1825,17 @@ public class BaseTraceService implements TrService {
      * will be invoked on the BaseTraceService to trace the string with
      * the appropriate trace component.
      */
-    public static class TrOutputStream extends ByteArrayOutputStream {
+    public static class TrOutputStream extends ThreadLocalByteArrayOutputStream {
         final SystemLogHolder holder;
         final BaseTraceService service;
+
         public static ThreadLocal<Boolean> isPrinting = new ThreadLocal<Boolean>() {
+            @Override
+            protected Boolean initialValue() {
+                return Boolean.FALSE;
+            }
+        };
+        public static ThreadLocal<Boolean> isPrintingStackTrace = new ThreadLocal<Boolean>() {
             @Override
             protected Boolean initialValue() {
                 return Boolean.FALSE;
@@ -1612,11 +1851,11 @@ public class BaseTraceService implements TrService {
         public synchronized void flush() throws IOException {
 
             /*
-             * sPrinting is a ThreadLocal that is set to disable flushing while printing.
+             * isPrinting is a ThreadLocal that is set to disable flushing while printing.
              * This helps us ignore flush requests that the JDK automatically creates in the middle of printing large (>8k) strings.
              * We want the whole String to be flushed in one shot for benefit of downstream event consumers.
              */
-            if (isPrinting.get())
+            if ((super.threadLocal.get().size() < BYTE_ARRAY_OUTPUT_BUFFER_THRESHOLD) && (isPrinting.get() || isPrintingStackTrace.get()))
                 return;
 
             super.flush();
@@ -1644,11 +1883,69 @@ public class BaseTraceService implements TrService {
         }
     }
 
+    public static class ThreadLocalByteArrayOutputStream extends OutputStream {
+        private final static int BYTE_ARRAY_OUTPUT_BUFFER_SIZE = 128;
+        private final ThreadLocal<ByteArrayOutputStream> threadLocal = new ThreadLocal<ByteArrayOutputStream>() {
+            @Override
+            protected ByteArrayOutputStream initialValue() {
+                return new ByteArrayOutputStream(BYTE_ARRAY_OUTPUT_BUFFER_SIZE);
+            }
+        };
+
+        @Override
+        public void write(int b) throws IOException {
+            threadLocal.get().write(b);
+
+        }
+
+        public void reset() {
+            if (threadLocal.get().size() > BYTE_ARRAY_OUTPUT_BUFFER_SIZE) {
+                threadLocal.remove();
+            } else {
+                threadLocal.get().reset();
+            }
+        }
+
+        @Override
+        public void flush() throws IOException {
+            threadLocal.get().flush();
+        }
+
+        @Override
+        public void close() throws IOException {
+            threadLocal.get().close();
+        }
+
+        @Override
+        public String toString() {
+            return threadLocal.get().toString();
+        }
+
+        private static int getByteArrayOutputThreshold() {
+            int BYTE_ARRAY_OUTPUT_THRESHOLD_BASE_CASE = 256 * 1024; //256 KiloBytes
+
+            try {
+                if ((System.getenv("WLP_LOGGING_MAX_SYSTEM_STREAM_PRINT_EVENT_SIZE") != null)) {
+                    int byteArrayOutputStreamThreshold = Integer.valueOf(System.getenv("WLP_LOGGING_MAX_SYSTEM_STREAM_PRINT_EVENT_SIZE"));
+
+                    if (byteArrayOutputStreamThreshold >= 0)
+                        return byteArrayOutputStreamThreshold;
+                }
+            } catch (Exception e) {
+            }
+
+            return BYTE_ARRAY_OUTPUT_THRESHOLD_BASE_CASE;
+        }
+
+    }
+
     /**
      * Capture the system stream. The original streams are cached/remembered
      * when the special trace components are created.
      */
     protected void captureSystemStreams() {
+        isCaptureSystemStreamsExecuted = true;
+
         teeOut = new TeePrintStream(new TrOutputStream(systemOut, this), true);
         System.setOut(teeOut);
 
@@ -1688,6 +1985,47 @@ public class BaseTraceService implements TrService {
     }
 
     /**
+     * This method is accessed by bytecode injected into the start of the Throwable.printStackTrace(PrintStream) method.
+     * When this method returns true, printStackTrace will not run the normal printStackTrace method body.
+     * When this method returns false, printStackTrace will run the normal printStackTrace method body.
+     *
+     * @param t              reference to the current Throwable object calling printStackTrace
+     * @param originalStream reference to the PrintStream object to be written to
+     * @return true if the printStackTrace method was overridden, false otherwise
+     */
+    public static boolean prePrintStackTrace(Throwable t, PrintStream originalStream) {
+        if ((originalStream == System.err || originalStream == System.out) && !TrOutputStream.isPrintingStackTrace.get()) {
+            TrOutputStream.isPrintingStackTrace.set(true);
+            t.printStackTrace(originalStream);
+            TrOutputStream.isPrintingStackTrace.set(false);
+            originalStream.flush();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Trim multi or single line stack traces
+     */
+    public static String filterStackTraces(String txt) {
+        String[] lines = txt.split("\\r?\\n");
+        if (lines.length > 1) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < lines.length; i++) {
+                String filteredLine = filterStackTracesOriginal(lines[i]);
+                if (filteredLine != null) {
+                    sb.append(filteredLine);
+                    if (i != lines.length - 1) {
+                        sb.append("\n");
+                    }
+                }
+            }
+            return sb.toString();
+        }
+        return filterStackTracesOriginal(txt);
+    }
+
+    /**
      * Trim stack traces. This isn't as sophisticated as what TruncatableThrowable
      * does, since pass through all code except code which is clearly IBM-internal.
      * This means we pass through Java API and third-party calls - this means we
@@ -1708,7 +2046,7 @@ public class BaseTraceService implements TrService {
      * @return null if the stack trace should be suppressed, or an indicator we're suppressing,
      *         or maybe the original stack trace
      */
-    public static String filterStackTraces(String txt) {
+    public static String filterStackTracesOriginal(String txt) {
         // Check for stack traces, which we may want to trim
         StackTraceFlags stackTraceFlags = traceFlags.get();
         // We have a little thread-local state machine here with four states controlled by two
@@ -1806,4 +2144,78 @@ public class BaseTraceService implements TrService {
             }
         }
     }
+
+    /**
+     * LogRoller task to be run/scheduled in timed log rollover.
+     */
+    private class TimedLogRoller extends TimerTask {
+        private final FileLogHolder flhMessages;
+        private final FileLogHolder flhTrace;
+
+        TimedLogRoller(TraceWriter messages, TraceWriter trace) {
+            flhMessages = (FileLogHolder) messages;
+            flhTrace = (FileLogHolder) trace;
+        }
+
+        @Override
+        public void run() {
+            flhMessages.createStream(true);
+            if (TraceComponent.isAnyTracingEnabled()) {
+                flhTrace.createStream(true);
+            }
+        }
+    }
+
+    /**
+     * FFDC task to be run/scheduled in maxFfdcAge Deletion
+     */
+    private class TimedFfdcCleanup extends TimerTask {
+        private final long maxFfdcAge;
+
+        TimedFfdcCleanup(long maxFfdcAge) {
+            this.maxFfdcAge = maxFfdcAge;
+        }
+
+        @Override
+        public void run() {
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+            File[] postExceptionFiles = getFfdcLogs();
+            int deletedCounter = 0;
+            for (int i = 0; i < postExceptionFiles.length; i++) {
+                try {
+                    Date fileLastModifiedDate = sdf.parse(sdf.format(postExceptionFiles[i].lastModified()));
+                    long fileAge = TimeUnit.MINUTES.convert(System.currentTimeMillis() - fileLastModifiedDate.getTime(),TimeUnit.MILLISECONDS);
+
+                    if (fileAge > maxFfdcAge) {
+                        postExceptionFiles[i].delete();
+                        deletedCounter++;
+                    }
+                } catch (Exception e) {
+                    Tr.info(tc, "lwas.FFDCIncidentEmitted", "Error: " + e.getStackTrace());
+                }
+            }
+            if(deletedCounter > 0) {
+                Tr.info(tc, "FFDC_FILE_DELETION", deletedCounter);
+            }
+        }
+    }
+
+    private File[] getFfdcLogs() {
+        File target = FFDCConfigurator.getFFDCLocation();
+        if (target.exists()) {
+            File[] ffdcFiles = target.listFiles(ffdcLogFilter);
+            return ffdcFiles;
+        }
+
+        // If the folder didn't exist just return an empty array
+        return new File[0];
+    }
+
+    static FilenameFilter ffdcLogFilter = new FilenameFilter() {
+
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.startsWith("ffdc_") && name.endsWith(".log");
+        }
+    };
 }

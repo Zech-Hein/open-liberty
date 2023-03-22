@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -293,7 +295,7 @@ public class JSPtoPRealization extends AbstractProtoRealization implements PtoPR
 
         cursor.finished();
 
-        // Sanity - There should never be more than one mediation itemstream
+        // Validate - There should never be more than one mediation itemstream
         if (localisationCount > 1)
         {
             SIErrorException e =
@@ -397,7 +399,7 @@ public class JSPtoPRealization extends AbstractProtoRealization implements PtoPR
         // also check if there is an AOContainerItemStream for Remote Get
         int aoCount = _remoteSupport.reconstituteLocalQueuePoint(startMode);
 
-        // Sanity - There should never be more than one local msgs itemstream
+        // Validate - There should never be more than one local msgs itemstream
         // or more than one aoContainerItemStream
         if ((localisationCount > 1) || (aoCount > 1))
         {

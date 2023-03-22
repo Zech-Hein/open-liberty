@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -62,4 +64,6 @@
 22117=RemoteCommandManager al sesiunii este \u00eenchis sau nu a fost ini\u0163ializat \u00een timpul proces\u0103rii mesajelor de intrare
 
 22118=A e\u015fuat crearea conexiunii JGroups folosind fi\u015fierul config: {0}
+
+22119=Eroare la ini\u021bializarea {0}, ad\u0103uga\u021bi org.eclipse.persistence.corba.jar la classpath.
 

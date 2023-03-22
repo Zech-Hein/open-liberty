@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -41,6 +43,8 @@ import com.ibm.websphere.simplicity.log.Log;
 import componenttest.topology.database.DerbyEmbeddedUtilities;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.custom.junit.runner.Mode;
+import componenttest.custom.junit.runner.Mode.TestMode;
 
 /**
  * Tests for error paths in persistent scheduled executor
@@ -245,6 +249,7 @@ public class FailureRetryTests {
      * With fail over enabled, verify that a task is retried twice when the retry limit is set to 2. Verify
      * that at least 10ms elapses between the 2nd and 3rd task execution.
      */
+    @Mode(TestMode.FULL)
     @Test
     public void testRetryTwiceDefaultIntervalWithFailoverEnabled() throws Exception {
         ServerConfiguration config = savedConfig.clone();
@@ -252,7 +257,7 @@ public class FailureRetryTests {
         myScheduler.setRetryInterval(null);
         myScheduler.setRetryLimit("2");
         myScheduler.setPollInterval("1s30ms"); // polling is needed for retries
-        myScheduler.setMissedTaskThreshold("3s");
+        myScheduler.setMissedTaskThreshold("13s");
         myScheduler.setExtraAttribute("ignore.minimum.for.test.use.only", "true");
         server.updateServerConfiguration(config);
 
@@ -332,6 +337,7 @@ public class FailureRetryTests {
      * With fail over enabled, verify that a task can fail more than the failure limit number of times if
      * the failures are not consecutive.
      */
+    @Mode(TestMode.FULL)
     @Test
     public void testRetrySixWithTwoPassesWithFailoverEnabled() throws Exception {
         ServerConfiguration config = savedConfig.clone();
@@ -339,7 +345,7 @@ public class FailureRetryTests {
         myScheduler.setRetryInterval(null);
         myScheduler.setRetryLimit("3");
         myScheduler.setPollInterval("1s31ms"); // polling is needed for retries
-        myScheduler.setMissedTaskThreshold("3s");
+        myScheduler.setMissedTaskThreshold("13s");
         myScheduler.setExtraAttribute("ignore.minimum.for.test.use.only", "true");
         server.updateServerConfiguration(config);
 
@@ -370,6 +376,7 @@ public class FailureRetryTests {
     /**
      * When fail over is enabled, verify that a skip is not counted as a fail.
      */
+    @Mode(TestMode.FULL)
     @Test
     public void testRetryFourWithOneSkipWithFailoverEnabled() throws Exception {
         ServerConfiguration config = savedConfig.clone();
@@ -377,7 +384,7 @@ public class FailureRetryTests {
         myScheduler.setRetryInterval(null);
         myScheduler.setRetryLimit("3");
         myScheduler.setPollInterval("1s32ms"); // polling is needed for retries
-        myScheduler.setMissedTaskThreshold("2s");
+        myScheduler.setMissedTaskThreshold("12s");
         myScheduler.setExtraAttribute("ignore.minimum.for.test.use.only", "true");
         server.updateServerConfiguration(config);
 
@@ -408,6 +415,7 @@ public class FailureRetryTests {
     /**
      * When fail over is enabled, verify that a skip does not stop the 'consecutive failure' count.
      */
+    @Mode(TestMode.FULL)
     @Test
     public void testRetryFourWithOneSkipFailWithFailoverEnabled() throws Exception {
         ServerConfiguration config = savedConfig.clone();
@@ -415,7 +423,7 @@ public class FailureRetryTests {
         myScheduler.setRetryInterval(null);
         myScheduler.setRetryLimit("3");
         myScheduler.setPollInterval("1s33ms"); // polling is needed for retries
-        myScheduler.setMissedTaskThreshold("3s");
+        myScheduler.setMissedTaskThreshold("13s");
         myScheduler.setExtraAttribute("ignore.minimum.for.test.use.only", "true");
         server.updateServerConfiguration(config);
 
@@ -448,6 +456,7 @@ public class FailureRetryTests {
      * When fail over is enabled, set the retry limit to 3. Schedule a task with AutoPurge=ALWAYS. The first 4 attempts fail.
      * Verify that TaskStatus is null.
      */
+    @Mode(TestMode.FULL)
     @Test
     public void testRetryFourTimesAutoPurgeAlwaysWithFailoverEnabled() throws Exception {
         ServerConfiguration config = savedConfig.clone();
@@ -455,7 +464,7 @@ public class FailureRetryTests {
         myScheduler.setRetryInterval(null);
         myScheduler.setRetryLimit("3");
         myScheduler.setPollInterval("1s34ms"); // polling is needed for retries
-        myScheduler.setMissedTaskThreshold("4s");
+        myScheduler.setMissedTaskThreshold("14s");
         myScheduler.setExtraAttribute("ignore.minimum.for.test.use.only", "true");
         server.updateServerConfiguration(config);
 
@@ -553,6 +562,7 @@ public class FailureRetryTests {
      * reaches its max value. It should remain at the max value for each additional
      * failure. We'll use a failure limit of -1 to test this.
      */
+    @Mode(TestMode.FULL)
     @Test
     public void testRetryCountWrapWithFailoverEnabled() throws Exception {
         ServerConfiguration cfg = savedConfig.clone();
@@ -561,7 +571,7 @@ public class FailureRetryTests {
         myScheduler.setRetryInterval(null);
         myScheduler.setRetryLimit("-1");
         myScheduler.setPollInterval("3s");
-        myScheduler.setMissedTaskThreshold("4s");
+        myScheduler.setMissedTaskThreshold("8s");
         myScheduler.setExtraAttribute("ignore.minimum.for.test.use.only", "true");
         server.updateServerConfiguration(cfg);
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -54,6 +56,9 @@ import com.ibm.websphere.ras.annotation.Trivial;
                 @NamedQuery(name = JobExecutionEntity.GET_JOB_EXECUTIONIDS_BY_JOB_INST_ID, query = "SELECT e.jobExecId FROM JobExecutionEntity e" +
                                                                                                    " WHERE e.jobInstance.instanceId in :instanceList ORDER BY e.createTime DESC"),
 
+                @NamedQuery(name = JobExecutionEntity.GET_JOB_EXECUTIONIDS_BY_JOB_INST_ID_AND_STATUSES, query = "SELECT e.jobExecId FROM JobExecutionEntity e" +
+                                                                                                                " WHERE e.jobInstance.instanceId in :instanceList AND e.batchStatus IN :status ORDER BY e.createTime DESC"),
+
                 @NamedQuery(name = JobExecutionEntity.GET_JOB_EXECUTIONIDS_BY_NAME_AND_STATUSES_QUERY, query = "SELECT e.jobExecId FROM JobExecutionEntity e" +
                                                                                                                " WHERE e.jobInstance.jobName=:name AND e.batchStatus IN :status ORDER BY e.createTime DESC"),
                 @NamedQuery(name = JobExecutionEntity.GET_JOB_EXECUTIONS_BY_SERVERID_AND_STATUSES_QUERY, query = "SELECT e FROM JobExecutionEntity e" +
@@ -81,6 +86,7 @@ public class JobExecutionEntity extends JobThreadExecutionBase implements JobExe
     public static final String GET_JOB_EXECUTIONS_MOST_TO_LEAST_RECENT_BY_INSTANCE = "JobExecutionEntity.getJobExecutionsMostToLeastRecentByInstanceQuery";
     public static final String GET_JOB_EXECUTIONS_BY_JOB_INST_ID_AND_JOB_EXEC_NUM = "JobExecutionEntity.getJobExecutionsByJobInstanceIdAndJobExecNumberQuery";
     public static final String GET_JOB_EXECUTIONIDS_BY_JOB_INST_ID = "JobExecutionEntity.getJobExecutionsByJobInstanceId";
+    public static final String GET_JOB_EXECUTIONIDS_BY_JOB_INST_ID_AND_STATUSES = "JobExecutionEntity.getJobExecutionsByJobInstanceIdAndStatuses";
     /*
      * Key
      */

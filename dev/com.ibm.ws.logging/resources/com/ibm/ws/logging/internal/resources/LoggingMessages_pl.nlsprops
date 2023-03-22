@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011, 2020 IBM Corporation and others.
+# Copyright (c) 2011, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
@@ -116,11 +116,11 @@ MESSAGES_CONFIGURED_HIDDEN_2=TRAS3001I: Nast\u0119puj\u0105ce komunikaty s\u0105
 MESSAGES_CONFIGURED_HIDDEN_2.explanation=Komunikaty, kt\u00f3re s\u0105 skonfigurowane jako ukryte, nie s\u0105 zapisywane w plikach console.log i messages.log. S\u0105 zapisywane w pliku trace.log. 
 MESSAGES_CONFIGURED_HIDDEN_2.useraction=Nie jest wymagana \u017cadna czynno\u015b\u0107.
 
-MESSAGE_FORMAT_UPDATED=TRAS3002I: Format danych wyj\u015bciowych pliku messages.log zosta\u0142 zaktualizowany do {0}.
+MESSAGE_FORMAT_UPDATED=TRAS3002I: Format danych wyj\u015bciowych pliku messages.log zosta\u0142 zaktualizowany do '{0}'.
 MESSAGE_FORMAT_UPDATED.explanation=Format danych wyj\u015bciowych pliku messages.log zosta\u0142 zaktualizowany.
 MESSAGE_FORMAT_UPDATED.useraction=Nie jest wymagana \u017cadna czynno\u015b\u0107.
 
-CONSOLE_FORMAT_UPDATED=TRAS3003I: Format danych wyj\u015bciowych konsoli zosta\u0142 zaktualizowany do {0}.
+CONSOLE_FORMAT_UPDATED=TRAS3003I: Format danych wyj\u015bciowych konsoli zosta\u0142 zaktualizowany do '{0}'.
 CONSOLE_FORMAT_UPDATED.explanation=Format danych wyj\u015bciowych konsoli zosta\u0142 zaktualizowany.
 CONSOLE_FORMAT_UPDATED.useraction=Nie jest wymagana \u017cadna czynno\u015b\u0107.
 
@@ -156,9 +156,21 @@ JSON_FIELDS_INVALID_CHARACHTER=TRAS3011W: Wprowadzono niepoprawny znak we w\u014
 JSON_FIELDS_INVALID_CHARACHTER.explanation= We w\u0142a\u015bciwo\u015bci odwzorowania nazwy pola rejestrowania JSON s\u0105 akceptowane tylko litery, cyfry i znak :
 JSON_FIELDS_INVALID_CHARACHTER.useraction= Zmie\u0144 warto\u015b\u0107 w\u0142a\u015bciwo\u015bci odwzorowania nazwy pola rejestrowania JSON tak, aby usun\u0105\u0107 niepoprawne znaki
 
+LOG_ROLLOVER_START_TIME_FORMAT_WARNING=TRAS3015W: W\u0142a\u015bciwo\u015b\u0107 czasu rozpocz\u0119cia zast\u0119powania dziennika jest niepoprawnie sformatowana. W rezultacie warto\u015b\u0107 zostanie ustawiona na warto\u015b\u0107 domy\u015bln\u0105 '00:00', kt\u00f3ra oznacza p\u00f3\u0142noc.
+LOG_ROLLOVER_START_TIME_FORMAT_WARNING.explanation=W\u0142a\u015bciwo\u015b\u0107 czasu rozpocz\u0119cia zast\u0105pienia musi by\u0107 sformatowana w formacie GG:MM, a warto\u015b\u0107 00:00 oznacza p\u00f3\u0142noc.
+LOG_ROLLOVER_START_TIME_FORMAT_WARNING.useraction=Upewnij si\u0119, \u017ce warto\u015b\u0107 w\u0142a\u015bciwo\u015bci czasu rozpocz\u0119cia zast\u0105pienia jest poprawnie sformatowana w notacji 24-godzinnej (GG:MM), gdzie 00:00 oznacza p\u00f3\u0142noc.
+
+LOG_ROLLOVER_INTERVAL_TOO_SHORT_WARNING=TRAS3013W: Odst\u0119p czasu zast\u0105pienia dziennika nie mo\u017ce by\u0107 kr\u00f3tszy od 1 minuty. Je\u015bli zostanie podana warto\u015b\u0107 kr\u00f3tsza od minuty, odst\u0119p czasu zast\u0105pienia dziennika zostanie ustawiony na warto\u015b\u0107 domy\u015bln\u0105 wynosz\u0105c\u0105 1 dzie\u0144.
+LOG_ROLLOVER_INTERVAL_TOO_SHORT_WARNING.explanation=Odst\u0119p czasu zast\u0105pienia dziennika nie mo\u017ce by\u0107 kr\u00f3tszy od 1 minuty.
+LOG_ROLLOVER_INTERVAL_TOO_SHORT_WARNING.useraction=Nale\u017cy poda\u0107 odst\u0119p czasu zast\u0105pienia dziennika, kt\u00f3ry jest r\u00f3wny lub d\u0142u\u017cszy od 1 minuty.
+
 JSON_ACCESS_LOG_NO_HEADER_NAME_SPECIFIED=TRAS3012W: Brak nag\u0142\u00f3wka co najmniej jednego pola logFormat konfiguracji accessLogging: {0}.
 JSON_ACCESS_LOG_NO_HEADER_NAME_SPECIFIED.explanation=Podczas rejestrowania w formacie JSON atrybut logFormat konfiguracji accessLogging s\u0142u\u017cy do wybierania p\u00f3l komunikat\u00f3w dziennika http_access.log do uwzgl\u0119dnienia. Gdy w atrybucie logFormat konfiguracji accessLogging u\u017cywane s\u0105 pola %i lub %o, nale\u017cy poda\u0107 nazw\u0119 nag\u0142\u00f3wka.
 JSON_ACCESS_LOG_NO_HEADER_NAME_SPECIFIED.useraction=Podaj nazw\u0119 nag\u0142\u00f3wka dla pola w atrybucie logFormat konfiguracji accessLogging.
+
+FFDC_FILE_DELETION=TRAS3014I: Na podstawie skonfigurowanej warto\u015bci parametru maxFfdcAge usuni\u0119to nast\u0119puj\u0105c\u0105 liczb\u0119 plik\u00f3w FFDC: {0}.
+FFDC_FILE_DELETION.explanation=Liczba plik\u00f3w FFDC, kt\u00f3re zosta\u0142y usuni\u0119te podczas czyszczenia FFDC.
+FFDC_FILE_DELETION.useraction=Nie jest wymagana \u017cadna czynno\u015b\u0107.
 
 # Note: no 9999 message kept here because saving footprint space is more important
 

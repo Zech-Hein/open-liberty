@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -371,7 +373,10 @@ public class TAIAuthenticator implements WebAuthenticator {
             authResult = new AuthenticationResult(AuthResult.SUCCESS, new_subject);
             if (addLtpaCookieToResp) {
                 ssoCookieHelper.addSSOCookiesToResponse(new_subject, req, res);
-                removeInternalProps(new_subject, subjectHelper, AuthenticationConstants.INTERNAL_DISABLE_SSO_LTPA_COOKIE);
+                Hashtable<String, Object> hashtable = (Hashtable<String, Object>) subjectHelper.getSensitiveHashtableFromSubject(subject);
+                if (hashtable != null && !subject.isReadOnly()) {
+                    removeInternalProps(new_subject, subjectHelper, AuthenticationConstants.INTERNAL_DISABLE_SSO_LTPA_COOKIE, hashtable);
+                }
             }
         } catch (AuthenticationException e) {
             authResult = new AuthenticationResult(AuthResult.FAILURE, e.getMessage());
@@ -379,11 +384,8 @@ public class TAIAuthenticator implements WebAuthenticator {
         return authResult;
     }
 
-    protected void removeInternalProps(Subject subject, SubjectHelper subjectHelper, String propName) {
-        Hashtable<String, Object> hashtable = (Hashtable<String, Object>) subjectHelper.getSensitiveHashtableFromSubject(subject);
-        if (hashtable == null || subject.isReadOnly())
-            return;
-
+    protected synchronized void removeInternalProps(Subject subject, SubjectHelper subjectHelper, String propName, Hashtable hashtable) {
+        
         Set<Object> publicCredentials = subject.getPublicCredentials();
         publicCredentials.remove(hashtable);
         hashtable.remove(propName);

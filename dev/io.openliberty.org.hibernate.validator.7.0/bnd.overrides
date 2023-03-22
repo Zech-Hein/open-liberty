@@ -5,7 +5,7 @@ bSymbolicName=io.openliberty.org.hibernate.validator.7.0
 
 Bundle-Name: Hibernate Validator Engine
 Bundle-SymbolicName: io.openliberty.org.hibernate.validator.7.0
-Bundle-Description: Hibernate's Bean Validation (JSR-380) reference implementation; version=7.0.0.Final
+Bundle-Description: Hibernate's Bean Validation (JSR-380) reference implementation; version=7.0.4.Final
 
 # Provide these as resources to applications
 app-resources= \
@@ -20,7 +20,7 @@ app-resources= \
   META-INF/validation-configuration-3.0.xsd
 
 Export-Package: \
-  org.hibernate.validator.*;version="7.0.0.Final";thread-context=true
+  org.hibernate.validator.*;version="7.0.4.Final";thread-context=true
 
 Import-Package: \
   !jakarta.persistence, \
@@ -32,15 +32,15 @@ Import-Package: \
   jakarta.validation.metadata;version="[3.0.0,4.0.0)", \
   jakarta.validation.spi;version="[3.0.0,4.0.0)", \
   jakarta.validation.valueextraction;version="[3.0.0,4.0.0)", \
-  javax.script;version=0, \
-  javax.xml.namespace;version=0, \
-  javax.xml.stream;version=0, \
-  javax.xml.stream.events;version=0, \
-  javax.xml.transform;version=0, \
-  javax.xml.transform.stream;version=0, \
-  javax.xml.validation;version=0, \
-  jakarta.el;version="[4.0.0,5.0.0)";resolution:=optional, \
-  org.xml.sax;version=0, \
+  javax.script;version=!, \
+  javax.xml.namespace;version=!, \
+  javax.xml.stream;version=!, \
+  javax.xml.stream.events;version=!, \
+  javax.xml.transform;version=!, \
+  javax.xml.transform.stream;version=!, \
+  javax.xml.validation;version=!, \
+  jakarta.el;version="[4.0.0,6.0.0)";resolution:=optional, \
+  org.xml.sax;version=!, \
   org.jboss.logging;version="[3.1.0,4.0.0)", \
   com.fasterxml.classmate;version="[1.3,2.0.0)", \
   com.fasterxml.classmate.members;version="[1.3,2.0.0)", \
@@ -58,11 +58,12 @@ Import-Package: \
 # optionally uses JPA if it is there for a customized
 # TraversableRevolver implementation.
 DynamicImport-Package: \
- jakarta.persistence
+ jakarta.persistence, \
+ javafx.*
  
 Include-Resource: \
-  @${repo;org.hibernate.validator:hibernate-validator;7.0.0.Final;EXACT}!/META-INF/*.xsd, \
-  @${repo;org.hibernate.validator:hibernate-validator;7.0.0.Final;EXACT}!/META-INF/services/*, \
+  @${repo;org.hibernate.validator:hibernate-validator;7.0.4.Final;EXACT}!/META-INF/*.xsd, \
+  @${repo;org.hibernate.validator:hibernate-validator;7.0.4.Final;EXACT}!/META-INF/services/*, \
   org=resources/org
   
 Service-Component:\

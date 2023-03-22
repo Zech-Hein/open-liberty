@@ -4,9 +4,11 @@
         <feature>cdi-2.0</feature>
         <feature>ssl-1.0</feature>
         <feature>componenttest-1.0</feature>
+        <feature>servlet-4.0</feature>
     </featureManager>
 
     <include location="../fatTestPorts.xml"/>
+	<javaPermission className="java.lang.RuntimePermission" name="accessClassInPackage.sun.net.www.protocol.c"/>
 
     <javaPermission className="java.util.PropertyPermission" name="bvt.prop.HTTP_default" actions="read"/>
     <javaPermission className="java.lang.RuntimePermission" name="accessDeclaredMembers"/>

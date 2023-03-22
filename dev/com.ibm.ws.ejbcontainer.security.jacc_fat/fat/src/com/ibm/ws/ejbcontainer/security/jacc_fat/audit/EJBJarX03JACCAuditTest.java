@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,7 +29,6 @@ import com.ibm.ws.security.audit.fat.common.tooling.AuditAsserts;
 import com.ibm.ws.security.audit.fat.common.tooling.AuditCommonTest;
 import com.ibm.ws.security.audit.fat.common.tooling.RecentAuditFileStream;
 
-import componenttest.annotation.MinimumJavaLevel;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
@@ -43,7 +44,6 @@ import componenttest.custom.junit.runner.Mode.TestMode;
  * This test invokes SecurityEJBX03Bean methods with a variety of method signatures to insure that
  * annotations are processed correctly with methods of the same name and different signature.
  */
-@MinimumJavaLevel(javaLevel = 8, runSyntheticTest = false)
 @Mode(TestMode.FULL)
 @RunWith(FATRunner.class)
 public class EJBJarX03JACCAuditTest extends EJBAnnTestBase {

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -65,8 +67,9 @@ public class FileArtifactNotifier implements ArtifactNotifier {
     }
 
     private void verifyTargets(ArtifactNotification target) throws IllegalArgumentException {
-        if (target.getContainer().getRoot() != root) {
-            throw new IllegalArgumentException();
+        ArtifactContainer targetRoot = target.getContainer().getRoot();
+        if (targetRoot != root) {
+            throw new IllegalArgumentException("Target root [ " + targetRoot + " ] does not match notification root [ " + root + " ]");
         }
     }
 
@@ -465,7 +468,7 @@ public class FileArtifactNotifier implements ArtifactNotifier {
                 }
                 result.add(absPath);
             } else
-                throw new IllegalStateException(fAbsPath + " " + rootAbsolutePath);
+                throw new IllegalStateException("Nested file [ " + fAbsPath + " ] is not beneath [ " + rootAbsolutePath + " ]");
         }
         return result;
     }

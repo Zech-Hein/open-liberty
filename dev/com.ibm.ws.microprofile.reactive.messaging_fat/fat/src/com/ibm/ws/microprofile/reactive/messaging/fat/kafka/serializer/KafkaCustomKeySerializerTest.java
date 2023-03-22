@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -53,11 +55,11 @@ public class KafkaCustomKeySerializerTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        ConnectorProperties outgoingProperties = simpleOutgoingChannel(PlaintextTests.kafkaContainer, MyDataMessagingBean2.OUT_CHANNEL);
+        ConnectorProperties outgoingProperties = simpleOutgoingChannel(PlaintextTests.connectionProperties(), MyDataMessagingBean2.OUT_CHANNEL);
         outgoingProperties.addProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, MyDataSerializer.class.getName());
         outgoingProperties.addProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, MyDataSerializer.class.getName());
 
-        ConnectorProperties incomingProperties = simpleIncomingChannel(PlaintextTests.kafkaContainer, MyDataMessagingBean2.IN_CHANNEL, MyDataMessagingBean2.GROUP_ID);
+        ConnectorProperties incomingProperties = simpleIncomingChannel(PlaintextTests.connectionProperties(), MyDataMessagingBean2.IN_CHANNEL, MyDataMessagingBean2.GROUP_ID);
         incomingProperties.addProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, MyDataDeserializer.class.getName());
         incomingProperties.addProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, MyDataDeserializer.class.getName());
 

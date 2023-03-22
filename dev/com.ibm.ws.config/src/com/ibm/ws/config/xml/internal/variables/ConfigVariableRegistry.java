@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,6 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -63,6 +66,11 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
     private Map<String, LibertyVariable> configVariables;
     // variables explicitly defined in bundle defaultInstances files
     private Map<String, LibertyVariable> defaultConfigVariables;
+
+    // Immutable map of name to value for user defined variables, replaced when updated, never modified
+    private volatile Map<String, String> userDefinedVariableMap;
+    // Immutable map of name to defaultValue for user defined variables, replaced when updated, never modified
+    private volatile Map<String, String> userDefinedVariableDefaultsMap;
 
     // cache of external variables
     private Map<String, Object> variableCache;
@@ -143,6 +151,8 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
             }
         }
 
+        updateUserDefinedVariableMap();
+        updateUserDefinedVariableDefaultsMap();
     }
 
     @Trivial
@@ -325,6 +335,9 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
         for (LibertyVariable v : fileSystemVariables.values()) {
             registry.addVariable(v.getName(), v.getValue());
         }
+
+        updateUserDefinedVariableMap();
+        updateUserDefinedVariableDefaultsMap();
     }
 
     /*
@@ -332,6 +345,13 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
      */
     public synchronized void updateVariableCache(Map<String, Object> variables) {
         boolean dirty = false;
+
+        String variableSrcDirsKey = WsLocationConstants.LOC_VARIABLE_SOURCE_DIRS;
+        if (variableCache.get(variableSrcDirsKey) == null) {
+            Object variableSrcDirsValue = lookupVariable(variableSrcDirsKey);
+            variableCache.put(variableSrcDirsKey, variableSrcDirsValue);
+            dirty = true;
+        }
         for (Map.Entry<String, Object> entry : variables.entrySet()) {
             String variableName = entry.getKey();
             // skip any variables defined with values in server.xml
@@ -354,19 +374,9 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
     private boolean isVariableCached(String variableName, Object variableValue) {
         if (variableCache.containsKey(variableName)) {
             Object cachedVariableValue = variableCache.get(variableName);
-            return isEqual(cachedVariableValue, variableValue);
+            return Objects.equals(cachedVariableValue, variableValue);
         } else {
             return false;
-        }
-    }
-
-    private static boolean isEqual(Object oldVariableValue, Object newVariableValue) {
-        if (oldVariableValue == null) {
-            return newVariableValue == null;
-        } else if (newVariableValue == null) {
-            return false;
-        } else {
-            return oldVariableValue.equals(newVariableValue);
         }
     }
 
@@ -374,7 +384,8 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
      * Checks cached variable values against the current variable values.
      * Returns true if at least one variable has changed. False, otherwise.
      */
-    public synchronized boolean variablesChanged() {
+    public synchronized Map<String, DeltaType> variablesChanged() {
+        Map<String, DeltaType> changed = null;
         for (Map.Entry<String, Object> entry : variableCache.entrySet()) {
             String variableName = entry.getKey();
             Object oldVariableValue = entry.getValue();
@@ -387,14 +398,33 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
                 newVariableValue = lookupVariableFromAdditionalSources(variableName);
             }
 
-            if (!isEqual(oldVariableValue, newVariableValue)) {
+            if (newVariableValue == null) {
+                LibertyVariable cv = configVariables.get(variableName);
+                newVariableValue = cv == null ? null : cv.getDefaultValue();
+            }
+
+            DeltaType deltaType = getDeltaType(oldVariableValue, newVariableValue);
+            if (deltaType != null) {
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                     Tr.debug(tc, "Variable " + variableName + " has changed. ");
                 }
-                return true;
+                if (changed == null) {
+                    changed = new HashMap<>();
+                }
+                changed.put(variableName, deltaType);
             }
         }
-        return false;
+        return changed == null ? Collections.emptyMap() : changed;
+    }
+
+    DeltaType getDeltaType(Object oldValue, Object newValue) {
+        if (oldValue == null) {
+            return newValue != null ? DeltaType.ADDED : null;
+        }
+        if (newValue == null) {
+            return DeltaType.REMOVED;
+        }
+        return oldValue.equals(newValue) ? null : DeltaType.MODIFIED;
     }
 
     public String lookupVariableFromAdditionalSources(String variableName) {
@@ -513,6 +543,8 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
         if (dirty) {
             saveVariableCache();
         }
+        updateUserDefinedVariableMap();
+        updateUserDefinedVariableDefaultsMap();
     }
 
     @Override
@@ -571,6 +603,11 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
     @Override
     @Sensitive
     public Map<String, String> getUserDefinedVariables() {
+        return userDefinedVariableMap;
+    }
+
+    @Sensitive
+    private void updateUserDefinedVariableMap() {
         HashMap<String, String> userDefinedVariables = new HashMap<String, String>();
 
         for (Entry<String, FileSystemVariable> entry : fileSystemVariables.entrySet()) {
@@ -593,7 +630,8 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
         for (CommandLineVariable clVar : commandLineVariables) {
             userDefinedVariables.put(clVar.getName(), clVar.getValue());
         }
-        return userDefinedVariables;
+
+        userDefinedVariableMap = Collections.unmodifiableMap(userDefinedVariables);
     }
 
     /**
@@ -615,28 +653,27 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
      */
     @Override
     public Map<String, String> getUserDefinedVariableDefaults() {
+        return userDefinedVariableDefaultsMap;
+    }
+
+    private void updateUserDefinedVariableDefaultsMap() {
         HashMap<String, String> userDefinedVariables = new HashMap<String, String>();
         for (Map.Entry<String, LibertyVariable> entry : configVariables.entrySet()) {
             LibertyVariable var = entry.getValue();
-            if (var.getValue() == null && var.getDefaultValue() != null) {
+            if (var.getDefaultValue() != null) {
                 userDefinedVariables.put(var.getName(), var.getDefaultValue());
             }
         }
         for (Map.Entry<String, LibertyVariable> entry : defaultConfigVariables.entrySet()) {
             LibertyVariable var = entry.getValue();
-            if (userDefinedVariables.containsKey(entry.getKey())) {
-                if (var.getValue() != null) {
-                    //If a value was specified in defaultInstances, remove the defaultValue from server.xml
-                    userDefinedVariables.remove(entry.getKey());
-                }
-            } else {
+            if (!userDefinedVariables.containsKey(entry.getKey())) {
                 // Add the defaultValue if there is no server.xml version
-                if (var.getValue() == null && var.getDefaultValue() != null) {
+                if (var.getDefaultValue() != null) {
                     userDefinedVariables.put(var.getName(), var.getDefaultValue());
                 }
             }
         }
-        return userDefinedVariables;
+        userDefinedVariableDefaultsMap = Collections.unmodifiableMap(userDefinedVariables);
     }
 
     @Override
@@ -667,6 +704,7 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
                 }
             }
         }
+        updateUserDefinedVariableMap();
     }
 
     private boolean removeFileSystemVariable(String name) {
@@ -702,6 +740,7 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
             }
         }
 
+        updateUserDefinedVariableMap();
     }
 
     public void modifyFileSystemVariables(Collection<File> modifiedFiles, Map<String, DeltaType> deltaMap) {
@@ -741,6 +780,7 @@ public class ConfigVariableRegistry implements VariableRegistry, ConfigVariables
                 }
             }
         }
+        updateUserDefinedVariableMap();
     }
 
     @Override

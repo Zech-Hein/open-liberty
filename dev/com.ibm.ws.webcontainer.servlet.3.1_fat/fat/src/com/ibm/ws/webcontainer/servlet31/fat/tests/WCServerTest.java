@@ -1,15 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2020 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.webcontainer.servlet31.fat.tests;
 
+import static com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions.DISABLE_VALIDATION;
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 import static componenttest.annotation.SkipForRepeat.EE8_FEATURES;
 import static componenttest.annotation.SkipForRepeat.EE9_FEATURES;
 import static componenttest.annotation.SkipForRepeat.NO_MODIFICATION;
@@ -51,7 +55,6 @@ import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.topology.impl.LibertyServer;
 import junit.framework.Assert;
 
-
 /**
  * All Servlet 3.1 tests with all applicable server features enabled.
  */
@@ -67,7 +70,6 @@ public class WCServerTest extends LoggingTest {
     private static final String TEST_SERVLET_31_JAR_NAME = "TestServlet31";
     private static final String TEST_METADATA_COMPLETE_JAR_NAME = "TestMetadataComplete";
     private static final String TEST_METADATA_COMPLETE_EXCLUDED_FRAGMENT_JAR_NAME = "TestMetadataCompleteExcludedFragment";
-    private static final String TEST_PROGRAMATIC_LISTENER_ADDITION_JAR_NAME = "TestProgrammaticListenerAddition";
     private static final String SINGLETON_STORE_JAR_NAME = "SingletonStore";
     private static final String TEST_SERVLET_31_APP_NAME = "TestServlet31";
     private static final String TEST_METADATA_COMPLETE_APP_NAME = "TestMetadataComplete";
@@ -75,7 +77,6 @@ public class WCServerTest extends LoggingTest {
     private static final String SESSION_ID_LISTENER_APP_NAME = "SessionIdListener";
     private static final String SERVLET_CONTEXT_ADD_LISTENER_APP_NAME = "ServletContextAddListener";
     private static final String SERVLET_CONTEXT_CREATE_LISTENER_APP_NAME = "ServletContextCreateListener";
-    private static final String TEST_PROGRAMATIC_LISTENER_ADDITION_APP_NAME = "TestProgrammaticListenerAddition";
     private static final String TEST_SERVLET_MAPPING_APP_NAME = "TestServletMapping";
     private static final String TEST_SERVLET_MAPPING_ANNO_APP_NAME = "TestServletMappingAnno";
 
@@ -98,9 +99,7 @@ public class WCServerTest extends LoggingTest {
                                                                                    "com.ibm.ws.webcontainer.servlet_31_fat.testmetadatacompleteexcludedfragment.jar.servlets");
         TestMetadataCompleteExcludeJar = (JavaArchive) ShrinkHelper.addDirectory(TestMetadataCompleteExcludeJar,
                                                                                  "test-applications/TestMetadataCompleteExcludedFragment.jar/resources");
-        JavaArchive TestProgrammaticListenerJar = ShrinkHelper.buildJavaArchive(TEST_PROGRAMATIC_LISTENER_ADDITION_JAR_NAME + ".jar",
-                                                                                "com.ibm.ws.webcontainer.servlet_31_fat.testprogrammaticlisteneraddition.jar.listeners");
-        TestProgrammaticListenerJar = (JavaArchive) ShrinkHelper.addDirectory(TestProgrammaticListenerJar, "test-applications/TestProgrammaticListenerAddition.jar/resources");
+
         JavaArchive SingletonStoreJar = ShrinkHelper.buildJavaArchive(SINGLETON_STORE_JAR_NAME + ".jar",
                                                                       "com.ibm.ws.webcontainer.servlet_31_fat.singletonstore.jar.teststorage");
         // Build the war apps and add the dependencies
@@ -128,8 +127,6 @@ public class WCServerTest extends LoggingTest {
                                                                                   "com.ibm.ws.webcontainer.servlet_31_fat.servletcontextcreatelistener.war.listeners");
         ServletContextCreateListenerApp = ServletContextCreateListenerApp.addAsLibraries(TestServlet31Jar);
 
-        WebArchive TestProgrammaticListenerApp = ShrinkHelper.buildDefaultApp(TEST_PROGRAMATIC_LISTENER_ADDITION_APP_NAME + ".war");
-        TestProgrammaticListenerApp = TestProgrammaticListenerApp.addAsLibraries(TestServlet31Jar, TestProgrammaticListenerJar);
         WebArchive TestServletMappingApp = ShrinkHelper.buildDefaultApp(TEST_SERVLET_MAPPING_APP_NAME + ".war",
                                                                         "com.ibm.ws.webcontainer.servlet_31_fat.testservletmapping.war.servlets");
         TestServletMappingApp = (WebArchive) ShrinkHelper.addDirectory(TestServletMappingApp, "test-applications/TestServletMapping.war/resources");
@@ -159,11 +156,6 @@ public class WCServerTest extends LoggingTest {
             if (appInstalled.isEmpty())
                 ShrinkHelper.exportDropinAppToServer(SHARED_SERVER.getLibertyServer(), ServletContextAddListenerApp);
 
-            appInstalled = SHARED_SERVER.getLibertyServer().getInstalledAppNames(TEST_PROGRAMATIC_LISTENER_ADDITION_APP_NAME);
-            LOG.info("addAppToServer : " + TEST_PROGRAMATIC_LISTENER_ADDITION_APP_NAME + " already installed : " + !appInstalled.isEmpty());
-            if (appInstalled.isEmpty())
-                ShrinkHelper.exportDropinAppToServer(SHARED_SERVER.getLibertyServer(), TestProgrammaticListenerApp);
-
             appInstalled = SHARED_SERVER.getLibertyServer().getInstalledAppNames(SERVLET_CONTEXT_CREATE_LISTENER_APP_NAME);
             LOG.info("addAppToServer : " + SERVLET_CONTEXT_CREATE_LISTENER_APP_NAME + " already installed : " + !appInstalled.isEmpty());
             if (appInstalled.isEmpty())
@@ -177,12 +169,12 @@ public class WCServerTest extends LoggingTest {
             appInstalled = SHARED_SERVER.getLibertyServer().getInstalledAppNames(TEST_SERVLET_MAPPING_APP_NAME);
             LOG.info("addAppToServer : " + TEST_SERVLET_MAPPING_APP_NAME + " already installed : " + !appInstalled.isEmpty());
             if (appInstalled.isEmpty())
-                ShrinkHelper.exportAppToServer(SHARED_SERVER.getLibertyServer(), TestServletMappingApp);
+                ShrinkHelper.exportAppToServer(SHARED_SERVER.getLibertyServer(), TestServletMappingApp, DISABLE_VALIDATION);
 
             appInstalled = SHARED_SERVER.getLibertyServer().getInstalledAppNames(TEST_SERVLET_MAPPING_ANNO_APP_NAME);
             LOG.info("addAppToServer : " + TEST_SERVLET_MAPPING_ANNO_APP_NAME + " already installed : " + !appInstalled.isEmpty());
             if (appInstalled.isEmpty())
-                ShrinkHelper.exportAppToServer(SHARED_SERVER.getLibertyServer(), TestServletMappingAnnoApp);
+                ShrinkHelper.exportAppToServer(SHARED_SERVER.getLibertyServer(), TestServletMappingAnnoApp, DISABLE_VALIDATION);
         }
 
         SHARED_SERVER.startIfNotStarted();
@@ -190,7 +182,6 @@ public class WCServerTest extends LoggingTest {
         SHARED_SERVER.getLibertyServer().waitForStringInLog("CWWKZ0001I.* " + TEST_SERVLET_31_APP_NAME);
         SHARED_SERVER.getLibertyServer().waitForStringInLog("CWWKZ0001I.* " + SESSION_ID_ADD_LISTENER_APP_NAME);
         SHARED_SERVER.getLibertyServer().waitForStringInLog("CWWKZ0001I.* " + SERVLET_CONTEXT_ADD_LISTENER_APP_NAME);
-        SHARED_SERVER.getLibertyServer().waitForStringInLog("CWWKZ0001I.* " + TEST_PROGRAMATIC_LISTENER_ADDITION_APP_NAME);
         SHARED_SERVER.getLibertyServer().waitForStringInLog("CWWKZ0001I.* " + SERVLET_CONTEXT_CREATE_LISTENER_APP_NAME);
         SHARED_SERVER.getLibertyServer().waitForStringInLog("CWWKZ0001I.* " + SESSION_ID_LISTENER_APP_NAME);
         SHARED_SERVER.getLibertyServer().waitForStringInLog("CWWKZ0001I.* " + TEST_METADATA_COMPLETE_APP_NAME);
@@ -227,7 +218,7 @@ public class WCServerTest extends LoggingTest {
      *                       if something goes horribly wrong
      */
     @Test
-    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES })
+    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES, EE10_FEATURES })
     public void test_Servlet31() throws Exception {
         WebResponse response = this.verifyResponse("/TestServlet31/MyServlet", "Hello World");
 
@@ -385,7 +376,7 @@ public class WCServerTest extends LoggingTest {
      * @throws Exception
      */
     @Test
-    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES })
+    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES, EE10_FEATURES })
     public void test_ServletContextMinorMajorVersion() throws Exception {
         this.verifyResponse("/TestServlet31/MyServlet?TestMajorMinorVersion=true",
                             "majorVersion: 3");
@@ -452,35 +443,6 @@ public class WCServerTest extends LoggingTest {
     }
 
     /**
-     * This test case will use a ServletContainerInitializer to add a ServletContextListener in a
-     * programmatic way. Then in the ServletContextListener contextInitialized method calls a method
-     * on the ServletContext.
-     *
-     * This method should throw an UnsupportedOperationException according to the Servlet 3.1 ServletContext API.
-     *
-     * Check to ensure that this message is thrown and the NLS message is resolved correctly.
-     *
-     * @throws Exception
-     */
-    @Test
-    public void test_ProgrammaticListenerAddition() throws Exception {
-
-        // Drive a request to the SimpleTestServlet to initialize the application
-        this.verifyResponse("/TestProgrammaticListenerAddition/SimpleTestServlet", "Hello World");
-
-        // Ensure that the proper exception was output
-        LibertyServer server = SHARED_SERVER.getLibertyServer();
-
-        server.resetLogMarks();
-
-        // PI41941: Changed the message. Wait for the full message.
-        String logMessage = server
-                        .waitForStringInLog("SRVE9002E:.*\\(Operation: getVirtualServerName \\| Listener: com.ibm.ws.webcontainer.servlet_31_fat.testprogrammaticlisteneraddition.jar.listeners.MyProgrammaticServletContextListener \\| Application: TestProgrammaticListenerAddition\\)");
-        Assert.assertNotNull("The correct message was not logged.", logMessage);
-
-    }
-
-    /**
      * This test case uses the ServletContext.createListener API to try and create a listener that
      * does not implement one of the expected listener interfaces. The test will ensure that the proper
      * exception is thrown in this scenario.
@@ -524,7 +486,7 @@ public class WCServerTest extends LoggingTest {
      */
     @Test
     @Mode(TestMode.FULL)
-    @SkipForRepeat(SkipForRepeat.EE9_FEATURES)
+    @SkipForRepeat({ EE9_FEATURES, EE10_FEATURES })
     public void test_DecodeUrlPlusSignDefault() throws Exception {
         this.verifyResponse("/TestServlet31/noplus+sign.html", "This file has a space in the name");
     }
@@ -541,6 +503,7 @@ public class WCServerTest extends LoggingTest {
     @Mode(TestMode.FULL)
     public void test_DecodeUrlPlusSign() throws Exception {
         boolean isEE9 = componenttest.rules.repeater.JakartaEE9Action.isActive();
+        boolean isEE10 = componenttest.rules.repeater.JakartaEE10Action.isActive();
 
         LibertyServer wlp = SHARED_SERVER.getLibertyServer();
         wlp.saveServerConfiguration();
@@ -551,7 +514,7 @@ public class WCServerTest extends LoggingTest {
         // Set the decodeUrlPlusSign property to false.
         WebContainerElement webContainer = configuration.getWebContainer();
 
-        if (isEE9) {
+        if (isEE9 || isEE10) {
             webContainer.setDecodeurlplussign(true);
             LOG.info("Setting decodeUrlPlusSign to true");
         } else {
@@ -566,7 +529,7 @@ public class WCServerTest extends LoggingTest {
         LOG.info("Server configuration updated to: " + configuration);
 
         try {
-            if (isEE9)
+            if (isEE9 || isEE10)
                 this.verifyResponse("/TestServlet31/noplus+sign.html", "This file has a space in the name");
             else
                 this.verifyResponse("/TestServlet31/plus+sign.html", "This file has a plus sign in the name");
@@ -612,8 +575,8 @@ public class WCServerTest extends LoggingTest {
         String responseText = response.getText().trim();
         LOG.info("Response text: " + responseText + " length: " + responseText.length());
 
-        Assert.assertTrue("The response length was incorrect: " + responseText.length() + " != " + target.length(), 
-            responseText.length() == target.length());
+        Assert.assertTrue("The response length was incorrect: " + responseText.length() + " != " + target.length(),
+                          responseText.length() == target.length());
     }
 
     /*

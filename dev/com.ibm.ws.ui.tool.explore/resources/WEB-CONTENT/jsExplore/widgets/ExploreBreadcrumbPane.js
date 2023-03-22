@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -75,9 +77,9 @@ define([ "js/common/platform", 'dojo/_base/lang', "dojo/_base/declare", 'dijit/r
       if (!utils.isStandalone()) {
         this.resource = registry.byId('mainDashboard');
         if(onSearchPane)
-          this.dashboardButton = new ExploreBreadcrumbButton([ this.resource, "mainDashboard-search" ]);
+          this.dashboardButton = new ExploreBreadcrumbButton([ this.resource, "mainDashboard-search", i18n.DASHBOARD ]);
         else
-          this.dashboardButton = new ExploreBreadcrumbButton([ this.resource, "mainDashboard" ]);
+          this.dashboardButton = new ExploreBreadcrumbButton([ this.resource, "mainDashboard", i18n.DASHBOARD ]);
         this.dashboardButton.set("displayed", true);
         this.dashboardButton.pane = this; // GRAPH_REDRAW_CHANGE Bind the pane into the dashboardButton button //<prhodes> confirm
         // this is

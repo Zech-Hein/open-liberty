@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ var editorMessages = {
 "ADD_CHILD": "Añadir hijo",
 "REMOVE": "Eliminar",
 "TEST" : "Probar",
-"TEST_CONNECTION": "Conexión de prueba",
+"TEST_CONNECTION": "Prueba de conexión",
+"TEST_CONNECTION_DESCRIPTION": "Probar la conexión",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "Guardar los cambios para probar la conexión",
 "DESCRIPTION": "Descripción",
 "PREVIOUS": "Anterior",
 "NEXT": "Siguiente",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "Diálogo Eliminar elemento",
 "VALIDATE_DATASOURCE_DIALOG": "Diálogo Validar conexión de origen de datos",
 "VALIDATE_DATASOURCE": "Probando conexión de origen de datos",
+"VALIDATE_CONNECTION_DIALOG":"Diálogo de validación de conexión",
+"DEFAULT_AUTHENTICATION_ALIAS":"Autenticación predeterminada",
+"SPECIFY_AUTHENTICATION_ALIAS":"Especificar alias de autenticación",
+"LOGIN_CONFIG":"Configuración de inicio de sesión",
+"LOGIN_CONFIG_ID":"ID de configuración de inicio de sesión",
+"ADD_LOGIN_CONFIG_PROPERTY":"Añadir propiedad de configuración de inicio de sesión",
+"KEY":"Clave",
+"CHOOSE_AN_OPTION":"Elegir una opción",
 "ENUMERATION_SELECTION_DIALOG": "Diálogo Selección de enumeración",
 "SAVE_BEFORE_CLOSING_DIALOG": "Diálogo Guardar antes de cerrar",
 "ERROR_SAVING_FILE_DIALOG": "Diálogo Error al guardar archivo",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "Alias de autenticación (opcional)",
 "AUTH_ALIAS": "Alias de autenticación",
 "CONTAINER_AUTHENTICATION": "Autenticación de contenedor",
+"RESOURCE_REFERENCE": "Referencia de recurso",
 "NO_RESOURCE_REFERENCE": "Ninguna referencia de recurso",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "Pruebe la conexión utilizando una referencia de recurso que se autentique con la autenticación de la aplicación.",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "Pruebe la conexión utilizando una referencia de recurso que se autentique con la autenticación de contenedor.",
+"RESOURCE_REFERENCE_IN_USE": "La autenticación de contenedor para búsquedas directas está habilitada. La prueba de conexión utiliza los datos de autenticación de contenedor predeterminados configurados.",
+"NO_RESOURCE_REFERENCE_IN_USE": "Pruebe la conexión sin utilizar una referencia de recurso.",
 "APPLICATION_AUTHENTICATION": "Autenticación de aplicación",
 "CUSTOM_LOGIN_MODULE": "Módulo de inicio de sesión personalizado (opcional)",
 "LOGIN_PROPERTIES": "Propiedades de inicio de sesión (opcional)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "Seleccione una característica para visualizar la descripción.",
 "SUPPORT_MESSAGE" : "La configuración de servidor no está disponible para los servidores Node.js ni los servidores en un contenedor Docker al que se accede a través del controlador colectivo.",
 "NO_ROLE_MESSAGE": "El usuario no está en un rol que tenga permiso para realizar cambios de configuración. Los archivos están disponibles en modalidad de sólo lectura.",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "ACCIONES NECESARIAS PARA MIEMBROS DE COLECTIVO:",
 "RUN_UPDATE_HOST" : "Ejecute 'collective updateHost' o 'collective registerHost' con '--hostWritePath' especificando una vía de acceso a la que rpcUser tenga permisos de escritura.  También se deben proporcionar credenciales de host válidas.",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "Cree un enlace a JAVA en /usr/bin. Por ejemplo /usr/bin/java -> [víaAccesoAJAVA]",
 "JAVA_ON_PATH" : "Añada JAVA a la variable de entorno PATH.  La exportación de PATH se debe realizar en .bashrc en Linux.", 
 "MORE_INFORMATION" : "Para más información, consulte: "
-
 };

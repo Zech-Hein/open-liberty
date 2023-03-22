@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,7 +24,6 @@ import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.CommonTest;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.Constants;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.EndpointSettings.endpointSettings;
-import com.ibm.ws.security.oauth_oidc.fat.commonTest.MessageConstants;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.MultiProviderUtils;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.TestSettings;
 import com.ibm.ws.security.oauth_oidc.fat.commonTest.ValidationData.validationData;
@@ -31,8 +32,6 @@ import com.meterware.httpunit.WebResponse;
 
 import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.ExpectedFFDC;
-import componenttest.annotation.MinimumJavaLevel;
-import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
@@ -72,14 +71,19 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes();
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_DOES_NOT_CONTAIN, "Found the JWT SSO cookie name in the output but should not have.", null, "<td>" + Constants.JWT_SSO_COOKIE_NAME + "</td>");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_DOES_NOT_CONTAIN,
+                                            "Found the JWT SSO cookie name in the output but should not have.", null, "<td>" + Constants.JWT_SSO_COOKIE_NAME + "</td>");
 
         genericOP(_testName, wc, testSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS, expectations);
 
@@ -92,10 +96,8 @@ public class genericWebClientAuthCodeTest extends CommonTest {
      * - Should successfully reach the protected resource
      * - Should find the JWT SSO cookie name in the final response
      */
-    @MinimumJavaLevel(javaLevel = 8)
     @Mode(TestMode.LITE)
     @Test
-    @SkipForRepeat(SkipForRepeat.EE9_FEATURES) // TODO jwtSso-1.0 feature not supported by EE9 yet.
     public void testAuthCodeBasicFlow_withJwtSsoFeature() throws Exception {
         testOPServer.reconfigServer("server_withJwtSsoFeature.xml", _testName, Constants.JUNIT_REPORTING, null);
 
@@ -105,11 +107,16 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         // expect good (200) status codes for all steps
         List<validationData> expectations = vData.addSuccessStatusCodes();
 
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not find the expected JWT SSO cookie name in the output but should have.", null, "<td>" + Constants.JWT_SSO_COOKIE_NAME + "</td>");
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Did not find the expected JWT SSO cookie name in the output but should have.", null, "<td>" + Constants.JWT_SSO_COOKIE_NAME + "</td>");
 
         genericOP(_testName, wc, testSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS, expectations);
 
@@ -138,13 +145,17 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes();
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
 
         TestSettings updatedTestSettings2;
         MultiProviderUtils mpUtils2 = new MultiProviderUtils();
@@ -158,13 +169,17 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations2 = vData.addSuccessStatusCodes();
 
         // Check if we got authorization code
-        expectations2 = vData.addExpectation(expectations2, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations2 = vData.addExpectation(expectations2, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                             Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations2 = vData.addExpectation(expectations2, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations2 = vData.addExpectation(expectations2, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                             Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations2 = vData.addExpectation(expectations2, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations2 = vData.addExpectation(expectations2, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                             "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations2 = vData.addExpectation(expectations2, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations2 = vData.addExpectation(expectations2, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                             "false");
 
         //changed testSettings to updated
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS, expectations);
@@ -203,13 +218,17 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes(null, Constants.PERFORM_LOGIN);
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
 
         genericOP(_testName, wc, testSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS, expectations);
 
@@ -247,13 +266,17 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes(null, Constants.PERFORM_LOGIN);
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
 
         genericOP(_testName, wc, testSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS, expectations);
 
@@ -291,13 +314,17 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes(null, Constants.PERFORM_LOGIN);
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
 
         genericOP(_testName, wc, testSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS, expectations);
 
@@ -336,8 +363,10 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
 
         // Check if we got the approval form
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not get the approval form", null, Constants.APPROVAL_FORM);
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_TITLE, Constants.STRING_CONTAINS, "Did not get the approval form", null, Constants.APPROVAL_HEADER);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not get the approval form", null,
+                                            Constants.APPROVAL_FORM);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_TITLE, Constants.STRING_CONTAINS, "Did not get the approval form", null,
+                                            Constants.APPROVAL_HEADER);
 
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATION_ACTIONS, expectations);
 
@@ -367,12 +396,14 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not get the login page again (due to the bad password)", null, Constants.LOGIN_PROMPT);
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not get the login page again (due to the bad password)", null, Constants.LOGIN_ERROR);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Did not get the login page again (due to the bad password)", null, Constants.LOGIN_PROMPT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Did not get the login page again (due to the bad password)", null, Constants.LOGIN_ERROR);
         expectations = vData.addNoTokensInResponseExpectations(expectations, Constants.PERFORM_LOGIN);
-        
+
         testOPServer.addIgnoredServerExceptions("CWIML4537E");
-        
+
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATION_ACTIONS, expectations);
 
     }
@@ -407,9 +438,11 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         // Second request should be unauthorized
         // origin expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.EXCEPTION_MESSAGE, Constants.STRING_CONTAINS, "Did not get expected 401 exception", null, "HTTP response code: 401");
         expectations = vData.addResponseStatusExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.UNAUTHORIZED_STATUS);
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.JSON_OBJECT, Constants.STRING_CONTAINS, "Did not receive 'OAuth service failed the request'", Constants.ERROR_RESPONSE_DESCRIPTION, "OAuth service failed the request");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.JSON_OBJECT, Constants.STRING_CONTAINS,
+                                            "Did not receive 'OAuth service failed the request'", Constants.ERROR_RESPONSE_DESCRIPTION, "OAuth service failed the request");
 
-        response = genericInvokeEndpoint(_testName, wc, response, testSettings.getProtectedResource(), Constants.GETMETHOD, Constants.INVOKE_PROTECTED_RESOURCE, parms, null, expectations);
+        response = genericInvokeEndpoint(_testName, wc, response, testSettings.getProtectedResource(), Constants.GETMETHOD, Constants.INVOKE_PROTECTED_RESOURCE, parms, null,
+                                         expectations);
 
     }
 
@@ -436,21 +469,27 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         WebConversation wc = new WebConversation();
 
         TestSettings updatedTestSettings = testSettings.copyTestSettings();
-        updatedTestSettings.setAuthorizeEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigTAIProvider(), Constants.AUTHORIZE_ENDPOINT));
-        updatedTestSettings.setTokenEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigTAIProvider(), Constants.TOKEN_ENDPOINT));
+        updatedTestSettings.setAuthorizeEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigTAIProvider(),
+                                                                         Constants.AUTHORIZE_ENDPOINT));
+        updatedTestSettings.setTokenEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigTAIProvider(),
+                                                                     Constants.TOKEN_ENDPOINT));
         updatedTestSettings.setProtectedResource(eSettings.assembleProtectedResource(testOPServer.getHttpsString(), testSettings.getConfigTAI(), Constants.SNOOPING));
 
         // expect good (200) status codes for all steps
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
 
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS, expectations);
 
@@ -494,8 +533,10 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
 
         // Check if we got the approval form
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not get the approval form", null, Constants.APPROVAL_FORM);
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_TITLE, Constants.STRING_CONTAINS, "Did not get the approval form", null, Constants.CUSTOM_APPROVAL_HEADER);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not get the approval form", null,
+                                            Constants.APPROVAL_FORM);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_TITLE, Constants.STRING_CONTAINS, "Did not get the approval form", null,
+                                            Constants.CUSTOM_APPROVAL_HEADER);
 
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATION_ACTIONS, expectations);
 
@@ -534,16 +575,21 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
 
         // Make sure we got the custom login page
-        expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.RESPONSE_TITLE, Constants.STRING_CONTAINS, "Did not land on custom login page", null, Constants.CUSTOM_LOGIN_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.RESPONSE_TITLE, Constants.STRING_CONTAINS, "Did not land on custom login page",
+                                            null, Constants.CUSTOM_LOGIN_TITLE);
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
 
         genericOP(_testName, wc, testSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS, expectations);
 
@@ -587,12 +633,14 @@ public class genericWebClientAuthCodeTest extends CommonTest {
 
         // Make sure we got the custom login page
         expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_TITLE, Constants.STRING_CONTAINS,
-                "Did not land on custom error page", null, Constants.CUSTOM_ERROR_TITLE);
+                                            "Did not land on custom error page", null, Constants.CUSTOM_ERROR_TITLE);
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_DOES_NOT_CONTAIN, "Received authorization code and should not have", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_DOES_NOT_CONTAIN,
+                                            "Received authorization code and should not have", null, Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_DOES_NOT_CONTAIN, "Received access token and should not have", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_DOES_NOT_CONTAIN,
+                                            "Received access token and should not have", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
         expectations = vData.addNoTokensInResponseExpectations(expectations, Constants.PERFORM_LOGIN);
 
@@ -630,10 +678,12 @@ public class genericWebClientAuthCodeTest extends CommonTest {
             List<validationData> expectations = vData.addSuccessStatusCodes(null);
 
             // Check if we got authorization code
-            expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not get the login page again (due to the bad password)", null, Constants.LOGIN_PROMPT);
-            expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not get the login page again (due to the bad password)", null, Constants.LOGIN_ERROR);
+            expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                                "Did not get the login page again (due to the bad password)", null, Constants.LOGIN_PROMPT);
+            expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                                "Did not get the login page again (due to the bad password)", null, Constants.LOGIN_ERROR);
             expectations = vData.addNoTokensInResponseExpectations(expectations, Constants.PERFORM_LOGIN);
-            
+
             testOPServer.addIgnoredServerExceptions("CWIML4537E");
 
             genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATION_ACTIONS, expectations);
@@ -669,7 +719,8 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         testOPServer.reconfigServer("server_loginform.xml", _testName, Constants.JUNIT_REPORTING, startMsgs);
 
         TestSettings updatedTestSettings = testSettings.copyTestSettings();
-        updatedTestSettings.setAuthorizeEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.DECLARATIVE_TYPE, testSettings.getConfigSample(), Constants.AUTHORIZE_ENDPOINT));
+        updatedTestSettings.setAuthorizeEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.DECLARATIVE_TYPE, testSettings.getConfigSample(),
+                                                                         Constants.AUTHORIZE_ENDPOINT));
 
         // Create the conversation object which will maintain state for us
         WebConversation wc = new WebConversation();
@@ -679,16 +730,21 @@ public class genericWebClientAuthCodeTest extends CommonTest {
 
         // Make sure we did NOT get the custom login page
         //expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.RESPONSE_TITLE, Constants.STRING_MATCHES, "Did not land on custom login page", null, Constants.CUSTOM_LOGIN_TITLE);
-        expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.RESPONSE_TITLE, Constants.STRING_MATCHES, "Did not land on the default login page", null, Constants.LOGIN_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.RESPONSE_TITLE, Constants.STRING_MATCHES,
+                                            "Did not land on the default login page", null, Constants.LOGIN_TITLE);
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
 
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS, expectations);
 
@@ -715,13 +771,17 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
 
         // --------------------------
 
@@ -730,7 +790,8 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> missingExpectations = vData.addSuccessStatusCodes(null);
 
         // Check if we got authorization code
-        missingExpectations = vData.addExpectation(missingExpectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive client01 not found response", null, Constants.CLIENT_COULD_NOT_BE_FOUND);
+        missingExpectations = vData.addExpectation(missingExpectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                                   "Did not receive client01 not found response", null, Constants.CLIENT_COULD_NOT_BE_FOUND);
         missingExpectations = vData.addNoTokensInResponseExpectations(missingExpectations, Constants.PERFORM_LOGIN);
 
         // -------------------------------------------------------------------
@@ -792,18 +853,23 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         TestSettings updatedTestSettings = testSettings.copyTestSettings();
         updatedTestSettings.setClientName("mediatorclient");
         updatedTestSettings.setClientID("mediatorclient");
-        updatedTestSettings.setAuthorizeEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigMediator(), Constants.AUTHORIZE_ENDPOINT));
-        updatedTestSettings.setTokenEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigMediator(), Constants.TOKEN_ENDPOINT));
+        updatedTestSettings.setAuthorizeEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigMediator(),
+                                                                         Constants.AUTHORIZE_ENDPOINT));
+        updatedTestSettings.setTokenEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigMediator(),
+                                                                     Constants.TOKEN_ENDPOINT));
         updatedTestSettings.setProtectedResource(eSettings.assembleProtectedResource(testOPServer.getHttpsString(), testSettings.getConfigTAI(), Constants.SNORKING));
 
         List<validationData> expectations = vData.addSuccessStatusCodes(null, Constants.PERFORM_LOGIN);
         expectations = vData.addResponseStatusExpectation(expectations, Constants.PERFORM_LOGIN, Constants.BAD_REQUEST_STATUS);
 
         // now, we want to add expecations that actually validate responses received during the flow of the generic test.
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code ", null, Constants.RECV_AUTH_CODE);
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Mediator did not fail the request ", null, "test deliberate fail");
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code ", null,
+                                            Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Mediator did not fail the request ", null,
+                                            "test deliberate fail");
 
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_AUTH_SERVER, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive login page", null, Constants.LOGIN_PROMPT);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_AUTH_SERVER, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive login page", null,
+                                            Constants.LOGIN_PROMPT);
 
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATION_ACTIONS, expectations);
 
@@ -826,8 +892,10 @@ public class genericWebClientAuthCodeTest extends CommonTest {
     public void testAuthCodeBasicFlowNoFilter() throws Exception {
 
         TestSettings updatedTestSettings = testSettings.copyTestSettings();
-        updatedTestSettings.setAuthorizeEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigNoFilter(), Constants.AUTHORIZE_ENDPOINT));
-        updatedTestSettings.setTokenEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigNoFilter(), Constants.TOKEN_ENDPOINT));
+        updatedTestSettings.setAuthorizeEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigNoFilter(),
+                                                                         Constants.AUTHORIZE_ENDPOINT));
+        updatedTestSettings.setTokenEndpt(eSettings.assembleEndpoint(testOPServer.getHttpsString(), Constants.ENDPOINT_TYPE, testSettings.getConfigNoFilter(),
+                                                                     Constants.TOKEN_ENDPOINT));
         updatedTestSettings.setProtectedResource(eSettings.assembleProtectedResource(testOPServer.getHttpsString(), testSettings.getConfigTAI(), Constants.SNOOPING));
         updatedTestSettings.setClientName("nclient01");
         updatedTestSettings.setClientID("nclient01");
@@ -840,7 +908,8 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         // Should get a 401
         //expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.EXCEPTION_MESSAGE, Constants.STRING_CONTAINS, "Did not get expected 401 exception", null, "HTTP response code: 401");
         expectations = vData.addResponseStatusExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.UNAUTHORIZED_STATUS);
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.JSON_OBJECT, Constants.STRING_CONTAINS, "Did not receive 'OAuth service failed the request'", Constants.ERROR_RESPONSE_DESCRIPTION, "OAuth service failed the request");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.JSON_OBJECT, Constants.STRING_CONTAINS,
+                                            "Did not receive 'OAuth service failed the request'", Constants.ERROR_RESPONSE_DESCRIPTION, "OAuth service failed the request");
 
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS, expectations);
 
@@ -870,7 +939,8 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         // Should get a 401
         //expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.EXCEPTION_MESSAGE, Constants.STRING_CONTAINS, "Did not get expected 401 exception", null, "HTTP response code: 401");
         expectations = vData.addResponseStatusExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.UNAUTHORIZED_STATUS);
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.JSON_OBJECT, Constants.STRING_CONTAINS, "Did not receive 'OAuth service failed the request'", Constants.ERROR_RESPONSE_DESCRIPTION, "OAuth service failed the request");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.JSON_OBJECT, Constants.STRING_CONTAINS,
+                                            "Did not receive 'OAuth service failed the request'", Constants.ERROR_RESPONSE_DESCRIPTION, "OAuth service failed the request");
 
         genericOP(_testName, wc, updatedTestSettings, Constants.ONLY_PROTECTED_RESOURCE_ACTIONS, expectations);
 
@@ -902,7 +972,8 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         // Check if we got authorization code
         // The failure caused by the continue result and actually failed at:
         //   com.ibm.ws.webcontainer.security.internal.BasicAuthAuthenticator
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.EXCEPTION_MESSAGE, Constants.STRING_CONTAINS, "Did NOT get expected exception", null, Integer.toString(Constants.UNAUTHORIZED_STATUS));
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.EXCEPTION_MESSAGE, Constants.STRING_CONTAINS,
+                                            "Did NOT get expected exception", null, Integer.toString(Constants.UNAUTHORIZED_STATUS));
 
         genericOP(_testName, wc, updatedTestSettings, Constants.ONLY_PROTECTED_RESOURCE_ACTIONS, expectations);
 
@@ -933,7 +1004,8 @@ public class genericWebClientAuthCodeTest extends CommonTest {
 
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
 
-        expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive " + updatedTestSettings.getClientID() + " not found response", null, Constants.CLIENT_COULD_NOT_BE_FOUND);
+        expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Did not receive " + updatedTestSettings.getClientID() + " not found response", null, Constants.CLIENT_COULD_NOT_BE_FOUND);
         expectations = vData.addNoTokensInResponseExpectations(expectations, Constants.SUBMIT_TO_AUTH_SERVER);
         genericOP(_testName, wc, updatedTestSettings, Constants.SUBMIT_ACTIONS, expectations);
 
@@ -958,9 +1030,12 @@ public class genericWebClientAuthCodeTest extends CommonTest {
 
         // expect good (200) status codes for all steps
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_URL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null, "unsupported_response_type");
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_URL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null, "CWOAU0027E%3A+The+response_type+parameter+was+invalid%3A+bob");
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null, "Something went wrong redirecting to redirect.jsp");
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_URL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null,
+                                            "unsupported_response_type");
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_URL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null,
+                                            "CWOAU0027E%3A+The+response_type+parameter+was+invalid%3A+bob");
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null,
+                                            "Something went wrong redirecting to redirect.jsp");
         expectations = vData.addNoTokensInResponseExpectations(expectations, Constants.PERFORM_LOGIN);
         genericOP(_testName, wc, updatedTestSettings, Constants.SUBMIT_ACTIONS, expectations);
         //genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATION_ACTIONS, expectations);
@@ -987,8 +1062,10 @@ public class genericWebClientAuthCodeTest extends CommonTest {
 
         // expect good (200) status codes for all steps
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_URL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null, "error=unsupported_response_type");
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null, "Something went wrong redirecting to redirect.jsp");
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_URL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null,
+                                            "error=unsupported_response_type");
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null,
+                                            "Something went wrong redirecting to redirect.jsp");
         expectations = vData.addNoTokensInResponseExpectations(expectations, Constants.PERFORM_LOGIN);
         genericOP(_testName, wc, updatedTestSettings, Constants.SUBMIT_ACTIONS, expectations);
         //genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATION_ACTIONS, expectations);
@@ -1015,8 +1092,10 @@ public class genericWebClientAuthCodeTest extends CommonTest {
 
         // expect good (200) status codes for all steps
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_URL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null, "error=unsupported_response_type");
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null, "Something went wrong redirecting to redirect.jsp");
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_URL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null,
+                                            "error=unsupported_response_type");
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not fail on bad response type: ", null,
+                                            "Something went wrong redirecting to redirect.jsp");
         expectations = vData.addNoTokensInResponseExpectations(expectations, Constants.PERFORM_LOGIN);
         genericOP(_testName, wc, updatedTestSettings, Constants.SUBMIT_ACTIONS, expectations);
         //genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATION_ACTIONS, expectations);
@@ -1042,13 +1121,17 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
 
         // add generic id_token expectations
         expectations = validationTools.addDefaultIDTokenExpectations(expectations, _testName, eSettings.getProviderType(), Constants.PERFORM_LOGIN, testSettings);
@@ -1080,14 +1163,18 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
 
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_AUTH_SERVER, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive login page", null, Constants.LOGIN_PROMPT);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_AUTH_SERVER, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive login page", null,
+                                            Constants.LOGIN_PROMPT);
 
         // make sure that id_token is NOT in the response
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_ID_TOKEN, Constants.STRING_CONTAINS, "Token validate response found the id_token in the response and should not have", Constants.ID_TOKEN_KEY, Constants.NOT_FOUND);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_ID_TOKEN, Constants.STRING_CONTAINS,
+                                            "Token validate response found the id_token in the response and should not have", Constants.ID_TOKEN_KEY, Constants.NOT_FOUND);
 
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATION_ACTIONS, expectations);
 
@@ -1209,7 +1296,7 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         expectations = vData.addNoTokensInResponseExpectations(expectations, expected404Step);
 
         testOPServer.addIgnoredServerExceptions("CWOAU0037E");
-        
+
         genericOP(_testName, wc, updatedTestSettings, Constants.SUBMIT_ACTIONS, expectations);
 
     }
@@ -1238,7 +1325,7 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = validationTools.getDefault404VDataExpectationsWithOtherwiseSuccessfulStatusCodes(expected404Step);
         // we expect a 404 as https is required
         expectations = vData.addNoTokensInResponseExpectations(expectations, expected404Step);
-        
+
         testOPServer.addIgnoredServerExceptions("CWOAU0037E");
 
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATION_ACTIONS, expectations);
@@ -1281,8 +1368,10 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         parms = eSettings.addEndpointSettings(parms, "token_endpoint", testSettings.getTokenEndpt());
         parms = eSettings.addEndpointSettings(parms, "scope", testSettings.getScope());
 
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_REFRESH_ENDPOINT, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_REFRESH_ENDPOINT, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not update refresh token", null, Constants.REFRESH_TOKEN_UPDATED);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_REFRESH_ENDPOINT, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token",
+                                            null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_REFRESH_ENDPOINT, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not update refresh token",
+                                            null, Constants.REFRESH_TOKEN_UPDATED);
 
         // add generic id_token expectations - for now, the id_token IS NOT returned in the refresh response
         // WHEN IF ID_TOKEN is added, this test will break and act as a reminder that we need to validate the id_token, but not only
@@ -1292,7 +1381,8 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         // for now since the id_token will not be in the response, let's pretend this is an oAuth flow which omits id_token
         //expectations = validationTools.addDefaultGeneralResponseExpectations(expectations, _testName, eSettings.getProviderType(), Constants.INVOKE_REFRESH_ENDPOINT, updatedTestSettings);
         expectations = validationTools.addDefaultGeneralResponseExpectations(expectations, _testName, Constants.OAUTH_OP, Constants.INVOKE_REFRESH_ENDPOINT, testSettings);
-        response = genericInvokeForm(_testName, wc, response, testSettings, testSettings.getRefreshTokUrl(), Constants.GETMETHOD, Constants.INVOKE_REFRESH_ENDPOINT, parms, expectations);
+        response = genericInvokeForm(_testName, wc, response, testSettings, testSettings.getRefreshTokUrl(), Constants.GETMETHOD, Constants.INVOKE_REFRESH_ENDPOINT, parms,
+                                     expectations);
 
         String updatedRefreshToken = validationTools.getTokenFromResponse(response, Constants.REFRESH_TOKEN_KEY);
         String updatedAccessToken = validationTools.getTokenFromResponse(response, Constants.ACCESS_TOKEN_KEY);
@@ -1301,7 +1391,8 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         msgUtils.assertTrueAndLog(_testName, "The refresh token was NOT updated", !originalRefreshToken.equals(updatedRefreshToken));
 
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
 
         helpers.invokeProtectedResource(_testName, wc, originalAccessToken, testSettings, expectations);
         helpers.invokeProtectedResource(_testName, wc, updatedAccessToken, testSettings, expectations);
@@ -1348,9 +1439,13 @@ public class genericWebClientAuthCodeTest extends CommonTest {
 
         // we expect a 404 as https is required
         expectations = vData.addResponseStatusExpectation(expectations, Constants.INVOKE_REFRESH_ENDPOINT, Constants.NOT_FOUND_STATUS);
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_REFRESH_ENDPOINT, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not fail because http was used instead of https", null, "Error 404: CWOAU0037E: HTTP scheme is used at the specified endpoint: " + updatedTestSettings.getTokenEndpt() + ", HTTPS is required.");
+        expectations = vData
+                        .addExpectation(expectations, Constants.INVOKE_REFRESH_ENDPOINT, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                        "Did not fail because http was used instead of https", null,
+                                        "Error 404: CWOAU0037E: HTTP scheme is used at the specified endpoint: " + updatedTestSettings.getTokenEndpt() + ", HTTPS is required.");
 
-        response = genericInvokeForm(_testName, wc, response, updatedTestSettings, updatedTestSettings.getRefreshTokUrl(), Constants.GETMETHOD, Constants.INVOKE_REFRESH_ENDPOINT, parms, expectations);
+        response = genericInvokeForm(_testName, wc, response, updatedTestSettings, updatedTestSettings.getRefreshTokUrl(), Constants.GETMETHOD, Constants.INVOKE_REFRESH_ENDPOINT,
+                                     parms, expectations);
 
     }
 
@@ -1413,9 +1508,11 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes();
 
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
 
         genericOP(_testName, wc, testSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS_WITH_BASIC_AUTH, expectations);
 
@@ -1456,12 +1553,12 @@ public class genericWebClientAuthCodeTest extends CommonTest {
 
         expectations = vData.addResponseStatusExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.UNAUTHORIZED_STATUS);
         expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.RESPONSE_FULL, Constants.STRING_DOES_NOT_MATCH,
-                "Found ID token string but should not have.", null, Constants.IDToken_STR);
+                                            "Found ID token string but should not have.", null, Constants.IDToken_STR);
         expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, testOPServer, Constants.MESSAGES_LOG, Constants.STRING_CONTAINS,
-                "Do not get the error of the invalid user of Basic Authorization header", null,
-                "CWWKS1440E:.*failed because the Authorization header.*failed to be verified");
+                                            "Do not get the error of the invalid user of Basic Authorization header", null,
+                                            "CWWKS1440E:.*failed because the Authorization header.*failed to be verified");
         // CWWKS1440E: The login of the request failed because the Authorization header in the request failed to be verified as a valid user.
-        
+
         testOPServer.addIgnoredServerExceptions("CWIML4537E", "CWWKS1440E", "SRVE8115W");
 
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATE_ACTIONS_WITH_BASIC_AUTH, expectations);
@@ -1501,8 +1598,10 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes(null);
 
         // Check if we got the approval form
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not get the approval form", null, Constants.APPROVAL_FORM);
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_TITLE, Constants.STRING_CONTAINS, "Did not get the approval form", null, Constants.APPROVAL_HEADER);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not get the approval form", null,
+                                            Constants.APPROVAL_FORM);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_TITLE, Constants.STRING_CONTAINS, "Did not get the approval form", null,
+                                            Constants.APPROVAL_HEADER);
         //List<validationData> expectations = vData.addSuccessStatusCodes();
 
         // Make sure we get to the app
@@ -1550,12 +1649,12 @@ public class genericWebClientAuthCodeTest extends CommonTest {
 
         expectations = vData.addResponseStatusExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.UNAUTHORIZED_STATUS);
         expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.RESPONSE_FULL, Constants.STRING_DOES_NOT_MATCH,
-                "Found ID token string but should not have.", null, Constants.IDToken_STR);
+                                            "Found ID token string but should not have.", null, Constants.IDToken_STR);
         expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, testOPServer, Constants.MESSAGES_LOG, Constants.STRING_CONTAINS,
-                "Do not get the error of the invalid user of Basic Authorization header", null,
-                "CWWKS1440E:.*failed because the Authorization header.*failed to be verified");
+                                            "Do not get the error of the invalid user of Basic Authorization header", null,
+                                            "CWWKS1440E:.*failed because the Authorization header.*failed to be verified");
         // CWWKS1440E: The login of the request failed because the Authorization header in the request failed to be verified as a valid user.
-        
+
         testOPServer.addIgnoredServerExceptions("CWIML4537E", "CWWKS1440E", "SRVE8094W", "SRVE8115W");
 
         genericOP(_testName, wc, updatedTestSettings, Constants.BASIC_AUTHENTICATE_ACTIONS_WITH_BASIC_AUTH, expectations);
@@ -1579,14 +1678,14 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         WebConversation wc = new WebConversation();
 
         TestSettings updatedTestSettings = testSettings.copyTestSettings();
-        updatedTestSettings.setClientRedirect(updatedTestSettings.getClientRedirect().replace(".jsp", "2.jsp"));
-        ;
+        updatedTestSettings.setClientRedirect(updatedTestSettings.getClientRedirect().replace(".jsp", "2.jsp"));;
 
         // expect good (200) status codes for all steps
         List<validationData> expectations = vData.addSuccessStatusCodes();
 
         // Make sure we get a failure about a bad redirect url
-        expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not fail because of a bad redirect URL", null, "CWOAU0062E");
+        expectations = vData.addExpectation(expectations, Constants.SUBMIT_TO_AUTH_SERVER, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Did not fail because of a bad redirect URL", null, "CWOAU0062E");
 
         genericOP(_testName, wc, updatedTestSettings, Constants.SUBMIT_ACTIONS, expectations);
 
@@ -1602,13 +1701,17 @@ public class genericWebClientAuthCodeTest extends CommonTest {
         List<validationData> expectations = vData.addSuccessStatusCodes();
 
         // Check if we got authorization code
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null, Constants.RECV_AUTH_CODE);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive authorization code", null,
+                                            Constants.RECV_AUTH_CODE);
         // Check if we got the access token
-        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null, Constants.RECV_FROM_TOKEN_ENDPOINT);
+        expectations = vData.addExpectation(expectations, Constants.PERFORM_LOGIN, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Did not receive access token", null,
+                                            Constants.RECV_FROM_TOKEN_ENDPOINT);
         // Make sure we get to the app
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS, "Could not invoke protected application", null, Constants.APP_TITLE);
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_FULL, Constants.STRING_CONTAINS,
+                                            "Could not invoke protected application", null, Constants.APP_TITLE);
         // Response should not have an ltpa token
-        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null, "false");
+        expectations = vData.addExpectation(expectations, Constants.INVOKE_PROTECTED_RESOURCE, Constants.RESPONSE_TOKEN, null, "Response has an ltpa token, but should not", null,
+                                            "false");
 
         genericOP(_testName, wc, testSettings, Constants.BASIC_PROTECTED_RESOURCE_ACTIONS, expectations);
 

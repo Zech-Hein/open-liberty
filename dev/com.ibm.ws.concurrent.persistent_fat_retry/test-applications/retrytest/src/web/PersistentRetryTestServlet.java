@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2019 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -55,7 +57,7 @@ public class PersistentRetryTestServlet extends HttpServlet {
     /**
      * Maximum number of nanoseconds to wait for a task to finish.
      */
-    private static final long TIMEOUT_NS = TimeUnit.SECONDS.toNanos(90);
+    private static final long TIMEOUT_NS = TimeUnit.MINUTES.toNanos(3);
 
     @Resource(name = "java:comp/env/concurrent/mySchedulerRef", lookup = "concurrent/myScheduler")
     private PersistentExecutor scheduler;
@@ -407,12 +409,23 @@ public class PersistentRetryTestServlet extends HttpServlet {
     		if (ProgrammableTriggerTask.isOurException(x.getCause()) == false)
     			throw x;
 		}
-    	
-    	final List<Instruction> results = new ArrayList<Instruction>();
-    	for (Result result : task.getResultList())
-    		results.add(result.getResult());
-        if (!instructions.equals(results))
-        	throw new Exception("Results were inconsistent: " + results);
+
+        final List<Instruction> results = new ArrayList<Instruction>();
+        int failCount = 0;
+        for (Result result : task.getResultList()) {
+            Instruction i = result.getResult();
+            if (Instruction.FAIL.equals(i))
+                failCount++;
+            results.add(i);
+        }
+        if (!instructions.equals(results)) {
+            if (failCount < 4 && failCount == results.size())
+                ; // Allow for possibility of some unrecorded failures due to transaction timeout(s)
+            else if (failCount == 3 && results.size() == 4 && Instruction.SKIP.equals(results.get(3)))
+                ; // Allow for possibility of the final failure being unrecorded due to transaction timeout
+            else
+                throw new Exception("Results were inconsistent: " + results);
+        }
     }
     
     

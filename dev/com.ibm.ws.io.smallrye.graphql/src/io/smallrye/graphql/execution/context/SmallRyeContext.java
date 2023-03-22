@@ -1,11 +1,15 @@
+// https://github.com/smallrye/smallrye-graphql/blob/4a47a2da6e4f4b4a6aedf2fc6464510737fe4c52/server/implementation/src/main/java/io/smallrye/graphql/execution/context/SmallRyeContext.java
+// Apache v2.0 licensed - https://github.com/smallrye/smallrye-graphql/blob/1.0.9/LICENSE
 package io.smallrye.graphql.execution.context;
 
 import static io.smallrye.graphql.SmallRyeGraphQLServerMessages.msg;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import javax.json.Json;
@@ -16,12 +20,14 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 import graphql.ExecutionInput;
+import graphql.ParseAndValidate;
+import graphql.ParseAndValidateResult;
+import graphql.execution.preparsed.PreparsedDocumentEntry;
 import graphql.language.Document;
 import graphql.language.OperationDefinition;
-import graphql.parser.InvalidSyntaxException;
-import graphql.parser.Parser;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingFieldSelectionSet;
+import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLNonNull;
@@ -29,6 +35,7 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLType;
 import graphql.schema.SelectedField;
 import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.execution.QueryCache;
 import io.smallrye.graphql.schema.model.Field;
 import io.smallrye.graphql.schema.model.ReferenceType;
 import io.smallrye.graphql.schema.model.Schema;
@@ -36,13 +43,13 @@ import io.smallrye.graphql.schema.model.Type;
 
 /**
  * Implements the Context from MicroProfile API.
- * 
+ *
  * @author Phillip Kruger (phillip.kruger@redhat.com)
  */
 public class SmallRyeContext implements Context {
     private static Schema schema;
 
-    private static final ThreadLocal<SmallRyeContext> current = new ThreadLocal<>();
+    private static final InheritableThreadLocal<SmallRyeContext> current = new InheritableThreadLocal<>();
 
     public static void register(JsonObject jsonInput) {
         SmallRyeContext registry = new SmallRyeContext(jsonInput);
@@ -53,23 +60,24 @@ public class SmallRyeContext implements Context {
         SmallRyeContext.schema = schema;
     }
 
-    public static Context getContext() {
+    public static SmallRyeContext getContext() {
         return current.get();
     }
 
-    public static void setDataFromExecution(ExecutionInput executionInput) {
-        SmallRyeContext context = current.get();
-        if (context != null) {
-            context.setExecutionInput(executionInput);
-        }
+    public static void setContext(SmallRyeContext context) {
+        current.set(context);
     }
 
-    public static void setDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
-        SmallRyeContext context = current.get();
-        if (context != null) {
-            context.dfe = dfe;
-            context.field = field;
-        }
+    public SmallRyeContext withDataFromExecution(ExecutionInput executionInput) {
+        return new SmallRyeContext(this.jsonObject, this.dfe, executionInput, this.queryCache, this.field);
+    }
+
+    public SmallRyeContext withDataFromExecution(ExecutionInput executionInput, QueryCache queryCache) {
+        return new SmallRyeContext(this.jsonObject, this.dfe, executionInput, queryCache, this.field);
+    }
+
+    public SmallRyeContext withDataFromFetcher(DataFetchingEnvironment dfe, Field field) {
+        return new SmallRyeContext(this.jsonObject, dfe, this.executionInput, this.queryCache, field);
     }
 
     public static void remove() {
@@ -83,21 +91,23 @@ public class SmallRyeContext implements Context {
 
     @Override
     public <T> T unwrap(Class<T> wrappedType) {
-        // We only support DataFetchingEnvironment and ExecutionInput at this point
+        // We only support DataFetchingEnvironment, ExecutionInput and Document at this point
         if (wrappedType.equals(DataFetchingEnvironment.class)) {
             return (T) this.dfe;
         } else if (wrappedType.equals(ExecutionInput.class)) {
             return (T) this.executionInput;
+        } else if (wrappedType.equals(Document.class)) {
+            return documentSupplier != null ? (T) documentSupplier.get() : null;
         }
         throw msg.unsupportedWrappedClass(wrappedType.getName());
     }
 
     @Override
-    public boolean hasArgument(String name) {
+    public Boolean hasArgument(String name) {
         if (dfe != null) {
             return dfe.containsArgument(name);
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -105,7 +115,7 @@ public class SmallRyeContext implements Context {
         if (dfe != null) {
             return dfe.getArgument(name);
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -113,7 +123,7 @@ public class SmallRyeContext implements Context {
         if (dfe != null) {
             return dfe.getArguments();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -121,7 +131,7 @@ public class SmallRyeContext implements Context {
         if (dfe != null) {
             return dfe.getExecutionStepInfo().getPath().toString();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -131,7 +141,7 @@ public class SmallRyeContext implements Context {
         } else if (executionInput != null) {
             return executionInput.getExecutionId().toString();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -139,7 +149,7 @@ public class SmallRyeContext implements Context {
         if (dfe != null) {
             return dfe.getField().getName();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
@@ -147,38 +157,37 @@ public class SmallRyeContext implements Context {
         if (dfe != null) {
             return dfe.getSource();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
     public JsonArray getSelectedFields(boolean includeSourceFields) {
         if (dfe != null) {
             DataFetchingFieldSelectionSet selectionSet = dfe.getSelectionSet();
-            List<SelectedField> fields = selectionSet.getFields();
+            //Related to #713 - java-graphql #2275 repectively
+            Set<SelectedField> fields = new LinkedHashSet<>(selectionSet.getFields());
             return toJsonArrayBuilder(fields, includeSourceFields).build();
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
-    public OperationType getOperationType() {
+    public String getOperationType() {
         if (dfe != null) {
-            return getOperationTypeFromDefinition(dfe.getOperationDefinition(), dfe.getSource());
+            return getOperationTypeFromDefinition(dfe.getOperationDefinition());
         }
-        throw new DataFetchingNotActiveException();
+        return null;
     }
 
     @Override
-    public List<OperationType> getRequestedOperationTypes() {
-        List<OperationType> allRequestedTypes = new ArrayList<>();
-        // Liberty change start
+    public List<String> getRequestedOperationTypes() {
+        List<String> allRequestedTypes = new ArrayList<>();
+
         if (documentSupplier != null) {
             Document document = documentSupplier.get();
-            documentSupplier = () -> document;
-        // Liberty change end
             List<OperationDefinition> definitions = document.getDefinitionsOfType(OperationDefinition.class);
             for (OperationDefinition definition : definitions) {
-                OperationType operationType = getOperationTypeFromDefinition(definition);
+                String operationType = getOperationTypeFromDefinition(definition);
                 if (!allRequestedTypes.contains(operationType)) {
                     allRequestedTypes.add(operationType);
                 }
@@ -206,43 +215,40 @@ public class SmallRyeContext implements Context {
         return Optional.empty();
     }
 
-    private <T> OperationType getOperationTypeFromDefinition(OperationDefinition definition) {
-        return getOperationTypeFromDefinition(definition, null);
+    private String getOperationTypeFromDefinition(OperationDefinition definition) {
+        return definition.getOperation().toString();
     }
 
-    private <T> OperationType getOperationTypeFromDefinition(OperationDefinition definition, T source) {
-        if (definition.getOperation().equals(OperationDefinition.Operation.MUTATION)) {
-            return OperationType.Mutation;
-        } else if (definition.getOperation().equals(OperationDefinition.Operation.SUBSCRIPTION)) {
-            return OperationType.Subscription;
-        } else if (definition.getOperation().equals(OperationDefinition.Operation.QUERY)
-                && source != null) {
-            return OperationType.Source;
-        }
-        return OperationType.Query;
-    }
-
-    private final Parser parser = new Parser();
     private final JsonObject jsonObject;
-    private DataFetchingEnvironment dfe;
-    private ExecutionInput executionInput;
-    private volatile Supplier<Document> documentSupplier; // Liberty change - making document lazy to avoid unnecessary parsing
-    private Field field;
+    private final DataFetchingEnvironment dfe;
+    private final ExecutionInput executionInput;
+    private final Supplier<Document> documentSupplier;
+    private final Field field;
+    private final QueryCache queryCache;
 
-    private SmallRyeContext(final JsonObject jsonObject) {
+    public SmallRyeContext(final JsonObject jsonObject) {
         this.jsonObject = jsonObject;
+        this.dfe = null;
+        this.executionInput = null;
+        this.queryCache = null;
+        this.documentSupplier = null;
+        this.field = null;
     }
 
-    private void setExecutionInput(ExecutionInput executionInput) {
+    public SmallRyeContext(JsonObject jsonObject,
+            DataFetchingEnvironment dfe,
+            ExecutionInput executionInput,
+            QueryCache queryCache,
+            Field field) {
+        this.jsonObject = jsonObject;
+        this.dfe = dfe;
+        this.field = field;
         this.executionInput = executionInput;
-        try {
-            this.documentSupplier = () -> parser.parseDocument(executionInput.getQuery()); //Liberty change
-        } catch (InvalidSyntaxException e) {
-            // TODO: LOG ??
-        }
+        this.queryCache = queryCache;
+        this.documentSupplier = new DocumentSupplier(executionInput, queryCache);
     }
 
-    private JsonArrayBuilder toJsonArrayBuilder(List<SelectedField> fields, boolean includeSourceFields) {
+    private JsonArrayBuilder toJsonArrayBuilder(Set<SelectedField> fields, boolean includeSourceFields) {
         JsonArrayBuilder builder = jsonbuilder.createArrayBuilder();
 
         for (SelectedField field : fields) {
@@ -262,8 +268,10 @@ public class SmallRyeContext implements Context {
 
     private JsonObjectBuilder toJsonObjectBuilder(SelectedField selectedField, boolean includeSourceFields) {
         JsonObjectBuilder builder = jsonbuilder.createObjectBuilder();
+        //Related to #713 - java-graphql #2275 repectively
+        Set<SelectedField> fields = new LinkedHashSet<>(selectedField.getSelectionSet().getFields());
         builder = builder.add(selectedField.getName(),
-                toJsonArrayBuilder(selectedField.getSelectionSet().getFields(), includeSourceFields));
+                toJsonArrayBuilder(fields, includeSourceFields));
         return builder;
     }
 
@@ -276,8 +284,14 @@ public class SmallRyeContext implements Context {
     }
 
     private boolean isScalar(SelectedField field) {
-        GraphQLType graphQLType = unwrapGraphQLType(field.getFieldDefinition().getType());
-        return isScalar(graphQLType);
+        List<GraphQLFieldDefinition> fieldDefinitions = field.getFieldDefinitions();
+        for (GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
+            GraphQLType graphQLType = unwrapGraphQLType(fieldDefinition.getType());
+            if (isScalar(graphQLType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isScalar(GraphQLType gqlt) {
@@ -327,4 +341,31 @@ public class SmallRyeContext implements Context {
     }
 
     private static final JsonBuilderFactory jsonbuilder = Json.createBuilderFactory(null);
+
+    private static class DocumentSupplier implements Supplier<Document> {
+
+        private final ExecutionInput executionInput;
+        private final QueryCache queryCache;
+
+        public DocumentSupplier(ExecutionInput executionInput,
+                QueryCache queryCache) {
+            this.executionInput = executionInput;
+            this.queryCache = queryCache;
+        }
+
+        @Override
+        public Document get() {
+            if (queryCache == null) {
+                ParseAndValidateResult parse = ParseAndValidate.parse(executionInput);
+                return parse.isFailure() ? null : parse.getDocument();
+            } else {
+                PreparsedDocumentEntry documentEntry = queryCache.getDocument(executionInput, ei -> {
+                    ParseAndValidateResult parse = ParseAndValidate.parse(ei);
+                    return parse.isFailure() ? new PreparsedDocumentEntry(parse.getErrors())
+                            : new PreparsedDocumentEntry(parse.getDocument());
+                });
+                return documentEntry.hasErrors() ? null : documentEntry.getDocument();
+            }
+        }
+    }
 }

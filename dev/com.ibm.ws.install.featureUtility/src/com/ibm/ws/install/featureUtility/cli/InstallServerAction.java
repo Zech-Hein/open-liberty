@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2021 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -43,6 +45,7 @@ import com.ibm.ws.kernel.boot.cmdline.ExitCode;
 import com.ibm.ws.kernel.feature.internal.cmdline.ArgumentsImpl;
 import com.ibm.ws.kernel.provisioning.BundleRepositoryRegistry;
 import com.ibm.ws.product.utility.CommandConsole;
+import com.ibm.ws.product.utility.CommandConstants;
 import com.ibm.ws.product.utility.CommandTaskRegistry;
 import com.ibm.ws.product.utility.ExecutionContext;
 import com.ibm.ws.product.utility.extension.ValidateCommandTask;
@@ -212,11 +215,8 @@ public class InstallServerAction implements ActionHandler {
                 Collection<String> featuresToInstall = new HashSet<String>();
 
                 try {
-                        featuresToInstall.addAll(installKernel.getServerFeaturesToInstall(servers, false));
-                        // get original server features now
-
-                        //TODO
-                        //featuresToInstall.addAll(InstallUtils.getAllServerFeatures());
+					// get original server features now
+					featuresToInstall.addAll(installKernel.getServerFeaturesToInstall(servers, false));
                         logger.fine("all server features: " + featuresToInstall);
                 } catch (InstallException ie) {
                         logger.log(Level.SEVERE, ie.getMessage(), ie);
@@ -225,69 +225,31 @@ public class InstallServerAction implements ActionHandler {
                         logger.log(Level.SEVERE, e.getMessage(), e);
                         rc = ReturnCode.RUNTIME_EXCEPTION;
                 }
-                if(featuresToInstall.isEmpty()){
-                        logger.info(InstallLogUtils.Messages.INSTALL_KERNEL_MESSAGES.getMessage("MSG_SERVER_NEW_FEATURES_NOT_REQUIRED"));
-                } else {
-                        logger.log(Level.FINE, "Additional server features required.");
-                        rc = assetInstallInit(featuresToInstall);
-                }
+
+				if (featuresToInstall.isEmpty()) {
+					logger.info(InstallLogUtils.Messages.INSTALL_KERNEL_MESSAGES
+							.getMessage("MSG_SERVER_NEW_FEATURES_NOT_REQUIRED"));
+				} else {
+					rc = assetInstallInit(featuresToInstall);
+				}
 
                 return rc;
         }
 
-
-        private boolean isEnableOption() {
-        	File f = new File(Utils.getInstallDir() + "/etc/featureUtility.properties");
-            if(f.exists()) {
-            	try (InputStream input = new FileInputStream(f)){
-                	Properties prop = new Properties();
-                	prop.load(input);
-                	String enableOptionsForFAT = prop.getProperty("enable.options");
-                	if(enableOptionsForFAT != null && enableOptionsForFAT.toString().equals("true")) {
-                		return true;
-                	}	
-                } catch (IOException e) {
-        			e.printStackTrace();
-        		} 
-            }
-        	return false;
-        }
         
         private ExitCode assetInstallInit(Collection<String> assetIds) {
                 List<String> features = new ArrayList<>();
                 List<String> userFeatures = new ArrayList<>();
                 // find all user features in server.xml
                 for(String asset : assetIds){
-                	if(isEnableOption()) {
-                		if(asset.contains(":")){
-                    		String[] assetSplit = asset.split(":");
-                    		featureToExt.put(assetSplit[1], assetSplit[0]);
-                        	featureNames.add(assetSplit[1]);
-                    	} else {
-                    		featureToExt.put(asset, "");
-                    		featureNames.add(asset);
-                    	}
-                	}else {
-                		if(asset.startsWith("usr:")){
-                            userFeatures.add(asset.substring("usr:".length()));
-    	                } else {
-    	                    features.add(asset);
-    	                }
-                    	
-                    	if(!userFeatures.isEmpty()){
-                            logger.info(InstallLogUtils.Messages.INSTALL_KERNEL_MESSAGES.getMessage("MSG_USER_FEATURE_SERVER_XML", userFeatures.toString()));
-
-                            // remove any user features before installation.
-                            for(String feature : features){
-                                    if(!userFeatures.contains(feature)){
-                                        featureNames.add(feature);
-                                    }
-                            }
-    	                } else {
-    	                        featureNames.addAll(features);
-    	                }
-                	}	
-                	
+            		if(asset.contains(":")){
+                		String[] assetSplit = asset.split(":");
+                		featureToExt.put(assetSplit[1], assetSplit[0]);
+                    	featureNames.add(assetSplit[1]);
+                	} else {
+                		featureToExt.put(asset, "");
+                		featureNames.add(asset);
+                	}
                 }
                 return ReturnCode.OK;
         }
@@ -415,6 +377,9 @@ public class InstallServerAction implements ActionHandler {
 
                         @Override
                         public <T> T getAttribute(String name, Class<T> cls) {
+						if (name.equals(CommandConstants.WLP_INSTALLATION_LOCATION)) {
+							return (T) Utils.getInstallDir();
+						}
                                 return null;
                         }
 

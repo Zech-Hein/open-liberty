@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -35,7 +37,6 @@ public class ProgressBar {
         activated = true;
         return progressBar;
     }
-
 
     private ProgressBar() {
         initMap();
@@ -72,13 +73,14 @@ public class ProgressBar {
         methodMap.put("cleanUp", 10.00);
     }
 
-    public void updateMethodMap(String key, double val){
+    public void updateMethodMap(String key, double val) {
         methodMap.put(key, val);
     }
 
     /**
      * Update the percentage on the progress by. After updating, log a message to see the progress bar
      * update itself.
+     *
      * @param increment amount to increment by
      */
     public void updateProgress(double increment) {
@@ -87,9 +89,10 @@ public class ProgressBar {
     }
 
     public void clearProgress() {
-            System.out.print(Ansi.ansi().cursorUp(1).eraseLine().reset()); // Erase line content
-            System.out.flush();
-        }
+        System.out.print(Ansi.ansi().cursorUp(1).eraseLine().reset()); // Erase line content
+        System.out.flush();
+    }
+
     public void display() {
 
         String equals = progress(counter);
@@ -101,7 +104,7 @@ public class ProgressBar {
 
         String data = String.format("%s<%s%s> %4.2f%%%s", Ansi.ansi().fg(Ansi.Color.RED),
                                     Ansi.ansi().a(ANSI_GREEN_BLINKING).a(equals).reset(), Ansi.ansi().fg(Ansi.Color.RED).a(dashes.toString()),
-                                    counter, Ansi.ansi().reset());
+                                    (double) Math.round(counter), Ansi.ansi().reset());
         System.out.println(Ansi.ansi().a(data).reset());
 
     }
@@ -124,7 +127,7 @@ public class ProgressBar {
         AnsiConsole.systemUninstall();
     }
 
-    public void finishWithError(){
+    public void finishWithError() {
         InstallLogUtils.deactivateProgressBar();
         AnsiConsole.systemUninstall();
     }
@@ -133,7 +136,7 @@ public class ProgressBar {
      * Update the progress bar visually without having to log a message. Useful if you are doing
      * a task that requires constant progress bar updating without wanting to log the updates to INFO all the time.
      */
-    public void manuallyUpdate(){
+    public void manuallyUpdate() {
         clearProgress();
         display();
     }
@@ -142,10 +145,8 @@ public class ProgressBar {
         return counter;
     }
 
-    public static boolean isActivated(){
+    public static boolean isActivated() {
         return activated;
     }
-
-
 
 }

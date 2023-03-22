@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -41,7 +43,8 @@ import com.ibm.oauth.core.internal.oauth20.OAuth20Constants;
 import com.ibm.websphere.crypto.PasswordUtil;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.websphere.ras.annotation.Sensitive;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.security.oauth20.api.OAuth20Provider;
 import com.ibm.ws.security.oauth20.api.OidcOAuth20Client;
 import com.ibm.ws.security.oauth20.api.OidcOAuth20ClientProvider;
@@ -50,6 +53,7 @@ import com.ibm.ws.security.oauth20.plugins.OidcBaseClient;
 import com.ibm.ws.security.oauth20.plugins.OidcBaseClientSerializer;
 import com.ibm.ws.security.oauth20.plugins.OidcBaseClientValidator;
 import com.ibm.ws.security.oauth20.util.Base64;
+import com.ibm.ws.security.oauth20.util.GsonStrategies;
 import com.ibm.ws.security.oauth20.util.OIDCConstants;
 import com.ibm.ws.security.oauth20.util.OidcOAuth20Util;
 
@@ -73,6 +77,7 @@ public class RegistrationEndpointServices extends AbstractOidcEndpointServices {
     // Configured GSON (De)Serializer for OidcBaseClient objects (Thread Safe according to documentation)
     public static final Gson GSON = new GsonBuilder()
             .excludeFieldsWithoutExposeAnnotation()
+            .addSerializationExclusionStrategy(GsonStrategies.BETA_STRATEGY)
             .registerTypeAdapter(OidcBaseClient.class, new OidcBaseClientSerializer())
             .create();
 
@@ -656,7 +661,7 @@ public class RegistrationEndpointServices extends AbstractOidcEndpointServices {
      * @return the ETag for the list of objects
      * @throws IOException
      */
-    private String computeETag(JsonArray results) throws IOException {
+    private String computeETag(@Sensitive JsonArray results) throws IOException {
         // Compute an MD5 hash of the JSON serialization of the results.
         // In order to come up with a consistent value, the result list must be processed
         // in the same order each time, so order by consumer name, which is required and

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017, 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -47,7 +49,7 @@ public class OpenAPIServlet extends HttpServlet {
             String acceptHeader = "";
             acceptHeader = request.getHeader(Constants.ACCEPT_HEADER);
             String format = "yaml";
-            if (acceptHeader != null && acceptHeader.equals(MediaType.APPLICATION_JSON)) {
+            if (acceptHeader != null && jsonRequested(acceptHeader)) {
                 format = "json";
             }
             String formatParam = request.getParameter("format");
@@ -88,5 +90,14 @@ public class OpenAPIServlet extends HttpServlet {
             response.setStatus(405);
         }
 
+    }
+
+    private boolean jsonRequested(String acceptHeader) {
+        for (String acceptedType : acceptHeader.split(",")) {
+            if (acceptedType.trim().equals(MediaType.APPLICATION_JSON)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

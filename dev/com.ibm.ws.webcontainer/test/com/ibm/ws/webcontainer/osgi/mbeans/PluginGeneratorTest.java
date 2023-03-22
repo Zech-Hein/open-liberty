@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -70,7 +72,7 @@ import test.common.SharedOutputManager;
  *
  */
 public class PluginGeneratorTest {
-    
+
     private static SharedOutputManager outputMgr = SharedOutputManager.getInstance().trace("*=info:webcontainer=all");
 
     final Mockery context = new JUnit4Mockery() {
@@ -739,6 +741,64 @@ public class PluginGeneratorTest {
         }
         // rename generated file to leave a clean space for the next test, but keep the file for debug
         testfile.renameTo(new File(testClassesDir + "/AdditionalProperties-plugin-cfg.xml"));
+    }
+
+    @Test
+    public void testIgnoreAffinityRequest() throws Exception {
+        setCommonVHostExpectations();
+        setXMLGenerateExpectations();
+        setCommonExpectations();
+
+        // set expectations specific for this test
+        context.checking(new Expectations() {
+            {
+                allowing(mockLocationAdmin).getServerOutputResource("plugin-cfg.xml");
+                will(returnValue(mockWsResource));
+                allowing(mockWsResource).putStream();
+                will(returnValue(new FileOutputStream(new File(testClassesDir + "/plugin-cfg.xml"))));
+                allowing(mockWsResource).asFile();
+                will(returnValue((new File(testClassesDir + "/plugin-cfg.xml"))));
+            }
+        });
+
+        Map<String, Object> config = new HashMap<String, Object>();
+        setDefaultConfig(config);
+        // set config values for this test
+        config.put("ignoreAffinityRequests", Boolean.FALSE);
+
+        PluginGenerator pluginGen = new PluginGenerator(config, mockLocationAdmin, mockBundleContext);
+        pluginGen.generateXML("userSpecifiedWebserverLocation", "userSpecifiedServerName", mockWebContainer, mockSessionManager, mockVhostMgr, mockLocationAdmin, false, null);
+
+        // check that the config file was created
+        File testfile = new File(testClassesDir + "/plugin-cfg.xml");
+        assertTrue(testfile.exists());
+        // and that it contains the loadBalanceWeight value
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        Document dom = null;
+        try {
+            //Using factory get an instance of document builder
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            //parse using builder to get DOM representation of the XML file
+            dom = db.parse(testfile);
+            Element docEle = dom.getDocumentElement();
+            //get a nodelist of ServerCluster elements
+            NodeList nl = docEle.getElementsByTagName("ServerCluster");
+            // we're only expecting one ServerCluser
+            assertEquals(1, nl.getLength());
+            Node node = nl.item(0);
+            Element eElement = (Element) node;
+
+            String value = eElement.getAttribute("IgnoreAffinityRequests");
+            assertEquals("false", value);
+        } catch (ParserConfigurationException pce) {
+            pce.printStackTrace();
+        } catch (SAXException se) {
+            se.printStackTrace();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        // rename generated file to leave a clean space for the next test, but keep the file for debug
+        testfile.renameTo(new File(testClassesDir + "/ignoreAffinityRequests-plugin-cfg.xml"));
     }
 
     @Test

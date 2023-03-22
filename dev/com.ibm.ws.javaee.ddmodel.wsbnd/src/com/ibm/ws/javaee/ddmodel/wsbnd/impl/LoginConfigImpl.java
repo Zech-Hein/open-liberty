@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017,2020 IBM Corporation and others.
+ * Copyright (c) 2017,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,9 +15,9 @@ package com.ibm.ws.javaee.ddmodel.wsbnd.impl;
 import java.util.List;
 import java.util.Map;
 
+import com.ibm.ws.config.xml.nester.Nester;
 import com.ibm.ws.javaee.dd.web.common.FormLoginConfig;
 import com.ibm.ws.javaee.dd.web.common.LoginConfig;
-import com.ibm.ws.javaee.ddmodel.wsbnd.internal.NestingUtils;
 
 class LoginConfigImpl implements LoginConfig {
     private final String authMethod;
@@ -28,7 +30,7 @@ class LoginConfigImpl implements LoginConfig {
     public LoginConfigImpl(Map<String, Object> config) {
         this.authMethod = (String) config.get("auth-method");
         this.realmName = (String) config.get("realm-name");
-        List<Map<String, Object>> flConfig = NestingUtils.nest("form-login-config", config);
+        List<Map<String, Object>> flConfig = Nester.nest("form-login-config", config);
         if (flConfig != null && !flConfig.isEmpty()) {
             this.formLoginConfig = new FormLoginConfigImpl(flConfig.get(0));
         }

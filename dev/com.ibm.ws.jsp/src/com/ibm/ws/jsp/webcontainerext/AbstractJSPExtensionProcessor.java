@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2021 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -136,8 +138,6 @@ public abstract class AbstractJSPExtensionProcessor extends com.ibm.ws.webcontai
     protected JspClassloaderContext jspClassloaderContext = null;
     protected JspCompilerFactory jspCompilerFactory = null;
     protected IServletContextExtended webapp = null;
-    
-    protected final String loadedPagesVersion;
 
     // defect 238792: begin list of JSP mapped servlets.
     protected HashMap jspFileMappings = new HashMap();
@@ -146,12 +146,12 @@ public abstract class AbstractJSPExtensionProcessor extends com.ibm.ws.webcontai
     public AbstractJSPExtensionProcessor(IServletContext webapp, 
                                          JspXmlExtConfig webAppConfig, 
                                          GlobalTagLibraryCache globalTagLibraryCache,
-                                         JspClassloaderContext jspClassloaderContext, String loadedPagesVersion) throws Exception {
+                                         JspClassloaderContext jspClassloaderContext) throws Exception {
         super(webapp);
         final boolean isAnyTraceEnabled = com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled();
         this.webapp = (IServletContextExtended) webapp;
         this.jspOptions = webAppConfig.getJspOptions();
-        this.loadedPagesVersion = loadedPagesVersion;
+
         //497716.2
         //always adding the lifecycle listener so we can cleanup the AnnotationHandler
         //doing logic for using ThreadTagPool within listener
@@ -334,7 +334,7 @@ public abstract class AbstractJSPExtensionProcessor extends com.ibm.ws.webcontai
                                                                                       tlc,
                                                                                       context,
                                                                                       codeSource);
-        jspServletWrapper.initialize(config, this.loadedPagesVersion);
+        jspServletWrapper.initialize(config);
         if (isAnyTraceEnabled && logger.isLoggable(Level.FINER))
             logger.exiting(CLASS_NAME, "createServletWrapper"); //d651265
         return jspServletWrapper;
@@ -377,6 +377,10 @@ public abstract class AbstractJSPExtensionProcessor extends com.ibm.ws.webcontai
                 Throwable rootCause = e;
                 while ((t = rootCause.getCause()) != null) {
                     rootCause = t;
+                }
+                //log it only if JSPG0077E
+                if (e.getMessage().contains("JSPG0077E")) {
+                   logger.logp(Level.SEVERE, CLASS_NAME, "getServletWrapper", rootCause.getLocalizedMessage());
                 }
                 // Defect 211450
                 JSPErrorReport jser = new JSPErrorReport(rootCause.getLocalizedMessage(), rootCause);

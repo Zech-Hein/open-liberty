@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -29,6 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.ibm.ws.install.internal.InstallUtils;
 import com.ibm.ws.install.internal.InstallUtils.InputStreamFileWriter;
 import com.ibm.ws.install.internal.asset.ESAAsset;
 
@@ -138,7 +141,14 @@ public class ESAAssetTest {
             assertNotNull("ESAAsset.getLicense(Locale.CANADA)", esaAsset.getLicense(Locale.CANADA));
 
             esaAsset.delete();
-            assertFalse("ESAAsset should be deleted", esaFile.exists());
+            if (!InstallUtils.isWindows) {
+                /*
+                 * On Windows there are issues with file locks. The ESAAsset logic detects these issues and corrects them by setting the file to be deleted on JVM exit.
+                 * This file will exist on Windows after esaAsset.delete() is run. Block this check on Windows to prevent the test from failing due to a known issue with
+                 * Windows file locking.
+                 */
+                assertFalse("ESAAsset should be deleted", esaFile.exists());
+            }
 
         } catch (Throwable t) {
             outputMgr.failWithThrowable(m, t);

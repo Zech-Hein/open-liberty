@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,11 +34,12 @@ public class ThreadPoolThroughputTest {
 
     private static final int TERMINATION_WAIT_TIME = 30;
 
-    static int poolSize = CpuInfo.getAvailableProcessors();
+    static int poolSize = CpuInfo.getAvailableProcessors().get();
 
     Runnable doNothingRunnable = new Runnable() {
         @Override
-        public void run() {}
+        public void run() {
+        }
     };
 
     static class NotifyOnCompleteRunnable implements Runnable {
@@ -195,7 +198,7 @@ public class ThreadPoolThroughputTest {
     }
 
     public static void main(String[] args) throws Exception {
-        final int availableProcessors = CpuInfo.getAvailableProcessors();
+        final int availableProcessors = CpuInfo.getAvailableProcessors().get();
         boolean warmupPhase = true;
         for (poolSize = 5 * availableProcessors; poolSize > 0; poolSize--) {
 

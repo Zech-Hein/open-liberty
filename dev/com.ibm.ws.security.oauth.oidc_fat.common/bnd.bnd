@@ -1,20 +1,17 @@
 #*******************************************************************************
-# Copyright (c) 2020, 2021 IBM Corporation and others.
+# Copyright (c) 2020, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
 bVersion=1.0
-
-#
-# Need to transform the test feature bundles.
-#
-jakartaeeMe: true
 
 src: \
     src, \
@@ -51,8 +48,7 @@ test.project: true
 	com.ibm.websphere.org.osgi.service.cm;version=latest,\
 	com.ibm.websphere.security;version=latest,\
 	com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
-	com.ibm.ws.componenttest;version=latest,\
-	com.ibm.ws.com.google.gson.2.2.4;version=latest,\
+	io.openliberty.com.google.gson;version=latest,\
 	com.ibm.ws.com.google.guava;version=latest,\
 	com.ibm.ws.com.meterware.httpunit.1.7;version=latest,\
 	com.ibm.ws.jaxrs.2.0.client;version=latest,\
@@ -72,7 +68,6 @@ test.project: true
 	com.ibm.ws.security.token;version=latest,\
 	com.ibm.ws.ssl;version=latest,\
 	com.ibm.ws.webcontainer.security_test.servlets;version=latest,\
-	fattest.simplicity;version=latest,\
 	io.openliberty.com.fasterxml.jackson;version=latest,\
 	joda-time;version=latest,\
 	org.mongodb:mongo-java-driver;version='2.13.3',\
@@ -82,11 +77,8 @@ test.project: true
 	javax.ws.rs:javax.ws.rs-api;version='2.0',\
 	de.flapdoodle.embed.mongo;version='3.0.0',\
 	de.flapdoodle.embed.process;version='3.0.1',\
-	org.slf4j:slf4j-jdk14;version=latest,\
-	com.ibm.ws.org.slf4j.api.1.7.7,\
-	com.ibm.ws.javaee.servlet.3.1;version='1.0.10',
-	org.glassfish:javax.json;version=1.0,\
-	javax.servlet-api
+	com.ibm.ws.org.slf4j.jdk14;version=latest,\
+	com.ibm.ws.javaee.servlet.3.1;version='1.0.10'
     
 -testpath: \
     cglib:cglib-nodep;version=3.3.0, \

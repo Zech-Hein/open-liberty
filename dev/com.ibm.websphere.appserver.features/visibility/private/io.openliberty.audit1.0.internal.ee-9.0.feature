@@ -5,11 +5,11 @@ singleton=true
 visibility = private
 
 -features=\
+  com.ibm.websphere.appserver.servlet-5.0,\
   io.openliberty.appSecurity-4.0
   
 -bundles=\
-  com.ibm.ws.security.audit.file.jakarta,\
   com.ibm.ws.request.probe.audit.servlet.jakarta
 
-kind=beta
+kind=ga
 edition=core

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ var editorMessages = {
 "ADD_CHILD": "添加子代",
 "REMOVE": "移除",
 "TEST" : "测试",
-"TEST_CONNECTION": "测试连接",
+"TEST_CONNECTION": "连接测试",
+"TEST_CONNECTION_DESCRIPTION": "测试连接",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "保存更改，以测试连接",
 "DESCRIPTION": "说明",
 "PREVIOUS": "上一页",
 "NEXT": "下一页",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "移除元素对话框",
 "VALIDATE_DATASOURCE_DIALOG": "验证数据源连接对话框",
 "VALIDATE_DATASOURCE": "测试数据源连接",
+"VALIDATE_CONNECTION_DIALOG":"验证连接对话框",
+"DEFAULT_AUTHENTICATION_ALIAS":"缺省认证",
+"SPECIFY_AUTHENTICATION_ALIAS":"指定认证别名",
+"LOGIN_CONFIG":"登录配置",
+"LOGIN_CONFIG_ID":"登录配置标识",
+"ADD_LOGIN_CONFIG_PROPERTY":"添加登录配置属性",
+"KEY":"键",
+"CHOOSE_AN_OPTION":"选择选项",
 "ENUMERATION_SELECTION_DIALOG": "枚举选择对话框",
 "SAVE_BEFORE_CLOSING_DIALOG": "关闭对话框之前保存",
 "ERROR_SAVING_FILE_DIALOG": "保存文件对话框时发生错误",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "认证别名（可选）",
 "AUTH_ALIAS": "认证别名",
 "CONTAINER_AUTHENTICATION": "容器认证",
+"RESOURCE_REFERENCE": "资源引用",
 "NO_RESOURCE_REFERENCE": "无资源参考",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "通过使用向应用程序认证进行认证的资源引用来测试连接。",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "通过使用向容器认证进行认证的资源引用来测试连接。",
+"RESOURCE_REFERENCE_IN_USE": "已启用直接查找的容器认证。 连接测试使用已配置的缺省容器认证数据。",
+"NO_RESOURCE_REFERENCE_IN_USE": "在不使用资源引用的情况下测试连接。",
 "APPLICATION_AUTHENTICATION": "应用程序认证",
 "CUSTOM_LOGIN_MODULE": "定制登录模块（可选）",
 "LOGIN_PROPERTIES": "登录属性（可选）",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "选择一个功能部件以查看其描述。",
 "SUPPORT_MESSAGE" : "服务器配置不适用于通过集合体控制器访问的 Node.js 服务器或 Docker 容器中的服务器。",
 "NO_ROLE_MESSAGE": "该用户所具有的角色无权进行配置更改。可以只读方式访问文件。",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "集合体成员所需的操作：",
 "RUN_UPDATE_HOST" : "带“--hostWritePath”参数（指定一个 rpcUser 具有写权限的路径）运行“collective updateHost”或“collective registerHost”。 同时必须提供有效的主机凭证。",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "在 /usr/bin 中创建指向 JAVA 的链接。例如，/usr/bin/java -> [pathToJAVA]",
 "JAVA_ON_PATH" : "将 JAVA 添加到 PATH 环境变量。导出此 PATH（在 Linux 系统上应在  .bashrc 文件中）。", 
 "MORE_INFORMATION" : "有关更多信息，请参阅："
-
 };

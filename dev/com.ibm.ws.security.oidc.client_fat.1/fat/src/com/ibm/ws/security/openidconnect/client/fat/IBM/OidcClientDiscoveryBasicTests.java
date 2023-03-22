@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -85,7 +87,7 @@ public class OidcClientDiscoveryBasicTests extends GenericOidcClientTests {
         // Start the OIDC OP server
         testOPServer = commonSetUp("com.ibm.ws.security.openidconnect.client-1.0_fat.op", "op_server_orig.xml", Constants.OIDC_OP, Constants.NO_EXTRA_APPS, Constants.DO_NOT_USE_DERBY, Constants.NO_EXTRA_MSGS, Constants.OPENID_APP, Constants.IBMOIDC_TYPE, true, true, tokenType, certType);
 
-        DiscoveryUtils.waitForDiscoveryToBeReady(testSettings);
+        DiscoveryUtils.waitForOPDiscoveryToBeReady(testSettings);
 
         //Start the OIDC RP server and setup default values
         testRPServer = commonSetUp("com.ibm.ws.security.openidconnect.client-1.0_fat.rpd", "rp_server_orig.xml", Constants.OIDC_RP, apps, Constants.DO_NOT_USE_DERBY, Constants.NO_EXTRA_MSGS, Constants.OPENID_APP, Constants.IBMOIDC_TYPE, true, true, tokenType, certType);
@@ -112,6 +114,10 @@ public class OidcClientDiscoveryBasicTests extends GenericOidcClientTests {
         test_GOOD_LOGIN_AGAIN_ACTIONS = Constants.GOOD_OIDC_LOGIN_AGAIN_ACTIONS;
         test_FinalAction = Constants.LOGIN_USER;
         testSettings.setFlowType(Constants.RP_FLOW);
+
+        // try to wait for discovery to have populated the RP config
+        // Don't stop if this fails (there is a chance it could be ready by the time the tests actually run
+        DiscoveryUtils.waitForRPDiscoveryToBeReady(testSettings);
 
     }
 

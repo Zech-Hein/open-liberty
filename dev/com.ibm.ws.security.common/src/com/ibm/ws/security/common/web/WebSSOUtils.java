@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,16 +16,17 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.ws.security.common.TraceConstants;
-import com.ibm.ws.webcontainer.security.PostParameterHelper;
 import com.ibm.ws.webcontainer.security.ReferrerURLCookieHandler;
+import com.ibm.ws.webcontainer.security.SSOCookieHelper;
 import com.ibm.ws.webcontainer.security.WebAppSecurityCollaboratorImpl;
 import com.ibm.ws.webcontainer.security.WebAppSecurityConfig;
-import com.ibm.ws.webcontainer.srt.SRTServletRequest;
 
 /**
  *
@@ -83,12 +86,32 @@ public class WebSSOUtils {
         return paramAndValue.toString();
     }
 
-    protected ReferrerURLCookieHandler getCookieHandler() {
+    public ReferrerURLCookieHandler getCookieHandler() {
         WebAppSecurityConfig config = getWebAppSecurityConfig();
         if (config != null) {
             return config.createReferrerURLCookieHandler();
         }
         return new ReferrerURLCookieHandler(config);
+    }
+
+    public Cookie createCookie(String cookieName, @Sensitive String cookieValue, HttpServletRequest req) {
+        return createCookie(cookieName, cookieValue, -1, req);
+    }
+
+    public Cookie createCookie(String cookieName, @Sensitive String cookieValue, int maxAge, HttpServletRequest req) {
+        Cookie cookie = getCookieHandler().createCookie(cookieName, cookieValue, req);
+        String domainName = getSsoDomain(req);
+        if (domainName != null && !domainName.isEmpty()) {
+            cookie.setDomain(domainName);
+        }
+        cookie.setMaxAge(maxAge);
+        return cookie;
+    }
+
+    public String getSsoDomain(HttpServletRequest req) {
+        WebAppSecurityConfig webAppSecConfig = getWebAppSecurityConfig();
+        SSOCookieHelper ssoCookieHelper = webAppSecConfig.createSSOCookieHelper();
+        return ssoCookieHelper.getSSODomainName(req, webAppSecConfig.getSSODomainList(), webAppSecConfig.getSSOUseDomainFromURL());
     }
 
     WebAppSecurityConfig getWebAppSecurityConfig() {

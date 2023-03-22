@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,9 +28,7 @@ import com.ibm.ws.jaxws.fat.util.ExplodedShrinkHelper;
 import com.ibm.ws.jaxws.fat.util.TestUtils;
 
 import componenttest.annotation.Server;
-import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
-import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 
 /**
@@ -188,21 +188,8 @@ public class EndpointPropertiesTest {
 
     }
 
-    /**
-     * TestDescription:
-     * - Test the user defined property - enableLoggingInOutInterceptor
-     * - Use webservice-endpoint-properties element in binding file to config this property
-     * Condition:
-     * - A testEndpointPropertiesWeb.war publishes HelloService
-     * - Config the enableLoggingInOutInterceptor="true" in binding file: WEB-INF/ibm-ws-bnd.xml
-     * Result:
-     * - incoming/outcoming messages will be dumped into message.log. Caution: if user enabled this setting for
-     * their applicaion, any credential in the messages will be output in the log files.
-     * - LoggingInOutInterceptors are replaced by LoggingFeature for jaxws-2.3 and xmlWS-3.0. This test will be skipped
-     */
     @Test
-    @SkipForRepeat({ "jaxws-2.3", JakartaEE9Action.ID })
-    public void testDefaultLoggingInOutInterceptorProperty() throws Exception {
+    public void testDefaultLoggingInOutInterceptorPropertyCXFFeature() throws Exception {
         TestUtils.publishFileToServer(server,
                                       "EndpointPropertiesTest", "ibm-ws-bnd_testDefaultLoggingInOutInterceptorProperty.xml",
                                       "dropins/testEndpointPropertiesWeb.war/WEB-INF", "ibm-ws-bnd.xml");
@@ -219,11 +206,10 @@ public class EndpointPropertiesTest {
         String result = service.getPort(HelloNoWSDLInterface.class).sayHello("Hello");
         assertTrue("Can not get expected result, the return result is: " + result,
                    result.equalsIgnoreCase("Hello Hello"));
-        List<String> dumpInMessages = server.findStringsInLogs("Inbound Message");
-        List<String> dumpOutMessages = server.findStringsInLogs("Outbound Message");
+        List<String> dumpInMessages = server.findStringsInLogs("REQ_IN");
+        List<String> dumpOutMessages = server.findStringsInLogs("RESP_OUT");
         assertTrue("Can't find inBoundMessage, the return inboundmessage is: " + dumpInMessages.toString(), !dumpInMessages.isEmpty());
         assertTrue("Can't find outBoundMessage, the return outboundmessage is: " + dumpOutMessages.toString(), !dumpOutMessages.isEmpty());
-
     }
 
     //override properties tests
@@ -294,8 +280,7 @@ public class EndpointPropertiesTest {
      * - LoggingInOutInterceptors are replaced by LoggingFeature for jaxws-2.3 and xmlWS-3.0. This test will be skipped
      */
     @Test
-    @SkipForRepeat({ "jaxws-2.3", JakartaEE9Action.ID })
-    public void testOverrideLogginInOutInterceptorProperty() throws Exception {
+    public void testOverrideLogginInOutInterceptorPropertyCXFFeature() throws Exception {
         TestUtils.publishFileToServer(server,
                                       "EndpointPropertiesTest", "ibm-ws-bnd_testOverrideLogginInOutInterceptorProperty.xml",
                                       "dropins/testEndpointPropertiesWeb.war/WEB-INF", "ibm-ws-bnd.xml");
@@ -311,8 +296,8 @@ public class EndpointPropertiesTest {
         String result = service.getPort(HelloNoWSDLInterface.class).sayHello("HelloOverride");
         assertTrue("Can not get expected result, the return result is: " + result,
                    result.equalsIgnoreCase("Hello HelloOverride"));
-        List<String> dumpInMessages = server.findStringsInLogs("Inbound Message");
-        List<String> dumpOutMessages = server.findStringsInLogs("Outbound Message");
+        List<String> dumpInMessages = server.findStringsInLogs("REQ_IN");
+        List<String> dumpOutMessages = server.findStringsInLogs("RESP_OUT");
         assertTrue("Can't find inBoundMessage, the return inboundmessage is: " + dumpInMessages.toString(), !dumpInMessages.isEmpty());
         assertTrue("Can't find outBoundMessage, the return outboundmessage is: " + dumpOutMessages.toString(), !dumpOutMessages.isEmpty());
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -54,15 +56,6 @@ public class OracleKerberosTestServlet extends FATServlet {
 
     @Resource(lookup = "jdbc/krb/DataSource")
     DataSource krb5RegularDs;
-
-    @Resource(lookup = "jdbc/krbcb/pool")
-    DataSource cbPoolDS;
-
-    @Resource(lookup = "jdbc/krbcb/xa")
-    DataSource cbXADS;
-
-    @Resource(lookup = "jdbc/krbcb/ds")
-    DataSource cbDS;
 
     /**
      * Getting a connection too soon after the initial ticket is obtained can cause intermittent
@@ -213,21 +206,6 @@ public class OracleKerberosTestServlet extends FATServlet {
 
         assertEquals("Expected two connections from the same datasource to share the same underlying managed connection",
                      managedConn1, managedConn2);
-    }
-
-    public void testGSSCredentialOnOracleBuilder() throws Exception {
-
-        try (Connection con = getConnectionWithRetry(cbDS)) {
-            con.createStatement().execute("SELECT 1 FROM DUAL");
-        }
-
-        try (Connection con = getConnectionWithRetry(cbPoolDS)) {
-            con.createStatement().execute("SELECT 1 FROM DUAL");
-        }
-
-        try (Connection con = getConnectionWithRetry(cbXADS)) {
-            con.createStatement().execute("SELECT 1 FROM DUAL");
-        }
     }
 
     /**

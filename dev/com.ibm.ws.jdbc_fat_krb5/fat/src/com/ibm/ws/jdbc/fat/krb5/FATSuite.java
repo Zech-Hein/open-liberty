@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,9 +23,8 @@ import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.jdbc.fat.krb5.containers.KerberosContainer;
 import com.ibm.ws.jdbc.fat.krb5.containers.KerberosPlatformRule;
 
-import componenttest.containers.ExternalTestServiceDockerClientStrategy;
+import componenttest.containers.TestContainerSuite;
 import componenttest.custom.junit.runner.AlwaysPassesTest;
-import componenttest.custom.junit.runner.FATRunner;
 
 @RunWith(Suite.class)
 @SuiteClasses({
@@ -33,18 +34,10 @@ import componenttest.custom.junit.runner.FATRunner;
                 OracleKerberosTest.class,
                 ErrorPathTest.class
 })
-public class FATSuite {
+public class FATSuite extends TestContainerSuite {
 
     public static Network network;
     public static KerberosContainer krb5;
-
-    //Required to ensure we calculate the correct strategy each run even when
-    //switching between local and remote docker hosts.
-    static {
-        ExternalTestServiceDockerClientStrategy.setupTestcontainers();
-    }
-
-    public static final boolean REUSE_CONTAINERS = FATRunner.FAT_TEST_LOCALRUN && !ExternalTestServiceDockerClientStrategy.USE_REMOTE_DOCKER_HOST;
 
     static {
         // Needed for IBM JDK 8 support.
@@ -74,13 +67,11 @@ public class FATSuite {
 
         try {
             krb5.stop();
+            network.close();
         } catch (Exception e) {
             if (firstError == null)
                 firstError = e;
             Log.error(FATSuite.class, "tearDown", e);
-        }
-        if (!REUSE_CONTAINERS) {
-            network.close();
         }
 
         if (firstError != null)

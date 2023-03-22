@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -104,8 +106,7 @@ public class SSLChannelOptions extends ChannelConfiguration {
     }
 
     /**
-     * Register this as a service in the service registry. Sanity is preserved
-     * in this one single method. SSL configurations (repertoires) are required
+     * Register this as a service in the service registry. SSL configurations (repertoires) are required
      * for the ssl connection to have a chance of working. This method needs to
      * ensure that the registration is only created (or updated) if that
      * referenced repertoire exists.

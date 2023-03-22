@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -77,12 +79,12 @@ public class TestUtils {
         String host, int port,
         String contextRoot, String test) throws IOException {
 
-        return runInServlet(host, port, contextRoot, test, null);
+        return runInServlet(host, port, contextRoot, test, null, null);
     }
 
     public static boolean runInServlet(
         String host, int port,
-        String contextRoot, String test, String localAddress) throws IOException {
+        String contextRoot, String test, String localAddress, String[] parameters) throws IOException {
 
         String urlText = "http://" + host + ":" + port + "/" + contextRoot + "?test=" + test;
         if ( localAddress != null ) {
@@ -92,6 +94,11 @@ public class TestUtils {
             // System.out.println("Local address [ " + localAddress + " ]");
             // System.out.println("Local address (encoded) [ " + encodedLocalAddress + " ]");
             // System.out.println("Local address (decoded) [ " + decodedLocalAddress + " ]");
+        }
+        if (parameters != null) {
+        	for (String parameter : parameters) {
+            	urlText += ('&' + parameter);
+        	}
         }
         // System.out.println("Test URL text [ " + urlText + " ]");
 

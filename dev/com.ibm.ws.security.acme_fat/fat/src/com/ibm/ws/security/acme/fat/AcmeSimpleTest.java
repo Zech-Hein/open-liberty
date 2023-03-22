@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,7 +18,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -94,6 +95,7 @@ public class AcmeSimpleTest {
 
 	@After
 	public void afterTest() throws Exception {
+		Log.info(this.getClass(), testName.getMethodName(), "Starting afterTest cleanup");
 		/*
 		 * Clear the DNS records for the domain. Required since a few of the
 		 * tests setup invalid A records to test failure scenarios.
@@ -104,6 +106,8 @@ public class AcmeSimpleTest {
 		 * Cleanup any generated ACME files.
 		 */
 		AcmeFatUtils.deleteAcmeFiles(server);
+		
+		Log.info(this.getClass(), testName.getMethodName(), "Completed afterTest cleanup");
 	}
 
 	/**
@@ -129,7 +133,6 @@ public class AcmeSimpleTest {
 	@Test
 	@CheckForLeakedPasswords(AcmeFatUtils.CACERTS_TRUSTSTORE_PASSWORD)
 	public void startup_server() throws Exception {
-		assumeTrue(!AcmeFatUtils.isWindowsWithOpenJDK(testName.getMethodName()));
 		Certificate[] startingCertificateChain = null, endingCertificateChain = null;
 
 		/*
@@ -261,7 +264,6 @@ public class AcmeSimpleTest {
 	@Test
 	@CheckForLeakedPasswords(AcmeFatUtils.CACERTS_TRUSTSTORE_PASSWORD)
 	public void update_domains() throws Exception {
-		assumeTrue(!AcmeFatUtils.isWindowsWithOpenJDK(testName.getMethodName()));
 		/*
 		 * Configure the acmeCA-2.0 feature.
 		 */
@@ -361,7 +363,6 @@ public class AcmeSimpleTest {
 	@Test
 	@CheckForLeakedPasswords(AcmeFatUtils.CACERTS_TRUSTSTORE_PASSWORD)
 	public void update_subjectdn() throws Exception {
-		assumeTrue(!AcmeFatUtils.isWindowsWithOpenJDK(testName.getMethodName()));
 		ServerConfiguration configuration = ORIGINAL_CONFIG.clone();
 
 		/*
@@ -485,7 +486,6 @@ public class AcmeSimpleTest {
 	@MinimumJavaLevel(javaLevel = 9)
 	/* Minimum Java Level to avoid a known/fixed IBM Java 8 bug with an empty keystore, IJ19292. When the builds move to 8SR6, we can run this test again */
 	public void keystore_exists_without_default_alias() throws Exception {
-		assumeTrue(!AcmeFatUtils.isWindowsWithOpenJDK(testName.getMethodName()));
 		ServerConfiguration configuration = ORIGINAL_CONFIG.clone();
 
 		/*
@@ -493,9 +493,10 @@ public class AcmeSimpleTest {
 		 */
 		KeyStore ks = KeyStore.getInstance("PKCS12");
 		ks.load(null, AcmeFatUtils.CACERTS_TRUSTSTORE_PASSWORD.toCharArray());
-		ks.store(new FileOutputStream(new File(server.getServerRoot() + "/resources/security/key.p12")),
-				AcmeFatUtils.CACERTS_TRUSTSTORE_PASSWORD.toCharArray());
-
+		
+		try (FileOutputStream out = new FileOutputStream(new File(server.getServerRoot() + "/resources/security/key.p12"))) {
+			ks.store(out, AcmeFatUtils.CACERTS_TRUSTSTORE_PASSWORD.toCharArray());
+		} 
 		AcmeFatUtils.configureAcmeCA(server, caContainer, configuration, useAcmeURIs(), DOMAINS_1);
 
 		try {
@@ -525,7 +526,6 @@ public class AcmeSimpleTest {
 	@Test
 	@CheckForLeakedPasswords(AcmeFatUtils.CACERTS_TRUSTSTORE_PASSWORD)
 	public void account_keypair_directory_does_not_exist() throws Exception {
-		assumeTrue(!AcmeFatUtils.isWindowsWithOpenJDK(testName.getMethodName()));
 		ServerConfiguration configuration = ORIGINAL_CONFIG.clone();
 
 		/*
@@ -573,7 +573,6 @@ public class AcmeSimpleTest {
 	@Test
 	@CheckForLeakedPasswords(AcmeFatUtils.CACERTS_TRUSTSTORE_PASSWORD)
 	public void domain_keypair_directory_does_not_exist() throws Exception {
-		assumeTrue(!AcmeFatUtils.isWindowsWithOpenJDK(testName.getMethodName()));
 		ServerConfiguration configuration = ORIGINAL_CONFIG.clone();
 
 		/*

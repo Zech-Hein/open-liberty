@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2018 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -35,9 +37,8 @@ public class HealthCenterTest {
     public static void beforeClass() throws Exception {
         server = LibertyServerFactory.getLibertyServer("com.ibm.ws.logging.healthcenter");
         ShrinkHelper.defaultDropinApp(server, "logger-servlet", "com.ibm.ws.logging.fat.logger.servlet");
-        // IBM JDK supports Health Center except IBM Java 11
-        Assume.assumeTrue((JavaInfo.forServer(server).vendor().equals(JavaInfo.Vendor.IBM)) &&
-                          (JavaInfo.forServer(server).majorVersion() != 11));
+        // Only IBM JDK supports Health Center, check if the runtime JDK contains the Health Check API, else skip the tests.
+        Assume.assumeTrue(JavaInfo.isSystemClassAvailable("com.ibm.java.diagnostics.healthcenter.agent.mbean.HealthCenter"));
 
         if (!server.isStarted())
             server.startServer();
@@ -54,7 +55,7 @@ public class HealthCenterTest {
     @Test
     public void testHealthCenterInfo() throws Exception {
         Assert.assertFalse("Expected healthcenter INFO message",
-                           server.findStringsInLogs("^INFO:.*com\\.ibm\\.java\\.diagnostics\\.healthcenter\\.agent\\.iiop\\.port",
+                           server.findStringsInLogs("INFO:.*Health Center agent started on port",
                                                     server.getConsoleLogFile()).isEmpty());
     }
 

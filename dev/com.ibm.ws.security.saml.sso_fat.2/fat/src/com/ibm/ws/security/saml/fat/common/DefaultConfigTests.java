@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2021 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -37,6 +39,7 @@ public class DefaultConfigTests extends SAMLCommonTest {
 
     // skip test if using external ldap (some mappings are different)
     @ConditionalIgnoreRule.ConditionalIgnore(condition = skipIfExternalLDAP.class)
+    @Mode(TestMode.LITE)
     @Test
     public void testSaml_defaultConfig() throws Exception {
 
@@ -52,7 +55,6 @@ public class DefaultConfigTests extends SAMLCommonTest {
 
     // testSaml_defaultConfig_useNonDefaultSP moved to the IDP and SP specific tests as the behavior will be different for each.
 
-    @Mode(TestMode.LITE)
     @Test
     public void testSaml_defaultConfig_noDefaultSSLConfig() throws Exception {
 

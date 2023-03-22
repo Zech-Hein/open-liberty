@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -81,7 +83,6 @@ public class PKEntityTestLogic extends AbstractTestLogic {
         // Execute Test Case
         try {
             System.out.println("PKEntityTestLogic.testPKEntity001(): Begin");
-            //cleanupDatabase(jpaCleanupResource);
 
             System.out.println("Beginning new transaction...");
             jpaResource.getTj().beginTransaction();
@@ -123,20 +124,12 @@ public class PKEntityTestLogic extends AbstractTestLogic {
             System.out.println("Object returned by find: " + find_entity1);
 
             Assert.assertNotNull("Assert that the find operation did not return null", find_entity1);
-            Assert.assertNotSame(
-                                 "Assert find did not return the original object",
-                                 new_entity,
-                                 find_entity1);
-            Assert.assertTrue(
-                              "Assert entity returned by find is managed by the persistence context.",
-                              jpaResource.getEm().contains(find_entity1));
-            Assert.assertEquals(
-                                "Assert that the entity's id is " + getPrimaryKeyValue(targetEntityType),
+            Assert.assertNotSame("Assert find did not return the original object", new_entity, find_entity1);
+            Assert.assertTrue("Assert entity returned by find is managed by the persistence context.", jpaResource.getEm().contains(find_entity1));
+            Assert.assertEquals("Assert that the entity's id is " + getPrimaryKeyValue(targetEntityType),
                                 getPrimaryKey(find_entity1, targetEntityType),
                                 getPrimaryKeyValue(targetEntityType));
-            Assert.assertEquals("Assert that " + targetEntityType.getEntityName() + "'s intVal == 8192",
-                                8192,
-                                find_entity1.getIntVal());
+            Assert.assertEquals("Assert that " + targetEntityType.getEntityName() + "'s intVal == 8192", 8192, find_entity1.getIntVal());
 
             System.out.println("Mutate intVal to 16384...");
             find_entity1.setIntVal(16384);
@@ -161,20 +154,12 @@ public class PKEntityTestLogic extends AbstractTestLogic {
             System.out.println("Object returned by find: " + find_entity2);
 
             Assert.assertNotNull("Assert that the find operation did not return null", find_entity2);
-            Assert.assertNotSame(
-                                 "Assert find did not return the original object",
-                                 new_entity,
-                                 find_entity2);
-            Assert.assertTrue(
-                              "Assert entity returned by find is managed by the persistence context.",
-                              jpaResource.getEm().contains(find_entity2));
-            Assert.assertEquals(
-                                "Assert that the entity's id is " + getPrimaryKeyValue(targetEntityType),
+            Assert.assertNotSame("Assert find did not return the original object", new_entity, find_entity2);
+            Assert.assertTrue("Assert entity returned by find is managed by the persistence context.", jpaResource.getEm().contains(find_entity2));
+            Assert.assertEquals("Assert that the entity's id is " + getPrimaryKeyValue(targetEntityType),
                                 getPrimaryKey(find_entity2, targetEntityType),
                                 getPrimaryKeyValue(targetEntityType));
-            Assert.assertEquals("Assert that " + targetEntityType.getEntityName() + "'s intVal == 16384",
-                                16384,
-                                find_entity2.getIntVal());
+            Assert.assertEquals("Assert that " + targetEntityType.getEntityName() + "'s intVal == 16384", 16384, find_entity2.getIntVal());
 
             System.out.println("Removing entity...");
             jpaResource.getEm().remove(find_entity2);
@@ -338,12 +323,5 @@ public class PKEntityTestLogic extends AbstractTestLogic {
             default:
                 return null;
         }
-    }
-
-    protected void cleanupDatabase(JPAResource jpaResource) {
-        // Cleanup the database for executing the test
-        System.out.println("Cleaning up database before executing test...");
-        cleanupDatabase(jpaResource.getEm(), jpaResource.getTj(), PKEntityEnum.values());
-        System.out.println("Database cleanup complete.\n");
     }
 }

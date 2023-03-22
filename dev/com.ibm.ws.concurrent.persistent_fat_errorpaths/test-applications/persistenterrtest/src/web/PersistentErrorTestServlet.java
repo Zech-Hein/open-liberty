@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2020 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -139,9 +141,10 @@ public class PersistentErrorTestServlet extends HttpServlet {
             if (status != null)
                 throw new Exception("Task did not complete in a timely manner or was not autopurged upon completion. " + status);
 
+            // Some failures, such as transaction timeout, are not recorded by the counter, so it is valid to be less than 2.
             long counter = SharedFailingTask.counter.get();
-            if (counter != 2)
-                throw new Exception("Task should be attempted exactly 2 times (with both attempts failing). Instead " + counter);
+            if (counter > 2)
+                throw new Exception("Task should be attempted at most 2 times (with both attempts failing). Instead " + counter);
         } finally {
             SharedFailingTask.clear();
         }
@@ -265,8 +268,21 @@ public class PersistentErrorTestServlet extends HttpServlet {
                                                  && System.nanoTime() - start < TIMEOUT_NS; Thread.sleep(POLL_INTERVAL))
                 status = scheduler.getStatus(status.getTaskId());
 
-            if (status.getNextExecutionTime() == null && status.isCancelled())
-                throw new Exception("Unexpected canceled status: " + status);
+            // Polling (above) isn't granular enough to guarantee that we will also see the SKIPPED state
+            // before it transitions to ENDED,FAILURE_LIMIT_REACHED, so the test needs to accept seeing
+            // either as the resulting status after polling,
+
+            if (status.getNextExecutionTime() == null) {
+                if (status.isCancelled()) {
+                    throw new Exception("Unexpected canceled status: " + status);
+                } else if (status.toString().indexOf("ENDED") < 0
+                        || status.toString().indexOf("FAILURE_LIMIT_REACHED") < 0) {
+                    status.cancel(true);
+                    throw new Exception("Unexpected status: " + status);
+                } else {
+                    return;
+                }
+            }
 
             if (status.toString().indexOf("SKIPPED") < 0) {
                 status.cancel(true);

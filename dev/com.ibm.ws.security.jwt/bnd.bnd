@@ -1,28 +1,25 @@
 #*******************************************************************************
-# Copyright (c) 2017,2020 IBM Corporation and others.
+# Copyright (c) 2017, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 bVersion=1.0
 
-Bundle-Name: WebSphere Security JWT Builder and Consumer
-Bundle-SymbolicName: com.ibm.ws.security.jwt
-Bundle-Description: WebSphere Security JWT Builder and Consumer, version=${bVersion}
 
 #
 # Generate an Jakarta EE compliant JAR for the bundle.
 #
-jakartaeeMe: true
-jakartaFinalJarName: io.openliberty.security.jwt.internal.jar
-jakartaFinalBundleName: Liberty Security JWT Builder and Consumer
-jakartaFinalBundleId: io.openliberty.security.jwt.internal
-jakartaFinalBundleDescription: Liberty Security JWT Builder and Consumer; Jakarta Enabled
 
 Web-ContextPath: /jwt
 WS-TraceGroup: \
@@ -102,6 +99,15 @@ Include-Resource: \
 
 -dsannotations-inherit = true
 
+Service-Component: \
+  com.ibm.ws.security.jwt.classProvider;\
+    implementation:=com.ibm.ws.serialization.DeserializationClassProvider;\
+    provide:=com.ibm.ws.serialization.DeserializationClassProvider;\
+    properties:="\
+      service.vendor=IBM,\
+      classes=com.ibm.ws.security.jwt.internal.ClaimsImpl|\
+              com.ibm.ws.security.jwt.internal.JwtTokenConsumerImpl"
+
 instrument.classesExcludes: com/ibm/ws/security/jwt/internal/resources/*.class
 
 -buildpath: \
@@ -127,7 +133,7 @@ instrument.classesExcludes: com/ibm/ws/security/jwt/internal/resources/*.class
     com.ibm.websphere.javaee.servlet.3.0;version=latest, \
     com.ibm.websphere.javaee.jaxrs.2.0;version=latest, \
     com.ibm.ws.org.apache.httpcomponents;version=latest, \
-    com.ibm.ws.com.google.gson.2.2.4;version=latest, \
+    io.openliberty.com.google.gson;version=latest, \
     com.ibm.ws.org.osgi.annotation.versioning;version=latest, \
     com.ibm.json4j;version=latest, \
     com.ibm.ws.kernel.boot.core;version=latest
@@ -143,5 +149,5 @@ instrument.classesExcludes: com/ibm/ws/security/jwt/internal/resources/*.class
     com.ibm.ws.org.objenesis:objenesis;version=1.0, \
     com.ibm.ws.kernel.boot;version=latest, \
     com.ibm.ws.org.jose4j;version=latest, \
-    com.ibm.ws.org.slf4j.api.1.7.7;version=latest, \
+    com.ibm.ws.org.slf4j.api;version=latest, \
     com.ibm.ws.security.test.common;version=latest

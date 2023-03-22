@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2021 IBM Corporation and others.
+# Copyright (c) 2021, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -14,7 +16,7 @@ bVersion=1.0
 Bundle-SymbolicName: io.openliberty.restfulWS.internal.logging.filter
 
 app-resources= \
-  META-INF/services/javax.ws.rs.ext.Providers
+  META-INF/services/jakarta.ws.rs.ext.Providers
 
 Service-Component: \
   io.openliberty.restfulWS.internal.logging.filter.ResourceProvider; \
@@ -32,15 +34,11 @@ Service-Component: \
 Export-Package: \
   io.openliberty.restfulWS.internal.logging.filter;thread-context=true
 
-
-
 Include-Resource:\
   io/openliberty=${bin}/io/openliberty, \
   META-INF=resources/META-INF
 
 -buildpath: \
-  com.ibm.websphere.javaee.jaxrs.2.1, \
+  io.openliberty.jakarta.restfulWS.3.0, \
   com.ibm.ws.logging.core, \
-  com.ibm.ws.org.osgi.annotation.versioning;version=latest, \
-
-jakartaeeMe: true
+  com.ibm.ws.org.osgi.annotation.versioning;version=latest

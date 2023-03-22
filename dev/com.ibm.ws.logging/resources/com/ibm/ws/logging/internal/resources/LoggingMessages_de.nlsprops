@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011, 2020 IBM Corporation and others.
+# Copyright (c) 2011, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
@@ -116,11 +116,11 @@ MESSAGES_CONFIGURED_HIDDEN_2=TRAS3001I: Die folgenden Nachrichten werden aus den
 MESSAGES_CONFIGURED_HIDDEN_2.explanation=Als auszublendend konfigurierte Nachrichten werden nicht in die Dateien console.log und messages.log geschrieben. Sie werden in die Datei trace.log geschrieben. 
 MESSAGES_CONFIGURED_HIDDEN_2.useraction=Es ist keine Aktion erforderlich.
 
-MESSAGE_FORMAT_UPDATED=TRAS3002I: Das Ausgabeformat f\u00fcr die Datei messages.log wurde jetzt in ''{0}'' aktualisiert.
+MESSAGE_FORMAT_UPDATED=TRAS3002I: Das Ausgabeformat f\u00fcr die Datei messages.log wurde jetzt in '{0}' aktualisiert.
 MESSAGE_FORMAT_UPDATED.explanation=Das Ausgabeformat f\u00fcr die Datei messages.log wurde jetzt aktualisiert.
 MESSAGE_FORMAT_UPDATED.useraction=Es ist keine Aktion erforderlich. 
 
-CONSOLE_FORMAT_UPDATED=TRAS3003I: Das Konsolenausgabeformat wurde jetzt in ''{0}'' aktualisiert.
+CONSOLE_FORMAT_UPDATED=TRAS3003I: Das Konsolenausgabeformat wurde jetzt in '{0}' aktualisiert.
 CONSOLE_FORMAT_UPDATED.explanation=Das Konsolenausgabeformat wurde jetzt aktualisiert.
 CONSOLE_FORMAT_UPDATED.useraction=Es ist keine Aktion erforderlich. 
 
@@ -156,9 +156,21 @@ JSON_FIELDS_INVALID_CHARACHTER=TRAS3011W: Es wurde ein ung\u00fcltiges Zeichen i
 JSON_FIELDS_INVALID_CHARACHTER.explanation= In der Eigenschaft f\u00fcr die Zuordnung von JSON-Protokollierungsfeldnamen k\u00f6nnen Sie nur Buchstaben, Zahlen und : (Doppelpunkt) angeben.
 JSON_FIELDS_INVALID_CHARACHTER.useraction= \u00c4ndern Sie den Wert f\u00fcr die Eigenschaft f\u00fcr die Zuordnung von JSON-Protokollierungsfeldnamen und entfernen Sie die ung\u00fcltigen Zeichen.
 
+LOG_ROLLOVER_START_TIME_FORMAT_WARNING=TRAS3015W: Die Eigenschaft f\u00fcr die Startzeit des Protokoll\u00fcberlaufs ist falsch formatiert. Daher wird der Wert auf den Standardwert '00:00' gesetzt, der Mitternacht darstellt.
+LOG_ROLLOVER_START_TIME_FORMAT_WARNING.explanation=Die Eigenschaft f\u00fcr die Rollover-Startzeit muss das Format HH:MM haben, wobei 00:00 f\u00fcr Mitternacht steht.
+LOG_ROLLOVER_START_TIME_FORMAT_WARNING.useraction=Stellen Sie sicher, dass der Eigenschaftswert f\u00fcr die Rollover-Startzeit ordnungsgem\u00e4\u00df in der 24-Stunden-Notation HH:MM formatiert ist, wobei 00:00 f\u00fcr Mitternacht steht.
+
+LOG_ROLLOVER_INTERVAL_TOO_SHORT_WARNING=TRAS3013W: Das Protokollumlaufintervall darf nicht k\u00fcrzer als 1 Minute sein. Wenn ein Wert kleiner als 1 Minute angegeben wird, wird das Protokoll\u00fcberlaufintervall auf einen Standardwert von 1 Tag gesetzt.
+LOG_ROLLOVER_INTERVAL_TOO_SHORT_WARNING.explanation=Das Protokollumlaufintervall darf nicht k\u00fcrzer als 1 Minute sein.
+LOG_ROLLOVER_INTERVAL_TOO_SHORT_WARNING.useraction=Geben Sie ein Protokollumlaufintervall an, das gr\u00f6\u00dfer-gleich 1 Minute ist.
+
 JSON_ACCESS_LOG_NO_HEADER_NAME_SPECIFIED=TRAS3012W: Der Headername fehlt f\u00fcr eines oder mehrere accessLogging logFormat-Felder: {0}.
 JSON_ACCESS_LOG_NO_HEADER_NAME_SPECIFIED.explanation=Die JSON-Protokollierung verwendet das Attribut logFormat aus accessLogging, um auszuw\u00e4hlen, welche http_access.log-Nachrichtenfelder einbezogen werden sollen. Ein Headername muss angegeben werden, wenn die Felder %i oder %o im accessLogging logFormat-Attribut verwendet werden.
 JSON_ACCESS_LOG_NO_HEADER_NAME_SPECIFIED.useraction=Geben Sie einen Headernamen f\u00fcr das Feld im Attribut accessLogging logFormat an.
+
+FFDC_FILE_DELETION=TRAS3014I: {0} FFDC-Dateien wurden basierend auf dem konfigurierten maxFfdcAge-Wert gel\u00f6scht.
+FFDC_FILE_DELETION.explanation=Die Anzahl der FFDC-Dateien, die w\u00e4hrend einer FFDC-Bereinigung gel\u00f6scht wurden.
+FFDC_FILE_DELETION.useraction=Es ist keine Aktion erforderlich.
 
 # Note: no 9999 message kept here because saving footprint space is more important
 

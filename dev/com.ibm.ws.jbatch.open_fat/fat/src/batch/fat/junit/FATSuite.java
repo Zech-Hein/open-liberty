@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2020 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *   IBM Corporation - initial API and implementation
@@ -16,6 +18,8 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import componenttest.rules.repeater.EmptyAction;
+import componenttest.rules.repeater.FeatureReplacementAction;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.rules.repeater.RepeatTests;
 
@@ -44,25 +48,17 @@ import componenttest.rules.repeater.RepeatTests;
  * Left in here commented out in case it helps someone running manually.
  */
 @SuiteClasses({
-        BatchJobOperatorApiWithAppSecurityTest.class,
-        BatchSecurityTest.class,
         BatchUserTranTest.class,
         BatchNoSecurityTest.class,
-        BatchEveryoneSecurityTest.class,
         BatchTransactionalMiscTest.class,
-        BonusPayoutViaJobOperatorTest.class,
-        BonusPayoutViaJBatchUtilityTest.class,
         CDITest.class,
         ChunkTest.class,
         JdbcConfigTest.class,
         LocalServerJobRecoveryAtStartUpTest.class,
         MiscTest.class,
-        ParallelContextPropagationTest.class,
         TranTimeoutTest.class,
-        PartitionMetricsTest.class,
         DDLTest.class,
         SkipRetryHandlerTest.class,
-        PartitionReducerTest.class,
         JPAPersistenceManagerImplTest.class,
         InMemoryPersistenceTest.class,
         InMemoryPersistenceBatchJobOperatorApiTest.class,
@@ -70,5 +66,7 @@ import componenttest.rules.repeater.RepeatTests;
 })
 public class FATSuite {
     @ClassRule
-    public static RepeatTests r = RepeatTests.with(new EmptyAction().fullFATOnly()).andWith(new JakartaEE9Action());
+    public static RepeatTests r = RepeatTests.with(new EmptyAction().fullFATOnly())
+        .andWith(new JakartaEE9Action().conditionalFullFATOnly(FeatureReplacementAction.GREATER_THAN_OR_EQUAL_JAVA_11))
+        .andWith(new JakartaEE10Action()); 
 }

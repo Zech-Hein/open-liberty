@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -44,9 +46,11 @@ import com.ibm.ws.jpa.diagnostics.class_scanner.ano.jaxb.classinfo10.ParametersT
 import com.ibm.ws.jpa.diagnostics.class_scanner.ano.jaxb.classinfo10.ValueInstanceType;
 import com.ibm.ws.jpa.diagnostics.class_scanner.ano.jaxb.classinfo10.ValueType;
 
+import io.openliberty.asm.ASMHelper;
+
 public class AsmClassAnalyzer {
     private final static String JavaLangObject = "java.lang.Object";
-    private final static int ASM_LEVEL = Opcodes.ASM8;
+    private final static int ASM_LEVEL = ASMHelper.getCurrentASM();
 
     public static final ClassInfoType analyzeClass(String targetClass, byte[] bytecode, InnerOuterResolver ioResolver) throws ClassScannerException {
         if (bytecode == null || bytecode.length == 0) {

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2001, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -94,10 +96,6 @@ public class MicrosoftSQLServerHelper extends DatabaseHelper {
      */
     @Override
     public int branchCouplingSupported(int couplingType) {
-        // TODO remove this check at GA
-        if (!mcf.dsConfig.get().enableBranchCouplingExtension)
-            return super.branchCouplingSupported(couplingType);
-
         if (couplingType == ResourceRefInfo.BRANCH_COUPLING_TIGHT)
             return 0x8000; // value of SQLServerXAResource.SSTRANSTIGHTLYCPLD (32768)
 

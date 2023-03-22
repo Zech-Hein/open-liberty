@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -67,25 +69,25 @@ public class JwtConfigUtilTest extends CommonTestClass {
     }
 
     @Test
-    public void test_getSignatureAlgorithm_betaAlgorithm() {
-        String validBetaAlgorithm = "ES384";
+    public void test_getSignatureAlgorithm_es384() {
+        String esAlgorithm = "ES384";
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(SIG_ALG_ATTR_NAME, validBetaAlgorithm);
+        props.put(SIG_ALG_ATTR_NAME, esAlgorithm);
 
         String result = JwtConfigUtil.getSignatureAlgorithm(testName.getMethodName(), props, SIG_ALG_ATTR_NAME);
-        assertEquals("Did not get the expected signature algorithm.", validBetaAlgorithm, result);
+        assertEquals("Did not get the expected signature algorithm.", esAlgorithm, result);
 
         verifyNoLogMessage(outputMgr, MSG_BASE);
     }
 
     @Test
-    public void test_getSignatureAlgorithm_nonBetaAlgorithm() {
-        String validNonBetaAlgorithm = "HS256";
+    public void test_getSignatureAlgorithm_hs256() {
+        String hsAlgorithm = "HS256";
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(SIG_ALG_ATTR_NAME, validNonBetaAlgorithm);
+        props.put(SIG_ALG_ATTR_NAME, hsAlgorithm);
 
         String result = JwtConfigUtil.getSignatureAlgorithm(testName.getMethodName(), props, SIG_ALG_ATTR_NAME);
-        assertEquals("Did not get the expected signature algorithm.", validNonBetaAlgorithm, result);
+        assertEquals("Did not get the expected signature algorithm.", hsAlgorithm, result);
 
         verifyNoLogMessage(outputMgr, MSG_BASE);
     }

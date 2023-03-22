@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -13,7 +15,6 @@ package com.ibm.ws.security.jwt.fat.builder;
 import java.util.Arrays;
 
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -22,6 +23,7 @@ import com.ibm.json.java.JSONObject;
 import com.ibm.ws.security.fat.common.CommonSecurityFat;
 import com.ibm.ws.security.fat.common.expectations.Expectations;
 import com.ibm.ws.security.fat.common.jwt.PayloadConstants;
+import com.ibm.ws.security.fat.common.servers.ServerInstanceUtils;
 import com.ibm.ws.security.fat.common.utils.SecurityFatHttpUtils;
 import com.ibm.ws.security.fat.common.validation.TestValidationUtils;
 import com.ibm.ws.security.jwt.fat.builder.actions.JwtBuilderActions;
@@ -33,7 +35,6 @@ import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
-import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 
 /**
@@ -61,7 +62,7 @@ public class JwtBuilderAPIMinimumSSLConfigBuilderTests extends CommonSecurityFat
 
     @BeforeClass
     public static void setUp() throws Exception {
-    	FATSuite.transformApps(builderServer, "test-apps/jwtbuilder.war", "test-apps/jwtbuilderclient.war", "dropins/testmarker.war");
+        transformApps(builderServer);
 
         serverTracker.addServer(builderServer);
         skipRestoreServerTracker.addServer(builderServer);
@@ -71,6 +72,9 @@ public class JwtBuilderAPIMinimumSSLConfigBuilderTests extends CommonSecurityFat
 
         // the server's default config contains an invalid value (on purpose), tell the fat framework to ignore it!
         builderServer.addIgnoredErrors(Arrays.asList(JwtBuilderMessageConstants.CWWKG0032W_CONFIG_INVALID_VALUE));
+
+        // make sure the keystores are fully loaded before running any tests
+        ServerInstanceUtils.waitForKeyStores(builderServer);
 
     }
 

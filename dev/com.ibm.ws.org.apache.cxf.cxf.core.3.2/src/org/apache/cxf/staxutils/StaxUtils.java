@@ -331,7 +331,9 @@ public final class StaxUtils {
 
             if (!setRestrictionProperties(factory)) {
                 if (ALLOW_INSECURE_PARSER_VAL) {
-                    LOG.log(Level.WARNING, "INSECURE_PARSER_DETECTED", factory.getClass().getName());
+                    //Liberty change start:  Comment out warning since Liberty does not ship Woodstox
+                    // LOG.log(Level.WARNING, "INSECURE_PARSER_DETECTED", factory.getClass().getName());
+                    //Liberty change end
                 } else {
                     throw new RuntimeException("Cannot create a secure XMLInputFactory, "
                         + "you should either add woodstox or set " + ALLOW_INSECURE_PARSER
@@ -1928,7 +1930,7 @@ public final class StaxUtils {
             } finally {
                 StaxUtils.close(writer);
             }
-            LOG.info(sw.toString());
+            LOG.finest(sw.toString());
         } catch (XMLStreamException e) {
             LOG.severe(e.getMessage());
         }

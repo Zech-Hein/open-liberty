@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -35,17 +37,11 @@ public class CommonLocalLDAPServerSuite {
         LocalLDAPServerSuite.addTestServer(LDAPUtils.LDAP_SERVER_1_NAME, LDAPUtils.LDAP_SERVER_1_PORT,
                                            LDAPUtils.LDAP_SERVER_5_NAME, LDAPUtils.LDAP_SERVER_5_PORT, testServers);
 
-        // TODO REMOTE LDAP_SERVER_6 is dead.
         LocalLDAPServerSuite.addTestServer(LDAPUtils.LDAP_SERVER_2_NAME, LDAPUtils.LDAP_SERVER_2_PORT,
                                            LDAPUtils.LDAP_SERVER_6_NAME, LDAPUtils.LDAP_SERVER_6_PORT, testServers);
         LocalLDAPServerSuite.addTestServer(LDAPUtils.LDAP_SERVER_2_NAME, LDAPUtils.LDAP_SERVER_2_SSL_PORT, true, LDAPUtils.LDAP_SERVER_2_BINDDN, LDAPUtils.LDAP_SERVER_2_BINDPWD,
                                            LDAPUtils.LDAP_SERVER_6_NAME, LDAPUtils.LDAP_SERVER_6_SSL_PORT, false, null, null, testServers);
 
-        LocalLDAPServerSuite.addTestServer(LDAPUtils.LDAP_SERVER_13_NAME, LDAPUtils.LDAP_SERVER_13_PORT, LDAPUtils.LDAP_SERVER_3_NAME, LDAPUtils.LDAP_SERVER_3_PORT, testServers);
-        LocalLDAPServerSuite.addTestServer(LDAPUtils.LDAP_SERVER_13_NAME, LDAPUtils.LDAP_SERVER_13_SSL_PORT, true, LDAPUtils.LDAP_SERVER_13_BINDDN,
-                                           LDAPUtils.LDAP_SERVER_13_BINDPWD,
-                                           LDAPUtils.LDAP_SERVER_3_NAME, LDAPUtils.LDAP_SERVER_3_SSL_PORT, true, LDAPUtils.LDAP_SERVER_3_BINDDN, LDAPUtils.LDAP_SERVER_3_BINDPWD,
-                                           testServers);
         LocalLDAPServerSuite.addTestServer(LDAPUtils.LDAP_SERVER_4_NAME, LDAPUtils.LDAP_SERVER_4_PORT,
                                            LDAPUtils.LDAP_SERVER_1_NAME, LDAPUtils.LDAP_SERVER_1_PORT, testServers);
         LocalLDAPServerSuite.addTestServer(LDAPUtils.LDAP_SERVER_4_NAME, LDAPUtils.LDAP_SERVER_4_PORT,

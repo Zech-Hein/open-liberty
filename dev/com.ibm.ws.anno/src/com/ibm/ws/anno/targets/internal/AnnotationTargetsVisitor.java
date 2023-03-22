@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,6 +28,8 @@ import com.ibm.ws.anno.service.internal.AnnotationServiceImpl_Logging;
 import com.ibm.wsspi.anno.classsource.ClassSource_Aggregate.ScanPolicy;
 import com.ibm.wsspi.anno.targets.AnnotationTargets_Targets.AnnotationCategory;
 import com.ibm.wsspi.anno.util.Util_InternMap;
+
+import io.openliberty.asm.ASMHelper;
 
 // Visit rules:
 //
@@ -132,7 +136,7 @@ public class AnnotationTargetsVisitor extends ClassVisitor {
     // an entire scan sweep.
 
     public AnnotationTargetsVisitor(AnnotationTargetsImpl_Targets annotationTargets) {
-        super(Opcodes.ASM8);
+        super(ASMHelper.getCurrentASM());
 
         this.hashText = AnnotationServiceImpl_Logging.getBaseHash(this);
 
@@ -534,7 +538,7 @@ public class AnnotationTargetsVisitor extends ClassVisitor {
 
     protected class AnnoFieldVisitor extends FieldVisitor {
         public AnnoFieldVisitor() {
-            super(Opcodes.ASM8);
+            super(ASMHelper.getCurrentASM());
         }
 
         // A field annotation.  Needs to be recorded.
@@ -577,7 +581,7 @@ public class AnnotationTargetsVisitor extends ClassVisitor {
 
     protected class AnnoMethodVisitor extends MethodVisitor {
         public AnnoMethodVisitor() {
-            super(Opcodes.ASM8);
+            super(ASMHelper.getCurrentASM());
         }
 
         // A method annotation.  Needs to be recorded.

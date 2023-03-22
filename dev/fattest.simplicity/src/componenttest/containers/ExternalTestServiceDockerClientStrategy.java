@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -64,7 +66,7 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
     private DefaultDockerClientConfig config;
     private TransportConfig transportConfig;
 
-    private static boolean setupComplete = false;
+    static boolean setupComplete = false;
 
     /**
      * Used to specify if we plan on running against a remote docker host, or a local docker host.
@@ -74,14 +76,21 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
     public static final boolean USE_REMOTE_DOCKER_HOST = useRemoteDocker();
 
     /**
-     * <pre>
-     * By default, Testcontainrs will cache the DockerClient strategy in <code>~/.testcontainers.properties</code>.
+     * Used to specify if we plan on running using the artifactory name substituion class, or not.
      *
-     * Calling this method in the FATSuite class is REQUIRED for any fat project that uses testconatiners.
+     * @see #useArtifactorySubstitutor()
+     */
+    public static final boolean USE_ARTIFACTORY_NAME_SUBSTITUTION = useArtifactorySubstitutor();
+
+    /**
+     * <pre>
+     * By default, Testcontainers will cache the DockerClient strategy in <code>~/.testcontainers.properties</code>.
+     *
+     * Calling this method in the FATSuite class is REQUIRED for any fat project that uses Testcontainers.
      * This is a safety measure to ensure that we run with the correct docker.client.stategy property
      * for each FATSuite run.
      *
-     * Example Useage:
+     * Example Usage:
      *
      * &#64;RunWith(Suite.class)
      * &#64;SuiteClasses({ FailoverTest.class })
@@ -93,11 +102,14 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
      * </pre>
      */
     public static void setupTestcontainers() {
+        String m = "setupTestcontainers";
+        Log.entering(c, m, setupComplete);
         if (setupComplete)
             return;
         generateTestcontainersConfig();
-        generateDockerConfig();
+        generateArtifactorySubstitutorConfig();
         setupComplete = true;
+        Log.exiting(c, m, setupComplete);
     }
 
     private static void generateTestcontainersConfig() {
@@ -126,17 +138,15 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
      * Or if a config.json already exists, make sure that the private registry is listed. If not, add
      * the private registry to the existing config
      */
-    private static void generateDockerConfig() {
+    private static void generateDockerConfig(String registry, String authToken) {
         final String m = "generateDockerConfig";
-        if (!USE_REMOTE_DOCKER_HOST)
-            return;
 
         File configDir = new File(System.getProperty("user.home"), ".docker");
         File configFile = new File(configDir, "config.json");
         String contents = "";
 
-        String privateAuth = "\t\t\"" + ArtifactoryImageNameSubstitutor.getPrivateRegistry() + "\": {\n" +
-                             "\t\t\t\"auth\": \"" + ArtifactoryImageNameSubstitutor.getPrivateRegistryAuthToken() + "\",\n"
+        String privateAuth = "\t\t\"" + registry + "\": {\n" +
+                             "\t\t\t\"auth\": \"" + authToken + "\",\n"
                              + "\t\t\t\"email\": null\n" + "\t\t}";
         if (configFile.exists()) {
             Log.info(c, m, "Config already exists at: " + configFile.getAbsolutePath());
@@ -146,19 +156,34 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            Log.info(c, m, "Original contents:\n" + contents);
-            if (contents.contains(ArtifactoryImageNameSubstitutor.getPrivateRegistry())) {
-                Log.info(c, m, "Config already contains private registry");
-                return;
+
+            logConfigContents(m, "Original contents", contents);
+            int authsIndex = contents.indexOf("\"auths\"");
+            boolean replacedAuth = false;
+
+            if (contents.contains(registry)) {
+                Log.info(c, m, "Config already contains the private registry: " + registry);
+                int registryIndex = contents.indexOf(registry, authsIndex);
+                int authIndex = contents.indexOf("\"auth\":", registryIndex);
+                int authIndexEnd = contents.indexOf(',', authIndex) + 1;
+                String authSubstring = contents.substring(authIndex, authIndexEnd);
+                if (authSubstring.contains(authToken)) {
+                    Log.info(c, m, "Config already contains the correct authToken for registry: " + registry);
+                    return;
+                } else {
+                    replacedAuth = true;
+                    Log.info(c, m, "Replacing auth token for registry: " + registry);
+                    contents = contents.replace(authSubstring, "\"auth\": \"" + authToken + "\",");
+                }
             }
-            int authIndex = contents.indexOf("\"auths\"");
-            if (authIndex >= 0) {
-                Log.info(c, m, "Other auths exist. Need to add private registry");
-                int splitAt = contents.indexOf('{', authIndex);
+
+            if (authsIndex >= 0 && !replacedAuth) {
+                Log.info(c, m, "Other auths exist. Need to add private registry: " + registry);
+                int splitAt = contents.indexOf('{', authsIndex);
                 String firstHalf = contents.substring(0, splitAt + 1);
                 String secondHalf = contents.substring(splitAt + 1);
                 contents = firstHalf + '\n' + privateAuth + ",\n" + secondHalf;
-            } else {
+            } else if (!replacedAuth) {
                 Log.info(c, m, "No auths exist. Adding auth block");
                 int splitAt = contents.indexOf('{');
                 String firstHalf = contents.substring(0, splitAt + 1);
@@ -172,9 +197,29 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
                            + configFile.getAbsolutePath());
             contents = "{\n\t\"auths\": {\n" + privateAuth + "\n\t}\n}";
         }
-        Log.info(c, m, "New config.json contents are:\n" + contents);
+        logConfigContents(m, "New config.json contents are", contents);
         configFile.delete();
         writeFile(configFile, contents);
+    }
+
+    /**
+     * Log the contents of a config file that may contain authentication data which should be redacted.
+     *
+     * @param method
+     * @param msg
+     * @param contents
+     */
+    private static void logConfigContents(String method, String msg, String contents) {
+        String sanitizedContents = contents.replaceAll("\"auth\": \".*\"", "\"auth\": \"****Token Redacted****\"");
+        Log.info(c, method, msg + ":\n" + sanitizedContents);
+    }
+
+    private static void generateArtifactorySubstitutorConfig() {
+        // If we are using local docker host then we won't substitute names so skip this step.
+        if (!USE_ARTIFACTORY_NAME_SUBSTITUTION)
+            return;
+
+        generateDockerConfig(ArtifactoryImageNameSubstitutor.getPrivateRegistry(), ArtifactoryImageNameSubstitutor.getPrivateRegistryAuthToken());
     }
 
     @Override
@@ -188,10 +233,10 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
             Log.error(c, "test", e, "Unable to locate any healthy docker-engine instances");
             throw new InvalidConfigurationException("Unable to locate any healthy docker-engine instances", e);
         }
-        return transportConfig = TransportConfig.builder()
-                        .dockerHost(config.getDockerHost())
-                        .sslConfig(config.getSSLConfig())
-                        .build();
+        return transportConfig = TransportConfig.builder() //
+                                                .dockerHost(config.getDockerHost()) //
+                                                .sslConfig(config.getSSLConfig()) //
+                                                .build();
     }
 
     private class AvailableDockerHostFilter implements ExternalTestServiceFilter {
@@ -211,12 +256,24 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
                 return false;
             }
 
-            System.setProperty("DOCKER_HOST", dockerHostURL);
+            String ca = dockerService.getProperties().get("ca.pem");
+            String cert = dockerService.getProperties().get("cert.pem");
+            String key = dockerService.getProperties().get("key.pem");
+
+            if (ca == null || cert == null || key == null) {
+                Log.info(c, m, "Will not select " + dockerHostURL
+                               + " because dockerService did not contain one or more of the authentication properties:"
+                               + " [ca.pem, cert.pem, key.pem].");
+                return false;
+            }
+
             File certDir = new File("docker-certificates");
             certDir.mkdirs();
-            writeFile(new File(certDir, "ca.pem"), dockerService.getProperties().get("ca.pem"));
-            writeFile(new File(certDir, "cert.pem"), dockerService.getProperties().get("cert.pem"));
-            writeFile(new File(certDir, "key.pem"), dockerService.getProperties().get("key.pem"));
+            writeFile(new File(certDir, "ca.pem"), ca);
+            writeFile(new File(certDir, "cert.pem"), cert);
+            writeFile(new File(certDir, "key.pem"), key);
+
+            System.setProperty("DOCKER_HOST", dockerHostURL);
             System.setProperty("DOCKER_TLS_VERIFY", "1");
             System.setProperty("DOCKER_CERT_PATH", certDir.getAbsolutePath());
 
@@ -231,7 +288,7 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
 
             // Provide information on how to manually connect to the machine if running locally
             if (FATRunner.FAT_TEST_LOCALRUN) {
-                Log.info(c, m, "If you need to connect to any currently running docker containers manaully, export the following environment variables in your terminal:\n" +
+                Log.info(c, m, "If you need to connect to any currently running docker containers manually, export the following environment variables in your terminal:\n" +
                                "export DOCKER_HOST=" + dockerHostURL + "\n" +
                                "export DOCKER_TLS_VERIFY=1\n" +
                                "export DOCKER_CERT_PATH=" + certDir.getAbsolutePath());
@@ -243,12 +300,12 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
             final String m = "test";
             final int maxAttempts = FATRunner.FAT_TEST_LOCALRUN ? 1 : 4; // attempt up to 4 times for remote builds
 
-            config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                            .withRegistryUsername(null)
-                            .withDockerHost(System.getProperty("DOCKER_HOST"))
-                            .withDockerTlsVerify(System.getProperty("DOCKER_TLS_VERIFY"))
-                            .withDockerCertPath(System.getProperty("DOCKER_CERT_PATH"))
-                            .build();
+            config = DefaultDockerClientConfig.createDefaultConfigBuilder() //
+                                              .withRegistryUsername(null) //
+                                              .withDockerHost(System.getProperty("DOCKER_HOST")) //
+                                              .withDockerTlsVerify(System.getProperty("DOCKER_TLS_VERIFY")) //
+                                              .withDockerCertPath(System.getProperty("DOCKER_CERT_PATH")) //
+                                              .build();
 
             Throwable firstIssue = null;
             for (int attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -257,9 +314,9 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
                     String dockerHost = config.getDockerHost().toASCIIString().replace("tcp://", "https://");
                     Log.info(c, m, "  Pinging URL: " + dockerHost);
                     SocketFactory sslSf = config.getSSLConfig().getSSLContext().getSocketFactory();
-                    String resp = new HttpsRequest(dockerHost + "/_ping")
-                                    .sslSocketFactory(sslSf)
-                                    .run(String.class);
+                    String resp = new HttpsRequest(dockerHost + "/_ping") //
+                                                                         .sslSocketFactory(sslSf) //
+                                                                         .run(String.class);
                     Log.info(c, m, "  Ping successful. Response: " + resp);
                     return;
                 } catch (Throwable t) {
@@ -357,9 +414,16 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
 
             //State 4: Earlier version of TestContainers didn't support docker for windows
             // Assume a user on windows with no other preferences will want to use a remote host.
+            // ARM architecture can cause performance/starting issues with x86 containers, so also
+            // assume remote as the default.
             if (System.getProperty("os.name", "unknown").toLowerCase().contains("windows")) {
                 result = true;
                 reason = "Local operating system is Windows. Default container support not guaranteed.";
+                break;
+            }
+            if (FATRunner.ARM_ARCHITECTURE) {
+                result = true;
+                reason = "CPU architecture is ARM. x86 container support and performance not guaranteed.";
                 break;
             }
 
@@ -369,11 +433,62 @@ public class ExternalTestServiceDockerClientStrategy extends DockerClientProvide
         } while (false);
 
         reason = result ? //
-                        "Running against remote docker host.  Reason: " + reason : //
+                        "Running against remote docker host. Reason: " + reason : //
                         "Running against local docker host. Reason: " + reason;
 
         Log.info(c, "useRemoteDocker", reason);
         return result;
+    }
 
+    /**
+     * Determines if we are going to use the Artifactory name substitutor.
+     *
+     * Priority:
+     * 1. System Property: fat.test.use.artifactory.substitution
+     *
+     * default (USE_REMOTE_DOCKER_HOST)
+     *
+     * NOTE: There are situations were we will still decide NOT to apply the
+     * substitution for synthetic images, and programmatically committed images.
+     * This will be determined on an image-to-image basis
+     *
+     * @see ArtifactoryImageNameSubstitutor#apply(org.testcontainers.utility.DockerImageName)
+     *
+     * @return true, we are using the substitutor, false otherwise.
+     */
+    private static boolean useArtifactorySubstitutor() {
+        boolean result;
+        String reason;
+
+        do {
+            //State 1: fat.test.use.artifactory.substitution should always be honored first
+            if (System.getProperty("fat.test.use.artifactory.substitution") != null) {
+                result = Boolean.getBoolean("fat.test.use.artifactory.substitution");
+                reason = "fat.test.use.artifactory.substitution set to " + result;
+
+                if (result == false && USE_REMOTE_DOCKER_HOST == true) {
+                    Log.warning(c, reason + System.lineSeparator()
+                                   + "Based on a priority system we decided to use a remote docker host for testing. "
+                                   + "Therefore, we cannot honor the request to NOT use artifactory. "
+                                   + "To resolve this issue either remove the fat.test.use.artifactory.substitution property, "
+                                   + "or force this test to use the a local docker host using fat.test.use.remote.docker=false.");
+
+                    throw new IllegalStateException("Cannot set fat.test.use.artifactory.substitution to false when USE_REMOTE_DOCKER_HOST=true. See logs for more details.");
+                }
+
+                break;
+            }
+
+            // Default, use USE_REMOTE_DOCKER_HOST to determine if we use substitution
+            result = USE_REMOTE_DOCKER_HOST;
+            reason = "USE_REMOTE_DOCKER_HOST set to " + USE_REMOTE_DOCKER_HOST;
+        } while (false);
+
+        reason = result ? //
+                        "Using Artifactory Substitution for docker images. Reason: " + reason : //
+                        "Using Docker default repository for docker images. Reason: " + reason;
+
+        Log.info(c, "useArtifactorySubstitutor", reason);
+        return result;
     }
 }

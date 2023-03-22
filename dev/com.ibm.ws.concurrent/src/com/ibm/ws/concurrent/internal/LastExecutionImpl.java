@@ -1,15 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2013,2020 IBM Corporation and others.
+ * Copyright (c) 2013,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.concurrent.internal;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 import javax.enterprise.concurrent.LastExecution;
@@ -21,22 +25,22 @@ import com.ibm.websphere.ras.annotation.Trivial;
  */
 @Trivial
 public class LastExecutionImpl implements LastExecution {
-    private final long endTime;
+    private final ZonedDateTime endTime;
     private final String identityName;
     private final Object result;
-    private final long scheduledStartTime;
-    private final long startTime;
+    private final ZonedDateTime scheduledStartTime;
+    private final ZonedDateTime startTime;
 
     /**
      * Construct a record of task execution.
-     * 
-     * @param identityName identity name for the task, if any.
+     *
+     * @param identityName       identity name for the task, if any.
      * @param scheduledStartTime the time scheduled for the task to start executing.
-     * @param startTime time when the task actually started executing.
-     * @param endTime time when the task completed executing.
-     * @param result result of the last execution of the task as of the time when this LastExecution instance was created.
+     * @param startTime          time when the task actually started executing.
+     * @param endTime            time when the task completed executing.
+     * @param result             result of the last execution of the task as of the time when this LastExecution instance was created.
      */
-    LastExecutionImpl(String identityName, long scheduledStartTime, long startTime, long endTime, Object result) {
+    LastExecutionImpl(String identityName, ZonedDateTime scheduledStartTime, ZonedDateTime startTime, ZonedDateTime endTime, Object result) {
         this.identityName = identityName;
         this.scheduledStartTime = scheduledStartTime;
         this.startTime = startTime;
@@ -45,7 +49,7 @@ public class LastExecutionImpl implements LastExecution {
     }
 
     /**
-     * @see javax.enterprise.concurrent.LastExecution#getIdentityName()
+     * @see jakarta.enterprise.concurrent.LastExecution#getIdentityName()
      */
     @Override
     public final String getIdentityName() {
@@ -53,7 +57,7 @@ public class LastExecutionImpl implements LastExecution {
     }
 
     /**
-     * @see javax.enterprise.concurrent.LastExecution#getResult()
+     * @see jakarta.enterprise.concurrent.LastExecution#getResult()
      */
     @Override
     public final Object getResult() {
@@ -61,41 +65,62 @@ public class LastExecutionImpl implements LastExecution {
     }
 
     /**
-     * @see javax.enterprise.concurrent.LastExecution#getRunEnd()
+     * @see jakarta.enterprise.concurrent.LastExecution#getRunEnd()
      */
     @Override
     public final Date getRunEnd() {
-        return new Date(endTime);
+        return Date.from(endTime.toInstant());
     }
 
     /**
-     * @see javax.enterprise.concurrent.LastExecution#getRunStart()
+     * @see jakarta.enterprise.concurrent.LastExecution#getRunEnd(java.time.ZoneId)
+     */
+    public ZonedDateTime getRunEnd(ZoneId zone) {
+        return endTime.withZoneSameInstant(zone);
+    }
+
+    /**
+     * @see jakarta.enterprise.concurrent.LastExecution#getRunStart()
      */
     @Override
     public final Date getRunStart() {
-        return new Date(startTime);
+        return Date.from(startTime.toInstant());
     }
 
     /**
-     * @see javax.enterprise.concurrent.LastExecution#getScheduledStart()
+     * @see jakarta.enterprise.concurrent.LastExecution#getRunStart(java.time.ZoneId)
+     */
+    public ZonedDateTime getRunStart(ZoneId zone) {
+        return startTime.withZoneSameInstant(zone);
+    }
+
+    /**
+     * @see jakarta.enterprise.concurrent.LastExecution#getScheduledStart()
      */
     @Override
     public final Date getScheduledStart() {
-        return new Date(scheduledStartTime);
+        return Date.from(scheduledStartTime.toInstant());
+    }
+
+    /**
+     * @see jakarta.enterprise.concurrent.LastExecution#getScheduledStart(java.time.ZoneId)
+     */
+    public ZonedDateTime getScheduledStart(ZoneId zone) {
+        return scheduledStartTime.withZoneSameInstant(zone);
     }
 
     /**
      * Returns a textual representation suitable for display in trace.
-     * 
+     *
      * @return a textual representation suitable for display in trace.
      */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(100);
-        sb.append(getClass().getSimpleName()).append(' ').append(identityName).append(' ')
-                        .append("scheduledStart=").append(Utils.toString(new Date(scheduledStartTime))).append(' ')
-                        .append("runStart=").append(Utils.toString(new Date(startTime))).append(' ')
-                        .append("runEnd=").append(Utils.toString(new Date(endTime))).append(' ')
+        sb.append(getClass().getSimpleName()).append(' ').append(identityName).append(' ') //
+                        .append("scheduledStart=").append(scheduledStartTime).append(' ') //
+                        .append("runStart=").append(startTime).append(' ') //
+                        .append("runEnd=").append(endTime).append(' ') //
                         .append(result);
         return sb.toString();
     }

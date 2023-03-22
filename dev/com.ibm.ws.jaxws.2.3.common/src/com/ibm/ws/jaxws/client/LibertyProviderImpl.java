@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,6 +29,7 @@ import org.apache.cxf.staxutils.StaxUtils;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.ws.jaxws.bus.LibertyApplicationBus;
 import com.ibm.ws.jaxws.metadata.JaxWsClientMetaData;
 import com.ibm.ws.jaxws.metadata.WebServiceRefInfo;
 import com.ibm.ws.jaxws.security.JaxWsSecurityConfigurationService;
@@ -58,16 +61,18 @@ public class LibertyProviderImpl extends ProviderImpl {
         // WOODSTOX
         //Eager initialize the StaxUtils
         try {
-            if(System.getProperty(StaxUtils.ALLOW_INSECURE_PARSER) == null) {
-                System.setProperty(StaxUtils.ALLOW_INSECURE_PARSER, "true");
-                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                    Tr.debug(tc, "Insecure Stax property was null setting it to true on the Client.");
+            // The default jaxws-2.2 Stax is always from the RI, so ensure same behavior
+            // Should revist this property to allow use of WoodStox API
+            AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                @Override
+                public Void run() {
+                    System.setProperty(StaxUtils.ALLOW_INSECURE_PARSER, "true");
+                    return null;
                 }
-            }
+            });
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "Client-Side Insecure Stax property is set to: " + System.getProperty(StaxUtils.ALLOW_INSECURE_PARSER));
-            }
-            
+            }        
             Class.forName("org.apache.cxf.staxutils.StaxUtils");
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException(e);

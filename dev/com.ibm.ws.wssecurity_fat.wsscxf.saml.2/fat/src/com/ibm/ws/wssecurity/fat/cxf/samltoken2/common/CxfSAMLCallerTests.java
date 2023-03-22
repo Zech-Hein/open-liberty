@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,8 +15,6 @@ package com.ibm.ws.wssecurity.fat.cxf.samltoken2.common;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import componenttest.custom.junit.runner.FATRunner;
-import componenttest.annotation.SkipForRepeat;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.ibm.ws.security.saml20.fat.commonTest.SAMLCommonTest;
@@ -23,12 +23,10 @@ import com.ibm.ws.security.saml20.fat.commonTest.SAMLConstants;
 import com.ibm.ws.security.saml20.fat.commonTest.SAMLTestSettings;
 
 import componenttest.annotation.AllowedFFDC;
-import componenttest.topology.impl.LibertyServerWrapper;
-import static componenttest.annotation.SkipForRepeat.EE8_FEATURES;
-import static componenttest.annotation.SkipForRepeat.EE9_FEATURES;
-import static componenttest.annotation.SkipForRepeat.NO_MODIFICATION;
-import componenttest.rules.repeater.EE8FeatureReplacementAction;
+import componenttest.custom.junit.runner.FATRunner;
 import componenttest.rules.repeater.JakartaEE9Action;
+import componenttest.rules.repeater.JakartaEE10Action;
+import componenttest.topology.impl.LibertyServerWrapper;
 
 
 /**
@@ -58,7 +56,16 @@ public class CxfSAMLCallerTests extends SAMLCommonTest {
     protected static String servicePort = null;
     protected static String serviceSecurePort = null;
     protected static CXFSAMLCommonUtils commonUtils = new CXFSAMLCommonUtils();
-
+    
+    //issue 18363
+    protected static String featureVersion = "";
+    public static String getFeatureVersion() {
+        return featureVersion;
+    }
+    public static void setFeatureVersion(String version) {
+        featureVersion = version;
+    } 
+    
     /**
      * TestDescription:
      * 
@@ -72,8 +79,7 @@ public class CxfSAMLCallerTests extends SAMLCommonTest {
      * Test should succeed in accessing the server side service.
      * 
      */
-    
-    //runs EE7 and EE8 from full fat; EE9 from lite fat (e.g., CxfSAMLCaller1ServerTests.java)
+   
     //scenario 1 - done
     @Test
     public void testCxfCallerHttpPolicy() throws Exception {
@@ -97,54 +103,30 @@ public class CxfSAMLCallerTests extends SAMLCommonTest {
     }
    
     //scenario 2
-    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES })
-    @Test
-    public void testCxfCallerHttpsPolicyEE7Only() throws Exception {
-        
-    	if (testSAMLServer2 == null) {
-            //1 server reconfig
-            testSAMLServer.reconfigServer(buildSPServerName("server_2in1_asymProtection.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        } else {
-            //2 servers reconfig
-            testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_asymProtection.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-            testSAMLServer.reconfigServer(buildSPServerName("server_1_asymProtection.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        }
-
-        // Create the conversation object which will maintain state for us
-        String webServiceName = "FatSamlC03Service";
-        String webServicePort = "SamlCallerToken03";
-        String policyName = "CallerHttpsPolicy";
-        String titleToCheck = "CXF SAML Caller Service Client";
-        String partToCheck = "pass:true::FatSamlC03Service";
-        String testMode = "positive";
-        WebClient webClient = SAMLCommonTestHelpers.getWebClient();
-
-        SAMLTestSettings updatedTestSettings = testSettings.copyTestSettings();
-        updatedTestSettings.updatePartnerInSettings("sp1", true);
-        updatedTestSettings.setCXFSettings("testCxfCallerHttpsPolicy", "cxf", servicePort, serviceSecurePort, userName, userPass, webServiceName,
-                webServicePort, "", "False", null, null);
-        updatedTestSettings.getCXFSettings().setBodyPartToCheck(partToCheck);
-        updatedTestSettings.getCXFSettings().setTitleToCheck(titleToCheck);
-        updatedTestSettings.getCXFSettings().setTestMode(testMode);
-        genericSAML(_testName, webClient, updatedTestSettings, standardFlow, helpers.setDefaultGoodSAMLCXFExpectations(null, flowType, updatedTestSettings));
-
-    }
-    
-    //runs EE8 from full fat, EE9 from lite fat
-    //scenario 2
-    @SkipForRepeat({ NO_MODIFICATION })
-    @AllowedFFDC(value = { "java.util.MissingResourceException", "java.net.MalformedURLException" }, repeatAction = { EE8FeatureReplacementAction.ID, JakartaEE9Action.ID })
     @Test
     public void testCxfCallerHttpsPolicy() throws Exception {
-        if (testSAMLServer2 == null) {
-            //1 server reconfig
-            testSAMLServer.reconfigServer(buildSPServerName("server_2in1_asymProtection_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        } else {
-            //2 servers reconfig
-            testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_asymProtection_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-            testSAMLServer.reconfigServer(buildSPServerName("server_1_asymProtection_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        }
-
+        
+    	//issue 23060
+    	if ("EE7cbh1".equals(getFeatureVersion())) {
+    	    if (testSAMLServer2 == null) {
+                //1 server reconfig
+                testSAMLServer.reconfigServer(buildSPServerName("server_2in1_asymProtection.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            } else {
+                //2 servers reconfig
+                testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_asymProtection.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+                testSAMLServer.reconfigServer(buildSPServerName("server_1_asymProtection.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            }
+    	} else if ("EE7cbh2".equals(getFeatureVersion())) {
+    		if (testSAMLServer2 == null) {
+                //1 server reconfig
+                testSAMLServer.reconfigServer(buildSPServerName("server_2in1_asymProtection_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            } else {
+                //2 servers reconfig
+                testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_asymProtection_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+                testSAMLServer.reconfigServer(buildSPServerName("server_1_asymProtection_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            }
+    	} 
+    	
         // Create the conversation object which will maintain state for us
         String webServiceName = "FatSamlC03Service";
         String webServicePort = "SamlCallerToken03";
@@ -153,7 +135,7 @@ public class CxfSAMLCallerTests extends SAMLCommonTest {
         String partToCheck = "pass:true::FatSamlC03Service";
         String testMode = "positive";
         WebClient webClient = SAMLCommonTestHelpers.getWebClient();
-        
+
         SAMLTestSettings updatedTestSettings = testSettings.copyTestSettings();
         updatedTestSettings.updatePartnerInSettings("sp1", true);
         updatedTestSettings.setCXFSettings("testCxfCallerHttpsPolicy", "cxf", servicePort, serviceSecurePort, userName, userPass, webServiceName,
@@ -164,22 +146,39 @@ public class CxfSAMLCallerTests extends SAMLCommonTest {
         genericSAML(_testName, webClient, updatedTestSettings, standardFlow, helpers.setDefaultGoodSAMLCXFExpectations(null, flowType, updatedTestSettings));
 
     }
-    
+ 
     //scenario 3 - done
-    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES })
+    //issue 23060
+    //In this test, CBH is not used, but still using the EE7cbh condition checker to reference the respective ehcache old/new format xml
+    //for the test coverage on cxf section of "org.apache.cxf.ws.security.tokenstore.TokenStore" within both ehcache _ee7 and _ee8 xml.
+    //Note that in the format ehcache "cxf-ehcache_ee8.xml", the wss4j section of "ws-security.nonce.cache.instance" template is commented out 
+    //since it's not supported/used in the current runtime
     @Test
-    public void testCxfCaller_WithRealmNameEE7Only() throws Exception {
+    public void testCxfCaller_WithRealmName() throws Exception {
         
-    	if (testSAMLServer2 == null) {
-            // 1 server reconfig
-            testSAMLServer.reconfigServer(buildSPServerName("server_2in1_realmName.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        } else {
-            // 2 server reconfig
-            testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_realmName.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-            // shouldn't need to reconfig server 1 - we don't need to change anything there
-            //			testSAMLServer.reconfigServer(buildSPServerName("server_1_realmName.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        }
-
+    	//issue 23060
+    	if ("EE7cbh1".equals(getFeatureVersion())) {
+    	    if (testSAMLServer2 == null) {
+                // 1 server reconfig
+                testSAMLServer.reconfigServer(buildSPServerName("server_2in1_realmName.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            } else {
+                // 2 server reconfig
+                testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_realmName.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+                // shouldn't need to reconfig server 1 - we don't need to change anything there
+                //			testSAMLServer.reconfigServer(buildSPServerName("server_1_realmName.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            }
+    	} else if ("EE7cbh2".equals(getFeatureVersion())) {
+    		if (testSAMLServer2 == null) {
+                // 1 server reconfig
+                testSAMLServer.reconfigServer(buildSPServerName("server_2in1_realmName_ee8.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            } else {
+                // 2 server reconfig
+                testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_realmName_ee8.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+                // shouldn't need to reconfig server 1 - we don't need to change anything there
+                //			testSAMLServer.reconfigServer(buildSPServerName("server_1_realmName.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            }
+    	}
+    	
         // Create the conversation object which will maintain state for us
         String webServiceName = "FatSamlC02Service";
         String webServicePort = "SamlCallerToken02";
@@ -198,90 +197,32 @@ public class CxfSAMLCallerTests extends SAMLCommonTest {
         genericSAML(_testName, webClient, updatedTestSettings, standardFlow, helpers.setDefaultGoodSAMLCXFExpectations(null, flowType, updatedTestSettings));
 
     }
-    
-    //runs EE8 from full fat, EE9 from lite fat
-    //scenario 3 - done
-    @SkipForRepeat({ NO_MODIFICATION })
-    @AllowedFFDC(value = { "java.util.MissingResourceException" }, repeatAction = { EE8FeatureReplacementAction.ID, JakartaEE9Action.ID })
-    @Test
-    public void testCxfCaller_WithRealmName() throws Exception {
-        if (testSAMLServer2 == null) {
-            // 1 server reconfig
-            testSAMLServer.reconfigServer(buildSPServerName("server_2in1_realmName_ee8.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        } else {
-            // 2 server reconfig
-            testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_realmName_ee8.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-            // shouldn't need to reconfig server 1 - we don't need to change anything there
-            //			testSAMLServer.reconfigServer(buildSPServerName("server_1_realmName.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        }
-
-        // Create the conversation object which will maintain state for us
-        String webServiceName = "FatSamlC02Service";
-        String webServicePort = "SamlCallerToken02";
-        String policyName = "CallerHttpsPolicy";
-        String titleToCheck = "CXF SAML Caller Service Client";
-        String partToCheck = "pass:true::FatSamlC02Service";
-        String testMode = "positive";
-        WebClient webClient = SAMLCommonTestHelpers.getWebClient();
-
-        SAMLTestSettings updatedTestSettings = testSettings.copyTestSettings();
-        updatedTestSettings.updatePartnerInSettings("sp1", true);
-        updatedTestSettings.setCXFSettings("testCxfCaller_WithRealmName", "cxf", servicePort, serviceSecurePort, userName, userPass, webServiceName, webServicePort, "", "False", null, null);
-        updatedTestSettings.getCXFSettings().setBodyPartToCheck(partToCheck);
-        updatedTestSettings.getCXFSettings().setTitleToCheck(titleToCheck);
-        updatedTestSettings.getCXFSettings().setTestMode(testMode);
-        genericSAML(_testName, webClient, updatedTestSettings, standardFlow, helpers.setDefaultGoodSAMLCXFExpectations(null, flowType, updatedTestSettings));
-
-    }
-
-    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES })
+ 
     //scenario 5
-    @Test
-    public void testCxfCallerHttpsPolicy_IncludeTokenInSubjectIsFalseEE7Only() throws Exception {
-        
-    	if (testSAMLServer2 == null) {
-            // 1 server reconfig
-            testSAMLServer.reconfigServer(buildSPServerName("server_2in1_asymProtection_TokenInSubFalse.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        } else {
-            // 2 server reconfig
-            testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_asymProtection_TokenInSubFalse.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-            testSAMLServer.reconfigServer(buildSPServerName("server_1_asymProtection.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        }
-
-        // Create the conversation object which will maintain state for us
-        String webServiceName = "FatSamlC04Service";
-        String webServicePort = "SamlCallerToken04";
-        String policyName = "CallerHttpsPolicy";
-        String titleToCheck = "CXF SAML Caller Service Client";
-        String partToCheck = "pass:false::FatSamlC04Service";
-        String testMode = "positive";
-        WebClient webClient = SAMLCommonTestHelpers.getWebClient();
-
-        SAMLTestSettings updatedTestSettings = testSettings.copyTestSettings();
-        updatedTestSettings.updatePartnerInSettings("sp1", true);
-        updatedTestSettings.setCXFSettings("testCxfCallerHttpsPolicy_IncludeTokenInSubjectIsFalse", "cxf", servicePort, serviceSecurePort, userName, userPass, webServiceName, webServicePort, "", "False", null, null);
-        updatedTestSettings.getCXFSettings().setBodyPartToCheck(partToCheck);
-        updatedTestSettings.getCXFSettings().setTitleToCheck(titleToCheck);
-        updatedTestSettings.getCXFSettings().setTestMode(testMode);
-        genericSAML(_testName, webClient, updatedTestSettings, standardFlow, helpers.setDefaultGoodSAMLCXFExpectations(null, flowType, updatedTestSettings));
-        
-    }
-    
-    //runs EE8 from full fat, EE9 from lite fat
-    //scenario 5
-    @SkipForRepeat({ NO_MODIFICATION })
-    @AllowedFFDC(value = { "java.util.MissingResourceException", "java.net.MalformedURLException" }, repeatAction = { EE8FeatureReplacementAction.ID, JakartaEE9Action.ID })
     @Test
     public void testCxfCallerHttpsPolicy_IncludeTokenInSubjectIsFalse() throws Exception {
-        if (testSAMLServer2 == null) {
-            // 1 server reconfig
-            testSAMLServer.reconfigServer(buildSPServerName("server_2in1_asymProtection_TokenInSubFalse_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        } else {
-            // 2 server reconfig
-            testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_asymProtection_TokenInSubFalse_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-            testSAMLServer.reconfigServer(buildSPServerName("server_1_asymProtection_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
-        }
-
+        
+    	//issue 23060
+    	if ("EE7cbh1".equals(getFeatureVersion())) {
+    	    if (testSAMLServer2 == null) {
+                // 1 server reconfig
+                testSAMLServer.reconfigServer(buildSPServerName("server_2in1_asymProtection_TokenInSubFalse.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            } else {
+                // 2 server reconfig
+                testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_asymProtection_TokenInSubFalse.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+                testSAMLServer.reconfigServer(buildSPServerName("server_1_asymProtection.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            }
+    	} else if ("EE7cbh2".equals(getFeatureVersion())) {
+    		if (testSAMLServer2 == null) {
+                // 1 server reconfig
+                testSAMLServer.reconfigServer(buildSPServerName("server_2in1_asymProtection_TokenInSubFalse_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            } else {
+                // 2 server reconfig
+                testSAMLServer2.reconfigServer(buildSPServerName("server_2_caller_asymProtection_TokenInSubFalse_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+                testSAMLServer.reconfigServer(buildSPServerName("server_1_asymProtection_wss4j.xml"), _testName, SAMLConstants.NO_EXTRA_MSGS, SAMLConstants.JUNIT_REPORTING);
+            }
+    	}
+    	
         // Create the conversation object which will maintain state for us
         String webServiceName = "FatSamlC04Service";
         String webServicePort = "SamlCallerToken04";
@@ -300,5 +241,5 @@ public class CxfSAMLCallerTests extends SAMLCommonTest {
         genericSAML(_testName, webClient, updatedTestSettings, standardFlow, helpers.setDefaultGoodSAMLCXFExpectations(null, flowType, updatedTestSettings));
         
     }
-    
+ 
 }

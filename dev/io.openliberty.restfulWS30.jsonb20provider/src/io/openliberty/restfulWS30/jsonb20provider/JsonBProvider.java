@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,20 +34,20 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.spi.JsonbProvider;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
-import javax.ws.rs.ext.Providers;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.spi.JsonbProvider;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.Provider;
+import jakarta.ws.rs.ext.Providers;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -174,7 +176,7 @@ public class JsonBProvider implements MessageBodyWriter<Object>, MessageBodyRead
             CompletionStage.class.equals( ((ParameterizedType)genericType).getRawType())) {
             genericType = ((ParameterizedType)genericType).getActualTypeArguments()[0];
         }
-        Object obj = getJsonb(mediaType).fromJson(entityStream, genericType);
+        Object obj = getJsonb(mediaType, clazz).fromJson(entityStream, genericType);
 
         if (tc.isDebugEnabled()) {
             Tr.debug(tc, "object=" + obj);
@@ -219,7 +221,7 @@ public class JsonBProvider implements MessageBodyWriter<Object>, MessageBodyRead
     @Override
     public void writeTo(Object obj, Class<?> type, Type genericType, Annotation[] annotations,
                         MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-        String json = getJsonb(mediaType).toJson(obj);
+        String json = getJsonb(mediaType, type).toJson(obj);
         entityStream.write(json.getBytes(charset(httpHeaders))); // do not close entityStream
 
         if (tc.isDebugEnabled()) {
@@ -227,10 +229,13 @@ public class JsonBProvider implements MessageBodyWriter<Object>, MessageBodyRead
         }
     }
 
-    private Jsonb getJsonb(MediaType mediaType) {
+    private Jsonb getJsonb(MediaType mediaType, Class<?> clazz) {
         ContextResolver<Jsonb> cr = providers.getContextResolver(Jsonb.class, mediaType);
         if (cr != null) {
-            return cr.getContext(Jsonb.class);
+            Jsonb contextJsonb = cr.getContext(clazz);
+            if (contextJsonb != null) {
+                return contextJsonb;
+            }
         }
 
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -16,8 +18,7 @@ import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-
-import org.jose4j.base64url.SimplePEMEncoder;
+import java.util.Base64;
 
 import componenttest.topology.impl.LibertyServer;
 
@@ -66,7 +67,7 @@ public class KeyTools {
 
         String base64 = privateKeyString.substring(beginIndex, endIndex).trim();
         System.out.println("getPrivateKeyFromPem - base64: " + base64 + " end");
-        byte[] decode = SimplePEMEncoder.decode(base64);
+        byte[] decode = Base64.getDecoder().decode(base64);
 
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decode);
 
@@ -90,7 +91,7 @@ public class KeyTools {
 
         String base64 = publicKeyString.substring(beginIndex, endIndex).trim();
         System.out.println("getPublicKeyFromPem - base64: " + base64 + " end");
-        byte[] decode = SimplePEMEncoder.decode(base64);
+        byte[] decode = Base64.getDecoder().decode(base64);
 
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decode);
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2020 IBM Corporation and others.
+ * Copyright (c) 2011, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -652,6 +654,7 @@ public class FormLoginClient extends ServletClientImpl {
      * Performs a form login to PROTECTED_SIMPLE then a form logout,
      * all using the same HttpClient.
      *
+     * @param logoutOption
      * @param user
      * @param password
      */
@@ -659,13 +662,22 @@ public class FormLoginClient extends ServletClientImpl {
         logger.info("formLogout: logoutOption=" + logoutOption
                     + " user=" + user + " password=" + password);
 
-        try {
-            accessAndAuthenticate(client, servletURL + PROTECTED_SIMPLE, user, password, 200);
-            // Ensure we have a non-null, populated cookie value
-            assertNotNull("The SSO cookie was null", getCookieFromLastLogin());
-            assertFalse("The SSO cookie had an empty String value", "".equals(getCookieFromLastLogin()));
+        accessAndAuthenticate(client, servletURL + PROTECTED_SIMPLE, user, password, 200);
+        // Ensure we have a non-null, populated cookie value
+        assertNotNull("The SSO cookie was null", getCookieFromLastLogin());
+        assertFalse("The SSO cookie had an empty String value", "".equals(getCookieFromLastLogin()));
 
-            // Validate we have the form login page
+        formLogout(logoutOption);
+    }
+
+    /**
+     * Performs a form logout.
+     *
+     * @param logoutOption
+     */
+    public void formLogout(LogoutOption logoutOption) {
+        try {
+            //  Get the form logout page
             HttpGet getMethod = new HttpGet(servletURLForLogout());
             HttpResponse response = client.execute(getMethod);
 

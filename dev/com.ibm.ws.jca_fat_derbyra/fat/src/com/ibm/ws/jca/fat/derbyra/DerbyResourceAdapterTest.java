@@ -1,14 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2021 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.jca.fat.derbyra;
+
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 
@@ -27,6 +31,7 @@ import com.ibm.websphere.simplicity.ShrinkHelper;
 import componenttest.annotation.ExpectedFFDC;
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -69,7 +74,8 @@ public class DerbyResourceAdapterTest extends FATServletClient {
 
         ShrinkHelper.exportToServer(server, "connectors", rar);
 
-        server.addEnvVar("PERMISSION", JakartaEE9Action.isActive() ? "jakarta.resource.spi.security.PasswordCredential" : "javax.resource.spi.security.PasswordCredential");
+        server.addEnvVar("PERMISSION", (JakartaEE9Action.isActive()
+                                        || JakartaEE10Action.isActive()) ? "jakarta.resource.spi.security.PasswordCredential" : "javax.resource.spi.security.PasswordCredential");
         server.addInstalledAppForValidation(derbyRAAppName);
         server.startServer();
 
@@ -233,6 +239,15 @@ public class DerbyResourceAdapterTest extends FATServletClient {
 
     @Test
     public void testErrorInFreeConn() throws Exception {
+        server.setTraceMarkToEndOfDefaultTrace();
         runTest(DerbyRAServlet);
+        assertEquals("J2CA1004I should have been found in logs", 1, server.findStringsInLogsUsingMark("J2CA1004I", server.getDefaultTraceFile()).size());
+    }
+
+    @Test
+    public void testErrorInUsedConn() throws Exception {
+        server.setTraceMarkToEndOfDefaultTrace();
+        runTest(DerbyRAServlet);
+        assertEquals("J2CA0056I should have been found in logs", 1, server.findStringsInLogsUsingMark("J2CA0056I", server.getDefaultTraceFile()).size());
     }
 }

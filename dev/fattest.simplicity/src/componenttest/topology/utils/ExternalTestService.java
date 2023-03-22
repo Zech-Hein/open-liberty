@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -62,15 +64,25 @@ public class ExternalTestService {
     private ExternalTestService(JsonObject data, Map<String, ServiceProperty> props) {
         JsonObject serviceData = data.getJsonObject("Service");
         JsonObject nodeData = data.getJsonObject("Node");
+        String networkLocationProp = getNetworkLocation()+"_address";
+        String address;
 
-        if (!serviceData.getString("Address", "").isEmpty()) {
+        if (props.get(networkLocationProp) != null) {
+            //The service has a private IP on the same network, so use that
+           try {
+                address = props.get(networkLocationProp).getStringValue();
+           } catch(Exception ex) {
+                address = nodeData.getString("Address");
+           }
+        } else if (!serviceData.getString("Address", "").isEmpty()) {
             //Use the service address
-            this.address = serviceData.getString("Address");
+            address = serviceData.getString("Address");
         } else {
             //No Service address so use the node address
-            this.address = nodeData.getString("Address");
+            address = nodeData.getString("Address");
         }
 
+        this.address = address;
         this.serviceName = serviceData.getString("Service");
         this.port = serviceData.getInt("Port", -1);
         this.props = props;
@@ -94,6 +106,12 @@ public class ExternalTestService {
                                 .expectCode(HttpsURLConnection.HTTP_NOT_FOUND)
                                 .run(JsonArray.class);
 
+                if (propertiesJson == null) {
+                    throw new Exception("The Consul server (" + consulServer
+                                        + ") was unavailable or did not return a result for the property: " + propertyName
+                                        + ". Look on #was-liberty-ops for outages, or updates to global.consulServerList");
+                }
+
                 if (propertiesJson.size() != 1) {
                     throw new Exception("Expected to find exactly 1 property but found " + propertiesJson.size() +
                                         ". Full JSON is: " + propertiesJson);
@@ -103,8 +121,8 @@ public class ExternalTestService {
                 if (!propertyObject.containsKey("Value")) {
                     throw new Exception("Property " + propertyName + " was found but contained no value. Full JSON is: " + propertyObject);
                 }
-                String base64Value = propertyObject.getString("Value");
-                return new String(Base64.getDecoder().decode(base64Value));
+                ServiceProperty prop = new ServiceProperty("", propertyName, propertyObject.getString("Value"));
+                return prop.getStringValue();
             } catch (Exception e) {
                 if (firstEx == null)
                     firstEx = e;

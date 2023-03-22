@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2021 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,6 +32,8 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.images.builder.ImageFromDockerfile;
+import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.ImageNameSubstitutor;
 
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.ContainerNetwork;
@@ -100,10 +104,8 @@ public class PebbleContainer extends CAContainer {
 	 */
 	public PebbleContainer() {
 		super(new ImageFromDockerfile()
-				.withDockerfileFromBuilder(builder -> builder
-						.from((ExternalTestServiceDockerClientStrategy.USE_REMOTE_DOCKER_HOST
-								? ArtifactoryImageNameSubstitutor.getPrivateRegistry() + "/"
-								: "") + "letsencrypt/pebble")
+				.withDockerfileFromBuilder(builder -> builder.from(
+						ImageNameSubstitutor.instance().apply(DockerImageName.parse("letsencrypt/pebble")).asCanonicalNameString())
 						.copy("pebble-config.json", "/test/config/pebble-config.json").build())
 				.withFileFromFile("pebble-config.json", PEBBLE_CONFIG_JSON_FILE), 5002, 14000, 15000);
 		challtestsrv.withStartupAttempts(20);
@@ -211,7 +213,7 @@ public class PebbleContainer extends CAContainer {
 			throw new IllegalStateException("Failed to set default mock DNS A and AAAA record IP addresses.", e);
 		}
 
-		Log.info(PebbleContainer.class, "PebbleContainer", "ContainerIpAddress: " + getContainerIpAddress());
+		Log.info(PebbleContainer.class, "PebbleContainer", "ContainerIpAddress: " + getHost());
 		Log.info(PebbleContainer.class, "PebbleContainer", "DockerImageName:    " + getDockerImageName());
 		assertNotNull("getContainerInfo()", getContainerInfo());
 		Log.info(PebbleContainer.class, "PebbleContainer", "ContainerInfo:      " + getContainerInfo());
@@ -232,12 +234,12 @@ public class PebbleContainer extends CAContainer {
 			 * PebbleAcmeProvider and PebbleHttpConnector, which will trust
 			 * Pebble's static self-signed certificate.
 			 */
-			return "acme://pebble/" + this.getContainerIpAddress() + ":" + this.getMappedPort(getAcmeListenPort());
+			return "acme://pebble/" + this.getHost() + ":" + this.getMappedPort(getAcmeListenPort());
 		} else {
 			/*
 			 * This will cause acme4j to use the GenericAcmeProvider.
 			 */
-			return "https://" + this.getContainerIpAddress() + ":" + this.getMappedPort(getAcmeListenPort()) + "/dir";
+			return "https://" + this.getHost() + ":" + this.getMappedPort(getAcmeListenPort()) + "/dir";
 		}
 	}
 
@@ -262,7 +264,7 @@ public class PebbleContainer extends CAContainer {
 
 	@Override
 	protected String getDnsManagementAddress() {
-		return "http://" + challtestsrv.getContainerIpAddress() + ":"
+		return "http://" + challtestsrv.getHost() + ":"
 				+ challtestsrv.getMappedPort(CHALL_MANAGEMENT_PORT);
 	}
 

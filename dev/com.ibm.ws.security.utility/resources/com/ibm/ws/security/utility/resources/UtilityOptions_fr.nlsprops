@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2010, 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -78,6 +80,13 @@ encode.option-desc.listCustom=\tAffiche les informations de chiffrement personna
 \tname : nom pour un algorithme de chiffrement personnalis\u00e9 de mot de passe\n\
 \tfeaturename : nom de la fonction\n\
 \tdescription : description du chiffrement personnalis\u00e9 de mot de passe
+encode.option-key.keyring=\ \ \ \ --keyring=[fichier de cl\u00e9s]
+encode.option-desc.keyring=\tSp\u00e9cifiez le fichier de cl\u00e9s SAF dans lequel se trouve la cl\u00e9 de chiffrement AES.
+encode.option-key.keyringType=\ \ \ \ --keyringType=[Type de fichier de cl\u00e9s]
+encode.option-desc.keyringType=\tSp\u00e9cifiez le type de fichier de cl\u00e9s SAF du fichier de cl\u00e9s dans lequel se trouve le chiffrement\n\
+\tAES.
+encode.option-key.keyLabel=\ \ \ \ --keyLabel=[Libell\u00e9 de cl\u00e9]
+encode.option-desc.keyLabel=\tSp\u00e9cifiez le libell\u00e9 du certificat SAF de la cl\u00e9 de chiffrement AES.
 
 
 

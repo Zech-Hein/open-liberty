@@ -1,0 +1,141 @@
+###############################################################################
+# Copyright (c) 2022, 2023 IBM Corporation and others.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License 2.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
+###############################################################################
+#CMVCPATHNAME io.openliberty.security.oidcclientcore.internal/resources/io/openliberty/security/oidcclientcore/internal/resources/OidcClientCoreMessages.nlsprops
+#COMPONENTPREFIX CWWKS
+#COMPONENTNAMEFOR Security OIDC Client Core
+#ISMESSAGEFILE TRUE
+#NLS_MESSAGEFORMAT_VAR
+#NLS_ENCODING=UNICODE
+# -------------------------------------------------------------------------------------------------
+# Message prefix block: CWWKS2400 - CWWKS2499
+
+ERROR_SENDING_AUTHORIZATION_REQUEST=CWWKS2400E: A(z) {0} OpenID Connect \u00fcgyf\u00e9l hib\u00e1ba \u00fctk\u00f6z\u00f6tt egy jogosults\u00e1gk\u00e9r\u00e9s elk\u00fcld\u00e9sekor az OpenID Connect szolg\u00e1ltat\u00f3nak. {1}
+ERROR_SENDING_AUTHORIZATION_REQUEST.explanation=Lehet, hogy hi\u00e1nyoznak az OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3 inform\u00e1ci\u00f3k, vagy az \u00fcgyf\u00e9l hib\u00e1ba \u00fctk\u00f6z\u00f6tt az OpenID Connect szolg\u00e1ltat\u00f3val folytatott kommunik\u00e1ci\u00f3 sor\u00e1n.
+ERROR_SENDING_AUTHORIZATION_REQUEST.useraction=Tov\u00e1bbi inform\u00e1ci\u00f3k\u00e9rt tekintse meg az \u00fczenetben l\u00e9v\u0151 hib\u00e1t.
+
+OIDC_CLIENT_CONFIGURATION_ERROR=CWWKS2401E: A(z) {0} OpenID Connect \u00fcgyf\u00e9l konfigur\u00e1ci\u00f3ja \u00e9rv\u00e9nytelen, vagy adatok hi\u00e1nyoznak bel\u0151le. {1}
+OIDC_CLIENT_CONFIGURATION_ERROR.explanation=Az OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3b\u00f3l hi\u00e1nyoznak a sz\u00fcks\u00e9ges inform\u00e1ci\u00f3k.
+OIDC_CLIENT_CONFIGURATION_ERROR.useraction=Tov\u00e1bbi inform\u00e1ci\u00f3k\u00e9rt tekintse meg az \u00fczenetben l\u00e9v\u0151 hib\u00e1t. Ellen\u0151rizze, hogy az OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3 teljes \u00e9s pontos-e.
+
+URL_NOT_HTTPS=CWWKS2402E: A(z) {1} OpenID Connect \u00fcgyf\u00e9lhez be\u00e1ll\u00edtott {0} v\u00e9gpont URL nem HTTPS protokollt haszn\u00e1l, de a HTTPS k\u00f6telez\u0151.
+URL_NOT_HTTPS.explanation=A v\u00e9gpont URL csak HTTPS protokollt haszn\u00e1lhat a k\u00e9r\u00e9sek biztons\u00e1g\u00e1nak biztos\u00edt\u00e1s\u00e1ra.
+URL_NOT_HTTPS.useraction=Friss\u00edtse a v\u00e9gpont URL-c\u00edmet, hogy az HTTPS protokollt haszn\u00e1ljon.
+
+DISCOVERY_EXCEPTION=CWWKS2403E: A(z) {0} OpenID Connect \u00fcgyf\u00e9l a k\u00f6vetkez\u0151 hib\u00e1ba \u00fctk\u00f6z\u00f6tt az OpenID Connect szolg\u00e1ltat\u00f3 metaadatainak felt\u00e9rk\u00e9pez\u00e9se sor\u00e1n a(z) [{1}] URL-c\u00edmen: {2}
+DISCOVERY_EXCEPTION.explanation=Lehet, hogy hi\u00e1nyoznak az OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3 inform\u00e1ci\u00f3k, vagy az \u00fcgyf\u00e9l hib\u00e1ba \u00fctk\u00f6z\u00f6tt az OpenID Connect szolg\u00e1ltat\u00f3val folytatott kommunik\u00e1ci\u00f3 sor\u00e1n.
+DISCOVERY_EXCEPTION.useraction=Tov\u00e1bbi inform\u00e1ci\u00f3k\u00e9rt tekintse meg az \u00fczenetben l\u00e9v\u0151 hib\u00e1t.
+
+OIDC_CLIENT_MISSING_PROVIDER_URI=CWWKS2404W: Az OpenID Connect \u00fcgyf\u00e9l nem tudja v\u00e9grehajtani a felt\u00e9rk\u00e9pez\u00e9st, mert a(z) {0} OpenID Connect \u00fcgyf\u00e9l providerURI attrib\u00fatuma null vagy \u00fcres.
+OIDC_CLIENT_MISSING_PROVIDER_URI.explanation=Az OpenID Connect \u00fcgyf\u00e9lnek fel kell t\u00e9rk\u00e9peznie az OpenID Connect szolg\u00e1ltat\u00f3 metaadatait, de az \u00fcgyf\u00e9l nem rendelkezik be\u00e1ll\u00edtott providerURI attrib\u00fatummal.
+OIDC_CLIENT_MISSING_PROVIDER_URI.useraction=Adjon meg egy \u00e9rt\u00e9ket a providerURI attrib\u00fatumnak az OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3ban, vagy gy\u0151z\u0151dj\u00f6n meg r\u00f3la, hogy az OpenID Connect szolg\u00e1ltat\u00f3 metaadatai az \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3ban tartalmazz\u00e1k az OpenID Connect \u00fcgyf\u00e9l \u00e1ltal ig\u00e9nyelt \u00f6sszes adatot.
+
+DISCOVERY_METADATA_MISSING_VALUE=CWWKS2405E: Az OpenID Connect szolg\u00e1ltat\u00f3 metaadataib\u00f3l hi\u00e1nyzik a k\u00f6telez\u0151 [{0}] tulajdons\u00e1g.
+DISCOVERY_METADATA_MISSING_VALUE.explanation=Az \u00fczenetben megadott tulajdons\u00e1gnak szerepelnie kell az OpenID Connect szolg\u00e1ltat\u00f3 metaadataiban, de hi\u00e1nyzik.
+DISCOVERY_METADATA_MISSING_VALUE.useraction=Ellen\u0151rizze, hogy az OpenID Connect \u00fcgyf\u00e9l providerURI attrib\u00fatuma az OpenID Connect szolg\u00e1ltat\u00f3 megfelel\u0151 felt\u00e9rk\u00e9pez\u00e9si URL-c\u00edm\u00e9hez van-e be\u00e1ll\u00edtva.
+
+ERROR_BUILDING_AUTHORIZATION_ENDPOINT_URL=CWWKS2406E: A(z) {0} OpenID Connect \u00fcgyf\u00e9l nem tudja \u00e1tir\u00e1ny\u00edtani a felhaszn\u00e1l\u00f3t a hiteles\u00edt\u00e9si v\u00e9gpontra, mert az \u00fcgyf\u00e9l nem tudja meg\u00e1llap\u00edtani a hiteles\u00edt\u00e9si v\u00e9gpont URL-c\u00edm\u00e9t. {1}
+ERROR_BUILDING_AUTHORIZATION_ENDPOINT_URL.explanation=Az OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3ban a hiteles\u00edt\u00e9si v\u00e9gpont URL-c\u00edm\u00e9nek nem megfelel\u0151 a form\u00e1tuma, vagy hi\u00e1nyzik, illetve az OpenID Connect \u00fcgyf\u00e9l nem tudta lek\u00e9rni a hiteles\u00edt\u00e9si v\u00e9gpont URL-c\u00edm\u00e9t az OpenID Connect szolg\u00e1ltat\u00f3t\u00f3l.
+ERROR_BUILDING_AUTHORIZATION_ENDPOINT_URL.useraction=Tov\u00e1bbi inform\u00e1ci\u00f3k\u00e9rt tekintse meg az \u00fczenetben l\u00e9v\u0151 hib\u00e1t. Ellen\u0151rizze, hogy az OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3 teljes \u00e9s pontos-e.
+
+AUTHENTICATION_RESPONSE_ERROR=CWWKS2407E: A(z) {0} OpenID Connect \u00fcgyf\u00e9l a k\u00f6vetkez\u0151 hib\u00e1ba \u00fctk\u00f6z\u00f6tt az OpenID Connect szolg\u00e1ltat\u00f3 hiteles\u00edt\u00e9si v\u00e1lasz\u00e1nak ellen\u0151rz\u00e9se sor\u00e1n: {1}
+AUTHENTICATION_RESPONSE_ERROR.explanation=Lehet, hogy az OpenID Connect szolg\u00e1ltat\u00f3 v\u00e1lasz\u00e1b\u00f3l inform\u00e1ci\u00f3k hi\u00e1nyoznak. Lehet, hogy a probl\u00e9ma lehet az OpenID Connect szolg\u00e1ltat\u00f3t\u00f3l visszakapott k\u00f3dban van.
+AUTHENTICATION_RESPONSE_ERROR.useraction=Tov\u00e1bbi inform\u00e1ci\u00f3k\u00e9rt tekintse meg az \u00fczenetben l\u00e9v\u0151 hib\u00e1t.
+
+CALLBACK_MISSING_STATE_PARAMETER=CWWKS2408E: Az OpenID Connect szolg\u00e1ltat\u00f3 visszah\u00edv\u00e1si k\u00e9r\u00e9s\u00e9b\u0151l hi\u00e1nyzik az \u00e1llapotparam\u00e9ter.
+CALLBACK_MISSING_STATE_PARAMETER.explanation=Az OpenID Connect szolg\u00e1ltat\u00f3ra vonatkoz\u00f3 jogosults\u00e1gk\u00e9r\u00e9s nem tartalmazott \u00e1llapotparam\u00e9tert.
+CALLBACK_MISSING_STATE_PARAMETER.useraction=Gondoskodj\u00e9k r\u00f3la, hogy az OpenID Connect szolg\u00e1ltat\u00f3ra vonatkoz\u00f3 jogosults\u00e1gk\u00e9r\u00e9s tartalmazzon \u00e1llapot param\u00e9tert.
+
+STATE_VALUE_IN_CALLBACK_INCORRECT_LENGTH=CWWKS2409E: Az OpenID Connect szolg\u00e1ltat\u00f3 visszah\u00edv\u00e1s k\u00e9r\u00e9s\u00e9ben tal\u00e1lhat\u00f3 [{0}] \u00e1llapotparam\u00e9ter nem a megfelel\u0151 hosszal rendelkezik. A param\u00e9ter elv\u00e1rt hossza {1} karakter.
+STATE_VALUE_IN_CALLBACK_INCORRECT_LENGTH.explanation=Lehet, hogy az \u00e1llapot\u00e9rt\u00e9ket csonkolta a rendszer, illetve nem az adott az OpenID Connect \u00fcgyf\u00e9lt\u0151l sz\u00e1rmazik.
+STATE_VALUE_IN_CALLBACK_INCORRECT_LENGTH.useraction=Ellen\u0151rizze az \u00e1llapotparam\u00e9ter form\u00e1tum\u00e1t. Hasonl\u00edtsa \u00f6ssze az \u00e9rt\u00e9ket az adott OpenID Connect \u00fcgyf\u00e9l \u00e1ltal nemr\u00e9giben kezelt OpenID Connect k\u00e9r\u00e9sek \u00e1llapotparam\u00e9tereivel.
+
+STATE_VALUE_IN_CALLBACK_NOT_STORED=CWWKS2410E: Az OpenID Connect \u00fcgyf\u00e9l nem tal\u00e1l olyan \u00e1llapot\u00e9rt\u00e9ket, amely megfelel az OpenID Connect szolg\u00e1ltat\u00f3 visszah\u00edv\u00e1si k\u00e9r\u00e9s\u00e9ben tal\u00e1lhat\u00f3 [{0}] \u00e1llapotparam\u00e9ternek.
+STATE_VALUE_IN_CALLBACK_NOT_STORED.explanation=Lehets\u00e9ges, hogy az \u00e1llapotparam\u00e9ter egy r\u00e9gi jogosults\u00e1gk\u00e9r\u00e9sb\u0151l sz\u00e1rmazik, illetve az \u00e1llapotparam\u00e9ter \u00e9rt\u00e9ke nem megfelel\u0151.
+STATE_VALUE_IN_CALLBACK_NOT_STORED.useraction=Ellen\u0151rizze, hogy a visszah\u00edv\u00e1si k\u00e9r\u00e9sben l\u00e9v\u0151 \u00e1llapotparam\u00e9ter megfelel-e valamilyen friss OpenID Connect k\u00e9r\u00e9s \u00e1llapot\u00e9rt\u00e9k\u00e9nek.
+
+STATE_VALUE_IN_CALLBACK_DOES_NOT_MATCH_STORED_VALUE=CWWKS2411E: A visszah\u00edv\u00e1si k\u00e9r\u00e9sben szerepl\u0151 [{0}] \u00e1llapotparam\u00e9ter nem egyezik meg az OpenID Connect \u00fcgyf\u00e9len t\u00e1rolt \u00e1llapot\u00e9rt\u00e9kkel.
+STATE_VALUE_IN_CALLBACK_DOES_NOT_MATCH_STORED_VALUE.explanation=Lehets\u00e9ges, hogy az \u00e1llapotparam\u00e9ter egy r\u00e9gi jogosults\u00e1gk\u00e9r\u00e9sb\u0151l sz\u00e1rmazik, illetve az \u00e1llapotparam\u00e9ter \u00e9rt\u00e9ke nem megfelel\u0151.
+STATE_VALUE_IN_CALLBACK_DOES_NOT_MATCH_STORED_VALUE.useraction=Ellen\u0151rizze, hogy a visszah\u00edv\u00e1si k\u00e9r\u00e9sben l\u00e9v\u0151 \u00e1llapotparam\u00e9ter megfelel-e valamilyen friss OpenID Connect k\u00e9r\u00e9s \u00e1llapot\u00e9rt\u00e9k\u00e9nek.
+
+STATE_VALUE_IN_CALLBACK_OUTSIDE_ALLOWED_TIME_FRAME=CWWKS2412E: A visszah\u00edv\u00e1si k\u00e9r\u00e9sben szerepl\u0151 [{0}] \u00e1llapotparam\u00e9ter k\u00edv\u00fcl esik az \u00e9rv\u00e9nyes id\u0151keret\u00e9n. Az \u00e1llapot\u00e9rt\u00e9k l\u00e9trehoz\u00e1si id\u0151pontja {1} volt, \u00e9s {2} \u00e9s {3} k\u00f6z\u00f6tt \u00e9rv\u00e9nyes. Az aktu\u00e1lis id\u0151 {4}.
+STATE_VALUE_IN_CALLBACK_OUTSIDE_ALLOWED_TIME_FRAME.explanation=Az OpenID Connect szolg\u00e1ltat\u00f3 t\u00fal k\u00e9s\u0151n v\u00e1laszolt, illetve t\u00fal sok\u00e1ig tartott a felhaszn\u00e1l\u00f3 hiteles\u00edt\u00e9se az OpenID Connect szolg\u00e1ltat\u00f3val.
+STATE_VALUE_IN_CALLBACK_OUTSIDE_ALLOWED_TIME_FRAME.useraction=Gondoskodj\u00e9k r\u00f3la, hogy a felhaszn\u00e1l\u00f3nak ne tartson t\u00fal sok\u00e1ig a hiteles\u00edt\u00e9s az OpenID Connect szolg\u00e1ltat\u00f3val.
+
+CALLBACK_URL_DOES_NOT_MATCH_REDIRECT_URI=CWWKS2413E: A(z) [{0}] visszah\u00edv\u00e1si k\u00e9r\u00e9s URL-c\u00edme nem egyezik meg a(z) {2} OpenID Connect \u00fcgyf\u00e9lhez be\u00e1ll\u00edtott [{1}] \u00e1tir\u00e1ny\u00edt\u00e1si URI-azonos\u00edt\u00f3val.
+CALLBACK_URL_DOES_NOT_MATCH_REDIRECT_URI.explanation=Lehet, hogy az OpenID Connect \u00fcgyf\u00e9l az OpenID Connect szolg\u00e1ltat\u00f3hoz k\u00fcld\u00f6tt jogosults\u00e1gk\u00e9r\u00e9sben m\u00e1s \u00e9rt\u00e9ket haszn\u00e1lt a redirect_uri param\u00e9terben.
+CALLBACK_URL_DOES_NOT_MATCH_REDIRECT_URI.useraction=Ellen\u0151rizze az OpenID Connect \u00fcgyf\u00e9l konfigur\u00e1ci\u00f3j\u00e1t, hogy meggy\u0151z\u0151dj\u00f6n az \u00e1tir\u00e1ny\u00edt\u00e1si URI helyes be\u00e1ll\u00edt\u00e1s\u00e1r\u00f3l.
+
+# Do not translate "error"
+CALLBACK_URL_INCLUDES_ERROR_PARAMETER=CWWKS2414E: Az OpenID Connect szolg\u00e1ltat\u00f3 visszah\u00edv\u00e1si k\u00e9r\u00e9se a k\u00f6vetkez\u0151 hibaparam\u00e9ter-\u00e9rt\u00e9ket tartalmazza: [{0}]
+CALLBACK_URL_INCLUDES_ERROR_PARAMETER.explanation=Az OpenID Connect szolg\u00e1ltat\u00f3 hib\u00e1t \u00e9szlelt, amikor megpr\u00f3b\u00e1lta feldolgozni a hiteles\u00edt\u00e9si k\u00e9r\u00e9st.
+CALLBACK_URL_INCLUDES_ERROR_PARAMETER.useraction=Tov\u00e1bbi inform\u00e1ci\u00f3k\u00e9rt tekintse meg az \u00fczenetben tal\u00e1lhat\u00f3 \u00e9rt\u00e9ket. A hibak\u00f3dokat az RFC 6749 hat\u00e1rozza meg.
+
+TOKEN_VALIDATION_EXCEPTION=CWWKS2415E: A(z) {0} OpenID Connect \u00fcgyf\u00e9l a k\u00f6vetkez\u0151 hib\u00e1ba \u00fctk\u00f6z\u00f6tt az OpenID Connect szolg\u00e1ltat\u00f3t\u00f3l kapott token \u00e9rv\u00e9nyes\u00edt\u00e9se sor\u00e1n: {1}
+TOKEN_VALIDATION_EXCEPTION.explanation=Probl\u00e9ma lehet a kibocs\u00e1t\u00f3, azp, iat vagy exp \u00e1ll\u00edt\u00e1s \u00e9rv\u00e9nyes\u00edt\u00e9s\u00e9vel, illetve a tokenal\u00e1\u00edr\u00e1s \u00e9rv\u00e9nyes\u00edt\u00e9s\u00e9vel.
+TOKEN_VALIDATION_EXCEPTION.useraction=Tov\u00e1bbi inform\u00e1ci\u00f3k\u00e9rt tekintse meg az \u00fczenetben szerepl\u0151 hib\u00e1t.
+
+TOKEN_REQUEST_ERROR=CWWKS2416E: A(z) {0} OpenID Connect \u00fcgyf\u00e9l a k\u00f6vetkez\u0151 hib\u00e1ba \u00fctk\u00f6z\u00f6tt k\u00e9r\u00e9s k\u00fcld\u00e9sekor az OpenID Connect szolg\u00e1ltat\u00f3 token v\u00e9gpontj\u00e1ra: {1}
+TOKEN_REQUEST_ERROR.explanation=Lehet, hogy az OpenID Connect \u00fcgyf\u00e9lr\u0151l inform\u00e1ci\u00f3k hi\u00e1nyoznak, a k\u00e9r\u00e9s a tokenv\u00e9gpontra meghi\u00fasult, vagy egy\u00e9b hiba t\u00f6rt\u00e9nt a tokenv\u00e9gpont v\u00e1lasz\u00e1nak feldolgoz\u00e1sa sor\u00e1n.
+TOKEN_REQUEST_ERROR.useraction=Tov\u00e1bbi inform\u00e1ci\u00f3k\u00e9rt tekintse meg az \u00fczenetben l\u00e9v\u0151 hib\u00e1t. Ellen\u0151rizze, hogy az OpenID Connect szolg\u00e1ltat\u00f3 a hiteles\u00edt\u00e9si v\u00e1laszban adott-e vissza k\u00f3dot.
+
+TOKEN_MISSING_REQUIRED_CLAIM=CWWKS2417E: A kulcssz\u00f3b\u00f3l hi\u00e1nyzik a k\u00f6telez\u0151 [{0}] k\u00f6vetel\u00e9s.
+TOKEN_MISSING_REQUIRED_CLAIM.explanation=Az \u00fczenetben megadott k\u00f6vetel\u00e9snek jelen kell lennie a kulcssz\u00f3ban, de hi\u00e1nyzik.
+TOKEN_MISSING_REQUIRED_CLAIM.useraction=Ellen\u0151rizze az OpenID Connect szolg\u00e1ltat\u00f3t\u00f3l visszaadott kulcssz\u00f3t form\u00e1tum\u00e1t \u00e9s tartalm\u00e1t.
+
+USERINFO_RESPONSE_ERROR=CWWKS2418W: Az OpenID Connect \u00fcgyf\u00e9l a k\u00f6vetkez\u0151 hib\u00e1ba \u00fctk\u00f6z\u00f6tt, amikor k\u00e9r\u00e9st k\u00fcld\u00f6tt az OpenID Connect szolg\u00e1ltat\u00f3 [{0}] User Info URL c\u00edm\u00e9re: {1}
+USERINFO_RESPONSE_ERROR.explanation=Lehet, hogy az OpenID Connect szolg\u00e1ltat\u00f3t\u00f3l \u00e9rkez\u0151 felhaszn\u00e1l\u00f3i inform\u00e1ci\u00f3k hib\u00e1sak vagy hi\u00e1nyoznak, illetve az OpenID Connect szolg\u00e1ltat\u00f3 hib\u00e1ba \u00fctk\u00f6z\u00f6tt a k\u00e9r\u00e9s kezel\u00e9se sor\u00e1n.
+USERINFO_RESPONSE_ERROR.useraction=Tov\u00e1bbi inform\u00e1ci\u00f3k\u00e9rt tekintse meg az \u00fczenetben szerepl\u0151 hib\u00e1t. Ellen\u0151rizze, hogy az OpenID Connect szolg\u00e1ltat\u00f3 User Info URL-c\u00edme helyes-e.
+
+USERINFO_RESPONSE_NOT_200=CWWKS2419W: Az OpenID Connect szolg\u00e1ltat\u00f3 [{0}] User Info URL-c\u00edme {1} HTTP \u00e1llapotk\u00f3dot adott vissza. Az OpenID Connect szolg\u00e1ltat\u00f3 a k\u00f6vetkez\u0151 v\u00e1laszt adta vissza: {2}
+USERINFO_RESPONSE_NOT_200.explanation=Az OpenID Connect \u00fcgyf\u00e9l nem kapott sikeres v\u00e1laszt az OpenID Connect szolg\u00e1ltat\u00f3t\u00f3l.
+USERINFO_RESPONSE_NOT_200.useraction=Tov\u00e1bbi inform\u00e1ci\u00f3k\u00e9rt tekintse meg az \u00e1llapotk\u00f3dot \u00e9s a hibav\u00e1laszt az \u00fczenetben.
+
+VERIFICATION_KEY_ERROR=CWWKS2420E: A(z) {0} OpenID Connect \u00fcgyf\u00e9l a k\u00f6vetkez\u0151 hib\u00e1ba \u00fctk\u00f6z\u00f6tt, amikor az azonos\u00edt\u00f3 token ellen\u0151rz\u00e9se \u00e9rdek\u00e9ben megpr\u00f3b\u00e1lta lek\u00e9rni a kulcsot az OpenID Connect szolg\u00e1ltat\u00f3t\u00f3l: {1}
+VERIFICATION_KEY_ERROR.explanation=Lehet, hogy hi\u00e1nyzik az ellen\u0151rz\u0151 kulcs, az OpenID Connect \u00fcgyf\u00e9l hib\u00e1ba \u00fctk\u00f6z\u00f6tt a kulcs lek\u00e9r\u00e9sekor az OpenID Connect szolg\u00e1ltat\u00f3t\u00f3l, illetve m\u00e1s hiba t\u00f6rt\u00e9nt.
+VERIFICATION_KEY_ERROR.useraction=Tov\u00e1bbi inform\u00e1ci\u00f3k\u00e9rt tekintse meg az \u00fczenetben szerepl\u0151 hib\u00e1t.
+
+# Do not translate "jwksConnectTimeout"
+JWK_CONNECTION_TIMED_OUT=CWWKS2421E: Az OpenID Connect \u00fcgyf\u00e9l nem tudott csatlakozni az OpenID Connect szolg\u00e1ltat\u00f3 [{0}] JWK URI-azonos\u00edt\u00f3j\u00e1hoz {1} ezredm\u00e1sodpercen bel\u00fcl. Fontolja meg a jwksConnectTimeout tulajdons\u00e1g friss\u00edt\u00e9s\u00e9t az OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3ban.
+JWK_CONNECTION_TIMED_OUT.explanation=Az OpenID Connect \u00fcgyf\u00e9l nem tud kapcsolatot l\u00e9tes\u00edteni a JWK URI-azonos\u00edt\u00f3val a be\u00e1ll\u00edtott id\u0151kereten bel\u00fcl.
+JWK_CONNECTION_TIMED_OUT.useraction=Friss\u00edtse a jwksConnectTimeout tulajdons\u00e1got az OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3ban. Ellen\u0151rizze, hogy az OpenID Connect szolg\u00e1ltat\u00f3 el\u00e9rhet\u0151-e.
+
+# Do not translate "jwksReadTimeout"
+JWK_READ_TIMED_OUT=CWWKS2422E: Az OpenID Connect \u00fcgyf\u00e9l nem tudta kiolvasni az adatokat az OpenID Connect szolg\u00e1ltat\u00f3 [{0}] JWK URI-azonos\u00edt\u00f3j\u00e1b\u00f3l {1} ezredm\u00e1sodpercen bel\u00fcl. Fontolja meg a jwksReadTimeout tulajdons\u00e1g friss\u00edt\u00e9s\u00e9t az OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3ban.
+JWK_READ_TIMED_OUT.explanation=Az OpenID Connect \u00fcgyf\u00e9l nem tudja beolvasni a JWK adatokat a JWK URI-azonos\u00edt\u00f3b\u00f3l a be\u00e1ll\u00edtott id\u0151kereten bel\u00fcl.
+JWK_READ_TIMED_OUT.useraction=Friss\u00edtse a jwksReadTimeout tulajdons\u00e1got az OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3ban. Ellen\u0151rizze, hogy az OpenID Connect szolg\u00e1ltat\u00f3 el\u00e9rhet\u0151-e.
+
+OIDC_CLIENT_INVALID_RESPONSE_TYPE=CWWKS2423E: A k\u00f6vetkez\u0151 \u00e9rv\u00e9nytelen v\u00e1laszt\u00edpus van megadva: ''{0}''. Az \u00e9rv\u00e9nyes v\u00e1laszt\u00edpusok: [{1}].
+OIDC_CLIENT_INVALID_RESPONSE_TYPE.explanation=A megadott v\u00e1laszt\u00edpus \u00e9rv\u00e9nytelen. 
+OIDC_CLIENT_INVALID_RESPONSE_TYPE.useraction=Adja meg az \u00e9rv\u00e9nyes v\u00e1laszt\u00edpusok egyik\u00e9t.
+
+TOKEN_CLAIM_VALUE_MISMATCH=CWWKS2424E: A(z) [{0}] \u00e9rt\u00e9k [{1}] k\u00f6vetel\u00e9se nem felel meg a(z) [{2}] v\u00e1rt \u00e9rt\u00e9knek.
+TOKEN_CLAIM_VALUE_MISMATCH.explanation=A k\u00f6vetel\u00e9si \u00e9rt\u00e9k helytelen vagy rossz form\u00e1tum\u00fa. Az OpenID Connect \u00fcgyf\u00e9l konfigur\u00e1ci\u00f3ja helytelen lehet, vagy a kulcssz\u00f3 helytelen \u00e9rt\u00e9kekkel ker\u00fclt l\u00e9trehoz\u00e1sra.
+TOKEN_CLAIM_VALUE_MISMATCH.useraction=Gy\u0151z\u0151dj\u00f6n meg r\u00f3la, hogy az \u00fczenetben megadott k\u00f6vetel\u00e9shez kapcsol\u00f3d\u00f3 OpenID Connect \u00fcgyf\u00e9l-konfigur\u00e1ci\u00f3ban tal\u00e1lhat\u00f3 attrib\u00fatum helyesen van be\u00e1ll\u00edtva.
+
+TOKEN_MISSING_CLAIMS=CWWKS2425E: A {0} OpenID Connect \u00fcgyf\u00e9l token \u00e9rv\u00e9nytelen. A JwtContext objektum jwtClaims \u00e9rt\u00e9ke null vagy \u00fcres.
+TOKEN_MISSING_CLAIMS.explanation=Hi\u00e1nyz\u00f3 inform\u00e1ci\u00f3k hi\u00e1nyoznak a tokenb\u0151l \u00e9s a token \u00e9rv\u00e9nyes\u00edt\u00e9se nem hajthat\u00f3 v\u00e9gre.
+TOKEN_MISSING_CLAIMS.useraction=A hib\u00e1val kapcsolatos r\u00e9szletek\u00e9rt tekintse \u00e1t a napl\u00f3ban a kor\u00e1bbi hib\u00e1kat. Ellen\u0151rizze az OpenID Connect szolg\u00e1ltat\u00f3t\u00f3l visszaadott kulcssz\u00f3t form\u00e1tum\u00e1t \u00e9s tartalm\u00e1t.
+
+TOKEN_EMPTY_CLAIM=CWWKS2426E: A token \u00fcres [{0}] k\u00f6vetel\u00e9ssel rendelkezik.
+TOKEN_EMPTY_CLAIM.explanation=Az \u00fczenetben megadott k\u00f6vetel\u00e9snek \u00e9rv\u00e9nyes \u00e9rt\u00e9kkel kell rendelkeznie.
+TOKEN_EMPTY_CLAIM.useraction=Az OpenID Connect szolg\u00e1ltat\u00f3 \u00fcres k\u00f6vetel\u00e9ssel ad vissza egy azonos\u00edt\u00f3 tokent. Ha a k\u00f6vetel\u00e9s jelen van, akkor \u00e9rv\u00e9nyes \u00e9rt\u00e9ket kell tartalmaznia. Ellen\u0151rizze az OpenID Connect szolg\u00e1ltat\u00f3t\u00f3l visszaadott kulcssz\u00f3t form\u00e1tum\u00e1t \u00e9s tartalm\u00e1t.
+
+TOKEN_EXP_IN_PAST=CWWKS2427E: A token nem \u00e9rv\u00e9nyes, mert az \u00e9rv\u00e9nyess\u00e9ge lej\u00e1rt. A token lej\u00e1rati ideje: [{0}]. Az aktu\u00e1lis id\u0151, m\u00ednusz az \u00f3rajel elt\u00e9r\u00e9se: [{1}]. A be\u00e1ll\u00edtott \u00f3raelt\u00e9r\u00e9s {2} m\u00e1sodperc.
+TOKEN_EXP_IN_PAST.explanation=A lej\u00e1rt tokenek nem \u00e9rv\u00e9nyesek.
+TOKEN_EXP_IN_PAST.useraction=Szerezzen be egy \u00e9rv\u00e9nyes \u00faj tokent. Szinkroniz\u00e1lja a tokenkibocs\u00e1t\u00f3 \u00e9s a OpenID Connect \u00fcgyf\u00e9l k\u00f6z\u00f6tti id\u0151pontokat.
+
+TOKEN_CLAIM_IN_FUTURE=CWWKS2428E: A token \u00e9rv\u00e9nytelen a [{0}] \u00e9rt\u00e9k miatt a [{1}] k\u00f6vetel\u00e9shez a j\u00f6v\u0151ben. Az aktu\u00e1lis id\u0151 \u00e9s \u00f3raelt\u00e9r\u00e9s \u00f6sszege [{2}], \u00e9s a be\u00e1ll\u00edtott \u00f3raelt\u00e9r\u00e9s {3} m\u00e1sodperc.
+TOKEN_CLAIM_IN_FUTURE.explanation=A k\u00f6vetel\u00e9shez tartoz\u00f3 \u00fczenetben megadott \u00e9rt\u00e9knek a m\u00faltban kell lennie.
+TOKEN_CLAIM_IN_FUTURE.useraction=Az \u00fczenetben megadott id\u0151 ut\u00e1n haszn\u00e1lja a tokent, vagy szerezzen be egy \u00faj tokent.
+
+TOKEN_RESPONSE_MISSING_PARAMETER=CWWKS2429E: Az OpenID Connect szolg\u00e1ltat\u00f3t\u00f3l legal\u00e1bb egy k\u00f6telez\u0151 param\u00e9ter hi\u00e1nyzik: {0}.
+TOKEN_RESPONSE_MISSING_PARAMETER.explanation=Vagy a OpenID Connect szolg\u00e1ltat\u00f3 nem adott vissza k\u00f6telez\u0151 param\u00e9tert, vagy nem tudta feldolgozni a token k\u00e9r\u00e9st.
+TOKEN_RESPONSE_MISSING_PARAMETER.useraction=Ellen\u0151rizze, hogy a be\u00e1ll\u00edtott token v\u00e9gpont helyes \u00e9s k\u00e9pes-e az OAuth token k\u00e9r\u00e9sek megv\u00e1laszol\u00e1s\u00e1ra.
+

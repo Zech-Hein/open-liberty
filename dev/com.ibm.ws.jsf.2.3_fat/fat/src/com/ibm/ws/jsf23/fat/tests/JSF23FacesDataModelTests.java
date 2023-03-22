@@ -1,12 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 IBM Corporation and others.
+ * Copyright (c) 2017, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 package com.ibm.ws.jsf23.fat.tests;
 
@@ -43,23 +42,23 @@ public class JSF23FacesDataModelTests {
     @Rule
     public TestName name = new TestName();
 
-    @Server("jsf23CDIServer")
-    public static LibertyServer jsf23CDIServer;
+    @Server("jsf23FacesDataModelServer")
+    public static LibertyServer server;
 
     @BeforeClass
     public static void setup() throws Exception {
-        ShrinkHelper.defaultDropinApp(jsf23CDIServer, "FacesDataModel.war", "com.ibm.ws.jsf23.fat.datamodel");
+        ShrinkHelper.defaultDropinApp(server, "FacesDataModel.war", "com.ibm.ws.jsf23.fat.datamodel");
 
         // Start the server and use the class name so we can find logs easily.
         // Many tests use the same server.
-        jsf23CDIServer.startServer(JSF23FacesDataModelTests.class.getSimpleName() + ".log");
+        server.startServer(JSF23FacesDataModelTests.class.getSimpleName() + ".log");
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
         // Stop the server
-        if (jsf23CDIServer != null && jsf23CDIServer.isStarted()) {
-            jsf23CDIServer.stopServer();
+        if (server != null && server.isStarted()) {
+            server.stopServer();
         }
     }
 
@@ -76,7 +75,7 @@ public class JSF23FacesDataModelTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23CDIServer, contextRoot, "UIRepeatFacesDataModel.jsf");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "UIRepeatFacesDataModel.jsf");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -114,7 +113,7 @@ public class JSF23FacesDataModelTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23CDIServer, contextRoot, "UIDataFacesDataModel.jsf");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "UIDataFacesDataModel.jsf");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -155,7 +154,7 @@ public class JSF23FacesDataModelTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23CDIServer, contextRoot, "UIDataFacesDataModelChild.jsf");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "UIDataFacesDataModelChild.jsf");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -196,7 +195,7 @@ public class JSF23FacesDataModelTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23CDIServer, contextRoot, "UIRepeatFacesDataModelChild.jsf");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "UIRepeatFacesDataModelChild.jsf");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 

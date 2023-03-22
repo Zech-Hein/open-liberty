@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -185,18 +187,18 @@ public class SQLRecoverableUnitSectionImpl implements RecoverableUnitSection {
      * creation of a recoverable unit section or recreation during server startup.
      * </p>
      *
-     * @param recLog                  The recovery log that contains this recoverable unit section.
-     * @param recUnit                 The recoverable unit that contains this recoverable unit section.
+     * @param recLog The recovery log that contains this recoverable unit section.
+     * @param recUnit The recoverable unit that contains this recoverable unit section.
      * @param recoverableUnitIdentity The identity of the recoverable unit that contains
-     *                                    this recoverable unit section)
-     * @param identity                The identity of the new recoverable unit section (unique within
-     *                                    the recoverable unit)
-     * @param singleData              Boolean flag to indicate if this recoverable unit section can
-     *                                    hold just a single item of data at a time. If this is true
-     *                                    then the recoverable unit section will replace any current
-     *                                    data item with a new item on an addData call. If this is
-     *                                    false, the recoverable unit section will accumulate data
-     *                                    items on successive addData calls.
+     *            this recoverable unit section)
+     * @param identity The identity of the new recoverable unit section (unique within
+     *            the recoverable unit)
+     * @param singleData Boolean flag to indicate if this recoverable unit section can
+     *            hold just a single item of data at a time. If this is true
+     *            then the recoverable unit section will replace any current
+     *            data item with a new item on an addData call. If this is
+     *            false, the recoverable unit section will accumulate data
+     *            items on successive addData calls.
      */
     SQLRecoverableUnitSectionImpl(SQLMultiScopeRecoveryLog recLog, SQLRecoverableUnitImpl recUnit, long recoverableUnitIdentity, int identity, boolean singleData) {
         if (tc.isEntryEnabled())
@@ -353,6 +355,9 @@ public class SQLRecoverableUnitSectionImpl implements RecoverableUnitSection {
         if (index == currentSize)
             _writtenData.add(/* index, */ data);
         else if (index < currentSize) {
+            // This debug is a legacy to "NM". Please retain as it is useful when testing for the presence of duplicate db
+            // tranlog records. Duplicates are handled successfully, but this bit of debug is evidence for their presence
+            // and is used in the com.ibm.ws.transaction.<DBTYPE>HADB_FAT tests.
             if (tc.isDebugEnabled())
                 Tr.debug(tc, "NMTEST: Replacing item (expect trace 'null') at index: " + index, _writtenData.get(index));
             _writtenData.set(index, data);

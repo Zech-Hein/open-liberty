@@ -1,0 +1,100 @@
+<!--
+    Copyright (c) 2022 IBM Corporation and others.
+    All rights reserved. This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License 2.0
+    which accompanies this distribution, and is available at
+    http://www.eclipse.org/legal/epl-2.0/
+    
+    SPDX-License-Identifier: EPL-2.0
+   
+    Contributors:
+        IBM Corporation - initial API and implementation
+ -->
+<server>
+
+	<featureManager>
+		<feature>appSecurity-3.0</feature>
+		<feature>socialLogin-1.0</feature>
+		<feature>jaxrs-2.1</feature>
+	</featureManager>
+
+
+	<!--
+		Include common configuration. 
+	 -->
+	<include
+		location="${shared.resource.dir}/configs/testingConfig.xml" />
+	<include
+		location="${shared.resource.dir}/configs/httpEndpoint2.xml" />
+	<include
+		location="${shared.resource.dir}/configs/basicRegistry.xml" />
+	<include
+		location="${shared.resource.dir}/configs/customLoginModule.xml" />
+	<include
+		location="${shared.resource.dir}/configs/libraries.xml" />
+	<include
+		location="${shared.resource.dir}/configs/appHelloWorld.xml" />
+
+	<!-- 
+		We need to generate the truststore in the test since it will need to contain
+		the IDP's cert.
+	 -->
+	<include
+		location="${shared.resource.dir}/configs/ssl.xml" />
+	<ssl id="defaultSSLConfig" trustDefaultCerts="true"
+		keyStoreRef="defaultKeyStore" trustStoreRef="defaultTrustStore" />
+	<keyStore id="defaultTrustStore"
+		location="${server.config.dir}/resources/security/truststore.p12"
+		password="trustPassword" />
+		
+    <!-- 
+        Configure the CachingProvider and CacheManager.
+     -->
+	<cachingProvider id="CachingProvider"
+		providerClass="org.infinispan.jcache.remote.JCachingProvider"
+		jCacheLibraryRef="InfinispanLib" commonLibraryRef="CustomLoginLib" />
+
+	<cacheManager id="CacheManager"
+		cachingProviderRef="CachingProvider"
+		uri="file:///${shared.resource.dir}/infinispan/${infinispan.hotrod.file}">
+		
+        <!-- 
+             The system property can't be read from the Hotrod properties file, so define it here.
+         -->
+		<properties
+			infinispan.client.hotrod.uri="${infinispan.client.hotrod.uri}" />
+
+	</cacheManager>
+
+	<!--
+		Configure the JCache instances.
+	 -->
+	<cache id="AuthCache" name="AuthCache"
+		cacheManagerRef="CacheManager" />
+
+	<!-- 
+		Configure the authentication cache to use the JCache. 
+	 -->
+	<authCache cacheRef="AuthCache" />
+
+	<!--
+		OAuth 2.0 configuration. Some of this configuration is generated at runtime as
+		it points to the Keycloak endpoints.
+	 -->
+	<oauth2Login id="keycloakLogin" 
+                 clientId="oauth_client"
+                 clientSecret="FILL ME IN"
+                 scope="email roles profile"
+                 authorizationEndpoint="FILL ME IN"
+                 tokenEndpoint="FILL ME IN"
+                 userApi="FILL ME IN"
+                 userNameAttribute="preferred_username" 
+                 userApiNeedsSpecialHeader="true">
+                 
+		<jwt builder="myJwtBuilder" />
+                 
+	</oauth2Login>
+	
+    <jwtBuilder id="myJwtBuilder"/>
+
+</server>

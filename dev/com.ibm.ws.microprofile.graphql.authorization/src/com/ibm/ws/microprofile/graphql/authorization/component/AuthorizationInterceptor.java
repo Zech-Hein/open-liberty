@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,8 @@
 package com.ibm.ws.microprofile.graphql.authorization.component;
 
 import java.lang.reflect.Method;
+import java.security.Principal;
+import java.util.function.Supplier;
 
 import javax.annotation.Priority;
 import javax.enterprise.context.Dependent;
@@ -35,6 +39,12 @@ public class AuthorizationInterceptor {
 
     private final static TraceComponent tc = Tr.register(AuthorizationInterceptor.class);
     private final static AuthorizationFilter AUTH_FILTER = AuthorizationFilter.getInstance();
+    private final static Supplier<Principal> AUTH_FILTER_PRINCIPAL = new Supplier<Principal>() {
+        @Override
+        public Principal get() {
+            return AUTH_FILTER.getUserPrincipal();
+        }
+    };
 
     @AroundInvoke
     public Object checkAuthorized(InvocationContext ctx) throws Exception {
@@ -53,12 +63,14 @@ public class AuthorizationInterceptor {
     @FFDCIgnore({UnauthenticatedException.class})
     private boolean isAuthorized(Method m) {
         try {
-            return RoleMethodAuthUtil.parseMethodSecurity(m, 
-                    AUTH_FILTER.getUserPrincipal(), AUTH_FILTER::isUserInRole);
+            return RoleMethodAuthUtil.parseMethodSecurity(m,
+                AUTH_FILTER_PRINCIPAL,
+                AUTH_FILTER::isUserInRole);
         } catch (UnauthenticatedException ex) {
             try {
-                return AUTH_FILTER.authenticate() && RoleMethodAuthUtil.parseMethodSecurity(m, 
-                        AUTH_FILTER.getUserPrincipal(), AUTH_FILTER::isUserInRole);
+                return AUTH_FILTER.authenticate() && RoleMethodAuthUtil.parseMethodSecurity(m,
+                    AUTH_FILTER_PRINCIPAL,
+                    AUTH_FILTER::isUserInRole);
             } catch (Throwable t) {
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                     Tr.debug(tc, "Failed to authenticate or failed auth check", t);

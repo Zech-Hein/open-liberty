@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -110,8 +112,10 @@ public class TestAsyncReadServlet extends HttpServlet {
         }
 
         else if (req.getHeader("TestToCall").toString().equals("test_ReadVariousInputDataSizes_AsyncRL")) {
-            if (req.getHeader("TestInputData").toString().equals("1024000"))
-                ac.setTimeout(75000); //set longer timeout in case of network latency, issue 17013
+            if (req.getHeader("TestInputData").toString().equals("1024000")) {
+                LOG.info("TestAsyncReadServlet, setting async timeout to 300000 for big data");
+                ac.setTimeout(300000); //set longer timeout in case of network latency, issue 17013, 18624
+            }
 
             ReadListener readListener = new TestAsyncReadListener(input, res, ac, req, "test_ReadVariousInputDataSizes_AsyncRL");
             input.setReadListener(readListener);

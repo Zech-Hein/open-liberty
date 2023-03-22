@@ -1,12 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 IBM Corporation and others.
+ * Copyright (c) 2017, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 package com.ibm.ws.jsf23.fat.tests;
 
@@ -44,6 +43,7 @@ import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 
@@ -59,13 +59,13 @@ public class JSF23GeneralTests {
     @Rule
     public TestName name = new TestName();
 
-    @Server("jsf23Server")
-    public static LibertyServer jsf23Server;
+    @Server("jsf23GeneralServer")
+    public static LibertyServer server;
 
     @BeforeClass
     public static void setup() throws Exception {
-        ShrinkHelper.defaultDropinApp(jsf23Server, "FacesServletExactMapping.war");
-        ShrinkHelper.defaultDropinApp(jsf23Server, "JSF23GeneralTests.war", "com.ibm.ws.jsf23.fat.generaltests.listeners");
+        ShrinkHelper.defaultDropinApp(server, "FacesServletExactMapping.war");
+        ShrinkHelper.defaultDropinApp(server, "JSF23GeneralTests.war", "com.ibm.ws.jsf23.fat.generaltests.listeners");
 
         // Create the PhaseListenerExceptionJar that is used in PerViewPhaseListenerDoNotQueueException.war,
         // PerViewPhaseListenerQueueException.war, and GlobalPhaseListenerQueueException.war
@@ -76,36 +76,36 @@ public class JSF23GeneralTests {
         WebArchive perViewPhaseListenerDoNotQueueExceptionWar = ShrinkWrap.create(WebArchive.class, "PerViewPhaseListenerDoNotQueueException.war");
         perViewPhaseListenerDoNotQueueExceptionWar.addAsLibrary(phaseListenerExceptionJar);
         ShrinkHelper.addDirectory(perViewPhaseListenerDoNotQueueExceptionWar, "test-applications/" + "PerViewPhaseListenerDoNotQueueException.war" + "/resources");
-        ShrinkHelper.exportToServer(jsf23Server, "dropins", perViewPhaseListenerDoNotQueueExceptionWar);
+        ShrinkHelper.exportToServer(server, "dropins", perViewPhaseListenerDoNotQueueExceptionWar);
 
         // Create the PerViewPhaseListenerQueueException.war application
         WebArchive perViewPhaseListenerQueueExceptionWar = ShrinkWrap.create(WebArchive.class, "PerViewPhaseListenerQueueException.war");
         perViewPhaseListenerQueueExceptionWar.addAsLibrary(phaseListenerExceptionJar);
         ShrinkHelper.addDirectory(perViewPhaseListenerQueueExceptionWar, "test-applications/" + "PerViewPhaseListenerQueueException.war" + "/resources");
-        ShrinkHelper.exportToServer(jsf23Server, "dropins", perViewPhaseListenerQueueExceptionWar);
+        ShrinkHelper.exportToServer(server, "dropins", perViewPhaseListenerQueueExceptionWar);
 
         // Create the GlobalPhaseListenerQueueException.war application
         WebArchive globalPhaseListenerQueueExceptionWar = ShrinkWrap.create(WebArchive.class, "GlobalPhaseListenerQueueException.war");
         globalPhaseListenerQueueExceptionWar.addAsLibrary(phaseListenerExceptionJar);
         ShrinkHelper.addDirectory(globalPhaseListenerQueueExceptionWar, "test-applications/" + "GlobalPhaseListenerQueueException.war" + "/resources");
-        ShrinkHelper.exportToServer(jsf23Server, "dropins", globalPhaseListenerQueueExceptionWar);
+        ShrinkHelper.exportToServer(server, "dropins", globalPhaseListenerQueueExceptionWar);
 
-        ShrinkHelper.defaultDropinApp(jsf23Server, "JSF23Spec1430.war", "com.ibm.ws.jsf23.fat.spec1430");
-        ShrinkHelper.defaultDropinApp(jsf23Server, "JSF23Spec1346.war", "com.ibm.ws.jsf23.fat.spec1346");
-        ShrinkHelper.defaultDropinApp(jsf23Server, "JSF23DisableFacesServletToXhtml.war");
-        ShrinkHelper.defaultDropinApp(jsf23Server, "JSF23ViewActionFlowEntry.war");
-        ShrinkHelper.defaultDropinApp(jsf23Server, "JSF23Spec1113.war");
+        ShrinkHelper.defaultDropinApp(server, "JSF23Spec1430.war", "com.ibm.ws.jsf23.fat.spec1430");
+        ShrinkHelper.defaultDropinApp(server, "JSF23Spec1346.war", "com.ibm.ws.jsf23.fat.spec1346");
+        ShrinkHelper.defaultDropinApp(server, "JSF23DisableFacesServletToXhtml.war");
+        ShrinkHelper.defaultDropinApp(server, "JSF23ViewActionFlowEntry.war");
+        ShrinkHelper.defaultDropinApp(server, "JSF23Spec1113.war");
 
         // Start the server and use the class name so we can find logs easily.
         // Many tests use the same server.
-        jsf23Server.startServer(JSF23GeneralTests.class.getSimpleName() + ".log");
+        server.startServer(JSF23GeneralTests.class.getSimpleName() + ".log");
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
         // Stop the server
-        if (jsf23Server != null && jsf23Server.isStarted()) {
-            jsf23Server.stopServer();
+        if (server != null && server.isStarted()) {
+            server.stopServer();
         }
     }
 
@@ -130,7 +130,7 @@ public class JSF23GeneralTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "exactMapping");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "exactMapping");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -140,7 +140,7 @@ public class JSF23GeneralTests {
 
             assertTrue("The correct page was not invoked.", page.getElementById("form1:out1").getTextContent().equals("exactMapping.xhtml invoked"));
 
-            url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "test/exactMapping");
+            url = JSFUtils.createHttpUrl(server, contextRoot, "test/exactMapping");
 
             page = (HtmlPage) webClient.getPage(url);
 
@@ -163,7 +163,7 @@ public class JSF23GeneralTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "JSF23APIConstants.xhtml");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "JSF23APIConstants.xhtml");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -173,31 +173,37 @@ public class JSF23GeneralTests {
 
             // Check the value of each API constant
             String output = page.getElementById("out1").getTextContent();
-            assertTrue("The value of javax.faces.application.ResourceHandler.JSF_SCRIPT_RESOURCE_NAME was incorrect: " + output,
-                       output.equals("jsf.js"));
+
+            if (JakartaEE10Action.isActive()) {
+                assertTrue("The value of jakarta.faces.application.ResourceHandler.JSF_SCRIPT_RESOURCE_NAME was incorrect: " + output,
+                           output.equals("faces.js"));
+            } else {
+                assertTrue("The value of javax.faces.application.ResourceHandler.JSF_SCRIPT_RESOURCE_NAME was incorrect: " + output,
+                           output.equals("jsf.js"));
+            }
 
             output = page.getElementById("out2").getTextContent();
 
             String expected = "javax.faces";
 
-            if(JakartaEE9Action.isActive()){
-              expected = "jakarta.faces";
+            if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
+                expected = "jakarta.faces";
             }
 
-            assertTrue("The value of javax.faces.application.ResourceHandler.JSF_SCRIPT_LIBRARY_NAME was incorrect: " + output,
+            assertTrue("The value of " + expected + ".faces.application.ResourceHandler.JSF_SCRIPT_LIBRARY_NAME was incorrect: " + output,
                        output.equals(expected));
 
             output = page.getElementById("out3").getTextContent();
-            assertTrue("The value of javax.faces.component.behavior.ClientBehaviorContext.BEHAVIOR_SOURCE_PARAM_NAME was incorrect: " + output,
+            assertTrue("The value of " + expected + ".faces.component.behavior.ClientBehaviorContext.BEHAVIOR_SOURCE_PARAM_NAME was incorrect: " + output,
                        output.equals(expected + ".source"));
 
             output = page.getElementById("out4").getTextContent();
-            assertTrue("The value of javax.faces.component.behavior.ClientBehaviorContext.BEHAVIOR_EVENT_PARAM_NAME was incorrect: " + output,
-                       output.equals(expected +".behavior.event"));
+            assertTrue("The value of " + expected + ".faces.component.behavior.ClientBehaviorContext.BEHAVIOR_EVENT_PARAM_NAME was incorrect: " + output,
+                       output.equals(expected + ".behavior.event"));
 
             output = page.getElementById("out5").getTextContent();
-            assertTrue("The value of javax.faces.context.PartialViewContext.PARTIAL_EVENT_PARAM_NAME was incorrect: " + output,
-                       output.equals(expected +".partial.event"));
+            assertTrue("The value of " + expected + ".faces.context.PartialViewContext.PARTIAL_EVENT_PARAM_NAME was incorrect: " + output,
+                       output.equals(expected + ".partial.event"));
         }
     }
 
@@ -215,7 +221,7 @@ public class JSF23GeneralTests {
      */
     @Test
     public void testSystemEventGetFacesContextMethod() throws Exception {
-        List<String> result = jsf23Server.findStringsInLogs("PostConstructApplicationEventListener processEvent invoked!!");
+        List<String> result = server.findStringsInLogs("PostConstructApplicationEventListener processEvent invoked!!");
         assertTrue("The SystemEvent.getFacesContext() method did not work.", result.size() == 1);
     }
 
@@ -237,7 +243,7 @@ public class JSF23GeneralTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "JSF23FacesEvent.xhtml");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "JSF23FacesEvent.xhtml");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -248,7 +254,7 @@ public class JSF23GeneralTests {
             // Now click the submit button
             page.getElementById("button1").click();
 
-            List<String> result = jsf23Server.findStringsInLogs("TestActionListener processAction invoked!!");
+            List<String> result = server.findStringsInLogs("TestActionListener processAction invoked!!");
             assertTrue("The FacesEvent.getFacesContext() method did not work.", result.size() == 1);
         }
     }
@@ -269,7 +275,7 @@ public class JSF23GeneralTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -292,12 +298,12 @@ public class JSF23GeneralTests {
      * @throws Exception
      */
     @Test
-    public void testPerViewPhaseListnerQueueExceptionDefault() throws Exception {
+    public void testPerViewPhaseListenerQueueExceptionDefault() throws Exception {
         String contextRoot = "PerViewPhaseListenerDoNotQueueException";
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -323,7 +329,7 @@ public class JSF23GeneralTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -349,7 +355,7 @@ public class JSF23GeneralTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "JSF23ButtonDisabledAttribute.xhtml");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "JSF23ButtonDisabledAttribute.xhtml");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -386,7 +392,7 @@ public class JSF23GeneralTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -434,7 +440,7 @@ public class JSF23GeneralTests {
             webClient.getOptions().setThrowExceptionOnScriptError(false);
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "JSF23SpecIssue1258.xhtml");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "JSF23SpecIssue1258.xhtml");
 
             WebRequest requestSettings = new WebRequest(url, HttpMethod.POST);
             requestSettings.setRequestParameters(new ArrayList());
@@ -471,7 +477,7 @@ public class JSF23GeneralTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -504,7 +510,7 @@ public class JSF23GeneralTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "index.xhtml");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "index.xhtml");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -519,7 +525,7 @@ public class JSF23GeneralTests {
             // not be evaluated.
             assertTrue("The .xhtml mapping was added and it should not have been.", !pageText.contains("4"));
 
-            url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "index.jsf");
+            url = JSFUtils.createHttpUrl(server, contextRoot, "index.jsf");
 
             page = (HtmlPage) webClient.getPage(url);
 
@@ -548,7 +554,7 @@ public class JSF23GeneralTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "JSF23ViewActionFlow_index.xhtml");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "JSF23ViewActionFlow_index.xhtml");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -610,7 +616,7 @@ public class JSF23GeneralTests {
         try (WebClient webClient = new WebClient()) {
 
             // Construct the URL for the test, in this case: faces/selectManyListboxSelectItems.xhtml
-            URL url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "faces/selectManyListboxSelectItems.xhtml");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "faces/selectManyListboxSelectItems.xhtml");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -624,28 +630,31 @@ public class JSF23GeneralTests {
             assertTrue("The onselect attribute was rendered in a facelet.", !pageXml.contains("onselect=\"jsFunction\""));
 
             // Construct the URL for the test, in this case: faces/selectManyListboxSelectItems.jsp
-            url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "faces/selectManyListboxSelectItems.jsp");
+            // Faces 4.0 does not support Pages any longer!
+            if (!JakartaEE10Action.isActive()) {
+                url = JSFUtils.createHttpUrl(server, contextRoot, "faces/selectManyListboxSelectItems.jsp");
 
-            try {
-                Log.info(c, name.getMethodName(), "Invoking JSP page");
-                page = (HtmlPage) webClient.getPage(url);
-            } catch (FailingHttpStatusCodeException e) {
-                String response = e.getResponse().getContentAsString();
-                int statusCode = e.getStatusCode();
+                try {
+                    Log.info(c, name.getMethodName(), "Invoking JSP page");
+                    page = (HtmlPage) webClient.getPage(url);
+                } catch (FailingHttpStatusCodeException e) {
+                    String response = e.getResponse().getContentAsString();
+                    int statusCode = e.getStatusCode();
 
-                Log.info(c, name.getMethodName(), "Caught FailingHttpStatusCodeException");
-                Log.info(c, name.getMethodName(), "FailingHttpStatusCodeException response: " + response);
-                Log.info(c, name.getMethodName(), "FailingHttpStatusCodeException statusCode: " + statusCode);
+                    Log.info(c, name.getMethodName(), "Caught FailingHttpStatusCodeException");
+                    Log.info(c, name.getMethodName(), "FailingHttpStatusCodeException response: " + response);
+                    Log.info(c, name.getMethodName(), "FailingHttpStatusCodeException statusCode: " + statusCode);
 
-                /*
-                 * com.ibm.ws.jsp.translator.JspTranslationException:
-                 * JSPG0123E: Unable to locate tag attribute info for tag attribute onselect.<br>
-                 */
-                assertTrue("The JSP was rendered successfully and it should not have been.", response.contains("JSPG0123E") && statusCode == 500);
+                    /*
+                     * com.ibm.ws.jsp.translator.JspTranslationException:
+                     * JSPG0123E: Unable to locate tag attribute info for tag attribute onselect.<br>
+                     */
+                    assertTrue("The JSP was rendered successfully and it should not have been.", response.contains("JSPG0123E") && statusCode == 500);
+                }
             }
 
             // Construct the URL for the test, in this case: faces/selectManyListboxSelectItems.jsp
-            url = JSFUtils.createHttpUrl(jsf23Server, contextRoot, "faces/selectManyCheckboxSelectItems.xhtml");
+            url = JSFUtils.createHttpUrl(server, contextRoot, "faces/selectManyCheckboxSelectItems.xhtml");
 
             page = (HtmlPage) webClient.getPage(url);
 

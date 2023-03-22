@@ -1,14 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2019,2021 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-apply from: '../wlp-gradle/subprojects/maven-central-mirror.gradle'
+apply from: '../wlp-gradle/subprojects/repos.gradle'
 
 configurations {
   cxf
@@ -30,10 +32,10 @@ dependencies {
     'org.apache.cxf:cxf-rt-rs-client:3.1.18',
     'org.apache.cxf:cxf-rt-rs-extension-providers:3.1.18',
     'org.apache.cxf:cxf-rt-transports-http:3.1.18'
-  jackson1x 'org.codehaus.jackson:jackson-core-asl:1.6.2',
-    'org.codehaus.jackson:jackson-jaxrs:1.6.2',
-    'org.codehaus.jackson:jackson-mapper-asl:1.6.2',
-    'org.codehaus.jackson:jackson-xc:1.6.2'
+  jackson1x 'io.openliberty.org.codehaus.jackson:jackson-core-asl:1.9.13.1',
+    'io.openliberty.org.codehaus.jackson:jackson-jaxrs:1.9.13.1',
+    'io.openliberty.org.codehaus.jackson:jackson-mapper-asl:1.9.13.1',
+    'io.openliberty.org.codehaus.jackson:jackson-xc:1.9.13.1'
   jackson2x project(':io.openliberty.com.fasterxml.jackson'),
     project(':io.openliberty.com.fasterxml.jackson.jaxrs')
   jersey 'org.glassfish.hk2.external:aopalliance-repackaged:2.3.0-b10',
@@ -63,7 +65,7 @@ dependencies {
     project(':io.openliberty.com.fasterxml.jackson'),
     'org.apache.wink:wink-client:1.4',
     'org.apache.wink:wink-common:1.4',
-    "org.slf4j:slf4j-api:1.7.7",
+    project(':com.ibm.ws.org.slf4j.api'),
     project(':io.openliberty.org.apache.commons.codec'),
     'org.apache.cxf:cxf-core:3.4.3',
     'org.apache.cxf:cxf-rt-frontend-jaxrs:3.4.3',
@@ -93,7 +95,7 @@ task addJersey(type: Copy) {
 
 task addJersey2(type: Copy) {
   from configurations.jersey
-  into "${buildDir}/autoFVT/appLibs/jerseywithinjection/"  
+  into "${buildDir}/autoFVT/appLibs/jerseywithinjection/"
 }
 
 task addJson(type: Copy) {

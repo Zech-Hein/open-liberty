@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -772,6 +774,10 @@ abstract class SibRaListener implements StoppableAsynchConsumerCallback {
             //  consumer session been close by MP as the destination
             //  has been deleted or the receiveAllowed=false been applied
 
+        } catch ( final SIConnectionDroppedException exception ) {
+        	// Similarly, no FFDC code needed.
+        	// This exception can also be thrown if the underlying connection has already been closed.
+        	
         } catch (final SIException exception) {
 
             FFDCFilter.processException(exception, CLASS_NAME + "."

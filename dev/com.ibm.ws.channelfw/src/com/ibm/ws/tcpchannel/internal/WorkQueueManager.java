@@ -1,17 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2006, 2020 IBM Corporation and others.
+ * Copyright (c) 2005, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.tcpchannel.internal;
 
-import java.io.IOException;
 import java.io.EOFException;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.security.AccessController;
@@ -77,6 +79,7 @@ public class WorkQueueManager implements ChannelTermination, FFDCSelfIntrospecta
     // than
     // "private" to allow extended classes to access them.
     protected boolean checkCancel;
+    protected boolean startImmediately = false;
     private final boolean combineSelectors;
     protected int wakeupOption;
     private final ThreadGroup tGroup;
@@ -98,6 +101,11 @@ public class WorkQueueManager implements ChannelTermination, FFDCSelfIntrospecta
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
             Tr.exit(tc, "WorkQueueManager");
         }
+    }
+
+    protected void startSelectors(boolean inBound, boolean startImmediately) throws ChannelException {
+        this.startImmediately = startImmediately;
+        this.startSelectors(inBound);
     }
 
     protected void startSelectors(boolean inBound) throws ChannelException {
@@ -149,7 +157,6 @@ public class WorkQueueManager implements ChannelTermination, FFDCSelfIntrospecta
                 // selector is created and initialized when instantiated, so once start
                 // returns we can send work to it
                 readInboundCount[0] = CS_OK;
-
                 writeInbound[0] = new SocketRWChannelSelector(wakeupOption, this, 0, CS_WRITE_INBOUND, checkCancel);
                 createNewThread(writeInbound[0], CS_WRITE_INBOUND, 1);
                 writeInboundCount[0] = CS_OK;
@@ -163,7 +170,7 @@ public class WorkQueueManager implements ChannelTermination, FFDCSelfIntrospecta
                         connectCount[i] = CS_NULL;
                     }
 
-                    connect[0] = new ConnectChannelSelector(this, 0, CS_CONNECTOR);
+                    connect[0] = new ConnectChannelSelector(this, 0, CS_CONNECTOR, startImmediately);
                     createNewThread(connect[0], CS_CONNECTOR, 1);
                     connectCount[0] = CS_OK;
                 }
@@ -178,12 +185,12 @@ public class WorkQueueManager implements ChannelTermination, FFDCSelfIntrospecta
                 writeOutboundCount = new int[maxChannelSelectorsPerFlow];
                 connectCount = new int[maxChannelSelectorsPerFlow];
 
-                readOutbound[0] = new SocketRWChannelSelector(wakeupOption, this, 0, CS_READ_OUTBOUND, checkCancel);
+                readOutbound[0] = new SocketRWChannelSelector(wakeupOption, this, 0, CS_READ_OUTBOUND, checkCancel, startImmediately);
                 createNewThread(readOutbound[0], CS_READ_OUTBOUND, 1);
-                writeOutbound[0] = new SocketRWChannelSelector(wakeupOption, this, 0, CS_WRITE_OUTBOUND, checkCancel);
+                writeOutbound[0] = new SocketRWChannelSelector(wakeupOption, this, 0, CS_WRITE_OUTBOUND, checkCancel, startImmediately);
                 createNewThread(writeOutbound[0], CS_WRITE_OUTBOUND, 1);
 
-                connect[0] = new ConnectChannelSelector(this, 0, CS_CONNECTOR);
+                connect[0] = new ConnectChannelSelector(this, 0, CS_CONNECTOR, startImmediately);
                 createNewThread(connect[0], CS_CONNECTOR, 1);
                 for (int i = 1; i < maxChannelSelectorsPerFlow; i++) {
                     readOutboundCount[i] = CS_NULL;
@@ -200,7 +207,7 @@ public class WorkQueueManager implements ChannelTermination, FFDCSelfIntrospecta
                 // add
                 connectCount = new int[maxChannelSelectorsPerFlow]; // 269309 add
 
-                connect[0] = new ConnectChannelSelector(this, 0, CS_CONNECTOR);
+                connect[0] = new ConnectChannelSelector(this, 0, CS_CONNECTOR, startImmediately);
                 createNewThread(connect[0], CS_CONNECTOR, 1);
 
                 for (int i = 0; i < maxChannelSelectorsPerFlow; i++) {
@@ -431,9 +438,14 @@ public class WorkQueueManager implements ChannelTermination, FFDCSelfIntrospecta
                 // instantiate and start a new CS
                 try {
                     if (channelType == CS_CONNECTOR) {
-                        CS[nextOpen] = new ConnectChannelSelector(this, nextOpen, CS_CONNECTOR);
+                        CS[nextOpen] = new ConnectChannelSelector(this, nextOpen, CS_CONNECTOR, startImmediately);
                     } else {
-                        CS[nextOpen] = new SocketRWChannelSelector(wakeupOption, this, nextOpen, channelType, checkCancel);
+                        if (channelType == CS_READ_OUTBOUND || channelType == CS_WRITE_OUTBOUND) {
+                            CS[nextOpen] = new SocketRWChannelSelector(wakeupOption, this, nextOpen, channelType, checkCancel, startImmediately);
+                        } else {
+                            CS[nextOpen] = new SocketRWChannelSelector(wakeupOption, this, nextOpen, channelType, checkCancel);
+                        }
+
                     }
                 } catch (IOException x) {
                     FFDCFilter.processException(x, getClass().getName(), "120", this);
@@ -697,10 +709,10 @@ public class WorkQueueManager implements ChannelTermination, FFDCSelfIntrospecta
                 } catch (Exception x) {
                     // do not alter the message if the socket got nuked while we tried to look at it
                 }
-                if (-1==req.getLastIOAmt()) {
-                  ioe = new EOFException(s);
+                if (-1 == req.getLastIOAmt()) {
+                    ioe = new EOFException(s);
                 } else {
-                  ioe = new IOException(s);
+                    ioe = new IOException(s);
                 }
             } else {
                 // Add local and remote address information

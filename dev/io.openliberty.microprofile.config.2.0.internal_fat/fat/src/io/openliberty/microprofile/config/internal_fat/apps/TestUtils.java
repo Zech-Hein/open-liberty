@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -38,6 +40,18 @@ public class TestUtils {
         }
         if (!expected.equals(actual)) {
             throw new AssertionError("Value for key '" + key + "' was '" + actual + "'. Expected: '" + expected + "'");
+        }
+    }
+
+    public static void assertContains(String searchFor, String searchWithin) {
+        if (searchFor == null) {
+            throw new IllegalArgumentException("You cannot search for a null");
+        }
+        if (searchWithin == null ) {
+            throw new AssertionError("Attempting to look for string \"" + searchFor + "\" but the string to search within was null");
+        }
+        if (searchWithin != null && !searchWithin.contains(searchFor)) {
+            throw new AssertionError("\"" + searchWithin + "\" does not contain \"" + searchFor + "\"");
         }
     }
 

@@ -1,22 +1,23 @@
 #*******************************************************************************
-# Copyright (c) 2017,2020 IBM Corporation and others.
+# Copyright (c) 2017,2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
 
+-sub: *.bnd
+
+
 bVersion=1.0
 
-Bundle-Name: BeanValidation
-Bundle-SymbolicName: com.ibm.ws.beanvalidation
-Bundle-Description: Bean Validation Container; version=${bVersion}
 
-jakartaeeMe: true
 
 WS-TraceGroup: BeanValidation
 
@@ -40,13 +41,16 @@ Private-Package: \
 Include-Resource: \
   OSGI-INF=resources/OSGI-INF
 
+IBM-Default-Config: OSGI-INF/wlp/defaultInstances.xml
+
 -dsannotations-inherit: true
 -dsannotations: \
   com.ibm.ws.beanvalidation.OSGiBeanValidationImpl, \
   com.ibm.ws.beanvalidation.BeanValidationJavaColonHelper, \
   com.ibm.ws.beanvalidation.ValidatorFactoryObjectFactoryInfo, \
   com.ibm.ws.beanvalidation.ValidatorObjectFactoryInfo, \
-  com.ibm.ws.beanvalidation.config.internal.ValidationConfigurationFactoryImpl
+  com.ibm.ws.beanvalidation.config.internal.ValidationConfigurationFactoryImpl, \
+  com.ibm.ws.beanvalidation.LoadConfigImpl
 
 instrument.classesExcludes: com/ibm/ws/beanvalidation/resources/nls/*.class
 
@@ -56,6 +60,7 @@ instrument.classesExcludes: com/ibm/ws/beanvalidation/resources/nls/*.class
 	com.ibm.ws.logging;version=latest,\
 	com.ibm.ws.container.service;version=latest,\
 	com.ibm.ws.beanvalidation.core;version=latest,\
+	com.ibm.ws.javaee.dd.common;version=latest,\
 	com.ibm.ws.javaee.dd;version=latest,\
 	com.ibm.ws.adaptable.module;version=latest,\
 	com.ibm.ws.classloading;version=latest,\

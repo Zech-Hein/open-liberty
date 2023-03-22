@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -315,7 +317,7 @@ public class PubSubRealization
                                         new ClassEqualsFilter(PubSubMessageItemStream.class));
         _pubsubMessageItemStream = (PubSubMessageItemStream) cursor.next();
 
-        // Sanity - A BaseDestinationHandler should not be in the DestinationManager
+        // Validate - A BaseDestinationHandler should not be in the DestinationManager
         // without a PubSubMessageItemStream!
         if (_pubsubMessageItemStream == null)
         {
@@ -348,7 +350,7 @@ public class PubSubRealization
                                         new ClassEqualsFilter(ProxyReferenceStream.class));
         _proxyReferenceStream = (ProxyReferenceStream) cursor.next();
 
-        // Sanity - A BaseDestinationHandler should not be in the DestinationManager
+        // Validate - A BaseDestinationHandler should not be in the DestinationManager
         // without a ProxyReferenceStream in the pub/sub case!
         if (_proxyReferenceStream == null)
         {
@@ -433,7 +435,7 @@ public class PubSubRealization
             SibTr.entry(tc, "deleteMsgsWithNoReferences");
 
         //No need to check for NULL as by this point of time _pubsubMessageItemStream would
-        //hold a valid reference, but still doing sanity check
+        //hold a valid reference, but still doing for validation
         if (null != _pubsubMessageItemStream)
             _pubsubMessageItemStream.deleteMsgsWithNoReferences();
 

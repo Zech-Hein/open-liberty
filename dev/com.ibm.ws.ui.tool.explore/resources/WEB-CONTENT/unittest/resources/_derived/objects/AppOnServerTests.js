@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -164,7 +166,7 @@ define([
 
         app.subscribe(observer);
 
-        // Initial sanity check
+        // Initial test
         assert.equal(app.state,         'STARTED',   'AppOnServer.state did not have the correct initialized value');
 
         // Simulate the app state change event
@@ -263,7 +265,7 @@ define([
 
         app.subscribe(observer);
 
-        // Initial sanity check
+        // Initial test
         assert.equal('STARTED',   app.state,         'AppOnServer.state did not have the correct initialized value');
 
         // Simulate the app state change event
@@ -285,7 +287,7 @@ define([
 
         app.subscribe(observer);
 
-        // Initial sanity check
+        // Initial test
         assert.equal(app.cluster,       null,        'AppOnServer.cluster did not have the correct initialized value - should have no cluster');
 
         // Simulate the cluster event
@@ -317,7 +319,7 @@ define([
 
         app.subscribe(observer);
 
-        // Initial sanity check
+        // Initial test
         assert.equal(app.cluster,       'cluster1',  'AppOnServer.cluster did not have the correct initialized value');
 
         // Simulate the cluster change event
@@ -349,7 +351,7 @@ define([
 
         app.subscribe(observer);
 
-        // Initial sanity check
+        // Initial test
         assert.equal(app.cluster,       'cluster1',  'AppOnServer.cluster did not have the correct initialized value');
 
         // Simulate the cluster change event
@@ -381,7 +383,7 @@ define([
 
         app.subscribe(observer);
 
-        // Initial sanity check
+        // Initial test
         assert.equal(app.scalingPolicy,  null,        'AppOnServer.scalingPolicy did not have the correct initialized value');
 
         // Simulate the scaling policy change event
@@ -413,7 +415,7 @@ define([
 
         app.subscribe(observer);
 
-        // Initial sanity check
+        // Initial test
         assert.equal(app.scalingPolicy,  'default',   'AppOnServer.scalingPolicy did not have the correct initialized value');
 
         // Simulate the scaling policy change event
@@ -445,7 +447,7 @@ define([
 
         app.subscribe(observer);
 
-        // Initial sanity check
+        // Initial test
         assert.equal(app.scalingPolicy,  'default',   'AppOnServer.scalingPolicy did not have the correct initialized value');
 
         // Simulate the scaling policy change event
@@ -477,7 +479,7 @@ define([
 
         app.subscribe(observer);
 
-        // Initial sanity check
+        // Initial test
         assert.equal(app.scalingPolicy, 'default',    'AppOnServer.scalingPolicy did not have the correct initialized value');
         assert.isTrue(app.scalingPolicyEnabled,       'AppOnServer.scalingPolicyEnabled did not have the correct initialized value');
 

@@ -1,18 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2015, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.cdi.beansxml.fat.tests;
-
-import static componenttest.rules.repeater.EERepeatTests.EEVersion.EE7;
-import static componenttest.rules.repeater.EERepeatTests.EEVersion.EE8;
-import static componenttest.rules.repeater.EERepeatTests.EEVersion.EE9;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -33,7 +31,7 @@ import componenttest.annotation.TestServlets;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
-import componenttest.rules.repeater.EERepeatTests;
+import componenttest.rules.repeater.EERepeatActions;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -47,7 +45,7 @@ public class DisablingBeansXmlValidationTest extends FATServletClient {
     public static final String INVALID_BEANS_XML_APP_NAME = "invalidBeansXml";
 
     @ClassRule
-    public static RepeatTests r = EERepeatTests.with(SERVER_NAME, EE9, EE8, EE7);
+    public static RepeatTests r = EERepeatActions.repeat(SERVER_NAME, EERepeatActions.EE9, EERepeatActions.EE10, EERepeatActions.EE8, EERepeatActions.EE7);
 
     @Server(SERVER_NAME)
     @TestServlets({

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020,2022  IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,6 +23,7 @@ import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.webcontainer.security.test.servlets.BasicAuthClient;
 import com.ibm.ws.webcontainer.security.test.servlets.ServletClient;
 
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.impl.LibertyServerFactory;
@@ -100,7 +103,8 @@ public class EJBAnnTestBase {
                 server.stopServer("SRVE9967W", // Quite a few
                                   "CWWKS9112W", // PureAnnServletToEJBRunAsTest, EJBJarMixM07ExtTest, EJBJarMixM08ExtTest, EJBJarMixM09ExtTest
                                   "CWWKS9405E", // EJBJarMixM07ExtTest, EJBJarMixM08ExtTest, EJBJarMixM09ExtTest
-                                  "CNTR0338W" // Quite a few - Ambiguous EJB Binding
+                                  "CNTR0338W", // Quite a few - Ambiguous EJB Binding
+                                  "CWWKG0027W" // Occasional CWWKG0027W: Timeout while updating server configuration.
                 );
             } finally {
                 JACCFatUtils.uninstallJaccUserFeature(server);
@@ -147,7 +151,7 @@ public class EJBAnnTestBase {
         /*
          * EE9 removed getCallerIdentity() from SessionContext.
          */
-        if (JakartaEE9Action.isActive()) {
+        if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
             verifyResponseWithoutDeprecated(response, getCallerPrincipal, isCallerInRoleManager, isCallerInRoleEmployee);
         } else {
             mustContain(response, getCallerPrincipal);

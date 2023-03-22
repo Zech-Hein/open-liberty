@@ -1,19 +1,21 @@
 #*******************************************************************************
-# Copyright (c) 2017,2021 IBM Corporation and others.
+# Copyright (c) 2017, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 bVersion=1.0
 
-Bundle-Name: Transaction
-Bundle-SymbolicName: com.ibm.ws.transaction
-Bundle-Description: Transaction support, version ${bVersion}
 
 WS-TraceGroup: Transaction
 
@@ -27,14 +29,6 @@ Service-Component: com.ibm.ws.transaction; \
       dynamic:='dataSourceFactory,transactionSettingsProvider';\
       configuration-policy:=require;\
       properties:='service.vendor=IBM,dataSourceFactory.target=(id=unbound)', \
-   TransactionManager; \
-      implementation:=com.ibm.ws.transaction.services.TransactionManagerService; \
-      provide:='javax.transaction.TransactionManager,com.ibm.ws.tx.embeddable.EmbeddableWebSphereTransactionManager,com.ibm.ws.Transaction.UOWCurrent'; \
-      immediate:=true; \
-      tmService=com.ibm.tx.util.TMService ;\
-      uOWEventListener=com.ibm.wsspi.tx.UOWEventListener ;\
-      optional:='uOWEventListener' ;\
-      dynamic:='uOWEventListener', \
    TMRecoveryService; \
       implementation:=com.ibm.ws.transaction.services.TMRecoveryService; \
       provide:='com.ibm.ws.transaction.services.TMRecoveryService'; \
@@ -64,6 +58,7 @@ Service-Component: com.ibm.ws.transaction; \
 # from Java after Java 8.  Doing this keeps the import like before Java 11 support. It will get the 
 # packages from Java when using Java 8 or earlier and from the new shipped bundles for Java 9 and later.
 Import-Package: \
+ com.ibm.ws.kernel.launch.service, \
   !com.ibm.ws.transaction.services, \
   !com.ibm.wsspi.webcontainer.collaborator, \
  	javax.transaction; version=1.1.0, \
@@ -100,6 +95,7 @@ Export-Package: \
  com.ibm.ws.transaction.services.TransactionObjectFactoryInfo,\
  com.ibm.ws.transaction.services.LTCUOWCallbackService,\
  com.ibm.ws.transaction.services.TransactionInflowManagerService,\
+ com.ibm.ws.transaction.services.TransactionManagerService,\
  com.ibm.ws.transaction.services.RemoteTransactionControllerService,\
  com.ibm.ws.transaction.services.TransactionSynchronizationRegistryService
 
@@ -108,7 +104,6 @@ instrument.classesExcludes: com/ibm/ws/transaction/services/TransactionMessages*
 -buildpath: \
   com.ibm.websphere.appserver.spi.logging;version=latest,\
 	com.ibm.tx.jta;version=latest,\
-	com.ibm.tx.ltc;version=latest,\
 	com.ibm.tx.util;version=latest,\
 	com.ibm.websphere.javaee.annotation.1.1;version=latest,\
 	com.ibm.websphere.javaee.connector.1.6;version=latest,\
@@ -118,6 +113,7 @@ instrument.classesExcludes: com/ibm/ws/transaction/services/TransactionMessages*
 	com.ibm.websphere.org.osgi.service.component,\
 	com.ibm.ws.container.service;version=latest,\
 	com.ibm.ws.injection;version=latest,\
+	com.ibm.ws.kernel.boot,\
 	com.ibm.ws.kernel.service,\
 	com.ibm.ws.logging,\
 	com.ibm.ws.logging.core;version=latest,\
@@ -145,4 +141,3 @@ instrument.classesExcludes: com/ibm/ws/transaction/services/TransactionMessages*
 	com.ibm.ws.recoverylog;version=latest,\
 	com.ibm.ws.classloading;version=latest
 
-jakartaeeMe: true

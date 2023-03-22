@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -468,6 +470,8 @@ public class WebFormUtilsTest extends CommonTestClass {
                 {
                     one(form).getInputByValue(WebFormUtils.DEFAULT_LOGIN_SUBMIT_BUTTON_VALUE);
                     will(throwException(new ElementNotFoundException(WebFormUtils.DEFAULT_LOGIN_SUBMIT_BUTTON_VALUE, "attributeName", "attributeValue")));
+                    one(form).getButtonByName(WebFormUtils.DEFAULT_LOGIN_SUBMIT_BUTTON_NAME);
+                    will(throwException(new ElementNotFoundException(WebFormUtils.DEFAULT_LOGIN_SUBMIT_BUTTON_NAME, "attributeName", "attributeValue")));
                 }
             });
             try {
@@ -715,6 +719,8 @@ public class WebFormUtilsTest extends CommonTestClass {
                 {
                     one(form).getInputByValue(submitButtonValue);
                     will(throwException(new ElementNotFoundException(submitButtonValue, "attributeName", "attributeValue")));
+                    one(form).getButtonByName(WebFormUtils.DEFAULT_LOGIN_SUBMIT_BUTTON_NAME);
+                    will(throwException(new ElementNotFoundException(WebFormUtils.DEFAULT_LOGIN_SUBMIT_BUTTON_NAME, "attributeName", "attributeValue")));
                 }
             });
             try {

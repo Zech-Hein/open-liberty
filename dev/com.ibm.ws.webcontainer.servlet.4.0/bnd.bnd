@@ -1,20 +1,22 @@
 #*******************************************************************************
-# Copyright (c) 2017, 2020 IBM Corporation and others.
+# Copyright (c) 2017, 2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 bVersion=1.0
 
 
-Bundle-Name: WAS WebContainer
-Bundle-SymbolicName: com.ibm.ws.webcontainer.servlet.4.0
-Bundle-Description: WAS WebContainer 8.1 with Servlet 4.0 support
 WLP-ServerName: IBM WebSphere Application Server
 WLP-ServerVersion: ${liberty.beta.version}
 
@@ -47,12 +49,12 @@ Import-Package: \
     javax.servlet.http; version="[2.6,3)", \
     javax.servlet.resources; version="[2.6,3)", \
     com.ibm.ws.webcontainer.resources, \
+    com.ibm.wsspi.webcontainer.facade, \
     *
 
 
  instrument.disabled: true
 
- jakartaeeMe: true
 
 -buildpath: \
     com.ibm.ws.webcontainer.servlet.3.1;version=latest,\
@@ -73,7 +75,8 @@ Import-Package: \
     com.ibm.ws.org.apache.commons.fileupload;version=latest,\
     com.ibm.ws.session;version=latest,\
     com.ibm.ws.javaee.dd.common;version=latest,\
-    com.ibm.ws.javaee.dd;version=latest
+    com.ibm.ws.javaee.dd;version=latest,\
+	com.ibm.ws.kernel.boot.core;version=latest
 
 -testpath: \
     org.hamcrest:hamcrest-all;version=1.3, \
@@ -92,5 +95,6 @@ Import-Package: \
     com.ibm.ws.org.apache.commons.io;version=latest,\
     com.ibm.ws.channelfw;version=latest,\
     com.ibm.ws.anno;version=latest,\
-    com.ibm.ws.threading;version=latest
+    com.ibm.ws.threading;version=latest,\
+    com.ibm.ws.kernel.boot.common;version=latest
 

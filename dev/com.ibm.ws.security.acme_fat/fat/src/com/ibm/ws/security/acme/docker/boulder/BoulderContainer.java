@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020,2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -135,7 +137,7 @@ public class BoulderContainer extends CAContainer {
 			throw new IllegalStateException("Failed to set default mock DNS A and AAAA record IP addresses.", e);
 		}
 
-		Log.info(BoulderContainer.class, "BoulderContainer", "ContainerIpAddress: " + getContainerIpAddress());
+		Log.info(BoulderContainer.class, "BoulderContainer", "ContainerIpAddress: " + getHost());
 		Log.info(BoulderContainer.class, "BoulderContainer", "DockerImageName:    " + getDockerImageName());
 		Log.info(BoulderContainer.class, "BoulderContainer", "ContainerInfo:      " + getContainerInfo());
 	}
@@ -479,12 +481,12 @@ public class BoulderContainer extends CAContainer {
 
 	@Override
 	protected String getDnsManagementAddress() {
-		return "http://" + this.getContainerIpAddress() + ":" + this.getMappedPort(getDnsManagementPort());
+		return "http://" + this.getHost() + ":" + this.getMappedPort(getDnsManagementPort());
 	}
 
 	@Override
 	public String getAcmeDirectoryURI(boolean useAcmeURI) {
-		return "https://" + this.getContainerIpAddress() + ":" + this.getMappedPort(getAcmeListenPort()) + "/directory";
+		return "https://" + this.getHost() + ":" + this.getMappedPort(getAcmeListenPort()) + "/directory";
 	}
 
 	@Override
@@ -502,7 +504,7 @@ public class BoulderContainer extends CAContainer {
 
 	@Override
 	public String getOcspResponderUrl() {
-		return "http://" + this.getContainerIpAddress() + ":" + this.getMappedPort(OCSP_PORT);
+		return "http://" + this.getHost() + ":" + this.getMappedPort(OCSP_PORT);
 	}
 
 	@Override

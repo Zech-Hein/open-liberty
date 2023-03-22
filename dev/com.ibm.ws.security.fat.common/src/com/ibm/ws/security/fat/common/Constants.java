@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2021 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -34,6 +36,7 @@ public class Constants {
     public static final String STRING_EQUALS = "equals";
     public static final String STRING_NULL = "null";
     public static final String STRING_NOT_NULL = "not null";
+    public static final String MSG_NOT_LOGGED = "msg not logged";
     public static final String TIME_TYPE = "time type";
     public static final String LIST_MATCHES = "listmatches";
 
@@ -70,6 +73,7 @@ public class Constants {
     public static final String RESPONSE_STATUS = "status";
     public static final String RESPONSE_HEADER = "header";
     public static final String RESPONSE_URL = "url";
+    public static final String RESPONSE_COOKIE = "cookie";
     public static final String JSON_OBJECT = "jsonObject";
     public static final String EXCEPTION_MESSAGE = "exceptionMsg";
 
@@ -109,6 +113,7 @@ public class Constants {
     public static final int NOT_FOUND_STATUS = 404;
     public static final int NOT_ALLOWED_STATUS = 405;
     public static final int INTERNAL_SERVER_ERROR_STATUS = 500;
+    public static final int NOT_IMPLEMENTED_STATUS = 501;
     public static final int BAD_GATEWAY = 502;
 
     /* ***************** Http methods ******************* */
@@ -127,10 +132,12 @@ public class Constants {
     public static final String UNAUTHORIZED_EXCEPTION = "401 Unauthorized";
     public static final String HTTP_UNAUTHORIZED_EXCEPTION = "HTTP " + UNAUTHORIZED_EXCEPTION;
     public static final String CONTEXT_ROOT_NOT_FOUND = "<title [^>]+\"CONTEXT_ROOT_NOT_FOUND\".+</title>";
+    public static final String invalidClientMetadata = "invalid_client_metadata";
 
     /********************** Page Values *********************/
     public static final String FORM_LOGIN_HEADING = "Form Login Page";
     public static final String FORM_LOGIN_TITLE = "login.jsp";
+    public static final String FORMLOGIN_SERVLET = "ServletName: FormLoginServlet";
 
     /********************** Server Info *********************/
     public static final String BOOTSTRAP_PROP_FAT_SERVER_HOSTNAME = "fat.server.hostname";
@@ -171,6 +178,7 @@ public class Constants {
     // Using ECDH-ES to encrypt the Content Encryption Key of a JWE not officially supported in jwtBuilder yet (issue 17485)
     public static final String[] ALL_TEST_ENCRYPTALGS = { SIGALG_RS256, SIGALG_RS384, SIGALG_RS512, SIGALG_ES256, SIGALG_ES384, SIGALG_ES512 };
 
+    public static final String LOGOUT_TITLE = "Logout";
     public static final String SUCCESSFUL_LOGOUT_MSG = "You have successfully logged out";
 
     public static final String SNOOP = "snoop";
@@ -184,6 +192,10 @@ public class Constants {
     public static final String LTPA_TOKEN = "LtpaToken2";
     public static final String JWT_SSO_COOKIE_NAME = "JWT";
 
+    public static final String JWT_TOKEN_FORMAT = "jwt";
+    public static final String MP_JWT_TOKEN_FORMAT = "mpjwt";
+    public static final String OPAQUE_TOKEN_FORMAT = "opaque";
+
     public static final String LOGIN_PROMPT = "Enter your username and password to login";
     public static final String LOGIN_ERROR = "Error: username and password doesn't match";
     public static final String LOGIN_TITLE = "Login";
@@ -194,10 +206,13 @@ public class Constants {
     public static final String HTTP_ERROR_UNAUTHORIZED = "HTTP Error 401";
     public static final String HTTP_ERROR_MESSAGE = "HTTP Error Message";
     public static final String FORBIDDEN = "Forbidden";
+    public static final String FOUND_MSG = "Found";
     public static final String NOT_FOUND_MSG = "Not Found";
     public static final String NOT_FOUND_ERROR = "Error 404:";
     public static final String OK_MESSAGE = "OK";
     public static final String BAD_REQUEST = "Bad Request";
+    public static final String METHOD_NOT_ALLOWED = "Method Not Allowed";
+    public static final String METHOD_NOT_IMPLEMENTED = "Not Implemented";
 
     /* ********************** MESSAGES ************************ */
     public static final String MSG_INVALID_PWD = "CWWKS1100A";
@@ -214,7 +229,10 @@ public class Constants {
     public static final String RESPONSE_HEADER_CONTENT_TYPE = "Content-Type";
     public static final String RESPONSE_HEADER_CACHE_CONTROL = "Cache-Control";
     public static final String RESPONSE_HEADER_PRAGMA = "Pragma";
+    public static final String RESPONSE_HEADER_LOCATION = "Location";
 
+    /* ********************** Cookies *********************** */
+    public static final String JSESSION_ID_COOKIE = "JSESSIONID";
     /* ****************** test apps ************************* */
     public static final String TESTMARKER_START_APP = "testmarker";
 

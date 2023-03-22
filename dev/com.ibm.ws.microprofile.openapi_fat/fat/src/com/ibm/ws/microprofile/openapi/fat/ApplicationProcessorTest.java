@@ -1,15 +1,18 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.microprofile.openapi.fat;
 
+import static com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions.DISABLE_VALIDATION;
 import static com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions.SERVER_ONLY;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
@@ -25,11 +28,13 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ibm.websphere.simplicity.ShrinkHelper;
+import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
 import com.ibm.websphere.simplicity.config.ServerConfiguration;
 import com.ibm.ws.microprofile.openapi.fat.utils.OpenAPIConnection;
 import com.ibm.ws.microprofile.openapi.fat.utils.OpenAPITestUtil;
@@ -38,6 +43,8 @@ import app.web.pure.jaxrs.JAXRSApp;
 import componenttest.annotation.Server;
 import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.MicroProfileActions;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
 import componenttest.topology.utils.HttpUtils;
@@ -57,7 +64,6 @@ public class ApplicationProcessorTest extends FATServletClient {
     private static final Class<?> c = ApplicationProcessorTest.class;
     private static final String APP_NAME_1 = "appWithAnnotations";
     private static final String APP_NAME_2 = "appWithStaticDoc";
-    private static final String APP_NAME_3 = "simpleServlet";
     private static final String APP_NAME_4 = "staticDocWithServerObject";
     private static final String APP_NAME_5 = "staticDocWithoutServerObject";
     private static final String APP_NAME_6 = "openAPIEarWithServer";
@@ -67,18 +73,30 @@ public class ApplicationProcessorTest extends FATServletClient {
     private static final String APP_NAME_10 = "pure-jaxrs";
     private static final String APP_NAME_11 = "complete-flow";
 
-    @Server("ApplicationProcessorServer")
+    private static final String SERVER_NAME = "ApplicationProcessorServer";
+
+    @Server(SERVER_NAME)
     public static LibertyServer server;
+
+    @ClassRule
+    public static RepeatTests r = MicroProfileActions.repeat(SERVER_NAME,
+        MicroProfileActions.MP60, // mpOpenAPI-3.1, LITE
+        MicroProfileActions.MP50, // mpOpenAPI-3.0, FULL
+        MicroProfileActions.MP41, // mpOpenAPI-2.0, FULL
+        MicroProfileActions.MP33, // mpOpenAPI-1.1, FULL
+        MicroProfileActions.MP22);// mpOpenAPI-1.0, FULL
 
     @BeforeClass
     public static void setUpTest() throws Exception {
         HttpUtils.trustAllCertificates();
 
-        ShrinkHelper.defaultApp(server, APP_NAME_1, "app.web.airlines.*");
-        ShrinkHelper.defaultApp(server, APP_NAME_2);
-        ShrinkHelper.defaultApp(server, APP_NAME_3, "app.web.servlet");
-        ShrinkHelper.defaultApp(server, APP_NAME_10, "app.web.pure.jaxrs");
-        ShrinkHelper.defaultApp(server, APP_NAME_11, "app.web.complete.flow.*");
+        DeployOptions[] opts = {
+            DeployOptions.SERVER_ONLY
+        };
+        ShrinkHelper.defaultApp(server, APP_NAME_1, opts, "app.web.airlines.*");
+        ShrinkHelper.defaultApp(server, APP_NAME_2, opts);
+        ShrinkHelper.defaultApp(server, APP_NAME_10, opts, "app.web.pure.jaxrs");
+        ShrinkHelper.defaultApp(server, APP_NAME_11, opts, "app.web.complete.flow.*");
 
         LibertyServer.setValidateApps(false);
 
@@ -163,14 +181,6 @@ public class ApplicationProcessorTest extends FATServletClient {
         OpenAPITestUtil.checkServer(openapiNode,
             OpenAPITestUtil.getServerURLs(server, server.getHttpDefaultPort(), server.getHttpDefaultSecurePort()));
         OpenAPITestUtil.checkPaths(openapiNode, 0);
-
-        // Add an empty servlet app is deployed and ensure the default empty OpenAPI
-        // documentation is created
-        OpenAPITestUtil.setMarkToEndOfAllLogs(server);
-        OpenAPITestUtil.addApplication(server, APP_NAME_3);
-        openapi = OpenAPIConnection.openAPIDocsConnection(server, false).download();
-        assertEquals("FAIL: Server with a single empty app should not change the default OpenAPI document.", emptyDoc,
-            openapi);
 
         // Now add an app with OpenAPI artifacts and ensure it shows up
         OpenAPITestUtil.setMarkToEndOfAllLogs(server);
@@ -354,8 +364,8 @@ public class ApplicationProcessorTest extends FATServletClient {
         WebArchive test2 = ShrinkWrap.create(WebArchive.class, "test2.war")
             .addPackage(JAXRSApp.class.getPackage());
 
-        ShrinkHelper.exportAppToServer(server, test1, SERVER_ONLY);
-        ShrinkHelper.exportAppToServer(server, test2, SERVER_ONLY);
+        ShrinkHelper.exportAppToServer(server, test1, SERVER_ONLY, DISABLE_VALIDATION);
+        ShrinkHelper.exportAppToServer(server, test2, SERVER_ONLY, DISABLE_VALIDATION);
 
         // Deploy both in the same server.xml update and ensure they start
         server.setMarkToEndOfLog(server.getDefaultLogFile());
@@ -365,8 +375,8 @@ public class ApplicationProcessorTest extends FATServletClient {
         config.addApplication("test2", "${server.config.dir}/apps/test2.war", "war");
         server.updateServerConfiguration(config);
 
-        server.waitForStringInLogUsingMark("CWWKZ0001I.*test1");
-        server.waitForStringInLogUsingMark("CWWKZ0001I.*test2");
+        server.addInstalledAppForValidation("test1");
+        server.addInstalledAppForValidation("test2");
 
         // Check there were no errors or warnings emitted during startup
         List<String> errorsAndWarnings = server.findStringsInLogsUsingMark("[EW] .*\\d{4}[EW]:",
@@ -375,7 +385,11 @@ public class ApplicationProcessorTest extends FATServletClient {
     }
 
     @Test
-    @SkipForRepeat("mpOpenAPI-2.0")
+    @SkipForRepeat({
+        // Due to API incompatibilities, mpOpenAPI-2.0+ is tested in
+        // io.openliberty.microprofile.openapi.2.0.internal_fat
+        MicroProfileActions.MP41_ID, MicroProfileActions.MP50_ID, MicroProfileActions.MP60_ID
+    })
     public void testCompleteFlow() throws Exception {
         OpenAPITestUtil.addApplication(server, APP_NAME_11);
         String doc = OpenAPIConnection.openAPIDocsConnection(server, false).download();

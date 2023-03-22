@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2012 IBM Corporation and others.
+ * Copyright (c) 2005, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,7 @@
 package com.ibm.websphere.ssl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.ibm.websphere.ras.Tr;
@@ -193,6 +196,9 @@ public class Constants {
     public static final String PROTOCOL_SSL = "SSL";
     public static final String PROTOCOL_SSL_TLS = "SSL_TLS";
     public static final String PROTOCOL_SSL_TLS_V2 = "SSL_TLSv2";
+    public static final String PROTOCOL_TLSV1_1 = "TLSv1.1";
+    public static final String PROTOCOL_TLSV1_2 = "TLSv1.2";
+    public static final String PROTOCOL_TLSV1_3 = "TLSv1.3";
 
     /*** SECURITY LEVEL CONSTANTS ***/
     public static final String SECURITY_LEVEL_HIGH = "HIGH";
@@ -434,5 +440,12 @@ public class Constants {
 
         return sb.toString();
     }
+
+    public static final List<String> MULTI_PROTOCOL_LIST = Arrays.asList(new String[] {
+                                                                                        PROTOCOL_TLSV1,
+                                                                                        PROTOCOL_TLSV1_1,
+                                                                                        PROTOCOL_TLSV1_2,
+                                                                                        PROTOCOL_TLSV1_3
+    });
 
 }

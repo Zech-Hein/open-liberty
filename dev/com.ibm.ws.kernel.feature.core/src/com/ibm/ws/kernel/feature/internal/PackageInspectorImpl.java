@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -142,9 +144,11 @@ public class PackageInspectorImpl implements SharedPackageInspector, Introspecto
         API_ThirdParty(true, "third-party"),
         API_Stable(true, "stable"),
 
-        SPI(false, "spi"),
-        SPI_Spec(false, "spec"),
-        SPI_ThirdParty(false, "third-party");
+        SPI(false, "spi");
+        // SPI types not currently supported
+        //SPI_Spec(false, "spec"),
+        //SPI_ThirdParty(false, "third-party"),
+        //SPI_IBM(false, "ibm-spi");
 
         private final boolean isApi;
         private final String attributeName;
@@ -253,6 +257,7 @@ public class PackageInspectorImpl implements SharedPackageInspector, Introspecto
         /**
          * @return true if this package is exported as any kind of SPI
          */
+        @Override
         public boolean isSpi() {
             for (PkgType type : types)
                 if (!type.isApi) // if it isn't API, it's SPI
@@ -460,7 +465,8 @@ public class PackageInspectorImpl implements SharedPackageInspector, Introspecto
         return index.packageIterator(new Filter<PackageInspectorImpl.PackageInfo>() {
             @Override
             public boolean includeValue(String packageName, PackageInfo value) {
-                return value.isApi() && value.exportedByProduct(productName);
+                return (value.isApi() && value.exportedByProduct(productName)) ||
+                       (value.isSpi() && value.exportedByProduct(productName));
             }
         });
     }

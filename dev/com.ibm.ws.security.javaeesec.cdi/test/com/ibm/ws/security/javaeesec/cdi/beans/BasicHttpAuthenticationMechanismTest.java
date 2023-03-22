@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,7 +13,6 @@
 package com.ibm.ws.security.javaeesec.cdi.beans;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.security.Principal;
@@ -55,7 +56,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.ibm.ws.cdi.CDIService;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.security.authentication.AuthenticationConstants;
 import com.ibm.ws.security.authentication.utility.SubjectHelper;
 import com.ibm.ws.security.jaspi.JaspiMessageInfo;
@@ -201,6 +202,7 @@ public class BasicHttpAuthenticationMechanismTest {
     public void testValidateRequestWithInvalidResult() throws Exception {
         preInvokePathForProtectedResource(authzHeader).withIdentityStoreHandlerResult(CredentialValidationResult.INVALID_RESULT);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -209,6 +211,7 @@ public class BasicHttpAuthenticationMechanismTest {
     public void testValidateRequestWithInvalidResultAndUnprotectedResource() throws Exception {
         preInvokePathForUnprotectedResource(authzHeader).withIdentityStoreHandlerResult(CredentialValidationResult.INVALID_RESULT);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -217,6 +220,7 @@ public class BasicHttpAuthenticationMechanismTest {
     public void testValidateRequestAuthenticatePathWithInvalidResult() throws Exception {
         authenticatePathForProtectedResource(authzHeader).withIdentityStoreHandlerResult(CredentialValidationResult.INVALID_RESULT);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -225,6 +229,7 @@ public class BasicHttpAuthenticationMechanismTest {
     public void testValidateRequestAuthenticatePathWithInvalidResultAndUnprotectedResource() throws Exception {
         authenticatePathForUnprotectedResource(authzHeader).withIdentityStoreHandlerResult(CredentialValidationResult.INVALID_RESULT);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -353,6 +358,7 @@ public class BasicHttpAuthenticationMechanismTest {
         preInvokePathForProtectedResource(authzHeader).withIDSBeanInstance(null, false, true);
         withRegistryPathExpectations(false);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -362,6 +368,7 @@ public class BasicHttpAuthenticationMechanismTest {
         preInvokePathForProtectedResource(authzHeader).withIDSBeanInstance(null, false, true);
         withRegistryPathExpectations(false);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -389,6 +396,7 @@ public class BasicHttpAuthenticationMechanismTest {
         preInvokePathForUnprotectedResource(authzHeader).withIDSBeanInstance(null, true, false);
         withRegistryPathExpectations(false);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -398,6 +406,7 @@ public class BasicHttpAuthenticationMechanismTest {
         preInvokePathForUnprotectedResource(authzHeader).withIDSBeanInstance(null, false, true);
         withRegistryPathExpectations(false);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -425,6 +434,7 @@ public class BasicHttpAuthenticationMechanismTest {
         authenticatePathForUnprotectedResource(authzHeader).withIDSBeanInstance(null, true, false);
         withRegistryPathExpectations(false);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -434,6 +444,7 @@ public class BasicHttpAuthenticationMechanismTest {
         authenticatePathForUnprotectedResource(authzHeader).withIDSBeanInstance(null, false, true);
         withRegistryPathExpectations(false);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -461,6 +472,7 @@ public class BasicHttpAuthenticationMechanismTest {
         authenticatePathForUnprotectedResource(authzHeader).withIDSBeanInstance(null, true, false);
         withRegistryPathExpectations(false);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -470,6 +482,7 @@ public class BasicHttpAuthenticationMechanismTest {
         authenticatePathForUnprotectedResource(authzHeader).withIDSBeanInstance(null, false, true);
         withRegistryPathExpectations(false);
         setModulePropertiesProvider(realmName);
+        challengesAuthorizationHeader();
         withoutJaspicSessionPrincipal();
         assertValidateRequestFAILURE();
     }
@@ -774,6 +787,7 @@ public class BasicHttpAuthenticationMechanismTest {
                 never(response).setStatus(with(any(int.class)));
             }
         });
+
         return this;
     }
 
@@ -821,6 +835,15 @@ public class BasicHttpAuthenticationMechanismTest {
         return this;
     }
 
+    private BasicHttpAuthenticationMechanismTest withResponseUnauthorized() {
+        mockery.checking(new Expectations() {
+            {
+                allowing(httpMessageContext).responseUnauthorized();
+            }
+        });
+        return this;
+    }
+
     private void assertValidateRequestNOTDONE() throws AuthenticationException {
         withResponseStatus(HttpServletResponse.SC_OK);
         isRegistryAvailable = false;
@@ -837,14 +860,14 @@ public class BasicHttpAuthenticationMechanismTest {
     }
 
     private void assertValidateRequestFAILURE() throws AuthenticationException {
-        withResponseStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        withResponseUnauthorized();
 
         AuthenticationStatus status = mechanism.validateRequest(request, response, httpMessageContext);
         assertEquals("The AuthenticationStatus must be AuthenticationStatus.SEND_FAILURE.", AuthenticationStatus.SEND_FAILURE, status);
     }
 
     private void assertMechanismChallenges() throws AuthenticationException {
-        challengesAuthorizationHeader().withResponseStatus(HttpServletResponse.SC_UNAUTHORIZED);;
+        challengesAuthorizationHeader().withResponseUnauthorized();
         AuthenticationStatus status = mechanism.validateRequest(request, response, httpMessageContext);
         assertEquals("The AuthenticationStatus must be AuthenticationStatus.SEND_CONTINUE.", AuthenticationStatus.SEND_CONTINUE, status);
         assertEquals("The realm name must be set in the MessageInfo's map.", realmName,

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,7 +32,7 @@ import componenttest.topology.utils.FATServletClient;
 import jaxb.thirdparty.web.ThirdPartyJAXBTestServlet;
 
 @RunWith(FATRunner.class)
-@SkipForRepeat({ "JAXB-2.3", SkipForRepeat.EE9_FEATURES })
+@SkipForRepeat({ SkipForRepeat.EE9_FEATURES })
 @MaximumJavaLevel(javaLevel = 8) // Do not run these tests on JDK 9+ where there is no JAX-B api/impl in the JDK
 public class ThirdPartyJAXBTest extends FATServletClient {
 

@@ -1,18 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 IBM Corporation and others.
+ * Copyright (c) 2017, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 package com.ibm.ws.jsf23.fat.tests;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 
 import java.net.URL;
 
@@ -33,7 +33,9 @@ import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.jsf23.fat.JSFUtils;
 
 import componenttest.annotation.Server;
+import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.topology.impl.LibertyServer;
 
 /**
@@ -41,6 +43,7 @@ import componenttest.topology.impl.LibertyServer;
  * in JSF 2.3 specification under the Section 10.4.1.7 “<f:websocket>”.
  */
 @RunWith(FATRunner.class)
+@SkipForRepeat(EE10_FEATURES)
 public class JSF23WebSocketTests {
 
     protected static final Class<?> c = JSF23WebSocketTests.class;
@@ -48,28 +51,28 @@ public class JSF23WebSocketTests {
     @Rule
     public TestName name = new TestName();
 
-    @Server("jsf23CDIWSOCServer")
-    public static LibertyServer jsf23CDIWSOCServer;
+    @Server("jsf23WebSocketServer")
+    public static LibertyServer server;
 
     @BeforeClass
     public static void setup() throws Exception {
-        ShrinkHelper.defaultDropinApp(jsf23CDIWSOCServer, "WebSocket.war", "com.ibm.ws.jsf23.fat.websocket");
+        ShrinkHelper.defaultDropinApp(server, "WebSocket.war", "com.ibm.ws.jsf23.fat.websocket");
 
         // Start the server and use the class name so we can find logs easily.
-        jsf23CDIWSOCServer.startServer(JSF23WebSocketTests.class.getSimpleName() + ".log");
+        server.startServer(JSF23WebSocketTests.class.getSimpleName() + ".log");
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
         // Stop the server
-        if (jsf23CDIWSOCServer != null && jsf23CDIWSOCServer.isStarted()) {
-            jsf23CDIWSOCServer.stopServer();
+        if (server != null && server.isStarted()) {
+            server.stopServer();
         }
     }
 
     @Before
     public void setupPerTest() throws Exception {
-        jsf23CDIWSOCServer.setMarkToEndOfLog();
+        server.setMarkToEndOfLog();
     }
 
     /**
@@ -87,7 +90,13 @@ public class JSF23WebSocketTests {
 
             // Construct the URL for the test
             String contextRoot = "WebSocket";
-            URL url = JSFUtils.createHttpUrl(jsf23CDIWSOCServer, contextRoot, "PushWebSocketTest.jsf");
+            URL url;
+
+            if (JakartaEE10Action.isActive()) {
+                url = JSFUtils.createHttpUrl(server, contextRoot, "faces40/PushWebSocketTest.jsf");
+            } else {
+                url = JSFUtils.createHttpUrl(server, contextRoot, "PushWebSocketTest.jsf");
+            }
 
             HtmlPage testPushWebSocketPage = (HtmlPage) webClient.getPage(url);
 
@@ -99,7 +108,7 @@ public class JSF23WebSocketTests {
             assertContains(testPushWebSocketPage.asText(), "JSF 2.3 WebSocket - Test message pushed from server to client");
             assertContains(testPushWebSocketPage.asText(), "Called onopen listener");
 
-            String result1 = jsf23CDIWSOCServer.waitForStringInLogUsingMark("Channel myChannel was opened successfully!");
+            String result1 = server.waitForStringInLogUsingMark("Channel myChannel was opened successfully!");
 
             // Verify that the correct message is found in the logs
             assertNotNull("Message not found. Channel was not opened succesfully.", result1);
@@ -122,7 +131,7 @@ public class JSF23WebSocketTests {
             assertTrue(JSFUtils.waitForPageResponse(resultPage, "Message from the server via push!"));
             assertTrue(JSFUtils.waitForPageResponse(resultPage, "Called onclose listener"));
 
-            String result2 = jsf23CDIWSOCServer.waitForStringInLogUsingMark("Channel myChannel was closed successfully!");
+            String result2 = server.waitForStringInLogUsingMark("Channel myChannel was closed successfully!");
 
             // Verify that the correct message is found in the logs
             assertNotNull("Message not found. Channel was not closed succesfully.", result2);
@@ -143,7 +152,13 @@ public class JSF23WebSocketTests {
 
             // Construct the URL for the test
             String contextRoot = "WebSocket";
-            URL url = JSFUtils.createHttpUrl(jsf23CDIWSOCServer, contextRoot, "OpenCloseWebSocketTest.jsf");
+            URL url;
+
+            if (JakartaEE10Action.isActive()) {
+                url = JSFUtils.createHttpUrl(server, contextRoot, "faces40/OpenCloseWebSocketTest.jsf");
+            } else {
+                url = JSFUtils.createHttpUrl(server, contextRoot, "OpenCloseWebSocketTest.jsf");
+            }
 
             HtmlPage testOpenCloseWebSocketPage = (HtmlPage) webClient.getPage(url);
 
@@ -164,22 +179,22 @@ public class JSF23WebSocketTests {
 
             // Now click the open button and get the resulted page.
             HtmlPage openPage = openButton.click();
-            webClient.waitForBackgroundJavaScript(10000);
 
-            assertContains(openPage.asText(), "Called onopen listener");
+            // Use JSFUtils as this fails intermittently waiting for background JavaScript.
+            assertTrue(JSFUtils.waitForPageResponse(openPage, "Called onopen listener"));
 
-            String result1 = jsf23CDIWSOCServer.waitForStringInLogUsingMark("Channel myChannel was opened successfully!");
+            String result1 = server.waitForStringInLogUsingMark("Channel myChannel was opened successfully!");
 
             // Verify that the correct message is found in the logs
             assertNotNull("Message not found. Channel was not opened succesfully.", result1);
 
             // Now click the close button and get the resulted page.
             HtmlPage closePage = closeButton.click();
-            webClient.waitForBackgroundJavaScript(10000);
 
-            assertContains(closePage.asText(), "Called onclose listener");
+            // Use JSFUtils as this fails intermittently waiting for background JavaScript.
+            assertTrue(JSFUtils.waitForPageResponse(closePage, "Called onclose listener"));
 
-            String result2 = jsf23CDIWSOCServer.waitForStringInLogUsingMark("Channel myChannel was closed successfully!");
+            String result2 = server.waitForStringInLogUsingMark("Channel myChannel was closed successfully!");
 
             // Verify that the correct message is found in the logs
             assertNotNull("Message not found. Channel was not closed succesfully.", result2);

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,7 +35,7 @@ import com.ibm.ws.security.authentication.AuthenticationConstants;
 import com.ibm.ws.security.authentication.AuthenticationService;
 import com.ibm.ws.security.authentication.collective.CollectiveAuthenticationPlugin;
 import com.ibm.ws.security.authentication.internal.SSOTokenHelper;
-import com.ibm.ws.security.authentication.internal.jaas.JAASServiceImpl;
+import com.ibm.ws.security.authentication.jaas.modules.LoginModuleHelper;
 import com.ibm.ws.security.authentication.principals.WSPrincipal;
 import com.ibm.ws.security.authentication.utility.SubjectHelper;
 import com.ibm.ws.security.credentials.CredentialsService;
@@ -64,23 +66,23 @@ public abstract class ServerCommonLoginModule extends CommonLoginModule implemen
     protected boolean customPropertiesFromSubject = false;
 
     protected CollectiveAuthenticationPlugin getCollectiveAuthenticationPlugin() throws RegistryException {
-        return JAASServiceImpl.getCollectiveAuthenticationPlugin();
+        return LoginModuleHelper.getJAASService().getCollectiveAuthenticationPlugin();
     }
 
     protected UserRegistry getUserRegistry() throws RegistryException {
-        return JAASServiceImpl.getUserRegistry();
+        return LoginModuleHelper.getJAASService().getUserRegistry();
     }
 
     protected TokenManager getTokenManager() {
-        return JAASServiceImpl.getTokenManager();
+        return LoginModuleHelper.getJAASService().getTokenManager();
     }
 
     CredentialsService getCredentialsService() {
-        return JAASServiceImpl.getCredentialsService();
+        return LoginModuleHelper.getJAASService().getCredentialsService();
     }
 
     protected AuthenticationService getAuthenticationService() {
-        return JAASServiceImpl.getAuthenticationService();
+        return LoginModuleHelper.getJAASService().getAuthenticationService();
     }
 
     /**
@@ -98,7 +100,7 @@ public abstract class ServerCommonLoginModule extends CommonLoginModule implemen
      * CertificateLoginModule, HashtableLoginModule and TokenLoginModule). Determines the securityName to use
      * for the login.
      *
-     * @param loginName The username passed to the login
+     * @param loginName         The username passed to the login
      * @param urAuthenticatedId The id returned by UserRegistry checkPassword or mapCertificate.
      *
      * @return The securityName to use for the WSPrincipal.
@@ -108,13 +110,42 @@ public abstract class ServerCommonLoginModule extends CommonLoginModule implemen
      */
     protected String getSecurityName(String loginName, String urAuthenticatedId) throws EntryNotFoundException, RegistryException {
 
+        return getSecurityName(loginName, urAuthenticatedId, false);
+
+    }
+
+
+    /**
+     * Common method called by all login modules that use the UserRegistry (UsernameAndPasswordLoginModule,
+     * CertificateLoginModule, HashtableLoginModule and TokenLoginModule). Determines the securityName to use
+     * for the login.
+     *
+     * @param loginName         The username passed to the login
+     * @param urAuthenticatedId The id returned by UserRegistry checkPassword or mapCertificate.
+     *
+     * @return The securityName to use for the WSPrincipal.
+     *
+     * @throws EntryNotFoundException
+     * @throws RegistryException
+     */
+    protected String getSecurityName(String loginName, String urAuthenticatedId,
+                                     boolean useDisplayNameForSecurityName) throws EntryNotFoundException, RegistryException {
+
         UserRegistry ur = getUserRegistry();
-        if (ur != null && ur.getType() != "CUSTOM") { // Preserve the existing behavior for CUSTOM user registries
-            String securityName = ur.getUserSecurityName(urAuthenticatedId);
-            if (securityName != null) {
-                return securityName;
-            }
-        }
+
+            if (ur != null) { // Preserve the existing behavior for CUSTOM user registries
+                if (ur.getType() != "CUSTOM"){
+                    String securityName = ur.getUserSecurityName(urAuthenticatedId);
+                    if (securityName != null) {
+                        return securityName;
+                    }
+                }
+                else if (useDisplayNameForSecurityName){
+                    String displayName = ur.getUserDisplayName(urAuthenticatedId);
+                    if (displayName != null)
+                        return displayName;
+                }
+             }
 
         // If a loginName was provided, use it.
         if (loginName != null) {
@@ -127,6 +158,7 @@ public abstract class ServerCommonLoginModule extends CommonLoginModule implemen
             throw new NullPointerException("No user registry");
         }
     }
+
 
     /**
      * Set the relevant Credentials for this login module into the Subject,
@@ -392,5 +424,4 @@ public abstract class ServerCommonLoginModule extends CommonLoginModule implemen
 
         return false;
     }
-
 }

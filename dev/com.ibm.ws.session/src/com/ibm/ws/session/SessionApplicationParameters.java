@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2006 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,13 +15,14 @@ package com.ibm.ws.session;
 import java.util.EnumSet;
 
 import javax.servlet.ServletContext;
+import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 
 public class SessionApplicationParameters {
 
     private String sapAppName = null;
     private long sapSessionTimeout = 0;
-    private SessionCookieConfigImpl sapSessionCookieConfig = null;
+    private SessionCookieConfig sapSessionCookieConfig = null;
     private EnumSet<SessionTrackingMode> sapSessionTrackingMode = null;
     private final boolean sapDistributableWebApp;
     private final boolean sapAllowDispatchRemoteInclude;
@@ -38,7 +41,7 @@ public class SessionApplicationParameters {
                                         ServletContext sc,
                                         ClassLoader appClassLoader,
                                         String j2eeName,
-                                        SessionCookieConfigImpl cookieConfig,
+                                        SessionCookieConfig cookieConfig,
                                         boolean moduleSessionTrackingModeSet,
                                         EnumSet<SessionTrackingMode> sessionTrackingMode) {
         sapAppName = appName;
@@ -81,7 +84,7 @@ public class SessionApplicationParameters {
         return sapSessionTimeout;
     }
 
-    SessionCookieConfigImpl getSessionCookieConfig() {
+    public SessionCookieConfig getSessionCookieConfig() {
         return sapSessionCookieConfig;
     }
 

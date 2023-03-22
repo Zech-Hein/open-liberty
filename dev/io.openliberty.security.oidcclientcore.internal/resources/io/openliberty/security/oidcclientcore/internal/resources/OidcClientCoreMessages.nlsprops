@@ -1,0 +1,141 @@
+###############################################################################
+# Copyright (c) 2022, 2023 IBM Corporation and others.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License 2.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
+###############################################################################
+#CMVCPATHNAME io.openliberty.security.oidcclientcore.internal/resources/io/openliberty/security/oidcclientcore/internal/resources/OidcClientCoreMessages.nlsprops
+#COMPONENTPREFIX CWWKS
+#COMPONENTNAMEFOR Security OIDC Client Core
+#ISMESSAGEFILE TRUE
+#NLS_MESSAGEFORMAT_VAR
+#NLS_ENCODING=UNICODE
+# -------------------------------------------------------------------------------------------------
+# Message prefix block: CWWKS2400 - CWWKS2499
+
+ERROR_SENDING_AUTHORIZATION_REQUEST=CWWKS2400E: The {0} OpenID Connect client encountered an error while sending an authorization request to the OpenID Connect provider. {1}
+ERROR_SENDING_AUTHORIZATION_REQUEST.explanation=The OpenID Connect client configuration might be missing information, or the client encountered an error while communicating with the OpenID Connect provider.
+ERROR_SENDING_AUTHORIZATION_REQUEST.useraction=See the error in the message for more information.
+
+OIDC_CLIENT_CONFIGURATION_ERROR=CWWKS2401E: The configuration for the {0} OpenID Connect client is not valid or is missing data. {1}
+OIDC_CLIENT_CONFIGURATION_ERROR.explanation=The OpenID Connect client configuration is missing information that is needed.
+OIDC_CLIENT_CONFIGURATION_ERROR.useraction=See the error in the message for more information. Verify that the OpenID Connect client configuration is complete and accurate.
+
+URL_NOT_HTTPS=CWWKS2402E: The {0} endpoint URL that is configured for the {1} OpenID Connect client does not use the HTTPS protocol, but HTTPS is required.
+URL_NOT_HTTPS.explanation=The endpoint URL must use the HTTPS protocol to ensure that requests are secure.
+URL_NOT_HTTPS.useraction=Update the endpoint URL to use the HTTPS protocol.
+
+DISCOVERY_EXCEPTION=CWWKS2403E: The {0} OpenID Connect client encountered the following error during discovery of metadata for the OpenID Connect provider from the [{1}] URL: {2}
+DISCOVERY_EXCEPTION.explanation=The OpenID Connect client configuration might be missing information, or the client encountered an error while communicating with the OpenID Connect provider.
+DISCOVERY_EXCEPTION.useraction=See the error in the message for more information.
+
+OIDC_CLIENT_MISSING_PROVIDER_URI=CWWKS2404W: The OpenID Connect client cannot perform discovery because the providerURI attribute for the {0} OpenID Connect client is null or empty.
+OIDC_CLIENT_MISSING_PROVIDER_URI.explanation=The OpenID Connect client must discover metadata for the OpenID Connect provider, but the client does not have a providerURI attribute configured.
+OIDC_CLIENT_MISSING_PROVIDER_URI.useraction=Specify a value for the providerURI attribute in the OpenID Connect client configuration, or ensure that the OpenID Connect provider metadata in the client configuration contains all of the data that is required by the OpenID Connect client.
+
+DISCOVERY_METADATA_MISSING_VALUE=CWWKS2405E: The OpenID Connect provider metadata is missing the required [{0}] property.
+DISCOVERY_METADATA_MISSING_VALUE.explanation=The property that is specified in the message must be present in the OpenID Connect provider metadata, but it is missing.
+DISCOVERY_METADATA_MISSING_VALUE.useraction=Verify that the providerURI attribute for the OpenID Connect client is set to the correct discovery URL for the OpenID Connect provider.
+
+ERROR_BUILDING_AUTHORIZATION_ENDPOINT_URL=CWWKS2406E: The {0} OpenID Connect client cannot redirect the user to the authorization endpoint because the client cannot determine the authorization endpoint URL. {1}
+ERROR_BUILDING_AUTHORIZATION_ENDPOINT_URL.explanation=The authorization endpoint URL in the OpenID Connect client configuration might be malformed or missing, or the OpenID Connect client failed to obtain the authorization endpoint URL from the OpenID Connect provider.
+ERROR_BUILDING_AUTHORIZATION_ENDPOINT_URL.useraction=See the error in the message for more information. Verify that the OpenID Connect client configuration is complete and accurate.
+
+AUTHENTICATION_RESPONSE_ERROR=CWWKS2407E: The {0} OpenID Connect client encountered the following error while verifying the authentication response from the OpenID Connect provider: {1}
+AUTHENTICATION_RESPONSE_ERROR.explanation=The response from the OpenID Connect provider might be missing information. There might be a problem with the code returned from the OpenID Connect provider.
+AUTHENTICATION_RESPONSE_ERROR.useraction=See the error in the message for more information.
+
+CALLBACK_MISSING_STATE_PARAMETER=CWWKS2408E: The callback request from the OpenID Connect provider is missing the state parameter.
+CALLBACK_MISSING_STATE_PARAMETER.explanation=The authorization request to the OpenID Connect provider did not include a state parameter.
+CALLBACK_MISSING_STATE_PARAMETER.useraction=Ensure that the authorization request to the OpenID Connect provider includes a state parameter.
+
+STATE_VALUE_IN_CALLBACK_INCORRECT_LENGTH=CWWKS2409E: The [{0}] state parameter that is in the callback request from the OpenID Connect provider is not the correct length. The parameter is expected to be {1} characters long.
+STATE_VALUE_IN_CALLBACK_INCORRECT_LENGTH.explanation=The state value might be truncated, or the state value did not originate from this OpenID Connect client.
+STATE_VALUE_IN_CALLBACK_INCORRECT_LENGTH.useraction=Check the format of the state parameter. Compare the value to state parameters from recent OpenID Connect requests that were handled by this OpenID Connect client.
+
+STATE_VALUE_IN_CALLBACK_NOT_STORED=CWWKS2410E: The OpenID Connect client cannot find a state value that matches the [{0}] state parameter in the callback request from the OpenID Connect provider.
+STATE_VALUE_IN_CALLBACK_NOT_STORED.explanation=The state parameter might be from an old authorization request, or the value for the state parameter is incorrect.
+STATE_VALUE_IN_CALLBACK_NOT_STORED.useraction=Verify that the state parameter in the callback request matches a state value for a recent OpenID Connect request.
+
+STATE_VALUE_IN_CALLBACK_DOES_NOT_MATCH_STORED_VALUE=CWWKS2411E: The [{0}] state parameter that is included in the callback request does not match the state value that is stored by the OpenID Connect client.
+STATE_VALUE_IN_CALLBACK_DOES_NOT_MATCH_STORED_VALUE.explanation=The state parameter might be from an old authorization request, or the value for the state parameter is incorrect.
+STATE_VALUE_IN_CALLBACK_DOES_NOT_MATCH_STORED_VALUE.useraction=Verify that the state parameter in the callback request matches a state value for a recent OpenID Connect request.
+
+STATE_VALUE_IN_CALLBACK_OUTSIDE_ALLOWED_TIME_FRAME=CWWKS2412E: The [{0}] state parameter that is included in the callback request is outside of its valid time frame. The state value was created at {1} and is valid from {2} to {3}. The current time is {4}.
+STATE_VALUE_IN_CALLBACK_OUTSIDE_ALLOWED_TIME_FRAME.explanation=The OpenID Connect provider took too long to respond, or the user took too long to authenticate with the OpenID Connect provider.
+STATE_VALUE_IN_CALLBACK_OUTSIDE_ALLOWED_TIME_FRAME.useraction=Ensure that the user does not take too much time to authenticate with the OpenID Connect provider.
+
+CALLBACK_URL_DOES_NOT_MATCH_REDIRECT_URI=CWWKS2413E: The [{0}] callback request URL does not match the [{1}] redirect URI that is configured for the {2} OpenID Connect client.
+CALLBACK_URL_DOES_NOT_MATCH_REDIRECT_URI.explanation=The OpenID Connect client might have used a different value for the redirect_uri parameter in the authorization request that was sent to the OpenID Connect provider.
+CALLBACK_URL_DOES_NOT_MATCH_REDIRECT_URI.useraction=Check the OpenID Connect client configuration to ensure the redirect URI is configured correctly.
+
+# Do not translate "error"
+CALLBACK_URL_INCLUDES_ERROR_PARAMETER=CWWKS2414E: The callback request from the OpenID Connect provider contains the following error parameter value: [{0}]
+CALLBACK_URL_INCLUDES_ERROR_PARAMETER.explanation=The OpenID Connect provider encountered an error when it tried to process the authentication request.
+CALLBACK_URL_INCLUDES_ERROR_PARAMETER.useraction=See the value that is in the message for more information. Error codes are defined by RFC 6749.
+
+TOKEN_VALIDATION_EXCEPTION=CWWKS2415E: The {0} OpenID Connect client encountered the following error during validation of the token that was received from the OpenID Connect provider: {1}
+TOKEN_VALIDATION_EXCEPTION.explanation=A problem might exist with the issuer, azp, iat, or exp claim validation, or with the token signature validation.
+TOKEN_VALIDATION_EXCEPTION.useraction=For more information, see the error in the message.
+
+TOKEN_REQUEST_ERROR=CWWKS2416E: The {0} OpenID Connect client encountered the following error while sending a request to the token endpoint of the OpenID Connect provider: {1}
+TOKEN_REQUEST_ERROR.explanation=The OpenID Connect client might be missing information, the request to the token endpoint failed, or another error occurred while processing the token endpoint response.
+TOKEN_REQUEST_ERROR.useraction=See the error in the message for more information. Verify that the OpenID Connect provider returned a code in the authentication response.
+
+TOKEN_MISSING_REQUIRED_CLAIM=CWWKS2417E: The token is missing the required [{0}] claim.
+TOKEN_MISSING_REQUIRED_CLAIM.explanation=The claim that is specified in the message must be present in the token, but it is missing.
+TOKEN_MISSING_REQUIRED_CLAIM.useraction=Check the format and content of the token that is returned from the OpenID Connect provider.
+
+USERINFO_RESPONSE_ERROR=CWWKS2418W: The OpenID Connect client encountered the following error when it sent a request to the [{0}] User Info URL of the OpenID Connect provider: {1}
+USERINFO_RESPONSE_ERROR.explanation=The User Info response from the OpenID Connect provider might be malformed or missing information, or the OpenID Connect provider encountered an error when it handled the request.
+USERINFO_RESPONSE_ERROR.useraction=For more information, see the error in the message. Verify that the User Info URL for the OpenID Connect provider is correct.
+
+USERINFO_RESPONSE_NOT_200=CWWKS2419W: The request to the [{0}] User Info URL of the OpenID Connect provider returned a {1} HTTP status code. The OpenID Connect provider returned the following response: {2}
+USERINFO_RESPONSE_NOT_200.explanation=The OpenID Connect client did not receive a successful response from the OpenID Connect provider.
+USERINFO_RESPONSE_NOT_200.useraction=For more information, see the status code and error response in the message.
+
+VERIFICATION_KEY_ERROR=CWWKS2420E: The {0} OpenID Connect client encountered the following error while getting the key to verify the identity token from the OpenID Connect provider: {1}
+VERIFICATION_KEY_ERROR.explanation=The verification key might be missing, the OpenID Connect client encountered an error while fetching the key from the OpenID Connect provider, or another error occurred.
+VERIFICATION_KEY_ERROR.useraction=For more information, see the error in the message.
+
+# Do not translate "jwksConnectTimeout"
+JWK_CONNECTION_TIMED_OUT=CWWKS2421E: The OpenID Connect client failed to connect to the [{0}] JWK URI of the OpenID Connect provider within {1} milliseconds. Consider updating the jwksConnectTimeout property in the OpenID Connect client configuration.
+JWK_CONNECTION_TIMED_OUT.explanation=The OpenID Connect client cannot establish a connection with the JWK URI within the configured time frame.
+JWK_CONNECTION_TIMED_OUT.useraction=Update the jwksConnectTimeout property in the OpenID Connect client configuration. Verify that the OpenID Connect provider is reachable.
+
+# Do not translate "jwksReadTimeout"
+JWK_READ_TIMED_OUT=CWWKS2422E: The OpenID Connect client failed to read data from the [{0}] JWK URI of the OpenID Connect provider within {1} milliseconds. Consider updating the jwksReadTimeout property in the OpenID Connect client configuration.
+JWK_READ_TIMED_OUT.explanation=The OpenID Connect client cannot read the JWK data from the JWK URI within the configured time frame.
+JWK_READ_TIMED_OUT.useraction=Update the jwksReadTimeout property in the OpenID Connect client configuration. Verify that the OpenID Connect provider is reachable.
+
+OIDC_CLIENT_INVALID_RESPONSE_TYPE=CWWKS2423E: The following invalid response type is specified: ''{0}''. Valid response types are [{1}].
+OIDC_CLIENT_INVALID_RESPONSE_TYPE.explanation=The specified response type is not valid. 
+OIDC_CLIENT_INVALID_RESPONSE_TYPE.useraction=Specify one of the valid response types.
+
+TOKEN_CLAIM_VALUE_MISMATCH=CWWKS2424E: The [{0}] value for the [{1}] claim in the token does not match the [{2}] expected value.
+TOKEN_CLAIM_VALUE_MISMATCH.explanation=The claim value is incorrect or malformed. The configuration for the OpenID Connect client might be incorrect, or the token was created with incorrect values.
+TOKEN_CLAIM_VALUE_MISMATCH.useraction=Ensure the attribute in the OpenID Connect client configuration that is related to the claim that is specified in the message is configured correctly.
+
+TOKEN_MISSING_CLAIMS=CWWKS2425E: The {0} OpenID Connect client token is invalid. The jwtClaims value on the JwtContext object is null or empty.
+TOKEN_MISSING_CLAIMS.explanation=Information is missing from the token and validation of the token cannot be completed.
+TOKEN_MISSING_CLAIMS.useraction=Review the log for any earlier errors for details on the failure. Check the format and content of the token that is returned from the OpenID Connect provider.
+
+TOKEN_EMPTY_CLAIM=CWWKS2426E: The token has an empty [{0}] claim.
+TOKEN_EMPTY_CLAIM.explanation=The claim that is specified in the message must have a valid value.
+TOKEN_EMPTY_CLAIM.useraction=The OpenID Connect provider returns an ID token with an empty claim. If a claim is present, it must contain a valid value. Check the format and content of the token that is returned from the OpenID Connect provider.
+
+TOKEN_EXP_IN_PAST=CWWKS2427E: The token is not valid because the token expired. The token expiration time is [{0}]. The current time minus the clock skew is [{1}]. The configured clock skew is {2} seconds.
+TOKEN_EXP_IN_PAST.explanation=Tokens that are expired are not valid.
+TOKEN_EXP_IN_PAST.useraction=Obtain a new token that is not expired. Synchronize the clock times between the token issuer and the OpenID Connect client.
+
+TOKEN_CLAIM_IN_FUTURE=CWWKS2428E: The token is deemed invalid due to the [{0}] value for the [{1}] claim being in the future. The sum of the current time and clock skew is [{2}], and the configured clock skew is {3} seconds.
+TOKEN_CLAIM_IN_FUTURE.explanation=The value that is specified in the message for the claim must be a time in the past.
+TOKEN_CLAIM_IN_FUTURE.useraction=Use the token after the time that is specified in the message expires, or obtain a new token.
+
+TOKEN_RESPONSE_MISSING_PARAMETER=CWWKS2429E: The token response from the OpenID Connect provider is missing at least one required parameter: {0}.
+TOKEN_RESPONSE_MISSING_PARAMETER.explanation=Either the OpenID Connect provider did not return a required parameter or failed to process the token request.
+TOKEN_RESPONSE_MISSING_PARAMETER.useraction=Verify that the configured token endpoint is correct and capable of responding to OAuth token requests.
+

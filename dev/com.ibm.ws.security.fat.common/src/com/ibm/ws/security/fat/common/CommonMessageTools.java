@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -16,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.gargoylesoftware.htmlunit.CookieManager;
@@ -53,9 +56,12 @@ public class CommonMessageTools {
      * Logs the state of the test assertion and then invokes the JUnit assertTrue method to record the test "status"
      * with JUnit.
      *
-     * @param caller - Routine that is requesting the check be performed
-     * @param msg - Message that will be recorded if the test assertion fails
-     * @param testAssertion - State of the test assertion
+     * @param caller
+     *            - Routine that is requesting the check be performed
+     * @param msg
+     *            - Message that will be recorded if the test assertion fails
+     * @param testAssertion
+     *            - State of the test assertion
      */
     public void assertTrueAndLog(String caller, String msg, Boolean testAssertion) {
         assertAndLog(caller, msg, testAssertion, true);
@@ -65,10 +71,14 @@ public class CommonMessageTools {
      * Logs the state of the test assertion and then invokes the JUnit assertTrue or assertFalse methods, depending on
      * the value of expectedResult, to record the test "status" with JUnit.
      *
-     * @param caller - Routine that is requesting the check be performed
-     * @param msg - Message that will be recorded if the test assertion fails
-     * @param testAssertion - State of the test assertion
-     * @param expectedResult - Expected result of the test assertion
+     * @param caller
+     *            - Routine that is requesting the check be performed
+     * @param msg
+     *            - Message that will be recorded if the test assertion fails
+     * @param testAssertion
+     *            - State of the test assertion
+     * @param expectedResult
+     *            - Expected result of the test assertion
      * @return
      */
 
@@ -92,16 +102,34 @@ public class CommonMessageTools {
         System.err.flush();
         System.out.flush();
         Log.info(thisClass, "printClassName", "################################################ "
-                                              + theClass + " ################################################:");
+                + theClass + " ################################################:");
         System.out.println("################################################ Starting test class: "
-                           + theClass + " ################################################:");
+                + theClass + " ################################################:");
+    }
+
+    public void printMethodNameBlock(String strMethod) {
+        System.err.flush();
+        System.out.flush();
+        Log.info(thisClass, strMethod, "****************************************************************************************************");
+        int strLen = strMethod.length();
+        int fillerLen = (100 - strLen - 4) / 2;
+        String filler1 = new String(new char[fillerLen]).replace('\0', ' ');
+        int adjuster = 0;
+        if ((fillerLen * 2) + 4 < 100) {
+            adjuster = 1;
+        }
+        String filler2 = new String(new char[fillerLen + adjuster]).replace('\0', ' ');
+
+        Log.info(thisClass, strMethod, "/" + filler1 + " " + strMethod + " " + filler2 + "/");
+        Log.info(thisClass, strMethod, "****************************************************************************************************");
+        //System.out.println("***************************** " + strMethod);
     }
 
     public void printMethodName(String strMethod) {
         System.err.flush();
         System.out.flush();
         Log.info(thisClass, strMethod, "***************************** "
-                                       + strMethod);
+                + strMethod);
         //System.out.println("***************************** " + strMethod);
     }
 
@@ -109,7 +137,7 @@ public class CommonMessageTools {
         System.err.flush();
         System.out.flush();
         Log.info(thisClass, strMethod, "***************************** " + task
-                                       + " " + strMethod + " *****************************");
+                + " " + strMethod + " *****************************");
         //System.out.println("***************************** " + task + " "
         //	+ strMethod + " *****************************");
     }
@@ -204,10 +232,12 @@ public class CommonMessageTools {
                 Log.info(thisClass, theMethod, "Response (Title): " + AutomationTools.getResponseTitle(response));
             }
             Log.info(thisClass, theMethod, "Response (Url): " + AutomationTools.getResponseUrl(response));
-            String[] hs = AutomationTools.getResponseHeaderNames(response);
-            if (hs != null) {
-                for (String h : hs) {
-                    Log.info(thisClass, theMethod, "Response (Header): Name: " + h + " Value: " + AutomationTools.getResponseHeaderField(response, h));
+            Map<String, String[]> headers = AutomationTools.getResponseHeaders(response);
+            if (headers != null) {
+                for (Entry<String, String[]> header : headers.entrySet()) {
+                    for (String value : header.getValue()) {
+                        Log.info(thisClass, theMethod, "Response (Header): Name: " + header.getKey() + " Value: " + value);
+                    }
                 }
             }
             Log.info(thisClass, theMethod, "Response (Message): " + AutomationTools.getResponseMessage(response));
@@ -249,7 +279,7 @@ public class CommonMessageTools {
     public void printExpectations(List<validationData> expectations) throws Exception {
         printExpectations(ValidationDataToExpectationConverter.convertValidationDataList(expectations), null);
     }
-    
+
     public void printExpectations(Expectations expectations) throws Exception {
         printExpectations(expectations, null);
     }
@@ -262,7 +292,7 @@ public class CommonMessageTools {
         }
         if (expectations == null) {
             Log.info(thisClass, thisMethod,
-                     "Expectations are null - we should never have a test case that has null expectations - that would mean we're NOT validating any results - that's bad, very bad");
+                    "Expectations are null - we should never have a test case that has null expectations - that would mean we're NOT validating any results - that's bad, very bad");
             throw new Exception("NO expectations were specified - every test MUST validate it's results!!!");
         }
         for (Expectation expected : expectations.getExpectations()) {
@@ -295,7 +325,7 @@ public class CommonMessageTools {
         String[] cookieNames = wc.getCookieNames();
         for (int i = 0; i < cookieNames.length; i++) {
             Log.info(thisClass, "printAllCookies", "Cookie: " + cookieNames[i]
-                                                   + " Value: " + wc.getCookieValue(cookieNames[i]));
+                    + " Value: " + wc.getCookieValue(cookieNames[i]));
         }
         return;
     }
@@ -304,15 +334,20 @@ public class CommonMessageTools {
 
         printMethodName("printAllCookies");
 
+        if (webClient == null) {
+            Log.info(thisClass, "printAllCookies", "WebClient is null - no cookies to log");
+            return;
+        }
+
         CookieManager cookieManager = webClient.getCookieManager();
         Set<Cookie> cookies = cookieManager.getCookies();
         for (Cookie cookie : cookies) {
             Log.info(thisClass, "printAllCookies", "Cookie: " + cookie.getName()
-                                                   + " Value: " + cookie.getValue()
-                                                   + " isSecure: " + cookie.isSecure()
-                                                   + " Path: " + cookie.getPath()
-                                                   + " Expires: " + cookie.getExpires()
-                                                   + " Domain: " + cookie.getDomain());
+                    + " Value: " + cookie.getValue()
+                    + " isSecure: " + cookie.isSecure()
+                    + " Path: " + cookie.getPath()
+                    + " Expires: " + cookie.getExpires()
+                    + " Domain: " + cookie.getDomain());
         }
         return;
     }
@@ -376,10 +411,10 @@ public class CommonMessageTools {
         try {
             Log.info(thisClass, theMethod, msg);
             String page = form.asText();
-//            String[] formParms = form.getParameterNames();
-//            for (String parm : formParms) {
-//                Log.info(thisClass, theMethod, "Form parameter: " + parm + ", set to: " + form.getParameterValue(parm));
-//            }
+            //            String[] formParms = form.getParameterNames();
+            //            for (String parm : formParms) {
+            //                Log.info(thisClass, theMethod, "Form parameter: " + parm + ", set to: " + form.getParameterValue(parm));
+            //            }
             Log.info(thisClass, theMethod, "Form: " + page);
 
         } catch (Exception e) {

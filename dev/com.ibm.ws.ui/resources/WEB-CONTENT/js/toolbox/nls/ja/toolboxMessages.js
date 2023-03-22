@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2016, 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,5 +24,5 @@ define({
         TOOL_URL_INVALID: "URL が無効です。 このままでブックマークを追加しますか?",
         TOOL_URL_INACCESSIBLE: "この URL は使用できません。 このままでブックマークを追加しますか?",
         TOOL_DUPLICATE: "ブックマークは既に存在します。 固有の名前を指定してください。",
-        TOOL_BADREQUEST: "ツールボックス {0} にブックマークを追加中にエラーが発生しました。"
+        TOOL_BADREQUEST: "ツールボックスにブックマークを追加中にエラーが発生しました: {0}。"
 });

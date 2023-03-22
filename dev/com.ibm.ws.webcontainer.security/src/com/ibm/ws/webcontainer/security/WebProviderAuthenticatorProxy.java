@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2020 IBM Corporation and others.
+ * Copyright (c) 2013, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,7 +33,7 @@ import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.websphere.security.audit.AuditEvent;
 import com.ibm.websphere.security.cred.WSCredential;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.security.SecurityService;
 import com.ibm.ws.security.authentication.AuthenticationConstants;
@@ -45,6 +47,8 @@ import com.ibm.ws.webcontainer.security.openid20.OpenidClientService;
 import com.ibm.ws.webcontainer.security.openidconnect.OidcClient;
 import com.ibm.ws.webcontainer.security.openidconnect.OidcServer;
 import com.ibm.ws.webcontainer.security.util.SSOAuthFilter;
+import com.ibm.ws.webcontainer.srt.ISRTServletRequest;
+import com.ibm.wsspi.http.channel.values.HttpHeaderKeys;
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 import com.ibm.wsspi.kernel.service.utils.ConcurrentServiceReferenceMap;
 import com.ibm.wsspi.security.tai.TrustAssociationInterceptor;
@@ -183,7 +187,7 @@ public class WebProviderAuthenticatorProxy implements WebAuthenticator {
             if (!isNewAuth) {
                 if ("BASIC".equals(authResult.getAuditAuthConfigProviderAuthType())) {
                     // check BA header, and if it exists, use denied and set username, otherwise, challenge
-                    String authHeader = webRequest.getHttpServletRequest().getHeader("Authorization");
+                    String authHeader = ISRTServletRequest.getHeader(webRequest.getHttpServletRequest(), HttpHeaderKeys.HDR_AUTHORIZATION);
                     if (authHeader != null && authHeader.startsWith("Basic ")) {
                         String basicAuthHeader = decodeCookieString(authHeader.substring(6));
                         int index = basicAuthHeader.indexOf(':');
@@ -213,7 +217,7 @@ public class WebProviderAuthenticatorProxy implements WebAuthenticator {
                                                    webRequest.getHttpServletResponse(),
                                                    props);
             if (authResult.getStatus() != AuthResult.CONTINUE) {
-                String authHeader = webRequest.getHttpServletRequest().getHeader("Authorization");
+                String authHeader = ISRTServletRequest.getHeader(webRequest.getHttpServletRequest(), HttpHeaderKeys.HDR_AUTHORIZATION);
                 if (authHeader != null && authHeader.startsWith("Basic ")) {
                     String basicAuthHeader = decodeCookieString(authHeader.substring(6));
                     int index = basicAuthHeader.indexOf(':');
@@ -589,6 +593,8 @@ public class WebProviderAuthenticatorProxy implements WebAuthenticator {
         }
 
         if (firstCall) {
+            oidcClient.logoutIfSessionInvalidated(req);
+
             // let's check if any oidcClient need to be called beforeSso. If not, return
             if (!oidcClient.anyClientIsBeforeSso()) {
                 return authResult;

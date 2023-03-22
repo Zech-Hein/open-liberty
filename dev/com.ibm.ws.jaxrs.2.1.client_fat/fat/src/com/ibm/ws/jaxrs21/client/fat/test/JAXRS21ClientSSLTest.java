@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -88,7 +90,6 @@ public class JAXRS21ClientSSLTest extends JAXRS21AbstractTest {
     }
 
     @Test
-    @SkipForRepeat("EE9_FEATURES") // Currently, RESTEasy only allows SSLContext to be set from ClientBuilder
     public void testClientBasicSSL_Client() throws Exception {
         Map<String, String> p = new HashMap<String, String>();
         p.put("param", "alex");
@@ -96,7 +97,6 @@ public class JAXRS21ClientSSLTest extends JAXRS21AbstractTest {
     }
 
     @Test
-    @SkipForRepeat("EE9_FEATURES") // Currently, RESTEasy only allows SSLContext to be set from ClientBuilder
     public void testClientBasicSSL_WebTarget() throws Exception {
         Map<String, String> p = new HashMap<String, String>();
         p.put("param", "alex");
@@ -111,7 +111,7 @@ public class JAXRS21ClientSSLTest extends JAXRS21AbstractTest {
     }
 
     @Test
-    @SkipForRepeat("EE9_FEATURES") // Needs more investigation, but also runs into the same issue with SSLContext only being set from ClientBuilder
+    @SkipForRepeat({"EE9_FEATURES","EE10_FEATURES"}) // Needs more investigation, but also runs into the same issue with SSLContext only being set from ClientBuilder
     public void testClientBasicSSL_CustomizedSSLContext() throws Exception {
         Map<String, String> p = new HashMap<String, String>();
         p.put("param", "alex");

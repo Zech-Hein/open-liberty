@@ -1,9 +1,11 @@
 ###############################################################################
 # Copyright (c) 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -62,4 +64,6 @@
 22117=Mened\u017cer komend zdalnych sesji jest zamkni\u0119ty lub nie zosta\u0142 zainicjowany podczas przetwarzania komunikat\u00f3w przychodz\u0105cych
 
 22118=Nie powiod\u0142a si\u0119 pr\u00f3ba utworzenia po\u0142\u0105czenia JGroups za pomoc\u0105 pliku konfiguracyjnego: {0}
+
+22119=B\u0142\u0105d podczas inicjowania {0}, dodaj plik org.eclipse.persistence.corba.jar do \u015bcie\u017cki klasy.
 

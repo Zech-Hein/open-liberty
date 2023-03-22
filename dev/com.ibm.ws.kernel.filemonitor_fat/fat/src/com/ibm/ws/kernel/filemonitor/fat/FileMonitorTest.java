@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -215,13 +217,13 @@ public class FileMonitorTest extends AbstractNotificationTest {
     }
 
     /**
-     * An easy test, as a sanity baseline.
+     * An easy test, as a validation baseline.
      */
     @Test
     public void testNoNotificationsHappenWhenNothingChanges() throws Exception {
         // Do nothing :)
         int count = recursiveMonitor.scrapeLogsForChanges();
-        // Sanity check - we didn't see anything, right?
+        // Test - we didn't see anything, right?
         assertEquals("We didn't change any files so we shouldn't have had any monitoring activity.", 0, count);
         assertNothingCreated(recursiveMonitor);
         assertNothingDeleted(recursiveMonitor);

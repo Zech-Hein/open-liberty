@@ -1,20 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.wsat.common.impl;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.transaction.Synchronization;
 
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
 
@@ -29,15 +25,11 @@ import com.ibm.ws.wsat.tm.impl.TranManagerImpl;
  * flowed as part of the CoordinationContext SOAP header and as part of the
  * EndpointReferences for WS-AT protocol services.
  */
-public class WSATTransaction implements Synchronization {
+public class WSATTransaction {
 
-    private static final String CLASS_NAME = WSATTransaction.class.getName();
     private static final TraceComponent TC = Tr.register(WSATTransaction.class);
 
-    private static Map<String, WSATTransaction> tranMap =
-                    Collections.synchronizedMap(new HashMap<String, WSATTransaction>());
-
-    private final TranManagerImpl tranService = TranManagerImpl.getInstance();
+    private static final TranManagerImpl tranService = TranManagerImpl.getInstance();
 
     private final String globalId; // Our global wsat transaction id
 
@@ -54,15 +46,18 @@ public class WSATTransaction implements Synchronization {
      */
 
     public static void putTran(WSATTransaction tran) {
-        tranMap.put(tran.getGlobalId(), tran);
+        tranService.getRemoteTranMgr().putResource(tran.getGlobalId(), tran);
     }
 
     public static WSATTransaction getTran(String globalId) {
-        return tranMap.get(globalId);
+        WSATTransaction t2 = (WSATTransaction) tranService.getRemoteTranMgr().getResource(globalId);
+
+        return t2;
     }
 
-    public static void removeTran(String globalId) {
-        tranMap.remove(globalId);
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof WSATTransaction && globalId.equals(((WSATTransaction) o).getGlobalId());
     }
 
     public static WSATCoordinatorTran getCoordTran(String globalId) {
@@ -88,11 +83,6 @@ public class WSATTransaction implements Synchronization {
         globalId = id;
         expiryTime = timeout;
         recoveryTran = recovery;
-
-        // We cannot registry with TranSync when doing recovery
-        if (!recoveryTran) {
-            tranService.registerTranSync(this);
-        }
     }
 
     @Trivial
@@ -153,18 +143,6 @@ public class WSATTransaction implements Synchronization {
     }
 
     /*
-     * Remove coordinator when done
-     */
-    public synchronized void removeCoordinator() {
-        // If this is a recovery transaction we will not be able to use the TranSyncRegistry
-        // to detect transaction end, so we need to use the fact that we have removed the 
-        // coordinator to trigger clean-up.  This is valid for recovery state only.
-        if (isRecovery()) {
-            afterCompletion(0);
-        }
-    }
-
-    /*
      * The WSATContext is the internal representation of the information needed
      * to build a WS-Coord CoordinationContext for the distributed transaction.
      */
@@ -179,24 +157,6 @@ public class WSATTransaction implements Synchronization {
             }
         }
         return ctx;
-    }
-
-    /*
-     * Transaction synchronization is used to detect the end of the transaction
-     * so we can tidy up the internal tables.
-     */
-
-    @Override
-    public void beforeCompletion() {
-        // Nothing to do
-    }
-
-    @Override
-    public void afterCompletion(int status) {
-        if (TC.isDebugEnabled()) {
-            Tr.debug(TC, "Removing global transaction: {0}", this);
-        }
-        WSATTransaction.removeTran(getGlobalId());
     }
 
     // For debug

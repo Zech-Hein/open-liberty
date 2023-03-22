@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -142,7 +144,7 @@ public class Director extends AbstractDirector {
     /**
      * Adds a listener to eventManager
      *
-     * @param listener the event listener to add
+     * @param listener         the event listener to add
      * @param notificationType the notification type
      */
     public void addListener(InstallEventListener listener, String notificationType) {
@@ -161,9 +163,9 @@ public class Director extends AbstractDirector {
     /**
      * Fires a progress event message to be displayed
      *
-     * @param state the state integer
-     * @param progress the progress integer
-     * @param messageKey the message key
+     * @param state           the state integer
+     * @param progress        the progress integer
+     * @param messageKey      the message key
      * @param installResource the resource necessitating the progress event
      * @throws InstallException
      */
@@ -193,7 +195,7 @@ public class Director extends AbstractDirector {
     /**
      * Fires an install progress event to be displayed
      *
-     * @param progress the progress integer
+     * @param progress     the progress integer
      * @param installAsset the install asset necessitating the progress event
      * @throws InstallException
      */
@@ -216,7 +218,7 @@ public class Director extends AbstractDirector {
     /**
      * Fires a download progress event to be displayed
      *
-     * @param progress the progress integer
+     * @param progress        the progress integer
      * @param installResource the install resource necessitating the progress event
      * @throws InstallException
      */
@@ -250,11 +252,11 @@ public class Director extends AbstractDirector {
     /**
      * Installs the specified features
      *
-     * @param featureNames collection of feature names to be installed
-     * @param toExtension location of a product extension
+     * @param featureNames  collection of feature names to be installed
+     * @param toExtension   location of a product extension
      * @param acceptLicense if license is accepted
-     * @param userId userId for repository
-     * @param password password for repository
+     * @param userId        userId for repository
+     * @param password      password for repository
      * @throws InstallException
      */
     public void installFeatures(Collection<String> featureNames, String toExtension, boolean acceptLicense, String userId, String password) throws InstallException {
@@ -264,11 +266,11 @@ public class Director extends AbstractDirector {
     /**
      * Installs the specified features with a check progress integer.
      *
-     * @param featureNames collection of feature names to be installed
-     * @param toExtension location of a product extension
+     * @param featureNames  collection of feature names to be installed
+     * @param toExtension   location of a product extension
      * @param acceptLicense if license is accepted
-     * @param userId userId for repository
-     * @param password password for repository
+     * @param userId        userId for repository
+     * @param password      password for repository
      * @param checkProgress check progress integer
      * @throws InstallException
      */
@@ -280,13 +282,13 @@ public class Director extends AbstractDirector {
     /**
      * Installs the specified features and fires appropriate progress event notifications
      *
-     * @param featureNames collection of feature names to be installed
-     * @param toExtension location of a product extension
-     * @param acceptLicense if license is accepted
+     * @param featureNames          collection of feature names to be installed
+     * @param toExtension           location of a product extension
+     * @param acceptLicense         if license is accepted
      * @param allowAlreadyInstalled if already installed features should be ignored
-     * @param userId userId for repository
-     * @param password password for repository
-     * @param checkProgress check progress integer
+     * @param userId                userId for repository
+     * @param password              password for repository
+     * @param checkProgress         check progress integer
      * @throws InstallException
      */
     public void installFeatures(Collection<String> featureNames, String toExtension, boolean acceptLicense, boolean allowAlreadyInstalled, String userId, String password,
@@ -368,8 +370,8 @@ public class Director extends AbstractDirector {
     /**
      * Installs the feature found in the given esa location
      *
-     * @param esaLocation location of esa
-     * @param toExtension location of a product extension
+     * @param esaLocation   location of esa
+     * @param toExtension   location of a product extension
      * @param acceptLicense if license is accepted
      * @throws InstallException
      */
@@ -387,8 +389,8 @@ public class Director extends AbstractDirector {
     /**
      * Installs the feature found in the given esa location without resolving dependencies
      *
-     * @param esaLocation location of esa
-     * @param toExtension location of a product extension
+     * @param esaLocation   location of esa
+     * @param toExtension   location of a product extension
      * @param acceptLicense if license is accepted
      * @throws InstallException
      */
@@ -413,11 +415,11 @@ public class Director extends AbstractDirector {
     /**
      * Installs the features found in the inputed featureIds collection
      *
-     * @param featureIds the feature ids
-     * @param fromDir where the features are located
-     * @param toExtension location of a product extension
+     * @param featureIds    the feature ids
+     * @param fromDir       where the features are located
+     * @param toExtension   location of a product extension
      * @param acceptLicense if license is accepted
-     * @param offlineOnly if features should be installed from local source only
+     * @param offlineOnly   if features should be installed from local source only
      * @throws InstallException
      */
     public void installFeature(Collection<String> featureIds, File fromDir, String toExtension, boolean acceptLicense, boolean offlineOnly) throws InstallException {
@@ -459,7 +461,7 @@ public class Director extends AbstractDirector {
     /**
      * Creates a collection of features required for all servers in the inputed set.
      *
-     * @param servers set of ServerAssets
+     * @param servers     set of ServerAssets
      * @param offlineOnly if features should be only retrieved locally
      * @return Collection of server feature names to install
      * @throws InstallException
@@ -468,7 +470,6 @@ public class Director extends AbstractDirector {
     public Collection<String> getServerFeaturesToInstall(Set<ServerAsset> servers, boolean offlineOnly) throws InstallException, IOException {
         Set<String> features = new TreeSet<String>();
         Set<String> serverNames = new HashSet<String>(servers.size());
-        Set<String> allServerNames = new HashSet<String>(servers.size());
 
         for (ServerAsset sa : servers) {
             File serverXmlFile = sa.getServerXmlFile();
@@ -479,25 +480,22 @@ public class Director extends AbstractDirector {
             File overridesFolder = new File(serverDirectory, "/configDropins/overrides");
             File defaultsFolder = new File(serverDirectory, "/configDropins/defaults");
             List<File> folders = Arrays.asList(defaultsFolder, overridesFolder);
-            
-            folders.stream()
-                    .filter(folder -> folder.exists() && folder.isDirectory())
-                    .forEach(folder -> {
-                        try {
-                            logger.fine("Processing " + folder);
-                            Files.newDirectoryStream(Paths.get(folder.toURI()),
-                                    path -> path.toString().endsWith(".xml"))
-                                    .forEach(path -> {
-                                        try {
-                                            requiredFeatures.addAll(InstallUtils.getFeatures(path.toString(), path.getFileName().toString(), new HashSet<String>()));
-                                        } catch (IOException e) {
-                                            logger.fine("Could not process " + path);
-                                        }
-                                    });
-                        } catch (IOException e) {
-                            logger.fine("Could not process " + folder);
-                        }
-                    });
+
+            folders.stream().filter(folder -> folder.exists() && folder.isDirectory()).forEach(folder -> {
+                try {
+                    logger.fine("Processing " + folder);
+                    Files.newDirectoryStream(Paths.get(folder.toURI()),
+                                             path -> path.toString().endsWith(".xml")).forEach(path -> {
+                                                 try {
+                                                     requiredFeatures.addAll(InstallUtils.getFeatures(path.toString(), path.getFileName().toString(), new HashSet<String>()));
+                                                 } catch (IOException e) {
+                                                     logger.fine("Could not process " + path);
+                                                 }
+                                             });
+                } catch (IOException e) {
+                    logger.fine("Could not process " + folder);
+                }
+            });
 
             if (!requiredFeatures.isEmpty()) {
                 logger.log(Level.FINEST, Messages.INSTALL_KERNEL_MESSAGES.getLogMessage("LOG_DEPLOY_SERVER_FEATURES",
@@ -507,21 +505,11 @@ public class Director extends AbstractDirector {
                 serverNames.add(sa.getServerName());
 
             }
-
-            allServerNames.add(sa.getServerName());
-        }
-        Collection<String> featuresToInstall = getFeaturesToInstall(features, offlineOnly);
-
-        if (!featuresToInstall.isEmpty()) {
-            logger.log(Level.FINE, Messages.INSTALL_KERNEL_MESSAGES.getLogMessage("LOG_DEPLOY_ADDITIONAL_FEATURES_REQUIRED",
-                                                                                  serverNames, featuresToInstall));
-            InstallUtils.setServerXmlInstallTrue();
-        } else {
-            logger.log(Level.FINE, Messages.INSTALL_KERNEL_MESSAGES.getLogMessage("LOG_DEPLOY_NO_ADDITIONAL_FEATURES_REQUIRED",
-                                                                                  allServerNames));
         }
 
-        return featuresToInstall;
+        InstallUtils.setServerXmlInstallTrue();
+
+        return features;
     }
 
     /**
@@ -573,11 +561,11 @@ public class Director extends AbstractDirector {
     /**
      * Creates a set of install licenses for all features to be installed
      *
-     * @param featureIds collection of feature ids as strings to get the licenses from
-     * @param fromDir the directory of the features
+     * @param featureIds  collection of feature ids as strings to get the licenses from
+     * @param fromDir     the directory of the features
      * @param toExtension location of a product extension
      * @param offlineOnly if features should be only retrieved locally
-     * @param locale Locale for the licenses
+     * @param locale      Locale for the licenses
      * @return Set of InstallLicenses
      * @throws InstallException
      */
@@ -622,7 +610,7 @@ public class Director extends AbstractDirector {
      * Gets the licenses for the specified esa location.
      *
      * @param esaLocation location of esa
-     * @param locale Locale for the license
+     * @param locale      Locale for the license
      * @return A set of InstallLicenses for the features at the esa location
      * @throws InstallException
      */
@@ -658,9 +646,9 @@ public class Director extends AbstractDirector {
      * Gets the licenses for the specified feature names
      *
      * @param featureNames a collection of the feature names
-     * @param locale Locale for the licenses
-     * @param userId userId for the repository
-     * @param password password for the repository
+     * @param locale       Locale for the licenses
+     * @param userId       userId for the repository
+     * @param password     password for the repository
      * @return A set of installLicenses for the featuresNames
      * @throws InstallException
      */
@@ -738,9 +726,9 @@ public class Director extends AbstractDirector {
     /**
      * Gets the licenses for the specified archive file
      *
-     * @param archive the archive file
+     * @param archive     the archive file
      * @param offlineOnly if features should be only retrieved locally
-     * @param locale Locale for the licenses
+     * @param locale      Locale for the licenses
      * @return A set of InstallLicesese for the features in the archive file
      * @throws InstallException
      */
@@ -761,9 +749,9 @@ public class Director extends AbstractDirector {
     /**
      * Gets the licenses for the specified server XML file
      *
-     * @param serverXML The server XML file
+     * @param serverXML   The server XML file
      * @param offlineOnly if features should be only retrieved locally
-     * @param locale Locale for the licenses
+     * @param locale      Locale for the licenses
      * @return Set of InstallLicenses for the features found in the server XML file
      * @throws InstallException
      * @throws IOException
@@ -809,8 +797,8 @@ public class Director extends AbstractDirector {
     /**
      * Perform the installation of the determined install assets.
      *
-     * @param existsAction What action should be taken if the asset exists as an ExistsAction object
-     * @param rollbackAll if features should be rolled back
+     * @param existsAction         What action should be taken if the asset exists as an ExistsAction object
+     * @param rollbackAll          if features should be rolled back
      * @param downloadDependencies if dependencies for features should be downloaded
      * @throws InstallException
      */
@@ -852,6 +840,7 @@ public class Director extends AbstractDirector {
                         ESAAsset esaa = ((ESAAsset) installAsset);
                         if (esaa.isPublic()) {
                             log(Level.FINE, installAsset.installedLogMsg());
+                            log(Level.FINE, "ESA file is installed from : " + esaa.getAsset().getAbsolutePath());
                         }
                     } else {
                         log(Level.FINE, installAsset.installedLogMsg());
@@ -899,8 +888,8 @@ public class Director extends AbstractDirector {
     /**
      * Perform the installation of the determined install assets.
      *
-     * @param existsAction What action should be taken if the asset exists as an ExistsAction object
-     * @param rollbackAll if features should be rolled back
+     * @param existsAction         What action should be taken if the asset exists as an ExistsAction object
+     * @param rollbackAll          if features should be rolled back
      * @param downloadDependencies if dependencies for features should be downloaded
      * @throws InstallException
      */
@@ -1063,7 +1052,7 @@ public class Director extends AbstractDirector {
     /**
      * Enables console logging amd console error logging
      *
-     * @param level Level of log
+     * @param level   Level of log
      * @param verbose if verbose should be set
      */
     public void enableConsoleLog(Level level, boolean verbose) {
@@ -1157,7 +1146,7 @@ public class Director extends AbstractDirector {
      * If type is AssetType.all then all matching assets will be returned.
      *
      * @param searchStr the search string
-     * @param type the assetType to search for
+     * @param type      the assetType to search for
      * @return Map of Resource type to repository resouce lists of assets matching the search string and asset type
      * @throws InstallException
      */
@@ -1226,12 +1215,12 @@ public class Director extends AbstractDirector {
     /**
      * Downloads the features specified in fetureNames using Feature Manager
      *
-     * @param featureNames Set of feature names
-     * @param toDir directory to download features to
+     * @param featureNames   Set of feature names
+     * @param toDir          directory to download features to
      * @param downloadOption DownloadOption for what dependencies should be downloaded
-     * @param action What do do if feature exists
-     * @param user user name for repository
-     * @param password password for repository
+     * @param action         What do do if feature exists
+     * @param user           user name for repository
+     * @param password       password for repository
      * @return Collection of feature names
      * @throws InstallException
      */
@@ -1309,12 +1298,12 @@ public class Director extends AbstractDirector {
     /**
      * Downloads the assets specified in assetsNames using Install Utility
      *
-     * @param assetsNames Set of asset names to download
-     * @param toDir Location to download assets to
+     * @param assetsNames    Set of asset names to download
+     * @param toDir          Location to download assets to
      * @param downloadOption What dependencies should be downloaded as a DownloadOption object
-     * @param user user id of repository
-     * @param password password of repository
-     * @param isOverride not used
+     * @param user           user id of repository
+     * @param password       password of repository
+     * @param isOverride     not used
      * @return Map of asset type pointing to a collection of asset names of that type downloaded
      * @throws InstallException
      */
@@ -1393,8 +1382,8 @@ public class Director extends AbstractDirector {
     /**
      * Installs the specified assets from a specific directory
      *
-     * @param assetIds Collection of assetIds to install
-     * @param fromDir Directory to get assets from
+     * @param assetIds  Collection of assetIds to install
+     * @param fromDir   Directory to get assets from
      * @param loginInfo RepositoryConnectionList to obtain unresolved features
      * @throws InstallException
      */
@@ -1420,7 +1409,7 @@ public class Director extends AbstractDirector {
     /**
      * Installs the specified assets
      *
-     * @param assetIds Collection of asset Ids
+     * @param assetIds  Collection of asset Ids
      * @param loginInfo RepositoryConnectionList to access repository with assets
      * @throws InstallException
      */
@@ -1445,7 +1434,7 @@ public class Director extends AbstractDirector {
      * Downloads the specified assets
      *
      * @param installResources Map of assetType string and Lists of lists of RepositoryResources to install
-     * @param toExtension location of a product extension
+     * @param toExtension      location of a product extension
      * @throws InstallException
      */
     private void downloadAssets(Map<String, List<List<RepositoryResource>>> installResources, String toExtension) throws InstallException {
@@ -1818,8 +1807,8 @@ public class Director extends AbstractDirector {
     /**
      * Resolves feature names
      *
-     * @param feature feature name to resolve
-     * @param esaFile esa file containing feature
+     * @param feature     feature name to resolve
+     * @param esaFile     esa file containing feature
      * @param toExtension location of a product extension
      * @throws InstallException
      */
@@ -1831,8 +1820,8 @@ public class Director extends AbstractDirector {
      * Resolves existing assets from a specified directory
      *
      * @param featureNames Collection of feature names to resolve
-     * @param repoDir Repository directory to obtain features from
-     * @param isOverwrite If features should be overwritten with fresh ones
+     * @param repoDir      Repository directory to obtain features from
+     * @param isOverwrite  If features should be overwritten with fresh ones
      * @return
      * @throws InstallException
      */
@@ -1849,7 +1838,7 @@ public class Director extends AbstractDirector {
     /**
      * Uninstalls the ids
      *
-     * @param ids Collection of ids to uninstall
+     * @param ids   Collection of ids to uninstall
      * @param force If uninstallation should be forced
      * @throws InstallException
      */
@@ -1860,7 +1849,7 @@ public class Director extends AbstractDirector {
     /**
      * Uninstalls features
      *
-     * @param featureNames Collection of feature names to uninstall
+     * @param featureNames             Collection of feature names to uninstall
      * @param uninstallInstallFeatures
      */
     public void uninstallFeatures(Collection<String> featureNames, Collection<String> uninstallInstallFeatures) {
@@ -1891,8 +1880,8 @@ public class Director extends AbstractDirector {
      * Creates array of productIds and calls method below
      *
      * @param checkDependency if uninstall should check for dependencies
-     * @param productId Id of product to uninstall
-     * @param toBeDeleted Collection of files to uninstall
+     * @param productId       Id of product to uninstall
+     * @param toBeDeleted     Collection of files to uninstall
      * @throws InstallException
      */
     public void uninstall(boolean checkDependency, String productId, Collection<File> toBeDeleted) throws InstallException {
@@ -1905,8 +1894,8 @@ public class Director extends AbstractDirector {
      * Uninstalls product depending on dependencies
      *
      * @param checkDependency if uninstall should check for dependencies
-     * @param productIds Ids of product to uninstall
-     * @param toBeDeleted Collection of files to uninstall
+     * @param productIds      Ids of product to uninstall
+     * @param toBeDeleted     Collection of files to uninstall
      * @throws InstallException
      */
     public void uninstall(boolean checkDependency, String[] productIds, Collection<File> toBeDeleted) throws InstallException {
@@ -1916,9 +1905,9 @@ public class Director extends AbstractDirector {
     /**
      * Creates array of productIds and calls method below
      *
-     * @param featureNames Collection of features names to uninstall
+     * @param featureNames      Collection of features names to uninstall
      * @param allowUninstallAll If false, will fail if no user features are installed
-     * @param force If uninstallation should be forced
+     * @param force             If uninstallation should be forced
      * @throws InstallException
      */
     public void uninstallFeaturesPrereqChecking(Collection<String> featureNames, boolean allowUninstallAll, boolean force) throws InstallException {
@@ -1928,7 +1917,7 @@ public class Director extends AbstractDirector {
     /**
      * Calls below method to uninstall features by product id
      *
-     * @param productId product id to uninstall
+     * @param productId              product id to uninstall
      * @param exceptPlatformFeatures If platform features should be ignored
      * @throws InstallException
      */
@@ -1941,7 +1930,7 @@ public class Director extends AbstractDirector {
     /**
      * Uninstalls features by product id
      *
-     * @param productIds product ids to uninstall
+     * @param productIds             product ids to uninstall
      * @param exceptPlatfromFeatuers If platform features should be ignored
      * @throws InstallException
      */
@@ -1952,10 +1941,11 @@ public class Director extends AbstractDirector {
     /**
      * Check if assets are installed
      *
-     * @param assetIds Collection of assets names to check
+     * @param assetIds          Collection of assets names to check
+     * @param installingFeature True if called from featureUtility
      * @throws InstallException
      */
-    public void checkAssetsNotInstalled(Collection<String> assetIds) throws InstallException {
-        getResolveDirector().checkAssetsNotInstalled(assetIds);
+    public void checkAssetsNotInstalled(Collection<String> assetIds, boolean installingFeature) throws InstallException {
+        getResolveDirector().checkAssetsNotInstalled(assetIds, installingFeature);
     }
 }

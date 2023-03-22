@@ -1,15 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
 package com.ibm.ws.wssecurity.fat.cxf.samltoken5.OneServerTests;
+
+import static componenttest.annotation.SkipForRepeat.EE9_FEATURES;
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +27,12 @@ import com.ibm.ws.security.saml20.fat.commonTest.SAMLConstants;
 import com.ibm.ws.security.saml20.fat.commonTest.SAMLMessageConstants;
 import com.ibm.ws.wssecurity.fat.cxf.samltoken5.common.CxfSAMLAsymSignEncTests;
 
+import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.custom.junit.runner.RepeatTestFilter;
 import componenttest.topology.impl.LibertyServerWrapper;
-import componenttest.annotation.SkipForRepeat;
-import static componenttest.annotation.SkipForRepeat.EE9_FEATURES;
 
 
 /**
@@ -46,19 +51,21 @@ import static componenttest.annotation.SkipForRepeat.EE9_FEATURES;
  * 2.0 token in the HTTP POST request.
  */
 
-@SkipForRepeat({ EE9_FEATURES })
+@SkipForRepeat({ EE9_FEATURES, EE10_FEATURES })
 @LibertyServerWrapper
 @Mode(TestMode.FULL)
 @RunWith(FATRunner.class)
 public class CxfSAMLAsymSignEnc1ServerTests extends CxfSAMLAsymSignEncTests {
 
     private static final Class<?> thisClass = CxfSAMLAsymSignEnc1ServerTests.class;
+    protected static String repeatAction = "";
 
     @BeforeClass
     public static void setupBeforeTest() throws Exception {
 
-        //		flowType = SAMLConstants.SOLICITED_SP_INITIATED ;
-        flowType = chooseRandomFlow();
+    	//issue 23060 FAT can't use random chooseRandomFlow()
+        flowType = SAMLConstants.SOLICITED_SP_INITIATED ;
+        
         idpSupportedType = SAMLConstants.TFIM_TYPE;
 
         msgUtils.printClassName(thisClass.toString());
@@ -87,5 +94,19 @@ public class CxfSAMLAsymSignEnc1ServerTests extends CxfSAMLAsymSignEncTests {
         testSettings.setSpTargetApp(testSAMLServer.getHttpString() + "/samlcxfclient/CxfSamlSvcClient");
         testSettings.setSamlTokenValidationData(testSettings.getIdpUserName(), testSettings.getSamlTokenValidationData().getIssuer(), testSettings.getSamlTokenValidationData().getInResponseTo(), testSettings.getSamlTokenValidationData().getMessageID(), testSettings.getSamlTokenValidationData().getEncryptionKeyUser(), testSettings.getSamlTokenValidationData().getRecipient(), testSettings.getSamlTokenValidationData().getEncryptAlg());
 
+	    //issue 23060
+        //Note that in the new format ehcache "cxf-ehcache_ee8.xml", the wss4j section of "ws-security.nonce.cache.instance" template is commented out 
+        //since it's not supported/used in the current runtime
+        Log.info(thisClass, "setupBeforeTest", "current repeat action: " + RepeatTestFilter.getRepeatActionsAsString());
+        repeatAction = RepeatTestFilter.getRepeatActionsAsString();
+        //default NO_MODIFICATION repeat action does not use any name extension
+        if (repeatAction == "" || repeatAction == null ) {
+            Log.info(thisClass,"setupBeforeTest", "the test is: EE7 to run with OLD format ehcache ");
+            setEhcacheVersion("EE7OLDEhcache");
+        } else if (repeatAction.contains("_EE7cbh-2.0")) {
+            Log.info(thisClass, "setupBeforeTest", "the test is: EE7 to run with NEW format ehcache ");
+            setEhcacheVersion("EE7NEWEhcache");
+        }
+        
      }
 }

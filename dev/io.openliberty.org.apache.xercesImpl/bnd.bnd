@@ -1,0 +1,36 @@
+#*******************************************************************************
+# Copyright (c) 2021 IBM Corporation and others.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License 2.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#     IBM Corporation - initial API and implementation
+#*******************************************************************************
+-include= ~../cnf/resources/bnd/rejar.props
+
+bVersion=2
+
+Bundle-SymbolicName: io.openliberty.org.apache.xercesImpl
+
+Implementation-Version: 2.12.2
+
+Export-Package: \
+  org.apache.html.dom;version=${Implementation-Version}, \
+  org.apache.wml;version=${Implementation-Version}, \
+  org.apache.wml.dom;version=${Implementation-Version}, \
+  org.apache.xerces.*;version=${Implementation-Version}, \
+  org.apache.xml.serialize;version=${Implementation-Version}
+
+Private-Package: \
+  org.w3c.dom.html
+
+-includeresource: \
+   @${repo;xerces:xercesImpl;${Implementation-Version};EXACT}!/!META-INF/maven/*
+
+-buildpath: xerces:xercesImpl;version=${Implementation-Version}
+
+test.project: true

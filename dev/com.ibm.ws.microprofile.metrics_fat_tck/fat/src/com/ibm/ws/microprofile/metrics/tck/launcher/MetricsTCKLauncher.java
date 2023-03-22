@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,7 +24,8 @@ import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
-import componenttest.topology.utils.MvnUtils;
+import componenttest.topology.utils.tck.TCKResultsInfo.Type;
+import componenttest.topology.utils.tck.TCKRunner;
 
 /**
  * This is a test class that runs a whole Maven TCK as one test FAT test.
@@ -47,7 +50,7 @@ public class MetricsTCKLauncher {
 
     @Test
     @AllowedFFDC // The tested deployment exceptions cause FFDC so we have to allow for this.
-    public void launchTck() throws Exception {
+    public void launchMetrics10Tck() throws Exception {
         String protocol = "https";
         String host = server.getHostname();
         String port = Integer.toString(server.getHttpDefaultSecurePort());
@@ -57,7 +60,11 @@ public class MetricsTCKLauncher {
         additionalProps.put("test.user", "theUser");
         additionalProps.put("test.pwd", "thePassword");
 
-        MvnUtils.runTCKMvnCmd(server, "com.ibm.ws.microprofile.metrics_fat_tck", "launchTck", additionalProps);
+        String bucketName = "com.ibm.ws.microprofile.metrics_fat_tck";
+        String testName = this.getClass() + ":launchMetrics10Tck";
+        Type type = Type.MICROPROFILE;
+        String specName = "Metrics";
+        TCKRunner.runTCK(server, bucketName, testName, type, specName, additionalProps);
     }
 
 }

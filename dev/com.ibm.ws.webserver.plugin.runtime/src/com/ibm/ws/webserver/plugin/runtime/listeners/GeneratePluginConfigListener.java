@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2016, 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -44,6 +46,9 @@ import com.ibm.wsspi.kernel.service.location.WsResource;
 import com.ibm.wsspi.kernel.service.utils.FrameworkState;
 import com.ibm.wsspi.webcontainer.osgi.mbeans.GeneratePluginConfig;
 
+import io.openliberty.checkpoint.spi.CheckpointHook;
+import io.openliberty.checkpoint.spi.CheckpointPhase;
+
 /**
  *
  */
@@ -64,6 +69,8 @@ public class GeneratePluginConfigListener implements RuntimeUpdateListener, Appl
     private WsLocationAdmin locationService;
 
     private static GeneratePluginConfigListener theListener = null;
+    private static final String CHECKPOINT_GEN_PLUGIN = "io.openliberty.checkpoint.generate.plugin";
+    private boolean enablePlugin;
 
     public static GeneratePluginConfigListener getGeneratePluginConfigListener() {
         return theListener;
@@ -78,6 +85,7 @@ public class GeneratePluginConfigListener implements RuntimeUpdateListener, Appl
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
             Tr.debug(this, tc, "GPCL: activate called.");
         theListener = this;
+        enablePlugin = (CheckpointPhase.getPhase() == CheckpointPhase.INACTIVE || Boolean.valueOf(bc.getProperty(CHECKPOINT_GEN_PLUGIN)));
     }
 
     @Deactivate
@@ -119,14 +127,16 @@ public class GeneratePluginConfigListener implements RuntimeUpdateListener, Appl
     }
 
     /** Required static reference: will be called after deactivate. Avoid NPE */
-    protected void unsetSessionManager(SessionManager ref) {}
+    protected void unsetSessionManager(SessionManager ref) {
+    }
 
     @Reference(service = WsLocationAdmin.class, cardinality = ReferenceCardinality.MANDATORY)
     protected void setLocationService(WsLocationAdmin ref) {
         locationService = ref;
     }
 
-    protected void unsetLocationService(WsLocationAdmin ref) {}
+    protected void unsetLocationService(WsLocationAdmin ref) {
+    }
 
     /*
      * (non-Javadoc
@@ -268,8 +278,9 @@ public class GeneratePluginConfigListener implements RuntimeUpdateListener, Appl
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
             Tr.debug(this, tc, "submitGeneratePluginTask : FrameworkState.isStopping() = " + FrameworkState.isStopping());
 
-        if (!FrameworkState.isStopping() && gpc != null && executorSrvc != null) {
-            executorSrvc.submit(new Runnable() {
+        ExecutorService currentExecutor = executorSrvc;
+        if (!FrameworkState.isStopping() && enablePlugin && gpc != null && currentExecutor != null) {
+            Runnable generatePluginTask = new Runnable() {
                 @Override
                 public void run() {
                     if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
@@ -280,7 +291,22 @@ public class GeneratePluginConfigListener implements RuntimeUpdateListener, Appl
                     WsResource writeDirectory = locationService.getServerOutputResource("logs" + File.separatorChar + "state" + File.separatorChar);
                     ((PluginUtilityConfigGenerator) gpc).generatePluginConfig(null, writeDirectory.asFile());
                 }
-            });
+            };
+
+            final CheckpointPhase checkpoint = CheckpointPhase.getPhase();
+            if (checkpoint != CheckpointPhase.INACTIVE) {
+                CheckpointHook restoreHook = new CheckpointHook() {
+                    @Override
+                    public void restore() {
+                        currentExecutor.submit(generatePluginTask);
+                    }
+                };
+                if (!checkpoint.addMultiThreadedHook(restoreHook)) {
+                    currentExecutor.submit(generatePluginTask);
+                }
+            } else {
+                currentExecutor.submit(generatePluginTask);
+            }
         }
 
     }

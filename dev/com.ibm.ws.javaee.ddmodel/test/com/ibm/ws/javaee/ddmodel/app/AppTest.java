@@ -1,242 +1,141 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.javaee.ddmodel.app;
 
-import org.junit.Assert;
+import java.util.List;
+
 import org.junit.Test;
-import org.osgi.framework.Version;
+import com.ibm.ws.javaee.dd.app.Application;
+import com.ibm.ws.javaee.dd.common.ContextService;
+import com.ibm.ws.javaee.dd.common.ManagedExecutor;
+import com.ibm.ws.javaee.dd.common.ManagedScheduledExecutor;
+import com.ibm.ws.javaee.dd.common.ManagedThreadFactory;
+import com.ibm.ws.javaee.ddmodel.DDJakarta10Elements;
 
-import com.ibm.ws.javaee.ddmodel.DDParser;
-import com.ibm.ws.javaee.version.JavaEEVersion;
-
-/**
- * Application deployment descriptor parse tests.
- */
 public class AppTest extends AppTestBase {
-    public static final Version[] TEST_VERSIONS = new Version[] {
-                                                                  JavaEEVersion.VERSION_6_0,
-                                                                  JavaEEVersion.VERSION_7_0,
-                                                                  JavaEEVersion.VERSION_8_0,
-                                                                  JavaEEVersion.VERSION_9_0
-    };
-
-    public static final int CMP_LT = -1;
-    public static final int CMP_GT = +1;
-    public static final int CMP_EQ = 0;
-
-    public static int asCmp(int cmpResult) {
-        return ((cmpResult < 0) ? CMP_LT : ((cmpResult > 0) ? CMP_GT : CMP_EQ));
-    }
-
-    public static int[][] COMPARE_VERSION_RESULTS = new int[][] {
-                                                                  { CMP_EQ, CMP_LT, CMP_LT, CMP_LT },
-                                                                  { CMP_GT, CMP_EQ, CMP_LT, CMP_LT },
-                                                                  { CMP_GT, CMP_GT, CMP_EQ, CMP_LT },
-                                                                  { CMP_GT, CMP_GT, CMP_GT, CMP_EQ }
-    };
-
     @Test
-    public void testCompareVersions() throws Exception {
-        for (int v1No = 0; v1No < TEST_VERSIONS.length; v1No++) {
-            Version v1 = TEST_VERSIONS[v1No];
-            for (int v2No = 0; v2No < TEST_VERSIONS.length; v2No++) {
-                Version v2 = TEST_VERSIONS[v2No];
-
-                int expectedCmp = COMPARE_VERSION_RESULTS[v1No][v2No];
-                int actualCmp = asCmp(v1.compareTo(v2));
-
-                boolean matchCmp = (expectedCmp == actualCmp);
-                if (!matchCmp) {
-                    Assert.assertEquals(
-                                        "Version [ " + v1 + " ] compared with [ " + v2 + " ]." +
-                                        "  Expecting [ " + Integer.toString(expectedCmp) + " ]" +
-                                        " but received [ " + Integer.toString(actualCmp) + " ]",
-                                        expectedCmp, actualCmp);
+    public void testApp() throws Exception {
+        for ( int schemaVersion : Application.VERSIONS ) {
+            for ( int maxSchemaVersion : Application.VERSIONS ) {
+                // Open liberty will always parse JavaEE6 and earlier
+                // schema versions.
+                int effectiveMax;
+                if ( maxSchemaVersion < VERSION_6_0_INT ) {
+                    effectiveMax = VERSION_6_0_INT;
+                } else {
+                    effectiveMax = maxSchemaVersion;
                 }
+
+                String altMessage;
+                String[] messages;
+                if ( schemaVersion > effectiveMax ) {
+                    altMessage = UNPROVISIONED_DESCRIPTOR_VERSION_ALT_MESSAGE; 
+                    messages = UNPROVISIONED_DESCRIPTOR_VERSION_MESSAGES;
+                } else {
+                    altMessage = null;
+                    messages = null;
+                }
+
+                parseApp( app(schemaVersion, appBody), maxSchemaVersion, altMessage, messages );
             }
         }
     }
 
-    // JavaEE6 cases ...
-
-    // Parse everything except 7.0 and 8.0 and 9.0
+    //
+    
+    @Test
+    public void testEE10ContextServiceApp90() throws Exception {
+        parseApp( app(Application.VERSION_9, DDJakarta10Elements.CONTEXT_SERVICE_XML),
+                  Application.VERSION_9,
+                  "unexpected.child.element",
+                  "CWWKC2259E", "context-service", "myEAR.ear : META-INF/application.xml" );                
+    }    
+    
+    @Test
+    public void testEE10ManagedExecutorApp90() throws Exception {
+        parseApp( app(Application.VERSION_9, DDJakarta10Elements.MANAGED_EXECUTOR_XML),
+                  Application.VERSION_9,
+                  "unexpected.child.element",
+                  "CWWKC2259E", "managed-executor", "myEAR.ear : META-INF/application.xml" );                
+    }    
 
     @Test
-    public void testEE6App12() throws Exception {
-        parse(app12() + appTail());
-    }
-
-    @Test
-    public void testEE6App13() throws Exception {
-        parse(app13() + appTail());
-    }
-
-    @Test
-    public void testEE6App14() throws Exception {
-        parse(app14() + appTail());
-    }
-
-    @Test
-    public void testEE6App50() throws Exception {
-        parse(app50() + appTail());
-    }
-
-    @Test
-    public void testEE6App60() throws Exception {
-        parse(app60() + appTail());
-    }
-
-    @Test(expected = DDParser.ParseException.class)
-    public void testEE6App70() throws Exception {
-        parse(app70() + appTail());
-    }
-
-    @Test(expected = DDParser.ParseException.class)
-    public void testEE6App80() throws Exception {
-        parse(app80() + appTail());
-    }
-
-    @Test(expected = DDParser.ParseException.class)
-    public void testEE6App90() throws Exception {
-        parse(app90() + appTail());
-    }
-
-    // JavaEE7 cases ...
-
-    // Parse everything except 8.0 and 9.0
-
-    @Test
-    public void testEE7App12() throws Exception {
-        parse(app12() + appTail(), JavaEEVersion.VERSION_7_0);
+    public void testEE10ManagedScheduledExecutorApp90() throws Exception {
+        parseApp( app(Application.VERSION_9, DDJakarta10Elements.MANAGED_SCHEDULED_EXECUTOR_XML),
+                  Application.VERSION_9,
+                  "unexpected.child.element",
+                  "CWWKC2259E", "managed-scheduled-executor", "myEAR.ear : META-INF/application.xml" );                
     }
 
     @Test
-    public void testEE7App13() throws Exception {
-        parse(app13() + appTail(), JavaEEVersion.VERSION_7_0);
+    public void testEE10ManagedThreadFactoryApp90() throws Exception {
+        parseApp( app(Application.VERSION_9, DDJakarta10Elements.MANAGED_THREAD_FACTORY_XML),
+                  Application.VERSION_9,
+                  "unexpected.child.element",
+                  "CWWKC2259E", "managed-thread-factory", "myEAR.ear : META-INF/application.xml" );                
+    }      
+
+    //
+
+    @Test
+    public void testEE10ContextServiceApp100() throws Exception {
+        Application app = parseApp(
+                app(Application.VERSION_10, DDJakarta10Elements.CONTEXT_SERVICE_XML),
+                Application.VERSION_10);
+
+        List<String> names = DDJakarta10Elements.names("Application", "contextServices");
+
+        List<ContextService> services = app.getContextServices();
+        DDJakarta10Elements.verifySize(names, 1, services);
+        DDJakarta10Elements.verify(names, services.get(0));        
+    }    
+    
+    @Test
+    public void testEE10ManagedExecutorApp100() throws Exception {
+        Application app = parseApp(
+                app(Application.VERSION_10, DDJakarta10Elements.MANAGED_EXECUTOR_XML),
+                Application.VERSION_10);
+
+        List<String> names = DDJakarta10Elements.names("Application", "managedExecutors");
+
+        List<ManagedExecutor> executors = app.getManagedExecutors();
+        DDJakarta10Elements.verifySize(names, 1, executors);
+        DDJakarta10Elements.verify(names, executors.get(0));        
+    }    
+
+    @Test
+    public void testEE10ManagedScheduledExecutorApp100() throws Exception {
+        Application app = parseApp(
+                app(Application.VERSION_10, DDJakarta10Elements.MANAGED_SCHEDULED_EXECUTOR_XML),
+                Application.VERSION_10);
+
+        List<String> names = DDJakarta10Elements.names("Application", "managedScheduledExecutors");
+        
+        List<ManagedScheduledExecutor> executors = app.getManagedScheduledExecutors();
+        DDJakarta10Elements.verifySize(names, 1, executors);
+        DDJakarta10Elements.verify(names, executors.get(0));        
     }
 
     @Test
-    public void testEE7App14() throws Exception {
-        parse(app14() + appTail(), JavaEEVersion.VERSION_7_0);
-    }
+    public void testEE10ManagedThreadFactoryApp100() throws Exception {
+        Application app = parseApp(
+                app(Application.VERSION_10, DDJakarta10Elements.MANAGED_THREAD_FACTORY_XML),
+                Application.VERSION_10);
 
-    @Test
-    public void testEE7App50() throws Exception {
-        parse(app50() + appTail(), JavaEEVersion.VERSION_7_0);
-    }
+        List<String> names = DDJakarta10Elements.names("Application", "managedThreadFactories");
 
-    @Test
-    public void testEE7App60() throws Exception {
-        parse(app60() + appTail(), JavaEEVersion.VERSION_7_0);
-    }
-
-    @Test
-    public void testEE7App70() throws Exception {
-        parse(app70() + appTail(), JavaEEVersion.VERSION_7_0);
-    }
-
-    @Test(expected = DDParser.ParseException.class)
-    public void testEE7App80() throws Exception {
-        parse(app80() + appTail(), JavaEEVersion.VERSION_7_0);
-    }
-
-    @Test(expected = DDParser.ParseException.class)
-    public void testEE7App90() throws Exception {
-        parse(app90() + appTail(), JavaEEVersion.VERSION_7_0);
-    }
-
-    // JavaEE8 cases ...
-
-    // Parse everything except 9.0.
-
-    @Test
-    public void testEE8App12() throws Exception {
-        parse(app12() + appTail(), JavaEEVersion.VERSION_8_0);
-    }
-
-    @Test
-    public void testEE8App13() throws Exception {
-        parse(app13() + appTail(), JavaEEVersion.VERSION_8_0);
-    }
-
-    @Test
-    public void testEE8App14() throws Exception {
-        parse(app14() + appTail(), JavaEEVersion.VERSION_8_0);
-    }
-
-    @Test
-    public void testEE8App50() throws Exception {
-        parse(app50() + appTail(), JavaEEVersion.VERSION_8_0);
-    }
-
-    @Test
-    public void testEE8App60() throws Exception {
-        parse(app60() + appTail(), JavaEEVersion.VERSION_8_0);
-    }
-
-    @Test
-    public void testEE8App70() throws Exception {
-        parse(app70() + appTail(), JavaEEVersion.VERSION_8_0);
-    }
-
-    @Test
-    public void testEE8App80() throws Exception {
-        parse(app80() + appTail(), JavaEEVersion.VERSION_8_0);
-    }
-
-    @Test(expected = DDParser.ParseException.class)
-    public void testEE8App90() throws Exception {
-        parse(app90() + appTail(), JavaEEVersion.VERSION_8_0);
-    }
-
-    // JakartaEE9 cases ...
-
-    // Parse everything.
-    @Test
-    public void testEE9App12() throws Exception {
-        parse(app12() + appTail(), JavaEEVersion.VERSION_9_0);
-    }
-
-    @Test
-    public void testEE9App13() throws Exception {
-        parse(app13() + appTail(), JavaEEVersion.VERSION_9_0);
-    }
-
-    @Test
-    public void testEE9App14() throws Exception {
-        parse(app14() + appTail(), JavaEEVersion.VERSION_9_0);
-    }
-
-    @Test
-    public void testEE9App50() throws Exception {
-        parse(app50() + appTail(), JavaEEVersion.VERSION_9_0);
-    }
-
-    @Test
-    public void testEE9App60() throws Exception {
-        parse(app60() + appTail(), JavaEEVersion.VERSION_9_0);
-    }
-
-    @Test
-    public void testEE9App70() throws Exception {
-        parse(app70() + appTail(), JavaEEVersion.VERSION_9_0);
-    }
-
-    @Test
-    public void testEE9App80() throws Exception {
-        parse(app80() + appTail(), JavaEEVersion.VERSION_9_0);
-    }
-
-    @Test
-    public void testEE9App90() throws Exception {
-        parse(app90() + appTail(), JavaEEVersion.VERSION_9_0);
-    }
+        List<ManagedThreadFactory> factories = app.getManagedThreadFactories();
+        DDJakarta10Elements.verifySize(names, 1, factories);
+        DDJakarta10Elements.verify(names, factories.get(0));
+    }      
 }

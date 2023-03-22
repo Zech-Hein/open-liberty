@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2001, 2021 IBM Corporation and others.
+# Copyright (c) 2001, 2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -151,19 +153,19 @@ XID_MISMATCH.useraction=Obtenez une nouvelle connexion et retentez la transactio
 
 # {0}        The datasource JNDI name.
 TBC_NOT_SUPPORTED=DSRA0400W: Datasource {0} : le couplage strict des branches n''est pas pris en charge
-TBC_NOT_SUPPORTED.explanation=La base de donn\u00e9es ou le fournisseur JDBC sp\u00e9cifi\u00e9 par la source de donn\u00e9es ne prend pas en charge l'option de couplage strict des branches. Le couplage strict des branches n'est pris en charge qu'avec une base de donn\u00e9es DB2 for z/OS accessible par le pilote DB2 Universal JCC. L'option par d\u00e9faut de couplage souple des branches est utilis\u00e9e. Des d\u00e9lais de verrouillage, des interblocages et/ou des annulations de transaction peuvent survenir si l'application est con\u00e7ue pour le couplage strict des branches car les verrous de base de donn\u00e9es ne sont pas partag\u00e9s entre les branches de transaction dans une m\u00eame transaction globale.
+TBC_NOT_SUPPORTED.explanation=La base de donn\u00e9es ou le fournisseur JDBC sp\u00e9cifi\u00e9 par la source de donn\u00e9es ne prend pas en charge l'option de couplage strict des branches.  Le couplage strict des branches n'est pris en charge qu'avec une base de donn\u00e9es DB2 for z/OS accessible par le pilote DB2 Universal JCC.  L'option par d\u00e9faut de couplage souple des branches est utilis\u00e9e.  Des d\u00e9lais de verrouillage, des interblocages et/ou des annulations de transaction peuvent survenir si l'application est con\u00e7ue pour le couplage strict des branches car les verrous de base de donn\u00e9es ne sont pas partag\u00e9s entre les branches de transaction dans une m\u00eame transaction globale.
 TBC_NOT_SUPPORTED.useraction=Vous devez configurer la source de donn\u00e9es en vue de l'utilisation d'un niveau pris en charge de base de donn\u00e9es et de pilote JDBC ou configurer votre application de sorte qu'elle ne requi\u00e8re pas le couplage strict de branches.
 
 # 0401 deleted
 
 # {0}        The datasource JNDI name.
 TBC_DB_NOT_SUPPORTED=DSRA0402W: Datasource {0} : la version de la base de donn\u00e9es ne prend pas en charge le couplage strict des branches.
-TBC_DB_NOT_SUPPORTED.explanation=La base de donn\u00e9es sp\u00e9cifi\u00e9e par la source de donn\u00e9es ne prend pas en charge l'option de couplage strict des branches. Le couplage strict des branches n'est pris en charge qu'avec les connexions de type 4 \u00e0 DB2 for z/OS V8 (+ APAR PK47713) ou DB2 for Linux, UNIX, Windows V8 et versions ult\u00e9rieures.  L'option par d\u00e9faut de couplage souple des branches est utilis\u00e9e.  Cette option peut entra\u00eener des d\u00e9lais de verrouillage, des interblocages et/ou des annulations de transaction si l'application est con\u00e7ue pour le couplage strict des branches car les verrous de base de donn\u00e9es ne sont pas partag\u00e9s entre les branches de transaction dans une m\u00eame transaction globale.
+TBC_DB_NOT_SUPPORTED.explanation=La base de donn\u00e9es sp\u00e9cifi\u00e9e par la source de donn\u00e9es ne prend pas en charge l'option de couplage strict des branches.  Le couplage strict des branches n'est pris en charge qu'avec les connexions de type 4 \u00e0 DB2 for z/OS V8 (+ APAR PK47713) ou DB2 for Linux, UNIX, Windows V8 et versions ult\u00e9rieures.  L'option par d\u00e9faut de couplage souple des branches est utilis\u00e9e.  Cette option peut entra\u00eener des d\u00e9lais de verrouillage, des interblocages et/ou des annulations de transaction si l'application est con\u00e7ue pour le couplage strict des branches car les verrous de base de donn\u00e9es ne sont pas partag\u00e9s entre les branches de transaction dans une m\u00eame transaction globale.
 TBC_DB_NOT_SUPPORTED.useraction=Vous devez configurer la source de donn\u00e9es en vue de l'utilisation d'un niveau pris en charge de la base de donn\u00e9es et du pilote JDBC ou configurer votre application de sorte qu'elle ne requi\u00e8re pas le couplage strict de branches.
 
 # {0}        The datasource JNDI name.
 TBC_JCC_NOT_SUPPORTED=DSRA0403W: Datasource {0} : couplage strict des branches non pris en charge car le niveau du pilote DB2 JCC n''est pas correct
-TBC_JCC_NOT_SUPPORTED.explanation=Le fournisseur jdbc sp\u00e9cifi\u00e9 par la source de donn\u00e9es ne prend pas en charge l'option de couplage strict des branches. Le couplage strict des branches est pris en charge uniquement avec les niveaux minimaux du pilote DB2 Universal JCC version 3.51 ou 3.6, conditionn\u00e9s avec les niveaux de service DB2 9.5 ou 9 ou le pilote JCC4 version 4.1.  L'option par d\u00e9faut de couplage souple des branches est utilis\u00e9e.  Cette option peut entra\u00eener des d\u00e9lais de verrouillage, des interblocages et/ou des annulations de transaction si l'application est con\u00e7ue pour le couplage strict des branches car les verrous de base de donn\u00e9es ne sont pas partag\u00e9s entre les branches de transaction dans une m\u00eame transaction globale.
+TBC_JCC_NOT_SUPPORTED.explanation=Le fournisseur jdbc sp\u00e9cifi\u00e9 par la source de donn\u00e9es ne prend pas en charge l'option de couplage strict des branches.  Le couplage strict des branches est pris en charge uniquement avec les niveaux minimaux du pilote DB2 Universal JCC version 3.51 ou 3.6, conditionn\u00e9s avec les niveaux de service DB2 9.5 ou 9 ou le pilote JCC4 version 4.1.  L'option par d\u00e9faut de couplage souple des branches est utilis\u00e9e.  Cette option peut entra\u00eener des d\u00e9lais de verrouillage, des interblocages et/ou des annulations de transaction si l'application est con\u00e7ue pour le couplage strict des branches car les verrous de base de donn\u00e9es ne sont pas partag\u00e9s entre les branches de transaction dans une m\u00eame transaction globale.
 TBC_JCC_NOT_SUPPORTED.useraction=Vous devez configurer la source de donn\u00e9es en vue de l'utilisation d'un niveau pris en charge de la base de donn\u00e9es et du pilote JDBC ou configurer votre application de sorte qu'elle ne requi\u00e8re pas le couplage strict de branches.
 
 # ----------------------------------------------------------------------------
@@ -213,7 +215,7 @@ DSRA4003.driver.null.useraction=Mettez \u00e0 jour la configuration pour inclure
 
 # {0} SQL command
 # {1} data source JNDI name or config display id 
-DSRA4004.onconnect.sql=DSRA4004E: Impossible d''ex\u00e9cuter la commande SQL onConnect \"{0}\" lors de la connexion obtenue de dataSource {1}. Pour plus d''informations, consultez l''exception source.
+DSRA4004.onconnect.sql=DSRA4004E: Impossible d''ex\u00e9cuter la commande SQL onConnect "{0}" lors de la connexion obtenue de dataSource {1}. Pour plus d''informations, consultez l''exception source.
 DSRA4004.onconnect.sql.explanation=Une erreur s'est produite lors de la tentative d'ex\u00e9cution de la commande SQL sp\u00e9cifi\u00e9e.
 DSRA4004.onconnect.sql.useraction=Veuillez vous r\u00e9f\u00e9rer au message d'exception pour d\u00e9terminer la cause du probl\u00e8me.
 
@@ -297,6 +299,16 @@ META_DATA_EXCEPTION.useraction=V\u00e9rifiez que les m\u00e9tadonn\u00e9es sont 
 # 7019 deleted
 # 7020 reserved for other NLS file
 # 7021-7042 deleted
+
+# Do not translate: java.util.Logging
+ORACLE_TRACE_PARSE_WARNING=DSRA7043W: Une valeur par d\u00e9faut a \u00e9t\u00e9 utilis\u00e9e pour la propri\u00e9t\u00e9 syst\u00e8me {0} en raison de l''erreur d''analyse suivante : {1}
+ORACLE_TRACE_PARSE_WARNING.explanation=Les cha\u00eenes de propri\u00e9t\u00e9 syst\u00e8me pour Oracle sont analys\u00e9es et transmises \u00e0 la biblioth\u00e8que java.util.logging. Si une valeur de propri\u00e9t\u00e9 ne peut pas \u00eatre analys\u00e9e, une valeur par d\u00e9faut est utilis\u00e9e \u00e0 la place.
+ORACLE_TRACE_PARSE_WARNING.useraction=Examinez l'erreur d'analyse et modifiez la propri\u00e9t\u00e9 syst\u00e8me. Les propri\u00e9t\u00e9s de journalisation valides sont document\u00e9es dans le package java.util.logging.
+
+ORACLE_TRACE_ENABLE_INFO=DSRA7044I: Le tra\u00e7age du pilote JDBC Oracle a \u00e9t\u00e9 activ\u00e9 par la propri\u00e9t\u00e9 syst\u00e8me {0}. Une ou plusieurs des propri\u00e9t\u00e9s syst\u00e8me [{1}] requises pour s\u00e9parer les fichiers journaux Oracle sont manquantes.
+ORACLE_TRACE_ENABLE_INFO.explanation=Le pilote de d\u00e9bogage JDBC Oracle utilise le package java.util.logging pour le tra\u00e7age. Les journaux de d\u00e9bogage JDBC Oracle sont int\u00e9gr\u00e9s aux journaux Liberty par d\u00e9faut. Pour configurer la s\u00e9paration de la trace de d\u00e9bogage JDBC Oracle, il faut que toutes les propri\u00e9t\u00e9s de ce message soient configur\u00e9es en tant que propri\u00e9t\u00e9s syst\u00e8me.
+ORACLE_TRACE_ENABLE_INFO.useraction=Si vous souhaitez configurer des fichiers journaux JDBC Oracle s\u00e9par\u00e9s, v\u00e9rifiez vos propri\u00e9t\u00e9s syst\u00e8me et ajoutez les propri\u00e9t\u00e9s manquantes. Sinon, vous pouvez ignorer ce message.
+
 # 7600-7606 deleted
 
 # ----------------------------------------------------------------------------
@@ -343,7 +355,7 @@ PROP_SET_ERROR.useraction=V\u00e9rifiez que la valeur indiqu\u00e9e pour la prop
 8067E_IDENTIFY_EXCEPTION_ERRCODE_SQLSTATE.explanation=L'un des attributs errorCode ou sqlState doit \u00eatre sp\u00e9cifi\u00e9.
 8067E_IDENTIFY_EXCEPTION_ERRCODE_SQLSTATE.useraction=Mettez \u00e0 jour la configuration pour sp\u00e9cifier au moins l'un des attributs errorCode ou sqlState dans l'\u00e9l\u00e9ment identifyException.
 
-8068_EXC_REPLACE_CONFLICT=DSRA8068E: La source de donn\u00e9es {0} ne peut pas configurer les attributs sqlState et errorCode sur le m\u00eame \u00e9l\u00e9ment identifyException si l''attribut replaceExceptions est configur\u00e9 sur la valeur "true".
+8068_EXC_REPLACE_CONFLICT=DSRA8068E: La source de donn\u00e9es {0} ne peut pas configurer les attributs sqlState et errorCode sur le m\u00eame \u00e9l\u00e9ment identifyException lorsque l''attribut replaceExceptions est configur\u00e9 sur la valeur ''true''.
 8068_EXC_REPLACE_CONFLICT.explanation=Lors du remplacement des exceptions, l'exception peut \u00eatre identifi\u00e9e par son \u00e9tat SQL ou son code d'erreur, mais pas les deux.
 8068_EXC_REPLACE_CONFLICT.useraction=Sp\u00e9cifiez des \u00e9l\u00e9ments de configuration identifyException distincts pour sqlState et errorCode.
 

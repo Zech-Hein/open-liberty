@@ -33,6 +33,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
+import java.lang.NoClassDefFoundError;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -629,7 +630,7 @@ public final class JAXBUtils {
         ClassLoaderService classLoaderService = bus.getExtension(ClassLoaderService.class);
         Object mapper = classLoaderService.createNamespaceWrapperInstance(marshaller.getClass(), nspref);
         if (mapper != null) {
-            if (marshaller.getClass().getName().contains(".internal.")) {
+            if ((marshaller.getClass().getName().contains("com.sun") && marshaller.getClass().getName().contains(".internal."))) {
                 marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper",
                                        mapper);
             } else if (marshaller.getClass().getName().contains("com.sun")) {
@@ -641,6 +642,8 @@ public final class JAXBUtils {
             //Liberty change begin
             } else if (marshaller.getClass().getName().startsWith("org.glassfish.")) {
                 marshaller.setProperty("org.glassfish.jaxb.namespacePrefixMapper", mapper);
+            } else if (marshaller.getClass().getName().startsWith("com.ibm")) {
+                marshaller.setProperty("com.ibm.jtc.jax.xml.bind.namespacePrefixMapper", mapper);
             }
            //Liberty change end
         }
@@ -1131,8 +1134,7 @@ public final class JAXBUtils {
              || className.contains("eclipse"))) {
             //eclipse moxy accepts sun package CharacterEscapeHandler 
             return ".internal";
-        } else if (className.contains("com.sun.xml.bind")
-                   || className.startsWith("com.ibm.xml")) { //Liberty change) {
+        } else if (className.contains("com.sun.xml.bind")) {
             return "";
         }
         return null;
@@ -1174,7 +1176,7 @@ public final class JAXBUtils {
             }
             //Liberty change end
         } catch (PropertyException e) {
-            LOG.log(Level.INFO, "Failed to set MinumEscapeHandler to jaxb marshaller", e);
+            LOG.log(Level.FINEST, "Failed to set MinumEscapeHandler to jaxb marshaller", e);
         }
     }
 
@@ -1190,6 +1192,10 @@ public final class JAXBUtils {
     private static Object createEscapeHandler(Class<?> cls, String simpleClassName) {
         try {
             //Liberty change begin
+            if (cls.getName().startsWith("com.ibm.xml")) {
+                // Do not use escape handlers with XLXP
+                return null;
+            }
             String packageName;
             //Jakarta EE 9
             if (isEE9OrHigher) {
@@ -1221,7 +1227,7 @@ public final class JAXBUtils {
                 //this class doesn't exist in JAXB 2.2 so expected
                 LOG.log(Level.FINER, "Failed to create " + simpleClassName);
             } else {
-                LOG.log(Level.INFO, "Failed to create " + simpleClassName);
+                LOG.log(Level.FINER, "Failed to create " + simpleClassName);
             }
         }
         return null;

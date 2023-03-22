@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2020 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,7 +36,7 @@ import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.websphere.security.wim.ras.WIMMessageHelper;
 import com.ibm.websphere.security.wim.ras.WIMMessageKey;
-import com.ibm.ws.config.xml.internal.nester.Nester;
+import com.ibm.ws.config.xml.nester.Nester;
 import com.ibm.ws.runtime.update.RuntimeUpdateListener;
 import com.ibm.ws.runtime.update.RuntimeUpdateManager;
 import com.ibm.ws.runtime.update.RuntimeUpdateNotification;
@@ -71,6 +73,8 @@ public class ConfigManager implements RuntimeUpdateListener {
     static final String KEY_CONFIG_ADMIN = "configurationAdmin";
     public static final String ENTITY_NAME = "name";
     public static final String DEFAULT_PARENT = "defaultParent";
+    public static final String CONFIG_PROP_FAIL_RESPONSE_DELAY_MIN = "failedLoginDelayMin";
+    public static final String CONFIG_PROP_FAIL_RESPONSE_DELAY_MAX = "failedLoginDelayMax";
 
     public static final String EXTENDED_PROPERTY = "extendedProperty";
     public static final String PROPERTY_NAME = "name";
@@ -80,17 +84,21 @@ public class ConfigManager implements RuntimeUpdateListener {
     public static final String DEFAULT_VALUE = "defaultValue";
     public static final String DEFAULT_ATTRIBUTE = "defaultAttribute";
 
-    public static final Integer DEFAULT_MAX_SEARCH_RESULTS = new Integer(4500);
+    public static final Integer DEFAULT_MAX_SEARCH_RESULTS = Integer.valueOf(4500);
 
-    public static final Integer DEFAULT_SEARCH_TIMEOUT = new Integer(600000);
+    public static final Integer DEFAULT_SEARCH_TIMEOUT = Integer.valueOf(600000);
 
     private static final Object PAGE_CACHE_SIZE = "pageCacheSize";
 
-    private static final Integer DEFAULT_PAGE_CACHE_SIZE = new Integer(1000);
+    private static final Integer DEFAULT_PAGE_CACHE_SIZE = Integer.valueOf(1000);
 
     private static final Object PAGE_CACHE_TIMEOUT = "pageCacheTimeout";
 
-    private static final Long DEFAULT_PAGE_CACHE_TIMEOUT = new Long(30000);
+    private static final Long DEFAULT_PAGE_CACHE_TIMEOUT = Long.valueOf(30000);
+
+    public final static int DEFAULT_MAX_DELAY = 5000;
+    private int failResponseDelayMin = 0;
+    private int failResponseDelayMax = DEFAULT_MAX_DELAY;
 
     private volatile Map<String, Object> originalConfig;
     private volatile Map<String, Object> config;
@@ -99,7 +107,7 @@ public class ConfigManager implements RuntimeUpdateListener {
 
     private volatile Map<String, SupportedEntityConfig> entityTypeMap;
 
-    private final ArrayList<RealmConfigChangeListener> listeners = new ArrayList<RealmConfigChangeListener>();
+    private final List<RealmConfigChangeListener> listeners = Collections.synchronizedList(new ArrayList<RealmConfigChangeListener>());
 
     /**
      * Map to store the default RDN Mappings
@@ -278,6 +286,66 @@ public class ConfigManager implements RuntimeUpdateListener {
             Group.reInitializePropertyNames();
             PersonAccount.reInitializePropertyNames();
         }
+
+        /*
+         * Process custom property for failed login delay
+         *
+         * Only a correct disable configuration, 0 for min and max, disables the login delay. Otherwise the defaults are used
+         * or the provided configuration.
+         */
+        int maxTime = DEFAULT_MAX_DELAY;
+        if (properties.containsKey(CONFIG_PROP_FAIL_RESPONSE_DELAY_MAX)) {
+            maxTime = Integer.parseInt(String.valueOf(properties.get(CONFIG_PROP_FAIL_RESPONSE_DELAY_MAX)));
+        }
+        int minTime = 0;
+        if (properties.containsKey(CONFIG_PROP_FAIL_RESPONSE_DELAY_MIN)) {
+            minTime = Integer.parseInt(String.valueOf(properties.get(CONFIG_PROP_FAIL_RESPONSE_DELAY_MIN)));
+        }
+
+        boolean customConfigSet = false;
+
+        if (minTime == 0 && maxTime == 0) {
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "failed response login delay is disabled: " + CONFIG_PROP_FAIL_RESPONSE_DELAY_MAX + "=" + maxTime);
+            }
+            failResponseDelayMax = 0;
+            customConfigSet = true;
+        } else if ((minTime >= 0) && minTime < maxTime) {
+            failResponseDelayMin = minTime;
+            failResponseDelayMax = maxTime;
+            customConfigSet = true;
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "Using the provided settings for the failed response login delay (ms): " + failResponseDelayMin + " and "
+                             + failResponseDelayMax);
+            }
+        }
+
+        if (!customConfigSet) {
+            /*
+             * Will use default config -- if/when the properties are public, add a warning message
+             */
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc,
+                         "Provided config of, " + minTime + ":" + maxTime
+                             + ", was invalid. Using the default settings for the failed response login delay (ms): "
+                             + failResponseDelayMin + " and " + failResponseDelayMax);
+            }
+        }
+
+        if (failResponseDelayMax > 0) {
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc,
+                         "failed response login delay is enabled with the following min/max (ms): " + failResponseDelayMin + " and " + failResponseDelayMax);
+            }
+        } else {
+            Tr.warning(tc, WIMMessageKey.FAILED_LOGIN_DELAY_DISABLED, CONFIG_PROP_FAIL_RESPONSE_DELAY_MIN, CONFIG_PROP_FAIL_RESPONSE_DELAY_MAX);
+        }
+        updatedConfig.put(CONFIG_PROP_FAIL_RESPONSE_DELAY_MAX, failResponseDelayMax);
+        updatedConfig.put(CONFIG_PROP_FAIL_RESPONSE_DELAY_MIN, failResponseDelayMin);
+
+        /*
+         * End processing custom property for failed login delay
+         */
         return updatedConfig;
     }
 
@@ -295,6 +363,26 @@ public class ConfigManager implements RuntimeUpdateListener {
             isAllowOpIfRepoDown = getRealmConfig(realmName).isAllowOpIfRepoDown();
         }
         return isAllowOpIfRepoDown;
+    }
+
+    /**
+     * Fetch the failResponseDelayMin
+     *
+     * @return
+     */
+    @Trivial
+    public int getFailResponseDelayMin() {
+        return failResponseDelayMin;
+    }
+
+    /**
+     * Fetch the failResponseDelayMax
+     *
+     * @return
+     */
+    @Trivial
+    public int getFailResponseDelayMax() {
+        return failResponseDelayMax;
     }
 
     /**
@@ -584,8 +672,13 @@ public class ConfigManager implements RuntimeUpdateListener {
                             Tr.debug(this, tc, "RuntimeUpdate completed on config update, calling notifyRealmConfigChange. " + notification.getName());
                         }
                         if (listeners != null) {
-                            for (RealmConfigChangeListener listener : listeners)
-                                listener.notifyRealmConfigChange();
+                            synchronized (listeners) {
+                                for (RealmConfigChangeListener listener : listeners)
+                                    listener.notifyRealmConfigChange();
+                            }
+                        }
+                        if (tc.isDebugEnabled()) {
+                            Tr.debug(this, tc, "RuntimeUpdate completed on config update, finished calling notifyRealmConfigChange.");
                         }
                     }
                 }
@@ -602,5 +695,4 @@ public class ConfigManager implements RuntimeUpdateListener {
 
         }
     }
-
 }

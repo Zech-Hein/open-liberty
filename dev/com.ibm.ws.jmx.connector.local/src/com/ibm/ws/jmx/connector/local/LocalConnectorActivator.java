@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,25 +21,29 @@ import java.security.PrivilegedAction;
 import java.util.Properties;
 
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.ffdc.FFDCFilter;
+import com.ibm.ws.kernel.feature.ServerStarted;
 import com.ibm.ws.kernel.service.util.JavaInfo;
 import com.ibm.wsspi.kernel.service.location.WsLocationAdmin;
 import com.ibm.wsspi.kernel.service.location.WsLocationConstants;
 import com.ibm.wsspi.kernel.service.location.WsResource;
 
-/**
- *
- */
+@Component(service = {}, configurationPolicy = ConfigurationPolicy.IGNORE)
 public final class LocalConnectorActivator {
 
     /**  */
     private static final String JMX_LOCAL_ADDRESS = "com.ibm.ws.jmx.local.address";
-    private volatile WsLocationAdmin locationService;
-    private volatile WsResource localJMXAddressWorkareaFile;
-    private volatile WsResource localJMXAddressStateFile;
+    private final WsLocationAdmin locationAdmin;
+    private final WsResource localJMXAddressWorkareaFile;
+    private final WsResource localJMXAddressStateFile;
     private static final TraceComponent tc = Tr.register(LocalConnectorActivator.class);
 
     private static final class LocalConnectorHelper {
@@ -66,13 +72,17 @@ public final class LocalConnectorActivator {
                         String localConnectorAddress = null;
                         // Start the JMX agent and retrieve the local connector address.
                         if (JavaInfo.majorVersion() < 9 ||
-                            (JavaInfo.majorVersion() >= 9 && !Boolean.getBoolean("jdk.attach.allowAttachSelf"))) {
+                            (JavaInfo.majorVersion() >= 9 && (!Boolean.getBoolean("jdk.attach.allowAttachSelf") ||
+                                                              System.getProperty("com.ibm.tools.attach.enable", "yes").equalsIgnoreCase("no")))) {
                             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
                                 Tr.debug(tc, "Using old code path for self attach using JDK internal APIs",
                                          JavaInfo.majorVersion(),
+                                         System.getProperty("com.ibm.tools.attach.enable", "yes"),
                                          Boolean.getBoolean("jdk.attach.allowAttachSelf"));
-                            // Use JDK internal APIs for Java 8 and older OR if the server was launched in a way that bypassed
-                            // the wlp/bin/server script and therefore did not get the -Djdk.attach.allowAttachSelf=true prop set
+                            // Use JDK internal APIs for Java 8 and older
+                            // OR
+                            // if the server was launched in a way that bypassed the wlp/bin/server script and therefore did not get
+                            // the -Djdk.attach.allowAttachSelf=true prop set or com.ibm.tools.attach.enable was set to no.
                             // TODO: Also go down this path if j2sec is enabled, because the proper API path has permission issues
                             //       which are being looked at under https://github.com/eclipse/openj9/issues/6119
 
@@ -147,12 +157,14 @@ public final class LocalConnectorActivator {
         }
     }
 
-    public LocalConnectorActivator() {
+    @Activate
+    public LocalConnectorActivator(@Reference WsLocationAdmin locationAdmin, @Reference ServerStarted serverStarted) {
+        this.locationAdmin = locationAdmin;
+        localJMXAddressWorkareaFile = createJMXWorkAreaResource();
+        localJMXAddressStateFile = createJMXStateResource();
     }
 
-    protected void activate(ComponentContext compContext) {
-    }
-
+    @Deactivate
     protected void deactivate(ComponentContext compContext) {
         removeJMXAddressResource(localJMXAddressWorkareaFile);
         removeJMXAddressResource(localJMXAddressStateFile);
@@ -180,32 +192,16 @@ public final class LocalConnectorActivator {
         }
     }
 
-    protected void setLocationService(WsLocationAdmin locationService) {
-        this.locationService = locationService;
-        if (localJMXAddressWorkareaFile == null) {
-            localJMXAddressWorkareaFile = createJMXWorkAreaResource(locationService);
-        }
-        if (localJMXAddressStateFile == null) {
-            localJMXAddressStateFile = createJMXStateResource(locationService);
-        }
-    }
-
-    protected void unsetLocationService(WsLocationAdmin locationService) {
-        if (this.locationService == locationService) {
-            this.locationService = null;
-        }
-    }
-
     /**
      * @param locationService2
      * @return
      */
-    private WsResource createJMXStateResource(WsLocationAdmin locationAdmin) {
+    private WsResource createJMXStateResource() {
         WsResource resource = locationAdmin.resolveResource(WsLocationConstants.SYMBOL_SERVER_STATE_DIR + JMX_LOCAL_ADDRESS);
         return createJmxAddressResource(resource);
     }
 
-    private WsResource createJMXWorkAreaResource(WsLocationAdmin locationAdmin) {
+    private WsResource createJMXWorkAreaResource() {
         WsResource resource = locationAdmin.getServerWorkareaResource(JMX_LOCAL_ADDRESS);
         return createJmxAddressResource(resource);
     }

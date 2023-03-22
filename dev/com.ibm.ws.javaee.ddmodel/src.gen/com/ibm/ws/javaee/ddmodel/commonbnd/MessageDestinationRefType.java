@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation and others.
+ * Copyright (c) 2017,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -60,12 +62,10 @@ public class MessageDestinationRefType extends com.ibm.ws.javaee.ddmodel.DDParse
     @Override
     public boolean handleChild(DDParser parser, String localName) throws DDParser.ParseException {
         if (xmi && "bindingMessageDestinationRef".equals(localName)) {
-            this.bindingMessageDestinationRef = new com.ibm.ws.javaee.ddmodel.CrossComponentReferenceType("bindingMessageDestinationRef", parser.crossComponentDocumentType);
+            this.bindingMessageDestinationRef = new com.ibm.ws.javaee.ddmodel.CrossComponentReferenceType("bindingMessageDestinationRef", parser.getCrossComponentType());
             parser.parse(bindingMessageDestinationRef);
             com.ibm.ws.javaee.dd.common.MessageDestinationRef referent = this.bindingMessageDestinationRef.resolveReferent(parser, com.ibm.ws.javaee.dd.common.MessageDestinationRef.class);
-            if (referent == null) {
-                DDParser.unresolvedReference("bindingMessageDestinationRef", this.bindingMessageDestinationRef.getReferenceString());
-            } else {
+            if (referent != null) {
                 this.name = parser.parseString(referent.getName());
             }
             return true;

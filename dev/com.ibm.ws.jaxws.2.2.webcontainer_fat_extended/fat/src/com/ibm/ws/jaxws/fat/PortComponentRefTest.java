@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -53,8 +55,6 @@ public class PortComponentRefTest {
 
         ExplodedShrinkHelper.explodedWarToDestination(server, "resources", "testPortComponentRefApplicationWeb", "com.ibm.ws.jaxws.test.pcr.app.web.client");
 
-        server.startServer("PortComponentRefTest.log");
-
         // Replace the service's wsdl port address with the real URL,
         // because the client's <port-component-link> will find and use it so that it doesn't need explicitly specify the wsdl location in service-ref.
         TestUtils.replaceServerFileString(server, "dropins/testPortComponentRefWeb.war/w"
@@ -63,10 +63,15 @@ public class PortComponentRefTest {
         TestUtils.replaceServerFileString(server, "dropins/testPortComponentRefEJBinWeb.war/wsdl/HelloService.wsdl", "#BASE_URL#", getBaseURL());
         TestUtils.replaceServerFileString(server, "resources/testPortComponentRefApplicationEJB.jar/META-INF/wsdl/HelloService.wsdl", "#BASE_URL#", getBaseURL());
 
+        server.startServer("PortComponentRefTest.log");
+
         // Pause for application to start successfully
         server.waitForStringInLog("CWWKZ0001I.*testPortComponentRefWeb");
         server.waitForStringInLog("CWWKZ0001I.*testPortComponentRefEJBinWeb");
         server.waitForStringInLog("CWWKZ0001I.*testPortComponentRefApplication");
+        server.waitForStringInLog("CWWKT0016I.*/testPortComponentRefWeb/");
+        server.waitForStringInLog("CWWKT0016I.*/testPortComponentRefApplicationEJB/");
+        server.waitForStringInLog("CWWKT0016I.*/testPortComponentRefApplicationWeb/");
     }
 
     @AfterClass

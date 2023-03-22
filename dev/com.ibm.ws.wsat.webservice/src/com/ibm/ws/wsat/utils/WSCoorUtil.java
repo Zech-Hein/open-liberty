@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -47,7 +49,6 @@ import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.jaxws.wsat.Constants;
 import com.ibm.ws.jaxws.wsat.Constants.AssertionStatus;
-import com.ibm.ws.wsat.cxf.utils.WSATCXFUtils;
 import com.ibm.ws.wsat.service.WSATContext;
 import com.ibm.ws.wsat.service.WSATException;
 import com.ibm.ws.wsat.webservice.client.wscoor.CoordinationContext;
@@ -207,11 +208,11 @@ public class WSCoorUtil {
         if (isServer) {
             setupBindingOperationInfo((SoapMessage) msg);
             BindingOperationInfo boi = ex.getBindingOperationInfo();
-            ep = WSATCXFUtils.getEffectiveServerRequestPolicy(pe, ei, boi, msg);
+            ep = pe.getEffectiveServerRequestPolicy(ei, boi, msg);
         } else {
             Conduit conduit = ex.getConduit(msg);
             BindingOperationInfo boi = ex.getBindingOperationInfo();
-            ep = WSATCXFUtils.getEffectiveClientRequestPolicy(pe, ei, boi, conduit, msg);
+            ep = pe.getEffectiveClientRequestPolicy(ei, boi, conduit, msg);
         }
         if (ep != null) {
             List<PolicyComponent> pList = ep.getPolicy().getPolicyComponents();

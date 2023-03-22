@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -80,8 +82,8 @@ public class JwkEndpointValidationUrlTests extends CommonSecurityFat {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        FATSuite.transformApps(builderServer, "test-apps/jwtbuilder.war", "test-apps/jwtbuilderclient.war", "dropins/testmarker.war");
-        FATSuite.transformApps(rsServer, "test-apps/helloworld.war", "dropins/testmarker.war");
+        transformApps(builderServer);
+        transformApps(rsServer);
 
         serverTracker.addServer(builderServer);
         skipRestoreServerTracker.addServer(builderServer);

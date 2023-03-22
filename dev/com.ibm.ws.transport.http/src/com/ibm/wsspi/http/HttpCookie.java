@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2009 IBM Corporation and others.
+ * Copyright (c) 2009, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,7 +34,7 @@ public class HttpCookie {
 
     /**
      * Constructor.
-     * 
+     *
      * @param name
      * @param value
      */
@@ -43,7 +45,7 @@ public class HttpCookie {
 
     /**
      * Query the name of this cookie.
-     * 
+     *
      * @return String
      */
     public String getName() {
@@ -53,7 +55,7 @@ public class HttpCookie {
     /**
      * Query the value of this cookie. This might be null, an empty string, or a
      * full valid string.
-     * 
+     *
      * @return String
      */
     public String getValue() {
@@ -62,7 +64,7 @@ public class HttpCookie {
 
     /**
      * Query the comment attribute of this cookie.
-     * 
+     *
      * @return String
      */
     public String getComment() {
@@ -71,7 +73,7 @@ public class HttpCookie {
 
     /**
      * Query the path attribute of this cookie.
-     * 
+     *
      * @return String
      */
     public String getPath() {
@@ -80,7 +82,7 @@ public class HttpCookie {
 
     /**
      * Query the domain attribute of this cookie.
-     * 
+     *
      * @return String
      */
     public String getDomain() {
@@ -89,7 +91,7 @@ public class HttpCookie {
 
     /**
      * Query the secure-flag attribute of this cookie.
-     * 
+     *
      * @return String
      */
     public boolean isSecure() {
@@ -98,7 +100,7 @@ public class HttpCookie {
 
     /**
      * Query the max-age attribute of this cookie.
-     * 
+     *
      * @return String
      */
     public int getMaxAge() {
@@ -107,7 +109,7 @@ public class HttpCookie {
 
     /**
      * Set a generic attribute on this cookie.
-     * 
+     *
      * @param name
      * @param value
      */
@@ -117,7 +119,7 @@ public class HttpCookie {
 
     /**
      * Query a generic attribute of this cookie.
-     * 
+     *
      * @param name
      * @return String
      */
@@ -127,7 +129,7 @@ public class HttpCookie {
 
     /**
      * Query the version attribute of this cookie.
-     * 
+     *
      * @return int
      */
     public int getVersion() {
@@ -137,7 +139,7 @@ public class HttpCookie {
     /**
      * Set the version attribute of this cookie to the input value. Valid options
      * include 0 and 1 only.
-     * 
+     *
      * @param version
      */
     public void setVersion(int version) {
@@ -149,7 +151,7 @@ public class HttpCookie {
 
     /**
      * Set the comment attribute of this cookie.
-     * 
+     *
      * @param comment
      */
     public void setComment(String comment) {
@@ -158,7 +160,7 @@ public class HttpCookie {
 
     /**
      * Set the domain attribute of this cookie.
-     * 
+     *
      * @param domain
      */
     public void setDomain(String domain) {
@@ -167,7 +169,7 @@ public class HttpCookie {
 
     /**
      * Set the path attribute of this cookie.
-     * 
+     *
      * @param path
      */
     public void setPath(String path) {
@@ -176,7 +178,7 @@ public class HttpCookie {
 
     /**
      * Set the secure-flag attribute of this cookie.
-     * 
+     *
      * @param flag
      */
     public void setSecure(boolean flag) {
@@ -185,7 +187,7 @@ public class HttpCookie {
 
     /**
      * Set the max-age attribute of this cookie.
-     * 
+     *
      * @param age
      */
     public void setMaxAge(int age) {
@@ -194,7 +196,7 @@ public class HttpCookie {
 
     /**
      * Query if the HttpOnly attribute is set.
-     * 
+     *
      * @return boolean
      */
     public boolean isHttpOnly() {
@@ -203,7 +205,7 @@ public class HttpCookie {
 
     /**
      * Set the HttpOnly special attribute flag.
-     * 
+     *
      * @param flag
      */
     public void setHttpOnly(boolean flag) {
@@ -212,7 +214,7 @@ public class HttpCookie {
 
     /**
      * Query if the Discard attribute is set.
-     * 
+     *
      * @return boolean
      */
     public boolean isDiscard() {
@@ -221,7 +223,7 @@ public class HttpCookie {
 
     /**
      * Set the Discard attribute flag.
-     * 
+     *
      * @param flag
      */
     public void setDiscard(boolean flag) {
@@ -246,5 +248,10 @@ public class HttpCookie {
             rc.setAttribute(entry.getKey(), entry.getValue());
         }
         return rc;
+    }
+
+    //Servlet 6.0 - Support the new Cookie setAttribute
+    public Map<String, String> getAttributes() {
+        return myAttrs;
     }
 }

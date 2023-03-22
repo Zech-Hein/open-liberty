@@ -1,9 +1,11 @@
 #*******************************************************************************
 # Copyright (c) 2017, 2020 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -15,6 +17,12 @@ Bundle-Name: Webcontainer Feature Security Collaborator
 Bundle-Description: Webcontainer System WAB Security Collaborator, version=${bVersion}
 Bundle-SymbolicName: com.ibm.ws.webcontainer.security.feature
 Bundle-ActivationPolicy: lazy
+
+Import-Package: \
+  com.ibm.wsspi.security.tai;version="[1.1,11)", \
+  com.ibm.wsspi.webcontainer.collaborator;version="[1.2,11)", \
+  com.ibm.wsspi.webcontainer.webapp; version="[2.0,11)", \
+  *
 
 Private-Package: \
   com.ibm.ws.webcontainer.security.feature.internal, \
@@ -44,11 +52,12 @@ Service-Component: \
     locationAdmin=com.ibm.wsspi.kernel.service.location.WsLocationAdmin; \
     authenticatorFactory=com.ibm.ws.webcontainer.security.WebAuthenticatorFactory; \
     unauthenticatedSubjectService=com.ibm.ws.security.authentication.UnauthenticatedSubjectService; \
+    unprotectedResourceService=com.ibm.ws.webcontainer.security.UnprotectedResourceService; \
     kernelProvisioner=com.ibm.ws.kernel.feature.FeatureProvisioner; \
-    multiple:='interceptorService,webAuthenticator'; \
-    greedy:='ssoAuthFilter,interceptorService,webAuthenticator,authenticatorFactory'; \
-    optional:='taiService,interceptorService,webAuthenticator'; \
-    dynamic:='securityService,ssoAuthFilter,taiService,interceptorService,webAuthenticator,authenticatorFactory'; \
+    multiple:='interceptorService,webAuthenticator,unprotectedResourceService'; \
+    greedy:='ssoAuthFilter,interceptorService,webAuthenticator,unprotectedResourceService,authenticatorFactory'; \
+    optional:='taiService,interceptorService,webAuthenticator,unprotectedResourceService'; \
+    dynamic:='securityService,ssoAuthFilter,taiService,interceptorService,webAuthenticator,unprotectedResourceService,authenticatorFactory'; \
     properties:="service.vendor=IBM,com.ibm.ws.security.type=com.ibm.ws.feature"
 
 instrument.classesExcludes: com/ibm/ws/webcontainer/security/feature/resources/*.class

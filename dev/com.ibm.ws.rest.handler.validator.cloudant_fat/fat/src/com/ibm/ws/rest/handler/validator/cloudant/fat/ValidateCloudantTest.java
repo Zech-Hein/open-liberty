@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -60,14 +62,14 @@ public class ValidateCloudantTest extends FATServletClient {
     private static String CLOUDANT_URL;
     private static String databaseURI;
 
-    @ClassRule
-    public static GenericContainer<?> cloudant = new GenericContainer<>("ibmcom/cloudant-developer:2.0.1")
+    @ClassRule //FIXME the cloudant-developer image is deprecated consider using CouchDB
+    public static GenericContainer<?> cloudant = new GenericContainer<>("kyleaure/cloudant-developer:1.0")
                     .withExposedPorts(5984)
                     .withLogConsumer(ValidateCloudantTest::log);
 
     @BeforeClass
     public static void setUp() throws Exception {
-        String host = cloudant.getContainerIpAddress();
+        String host = cloudant.getHost();
         String port = String.valueOf(cloudant.getMappedPort(5984));
         Log.info(c, "setUp", "Using Cloudant properties: host=" + host + "  port=" + port);
         CLOUDANT_URL = "http://" + host + ":" + port;

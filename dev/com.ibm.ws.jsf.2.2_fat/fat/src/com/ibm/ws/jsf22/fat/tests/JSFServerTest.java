@@ -1,15 +1,18 @@
 /*
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  */
 package com.ibm.ws.jsf22.fat.tests;
 
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 import static componenttest.annotation.SkipForRepeat.EE8_FEATURES;
 import static componenttest.annotation.SkipForRepeat.EE9_FEATURES;
 import static org.junit.Assert.assertNotNull;
@@ -35,6 +38,7 @@ import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.RepeatTestFilter;
 import componenttest.rules.repeater.EE8FeatureReplacementAction;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 
@@ -99,7 +103,7 @@ public class JSFServerTest {
      * @throws Exception
      */
     @Test
-    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES })
+    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES, EE10_FEATURES })
     public void testLibertyWebConfigProviderFactory() throws Exception {
         String msgToSearchFor = "getWebConfigProvider Entry";
 
@@ -118,7 +122,7 @@ public class JSFServerTest {
      * @throws Exception
      */
     @Test
-    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES })
+    @SkipForRepeat({ EE8_FEATURES, EE9_FEATURES, EE10_FEATURES })
     public void testLibertyWebConfigProvider() throws Exception {
         try (WebClient webClient = new WebClient()) {
             URL url = JSFUtils.createHttpUrl(jsfTestServer1, contextRoot, "");
@@ -161,7 +165,8 @@ public class JSFServerTest {
      */
     @Test
     public void testWASMyFacesAnnotationProvider() throws Exception {
-        String msgToSearchFor = "com.ibm.ws.jsf.config.annotation.WASMyFacesAnnotationProvider <init> ENTRY";
+        String msgToSearchFor = JakartaEE10Action
+                        .isActive() ? "io.openliberty.faces40.internal.config.annotation.WASMyFacesAnnotationProvider" : "com.ibm.ws.jsf.config.annotation.WASMyFacesAnnotationProvider <init> ENTRY";
 
         // Check the trace.log to see if the WASMyFacesAnnotationProvider has any entry trace.
         String isWASMyFacesAnnotationProviderBeingUsed = jsfTestServer1.waitForStringInTrace(msgToSearchFor);
@@ -178,6 +183,7 @@ public class JSFServerTest {
      * @throws Exception
      */
     @Test
+    @SkipForRepeat(SkipForRepeat.EE10_FEATURES) // ManagedBeans removed in Faces 4.0
     public void testWebSphereLifecycleProviderFactory() throws Exception {
         String msgToSearchFor = "com.ibm.ws.jsf.config.annotation.WebSphereLifecycleProviderFactory <init> ENTRY";
 
@@ -196,6 +202,7 @@ public class JSFServerTest {
      * @throws Exception
      */
     @Test
+    @SkipForRepeat(SkipForRepeat.EE10_FEATURES) // ManagedBeans removed in Faces 4.0
     public void testWebSphereAnnotationLifecycleProvider() throws Exception {
         String msgToSearchFor = "com.ibm.ws.jsf.config.annotation.WebSphereAnnotationLifecycleProvider <init> ENTRY";
 
@@ -221,7 +228,7 @@ public class JSFServerTest {
         String msgToSearchFor = "MyFaces Bean Validation support disabled";
         String msgToSearchForMyFaces30 = "MyFaces Core Bean Validation support disabled";
 
-        if (JakartaEE9Action.isActive() || RepeatTestFilter.isRepeatActionActive(EE8FeatureReplacementAction.ID)) {
+        if (JakartaEE10Action.isActive() || JakartaEE9Action.isActive() || RepeatTestFilter.isRepeatActionActive(EE8FeatureReplacementAction.ID)) {
             Log.info(c, name.getMethodName(), "Looking for : " + msgToSearchForMyFaces30);
             // Check the trace.log to see if the LibertyWebConfigProviderFactory has any entry trace.
             String isBeanValidationDisabled = jsfTestServer1.waitForStringInLog(msgToSearchForMyFaces30);
@@ -248,6 +255,7 @@ public class JSFServerTest {
      * @throws Exception
      */
     @Test
+    @SkipForRepeat(EE10_FEATURES) // FaceletsResourceResolver was removed in Faces 4.0.
     public void testFaceletsResourceResolverAnnotation() throws Exception {
         String msgToSearchFor = "FaceletsResourceResolver annotation worked, using custom ResourceResolver";
 

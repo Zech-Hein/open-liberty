@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -42,12 +44,12 @@ subprojects {
     apply from: rootProject.file('wlp-gradle/subprojects/assemble.gradle')
 
     // Configure 'buildfat', 'runfat', 'buildandrun', and 'cleanFat' tasks.	
-    if (bndis('fat.project')) {
+    if (bnd.is('fat.project')) {
       apply from: rootProject.file('wlp-gradle/subprojects/fat.gradle')
 
     // Apply OSS Audit plugin to all non-test projects that output bundles.
     // See: https://github.com/OSSIndex/ossindex-gradle-plugin/blob/master/README.md
-    } else if (!bndis('test.project') && !bndProject.isNoBundles()) {
+    } else if (!bnd.is('test.project') && !bndProject.isNoBundles()) {
       apply plugin: 'net.ossindex.audit'
 
       audit {

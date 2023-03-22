@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -114,6 +116,10 @@ public class ToolDataAPI extends CommonRESTHandler implements V1Constants {
             toolDataService.promoteIfPossible(request.getUserPrincipal().getName(), child);
             Object object = toolDataService.getToolData(request.getUserPrincipal().getName(), child);
             if (object != null) {
+                if(!Utils.isValidJsonString(object.toString())) {
+                    throw new RESTException(HTTP_INTERNAL_ERROR);
+                }
+                
                 String md5 = Utils.getMD5String(object.toString());
                 response.setResponseHeader(HTTP_HEADER_ETAG, md5);
                 return object;
@@ -154,9 +160,15 @@ public class ToolDataAPI extends CommonRESTHandler implements V1Constants {
 
                 String tooldata = getReaderContents(request.getInputStream(), POST_MAX_PLAIN_TEXT_SIZE);
 
-                String td = toolDataService.addToolData(request.getUserPrincipal().getName(), child, tooldata);
-                if (td == null)
+                if(!Utils.isValidJsonString(tooldata)) {
                     throw new RESTException(HTTP_INTERNAL_ERROR);
+                }
+
+                String td = toolDataService.addToolData(request.getUserPrincipal().getName(), child, tooldata);
+                if (td == null) {
+                    throw new RESTException(HTTP_INTERNAL_ERROR);
+                }
+
                 POSTResponse postResponse = new POSTResponse();
                 postResponse.createdURL = request.getURL() + "/" + child;
                 postResponse.jsonPayload = td;
@@ -238,6 +250,11 @@ public class ToolDataAPI extends CommonRESTHandler implements V1Constants {
                     throw new NoSuchResourceException();
                 }
                 String originalData = toolDataService.getToolData(request.getUserPrincipal().getName(), child);
+
+                if(!Utils.isValidJsonString(originalData.toString())) {
+                    throw new RESTException(HTTP_INTERNAL_ERROR);
+                }
+
                 String md5 = Utils.getMD5String(originalData.toString());
 
                 if (md5In.equals(md5) == false) {
@@ -251,6 +268,7 @@ public class ToolDataAPI extends CommonRESTHandler implements V1Constants {
 
                 if (td == null)
                     throw new RESTException(HTTP_INTERNAL_ERROR);
+
                 md5 = Utils.getMD5String(td);
                 response.setResponseHeader(HTTP_HEADER_ETAG, md5);
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -126,7 +128,7 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
     }
 
     accessorLimit = firstBoxed + boxed.length;
-    setMaster();
+    setPrimary();
 
     if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) JmfTr.exit(this, tc, "<init>");
   }
@@ -644,8 +646,8 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
   void invalidateSchemaCache() {
     if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) JmfTr.entry(this, tc, "invalidateSchemaCache");
 
-    // If this is the master message, clear the cache....
-    if (isMaster()) {
+    // If this is the primary message, clear the cache....
+    if (isPrimary()) {
       schemata = null;
     }
     // ... otherwise call on up the tree.
@@ -728,7 +730,7 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
 
         ans += (bytes.length + 2); // Account for the choice code
 
-        if (isMaster()) {
+        if (isPrimary()) {
           // Account for any extra schemata to be included
           ans += 2; // length field
 
@@ -774,13 +776,13 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
 
     }
     else if (val == nullIndicator) {
-      int result = fieldDef.getEncodedValueLength(null, indirect, master);
+      int result = fieldDef.getEncodedValueLength(null, indirect, primaryMessage);
       if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) JmfTr.exit(this, tc, "getLength", Integer.valueOf(result));
       return result;
 
     }
     else {
-      int result = fieldDef.getEncodedValueLength(val, indirect, master);
+      int result = fieldDef.getEncodedValueLength(val, indirect, primaryMessage);
       if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) JmfTr.exit(this, tc, "getLength", Integer.valueOf(result));
       return result;
     }
@@ -790,7 +792,7 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
   // Encodes the message data - variant settings and field contents - into the
   // given byte array at the given offset.
   // This method wraps the 2 parameter toByteArray() method which does the real
-  // work. In the case where the messge is already assembled it performs a sanity
+  // work. In the case where the messge is already assembled it performs a validation
   // check on the length before calling the worker method.
   // Locking: Holding the lock for the duration of the function is vital.
   public int toByteArray(byte[] buffer, int offset, int length) throws JMFUninitializedAccessException, JMFSchemaViolationException, JMFModelNotImplementedException, JMFMessageCorruptionException {
@@ -800,7 +802,7 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
 
     synchronized (getMessageLockArtefact()) {
 
-      // Sanity check the length passed in
+      // Evaluate the length passed in
       if ((contents != null)  && (length < this.length)) {
         // Caller must not have called getEncodedLength or there is
         // an error in it: should not occur
@@ -823,7 +825,7 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
   // If the message has already been encoded/assembled, we can just copy the
   // existing contents into the given array. Otherwise the message must encode
   // itself now.
-  // For a top-level (master) JMFMessage, the schemata is written out first.
+  // For a top-level (primary) JMFMessage, the schemata is written out first.
   // The message then writes out the multichoice code, which determines the variant
   // settings. Each field is then called to write itself out into the byte array,
   // then the offset table is built and inserted into the approriate position.
@@ -854,7 +856,7 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
           // and calls to this method.
           int messageOffset = offset; // remember start of message
 
-          if (isMaster()) {
+          if (isPrimary()) {
             route |= 0x10;
             probe = 201;
             // Top level JMFMessage: add schemata
@@ -957,7 +959,7 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
           sharedContents = false;
           probe = 503;
 
-          if (isMaster()) {
+          if (isPrimary()) {
             route |= 0x800;
             reallocated(buffer, -1);
           }
@@ -1038,10 +1040,10 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
     int result;
 
     if (val == nullIndicator) {
-      result = fieldDef.encodeValue(buffer, offset, null, indirect, master);
+      result = fieldDef.encodeValue(buffer, offset, null, indirect, primaryMessage);
     }
     else {
-      result = fieldDef.encodeValue(buffer, offset, val, indirect, master);
+      result = fieldDef.encodeValue(buffer, offset, val, indirect, primaryMessage);
     }
 
     if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) JmfTr.exit(this, tc, "writeObject", Integer.valueOf(result));
@@ -1449,7 +1451,7 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
   // make the choiceCache, and invalidate the schema cache
   // Locking: Holding the lock for the duration of the function is vital.
   //          Note: super.assemble() calls parent.unassemble(),
-  //          possible deadlock situation avoided by locking the 'master'
+  //          possible deadlock situation avoided by locking the 'primary'
   public void unassemble() throws JMFSchemaViolationException, JMFModelNotImplementedException, JMFMessageCorruptionException, JMFUninitializedAccessException {
 
     if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) JmfTr.entry(this, tc, "unassemble");
@@ -1541,7 +1543,7 @@ public final class JSMessageImpl extends JSMessageData implements JMFMessage {
       copy.lazyCopy(this);
 
       // The copy is a new top-level message
-      copy.setMaster();
+      copy.setPrimary();
 
       // We must clear our boxed cache at this stage, since items in the
       // boxed cache may refer to entries in our now potentially shared cache

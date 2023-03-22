@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2020, 2021 IBM Corporation and others.
+# Copyright (c) 2020, 2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -23,7 +25,7 @@ instrument.classesExcludes: \
   org/**/*.class
 
 Include-Resource: \
-  @${repo;org.apache.myfaces.core.impl;${Implementation-Version};EXACT}!/META-INF/**, \
+  @${repo;org.apache.myfaces.core:myfaces-impl;${Implementation-Version};EXACT}!/META-INF/**, \
   @${repo;io.openliberty.jakarta.faces.3.0}!/META-INF/resources/**, \
   @${repo;io.openliberty.jakarta.faces.3.0}!/META-INF/internal-resources/**, \
   META-INF=@src/META-INF
@@ -133,10 +135,10 @@ Import-Package: \
   io.openliberty.jakarta.expressionLanguage.4.0;version=latest,\
   io.openliberty.jakarta.servlet.5.0;version=latest, \
   io.openliberty.jakarta.cdi.3.0;version=latest,\
+  io.openliberty.jakarta.annotation.2.0;version=latest,\
   com.ibm.ws.logging.core,\
   com.ibm.websphere.appserver.spi.kernel.service,\
   com.ibm.websphere.org.osgi.core;version=latest,\
   com.ibm.websphere.org.osgi.service.component;version=latest,\
   com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
-  org.apache.myfaces.buildtools:myfaces-builder-annotations;version=1.0.9,\
-  io.openliberty.faces.internal;version=latest
+  org.apache.myfaces.buildtools:myfaces-builder-annotations;version=1.0.9

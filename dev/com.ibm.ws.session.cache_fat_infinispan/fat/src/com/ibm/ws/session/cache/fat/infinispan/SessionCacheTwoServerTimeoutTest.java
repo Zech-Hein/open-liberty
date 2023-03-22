@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,12 +27,17 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
+import componenttest.custom.junit.runner.RepeatTestFilter;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
 
@@ -52,6 +59,9 @@ public class SessionCacheTwoServerTimeoutTest extends FATServletClient {
     public static SessionCacheApp appA;
     public static SessionCacheApp appB;
 
+    @ClassRule
+    public static RepeatTests repeatRule = RepeatTests.withoutModification().andWith(new CacheManagerRepeatAction());
+
     @BeforeClass
     public static void setUp() throws Exception {
         appA = new SessionCacheApp(serverA, false, "session.cache.infinispan.web", "session.cache.infinispan.web.listener1");
@@ -59,15 +69,28 @@ public class SessionCacheTwoServerTimeoutTest extends FATServletClient {
         // severB requires a listener as sessions created on serverA can be destroyed on serverB via a timeout. See test testCacheInvalidationTwoServer.
         appB = new SessionCacheApp(serverB, false, "session.cache.infinispan.web", "session.cache.infinispan.web.listener1");
         serverB.useSecondaryHTTPPort();
+
+        String sessionCacheConfigFile = "httpSessionCache_1.xml";
+        if (RepeatTestFilter.isRepeatActionActive(CacheManagerRepeatAction.ID)) {
+            sessionCacheConfigFile = "httpSessionCache_2.xml";
+        }
+
         String rand = UUID.randomUUID().toString();
         Map<String, String> options = serverA.getJvmOptionsAsMap();
         options.put("-Dinfinispan.cluster.name", rand);
+        options.put("-Dsession.cache.config.file", sessionCacheConfigFile);
+        options.put("-Djgroups.bind.address", "127.0.0.1"); // Resolves JGroup multicast issues on some OS's.
         serverA.setJvmOptions(options);
+
         options = serverB.getJvmOptionsAsMap();
         options.put("-Dinfinispan.cluster.name", rand);
+        options.put("-Dsession.cache.config.file", sessionCacheConfigFile);
+        options.put("-Djgroups.bind.address", "127.0.0.1"); // Resolves JGroup multicast issues on some OS's.
         serverB.setJvmOptions(options);
 
         serverA.startServer();
+
+        TimeUnit.SECONDS.sleep(10);
 
         // Use HTTP session on serverA before running any tests, so that the time it takes to initialize
         // the JCache provider does not interfere with timing of tests. Invoking this before starting
@@ -79,6 +102,8 @@ public class SessionCacheTwoServerTimeoutTest extends FATServletClient {
 
         serverB.startServer();
 
+        TimeUnit.SECONDS.sleep(10);
+
         // Use HTTP session on serverB before running any tests, so that the time it takes to initialize
         // the JCache provider does not interfere with timing of tests.
         List<String> sessionB = new ArrayList<>();
@@ -89,8 +114,12 @@ public class SessionCacheTwoServerTimeoutTest extends FATServletClient {
     @AfterClass
     public static void tearDown() throws Exception {
         try {
+            Log.info(c, "tearDown", "Start server A shutdown");
             serverA.stopServer();
+        } catch (Exception e) {
+            Log.info(c, "tearDown", "Ignoring exception due to slow test machine during server shutdown");
         } finally {
+            Log.info(c, "tearDown", "Start server B shutdown");
             serverB.stopServer();
         }
     }

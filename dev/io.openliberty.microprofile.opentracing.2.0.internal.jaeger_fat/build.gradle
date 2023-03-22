@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,7 +18,6 @@ configurations {
 
 dependencies {
   requiredLibs 'org.glassfish:javax.json:1.1'
-  jaegerClient 'com.google.code.gson:gson:2.8.6'
   jaegerClient 'io.opentracing:opentracing-util:0.33.0'
   jaegerClient 'io.opentracing:opentracing-noop:0.33.0'
   jaegerClient 'io.jaegertracing:jaeger-core:1.6.0'
@@ -24,8 +25,9 @@ dependencies {
   jaegerClient 'io.jaegertracing:jaeger-client:1.6.0'
   jaegerClient 'io.jaegertracing:jaeger-tracerresolver:1.6.0'
   jaegerClient 'org.apache.thrift:libthrift:0.14.1'
-  jaegerClient 'org.slf4j:slf4j-simple:1.7.30'
-  jaegerClient 'org.slf4j:slf4j-api:1.7.30'
+  jaegerClient project(':com.ibm.ws.org.slf4j.api')
+  jaegerClient project(':com.ibm.ws.org.slf4j.simple')
+  jaegerClient project(':io.openliberty.com.google.gson')
 }
 
 autoFVT {

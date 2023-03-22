@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2020 IBM Corporation and others.
+ * Copyright (c) 2010, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -40,6 +42,7 @@ public interface WsLocationConstants {
                     LOC_USER_EXTENSION_DIR = "usr.extension.dir",
                     LOC_SERVER_CONFIG_DIR = "server.config.dir",
                     LOC_SERVER_OUTPUT_DIR = "server.output.dir",
+                    LOC_SERVER_LOGS_DIR = "server.logs.dir",
                     LOC_SERVER_STATE_DIR = "server.state.dir",
                     LOC_SERVER_WORKAREA_DIR = "server.workarea.dir",
                     LOC_SHARED_APPS_DIR = "shared.app.dir",
@@ -62,6 +65,7 @@ public interface WsLocationConstants {
                     SYMBOL_USER_EXTENSION_DIR = "${usr.extension.dir}/",
                     SYMBOL_SERVER_CONFIG_DIR = "${server.config.dir}/",
                     SYMBOL_SERVER_OUTPUT_DIR = "${server.output.dir}/",
+                    SYMBOL_SERVER_LOGS_DIR = "${server.logs.dir}/",
                     SYMBOL_SERVER_STATE_DIR = "${server.state.dir}/",
                     SYMBOL_SERVER_WORKAREA_DIR = "${server.workarea.dir}/",
                     SYMBOL_SHARED_APPS_DIR = "${shared.app.dir}/",

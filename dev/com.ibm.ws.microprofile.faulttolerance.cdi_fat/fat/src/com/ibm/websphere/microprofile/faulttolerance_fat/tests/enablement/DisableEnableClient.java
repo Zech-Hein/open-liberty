@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2018 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,7 +17,7 @@ import org.eclipse.microprofile.faulttolerance.Retry;
 import com.ibm.ws.microprofile.faulttolerance_fat.util.ConnectException;
 
 // Important: no annotation on the class
-// Empty beans.xml will make this a dependent bean
+// bean-discovery-mode=all will make this a dependent bean
 public class DisableEnableClient {
 
     private int failWithOneRetryCounter = 0;

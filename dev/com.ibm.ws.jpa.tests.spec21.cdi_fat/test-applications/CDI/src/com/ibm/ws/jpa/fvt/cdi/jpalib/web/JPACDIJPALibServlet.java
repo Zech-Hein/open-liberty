@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -43,10 +45,10 @@ import com.ibm.ws.jpa.fvt.cdi.jpalib.model.Widget;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext.PersistenceContextType;
 import com.ibm.ws.testtooling.testinfo.JPAPersistenceContext.PersistenceInjectionType;
-import com.ibm.ws.testtooling.vehicle.web.JPATestServlet;
+import com.ibm.ws.testtooling.vehicle.web.JPADBTestServlet;
 
 @WebServlet(urlPatterns = { "/JPACDIJPALibServlet" })
-public class JPACDIJPALibServlet extends JPATestServlet implements CDITestComponent {
+public class JPACDIJPALibServlet extends JPADBTestServlet implements CDITestComponent {
     private static final long serialVersionUID = -3888645553607380940L;
     private static final String CLASS_NAME = JPACDIJPALibServlet.class.getName();
     private static final Logger svLogger = Logger.getLogger(CLASS_NAME);

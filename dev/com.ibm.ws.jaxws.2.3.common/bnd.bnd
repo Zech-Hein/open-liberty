@@ -1,22 +1,24 @@
 #*******************************************************************************
-# Copyright (c) 2019 IBM Corporation and others.
+# Copyright (c) 2019, 2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
 
+-sub: *.bnd
+
+
 bVersion=1.0
 
 exportVer=2.3
 
-Bundle-Name: JAX-WS 2.3 Common
-Bundle-SymbolicName: com.ibm.ws.jaxws.2.3.common
-Bundle-Description: IBM JAX-WS 2.3 Common; version=${bVersion}
 Bundle-Activator: org.apache.cxf.bus.osgi.CXFActivator
 
 # in cxf-rt-frontend-jaxws-3.2 bundle, we exposed:
@@ -29,7 +31,6 @@ Export-Package: \
     com.ibm.ws.jaxws.client;thread-context=true;version=${exportVer},\
     com.ibm.ws.jaxws.client.injection;version=${exportVer},\
     com.ibm.ws.jaxws.endpoint;version=${exportVer},\
-    com.ibm.ws.jaxws.globalhandler;version=${exportVer},\
     com.ibm.ws.jaxws.jaxb;version=${exportVer},\
     com.ibm.ws.jaxws.injection;version=${exportVer},\
     com.ibm.ws.jaxws.metadata;version=${exportVer},\
@@ -44,12 +45,11 @@ Export-Package: \
     com.ibm.wsspi.jaxws;version=${exportVer}
 
 Import-Package: \
-   javax.xml.bind.*;version="[2.3,3)", \
-   javax.xml.ws.*;version="[2.3,3)", \
+   javax.xml.bind.*;version="[2.2,3)", \
+   javax.xml.ws.*;version="[2.2,3)", \
    com.ibm.ws.javaee.ddmodel.wsbnd, \
    !com.sun.tools.ws.wscompile.*;version=!, \
    !org.apache.tools.ant;version=!, \
-   !com.ibm.ws.jaxws.globalhandler, \
    !com.ibm.ws.jaxws.threading, \
    !com.sun.tools.ws.ant, \
    org.apache.cxf.*;version="[3.2,4)", \
@@ -60,7 +60,7 @@ Import-Package: \
 Private-Package:\
    com.ibm.ws.jaxws.*,\
    com.ibm.wsspi.jaxws
-   
+
 # Use Dynamic Import Packages for JAXB Context Factory,
 # with that, we could work without ResourceProvider Hook
 DynamicImport-Package: com.sun.xml.bind.v2, \
@@ -74,7 +74,6 @@ DynamicImport-Package: com.sun.xml.bind.v2, \
   com.ibm.ws.jaxws.metadata.builder.WebServicesBndEndpointInfoConfigurator,\
   com.ibm.ws.jaxws.threading.LibertyThreadPoolAdapter,\
   com.ibm.ws.jaxws.client.injection.ServiceRefObjectFactory,\
-  com.ibm.ws.jaxws.globalhandler.JaxwsGlobalHandlerServiceImpl,\
   com.ibm.ws.jaxws.JaxwsConduitConfigActivator
 
 
@@ -177,8 +176,8 @@ instrument.classesExcludes: com/ibm/ws/jaxws/internal/resources/*.class
 	com.ibm.websphere.javaee.annotation.1.2;version=latest,\
 	javax.jws:jsr181-api;version=latest,\
 	javax.xml.soap:javax.xml.soap-api;version=1.4.0,\
-	com.ibm.websphere.javaee.jaxb.2.3;version=latest,\
-	com.ibm.websphere.javaee.jaxws.2.3;version=latest,\
+	com.ibm.websphere.javaee.jaxb.2.2;version=latest,\
+	com.ibm.websphere.javaee.jaxws.2.2;version=latest,\
 	com.ibm.websphere.appserver.spi.logging;version=latest,\
 	com.ibm.websphere.appserver.spi.kernel.service;version=latest,\
 	com.ibm.websphere.appserver.api.kernel.service;version=latest,\
@@ -225,6 +224,5 @@ instrument.classesExcludes: com/ibm/ws/jaxws/internal/resources/*.class
 	org.jmock:jmock-junit4;strategy=exact;version=2.5.1, \
 	../build.sharedResources/lib/junit/old/junit.jar;version=file, \
 	com.ibm.ws.junit.extensions;version=latest, \
-	com.ibm.ws.kernel.boot;version=latest
-	
-jakartaeeMe: true
+	com.ibm.ws.kernel.boot;version=latest, \
+	com.ibm.ws.org.apache.cxf.cxf.core.3.2;version=latest

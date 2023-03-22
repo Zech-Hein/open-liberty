@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2010, 2020 IBM Corporation and others.
+# Copyright (c) 2010, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -100,7 +102,9 @@ error.secPermission=CWWKE0016E: The bootstrap JAR file requires the AllPermissio
 error.secPermission.explanation=The Java 2 Security permissions are insufficient for the bootstrap JAR file to launch the runtime environment and the OSGi framework.
 error.secPermission.useraction=Ensure that the bootstrap JAR file has been granted AllPermission privileges in the Java 2 Security policy file.
 
-# CWWKE0017E removed because it's only used in com.ibm.ws.kernel.boot.cmdline. Do not reuse.
+error.badBitmode=CWWKE0017E: The process detected a 31-bit JVM that is not supported. The runtime environment requires 64-bit Java 8 version or higher.
+error.badBitmode.explanation=The JAVA_HOME system variable is set to point to a version of Java that is 31-bit.
+error.badBitmode.useraction=Adjust the JAVA_HOME system variable to point to a 64-bit Java 8 version or higher.
 
 error.unknownException=CWWKE0018E: An exception occurred while launching the runtime environment: {0}
 error.unknownException.explanation=The exception prevented the launch of the server.
@@ -126,6 +130,10 @@ error.kernelDefFile=CWWKE0023E: The specified kernel definition ({0}) does not e
 error.kernelDefFile.explanation=The specified kernel definition could not be found.
 error.kernelDefFile.useraction=Ensure that the kernel definition resource exists and can be read by the current user.
 
+error.badOptionValue=CWWKE0024E: The ({0}) value for the ({1}) option is not valid.
+error.badOptionValue.explanation=The specified value is not appropriate for the specified option.
+error.badOptionValue.useraction=Run the `server help` command for a description of the options.  If the value is a number, ensure it is in the valid range.
+
 error.specifiedLocation=CWWKE0025E: The value of {0} must refer to a directory. The specified value \
  references an existing file resource. Value: {1}
 error.specifiedLocation.explanation=The supplied location refers to an existing file instead of a directory.
@@ -139,6 +147,10 @@ warning.singleServer=CWWKE0027W: Only one server may be specified on the command
   subsequent names will be ignored (server={0}, ignored={1}).
 warning.singleServer.explanation=You may specify only one server on the command line. The first server name has been processed; the remaining names have been ignored.
 warning.singleServer.useraction=No action is required. Specify only one server to avoid this warning.
+
+error.optionNotApplicableToCommand=CWWKE0028E: The ({0}) option is not applicable for the command.
+error.optionNotApplicableToCommand.explanation=The specified option is not allowed for the specified command.
+error.optionNotApplicableToCommand.useraction=Run the `server <command> help` command to get information about valid options for the command.
   
 error.serverAlreadyRunning=CWWKE0029E: An instance of server {0} is already running.
 error.serverAlreadyRunning.explanation=You are trying to start a server that is already running.
@@ -385,6 +397,10 @@ audit.system.exit.useraction=If stopping the server was unexpected, determine wh
 audit.jvm.shutdown=CWWKE0085I: The server {0} is stopping because the JVM is exiting.
 audit.jvm.shutdown.explanation=The server intercepted a request to stop the JVM and will attempt to stop in an orderly manner. The JVM might be exiting because the operating system sent a terminating signal to the server process.
 audit.jvm.shutdown.useraction=If stopping the server was unexpected, determine if a terminating signal was sent to the server process.
+
+error.optionRequiresEquals=CWWKE0086E: The {0} option must include an equals sign (=) before the specified value. 
+error.optionRequiresEquals.explanation=The specified option must be followed by an equals sign (=) and a value.
+error.optionRequiresEquals.useraction=The option must be specified in the following format: --option=value.
 
 warning.serverStartedCommandPortDisabled=CWWKE0087W: Server start was initiated for server {0}, but it is not possible to tell if startup was completed because the server command port is disabled.
 warning.serverStartedCommandPortDisabled.explanation=The server command port is required for communication with a running server.  The command port was explicitly disabled for this server, therefore it is not possible to tell when the server has completed startup.
@@ -707,6 +723,38 @@ error.missing.version.files.useraction=Ensure that the directory exists and can 
 warning.earlyRelease=CWWKE0953W: This version of {0} is an unsupported early release version.
 warning.earlyRelease.explanation=New features that are not fully tested are made available in early releases to elicit feedback before they are included in a supported release.
 warning.earlyRelease.useraction=Do not use an early release version on production systems, since early release versions are not supported.
+
+error.invalidPhaseName=CWWKE0954E: The specified ({0}) checkpoint phase is empty or unknown.
+error.invalidPhaseName.explanation=An unknown phase was specified as the value of the checkpoint option.
+error.invalidPhaseName.useraction=Review the documentation to determine valid phase names. Reissue the command using a valid checkpoint phase.
+
+error.set.securitymanager.jdk18=CWWKE0955E: The websphere.java.security property was set in the bootstrap.properties file but the Java version is {0}.  This property enables the Java Security Manager and is not valid with Java 18 or later.
+error.set.securitymanager.jdk18.explanation= As part of the deprecation of the Java Security Manager, as specified by JEP 411, Liberty does not support the Java Security Manager with Java 18 or later.
+error.set.securitymanager.jdk18.useraction=Remove the websphere.java.security property from the bootstrap.properties file or use a Java version that is earlier than Java 18.
+
+error.cannotset.securitymanager.jdk18=CWWKE0956E: Failed to set the Java Security Manager due to exception: {0}.  This occurs if the server is using Java 18 or later, and the Java system property "java.security.manager" was not set to "allow".
+error.cannotset.securitymanager.jdk18.explanation=Java Security Manager could not be enabled because the system is using Java 18, which by default disallows use of a Java Security Manager.
+error.cannotset.securitymanager.jdk18.useraction=Start the server with the JVM argument -Djava.security.manager=allow.
+
+error.checkpoint.delete=CWWKE0955E: The server checkpoint request failed because the existing checkpoint image cannot be deleted from the {0} directory.
+error.checkpoint.delete.explanation=A checkpoint request for the server failed because an existing checkpoint image cannot be deleted.
+error.checkpoint.delete.useraction=Ensure the user has permission to delete the existing directory. Reissue the command with a user that has sufficient permissions.
+
+error.checkpoint.workarea.backup=CWWKE0956E: The server checkpoint request failed because the {0} directory cannot be backed up.
+error.checkpoint.workarea.backup.explanation=An error occurred backing up the checkpoint server workarea directory.
+error.checkpoint.workarea.backup.useraction=Ensure the user has sufficient permissions to back up the checkpoint workarea directory. Reissue the command with a user that has sufficient permissions.
+
+error.checkpoint.workarea.restore=CWWKE0957E: The checkpoint server workarea directory cannot be restored from the {0} directory.
+error.checkpoint.workarea.restore.explanation=An error occurred restoring the checkpoint workarea directory.
+error.checkpoint.workarea.restore.useraction=Ensure the user has sufficient permissions to restore the checkpoint workarea. Reissue the command with a user that has sufficient permissions.
+
+info.checkpoint.restore.failed=CWWKE0957I: Restoring the checkpoint server process failed. Check the {0} log to determine why the checkpoint process was not restored. Launching the server without using the checkpoint image.
+info.checkpoint.restore.failed.explanation=An error occurred restoring a checkpoint server process.  The server launched without using the checkpoint image.
+info.checkpoint.restore.failed.useraction=Check the logs to determine why the checkpoint process was not restored.
+
+error.checkpoint.securitymanager.not.supported=CWWKE0958E: The server checkpoint request failed because the websphere.java.security property was set in the bootstrap.properties file. This property enables the Java Security Manager and is not valid when a server checkpoint occurs.
+error.checkpoint.securitymanager.not.supported.explanation=Liberty does not support the Java Security Manager when a server checkpoint is requested. The Java Security Manager is deprecated, as specified by JEP 411.
+error.checkpoint.securitymanager.not.supported.useraction=Remove the websphere.java.security property from the bootstrap.properties file.
 
 info.serverStarting=Starting server {0}.
 info.serverStarted=Server {0} started.

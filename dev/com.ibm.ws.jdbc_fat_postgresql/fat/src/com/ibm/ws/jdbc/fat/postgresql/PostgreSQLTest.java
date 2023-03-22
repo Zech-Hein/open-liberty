@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -42,7 +44,7 @@ public class PostgreSQLTest extends FATServletClient {
     @TestServlet(servlet = PostgreSQLTestServlet.class, contextRoot = APP_NAME)
     public static LibertyServer server;
 
-    public static PostgreSQLContainer postgre = new PostgreSQLContainer("postgres:11.2-alpine")
+    public static PostgreSQLContainer postgre = new PostgreSQLContainer("postgres:14.1-alpine")
                     .withDatabaseName(POSTGRES_DB)
                     .withUsername(POSTGRES_USER)
                     .withPassword(POSTGRES_PASS)
@@ -54,7 +56,7 @@ public class PostgreSQLTest extends FATServletClient {
 
         ShrinkHelper.defaultApp(server, APP_NAME, "jdbc.fat.postgresql.web");
 
-        String host = postgre.getContainerIpAddress();
+        String host = postgre.getHost();
         String port = String.valueOf(postgre.getMappedPort(5432));
         String jdbcURL = postgre.getJdbcUrl() + "?user=" + POSTGRES_USER + "&password=" + POSTGRES_PASS;
         Log.info(c, "setUp", "Using PostgreSQL properties: host=" + host + "  port=" + port + ",  URL=" + jdbcURL);

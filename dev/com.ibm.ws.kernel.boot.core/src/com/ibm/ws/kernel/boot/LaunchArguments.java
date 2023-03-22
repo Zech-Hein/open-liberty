@@ -1,15 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.kernel.boot;
 
+import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,8 +21,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.ibm.ws.kernel.boot.internal.BootstrapConstants;
+import com.ibm.ws.kernel.boot.internal.KernelUtils;
+import com.ibm.ws.kernel.productinfo.ProductInfo;
+
+import io.openliberty.checkpoint.spi.CheckpointPhase;
 
 /**
  *
@@ -31,7 +39,7 @@ public class LaunchArguments {
     private static final List<String> KNOWN_OPTIONS = Collections.unmodifiableList(Arrays.asList(new String[] { "archive", "include",
                                                                                                                 "os", "pid", "pid-file",
                                                                                                                 "script", "template", "force",
-                                                                                                                "target", "no-password", "server-root" }));
+                                                                                                                "target", "no-password", "server-root", "timeout" }));
 
     /**
      * Script argument: set by both batch and shell scripts to record the
@@ -82,6 +90,7 @@ public class LaunchArguments {
 
         String action = null;
         String processNameArg = null;
+        String checkpointPhase = null;
 
         // Remember the help action in case multiple are specified
         String helpAction = null;
@@ -179,16 +188,30 @@ public class LaunchArguments {
                         // special handling for clean: it needs to over-ride a system property
                         initProps.put(BootstrapConstants.INITPROP_OSGI_CLEAN, BootstrapConstants.OSGI_CLEAN_VALUE);
                         System.clearProperty(BootstrapConstants.INITPROP_OSGI_CLEAN);
+                    } else if (argToLower.startsWith("--internal-checkpoint-at=")) {
+
+                        if (isBetaEdition()) {
+                            checkpointPhase = argToLower.substring("--internal-checkpoint-at=".length());
+                        } else {
+                            // we cannot efficiently do beta guard from the server script so we hard code this check here
+                            // for the checkpoint action
+                            System.out.println(MessageFormat.format(BootstrapConstants.messages.getString("error.unknownArgument"),
+                                                                    "checkpoint"));
+                            System.out.println();
+                            returnValue = ReturnCode.BAD_ARGUMENT;
+                        }
                     } else if (isClient && argToLower.equals("--autoacceptsigner")) {
                         initProps.put(BootstrapConstants.AUTO_ACCEPT_SIGNER, "true");
+
+                        // options with a value.  (option=value)
                     } else {
-                        int index = arg.indexOf('=');
+                        int eqIndex = arg.indexOf('=');
                         String value = "";
                         String key;
                         if (argToLower.startsWith("--")) {
-                            if (index != -1) {
-                                key = argToLower.substring(2, index);
-                                value = arg.substring(index + 1);
+                            if (eqIndex != -1) {
+                                key = argToLower.substring(2, eqIndex);
+                                value = arg.substring(eqIndex + 1);
                             } else {
                                 key = arg.substring(2);
                             }
@@ -196,7 +219,36 @@ public class LaunchArguments {
                             key = null;
                         }
                         if (KNOWN_OPTIONS.contains(key)) {
+
+                            //  **** T I M E O U T   o p t i o n ****
+                            if (key != null && key.equals("timeout")) {
+                                // --timeout is only valid for the stop command
+                                // action can be null if user enter the "run","debug", or checkpoint commands
+                                if (action == null || !action.equals("--stop")) {
+                                    System.out.println(MessageFormat.format(BootstrapConstants.messages.getString("error.optionNotApplicableToCommand"), arg));
+                                    returnValue = ReturnCode.BAD_ARGUMENT;
+                                    break;
+                                } else {
+                                    if (eqIndex == -1) {
+                                        System.out.println(MessageFormat.format(BootstrapConstants.messages.getString("error.optionRequiresEquals"), arg));
+                                        returnValue = ReturnCode.BAD_ARGUMENT;
+                                        break;
+                                    }
+                                }
+                                String saveValue = value;
+
+                                value = KernelUtils.parseDuration(value, TimeUnit.SECONDS);
+
+                                if (saveValue.startsWith("-") || !isValidTimeoutValue(value)) {
+                                    System.out.println(MessageFormat.format(BootstrapConstants.messages.getString("error.badOptionValue"), saveValue, arg));
+                                    returnValue = ReturnCode.BAD_ARGUMENT;
+                                    break;
+                                }
+                            }
+
+                            //  **** A L L   o p t i o n s  with a value ****
                             options.put(key, value);
+
                         } else {
 
                             System.out.println(MessageFormat.format(BootstrapConstants.messages.getString("error.unknownArgument"), arg));
@@ -246,9 +298,51 @@ public class LaunchArguments {
             }
         }
 
+        returnCode = setCheckpointPhase(checkpointPhase, returnValue);
         processName = processNameArg;
-        returnCode = returnValue;
         actionOption = action;
+    }
+
+    /**
+     * @param timeout
+     */
+    private boolean isValidTimeoutValue(String timeoutString) {
+        try {
+            int x = Integer.parseInt(timeoutString);
+            if (x < 0) {
+                return false;
+            }
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @param checkpointPhase
+     */
+    private ReturnCode setCheckpointPhase(String checkpointPhase, ReturnCode returnValue) {
+        try {
+            Method setPhase = CheckpointPhase.class.getDeclaredMethod("setPhase", String.class);
+            setPhase.setAccessible(true);
+            setPhase.invoke(setPhase, checkpointPhase);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (CheckpointPhase.getPhase() == CheckpointPhase.INACTIVE && checkpointPhase != null) {
+            System.out.println(MessageFormat.format(BootstrapConstants.messages.getString("error.invalidPhaseName"), checkpointPhase));
+            System.out.println();
+            return ReturnCode.BAD_ARGUMENT;
+        }
+        return returnValue;
+    }
+
+    /*
+     * Duplicating ProductInfo logic here to avoid unnecessary calls to ThreadIdentityManager too early
+     */
+    static public boolean isBetaEdition() {
+        return Boolean.getBoolean(ProductInfo.BETA_EDITION_JVM_PROPERTY);
     }
 
     private ReturnCode checkPreviousAction(ReturnCode oldRC, ReturnCode newActionRC, String arg) {
@@ -289,6 +383,35 @@ public class LaunchArguments {
 
     public String getScript() {
         return script;
+    }
+
+    // The timeout is the for whatever action is being processed.
+    // So it might be a start timeout (currently not implemented) or a stop timeout.
+    private int timeoutInSeconds = -1;
+
+    public int getStopTimeout() {
+        return getTimeout(BootstrapConstants.SERVER_STOP_WAIT_TIME_DEFAULT);
+    }
+
+    /**
+     * @param defaultValue
+     * @return Value of --timeout option in seconds if specified. If not specified return the default.
+     */
+    private int getTimeout(String defaultValue) {
+        // If we've already computed the timeout, just return it.
+        if (timeoutInSeconds > 0) {
+            return timeoutInSeconds;
+        }
+
+        // Start with the default value
+        timeoutInSeconds = Integer.valueOf(defaultValue);
+
+        // Then see if it was overridden on the command line.
+        String timeoutString = getOption("timeout");
+        if (timeoutString != null) {
+            timeoutInSeconds = Integer.valueOf(timeoutString);
+        }
+        return timeoutInSeconds;
     }
 
 }

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,19 +15,17 @@ package com.ibm.ws.cdi.web.impl;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletRegistration.Dynamic;
 import javax.servlet.jsp.JspApplicationContext;
 import javax.servlet.jsp.JspFactory;
 
 import org.jboss.weld.Container;
-import org.jboss.weld.probe.ProbeFilter;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Reference;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-import com.ibm.ws.cdi.internal.interfaces.CDIUtils;
+import com.ibm.ws.cdi.internal.interfaces.WeldDevelopmentMode;
 import com.ibm.ws.cdi.web.factories.WeldListenerFactory;
 import com.ibm.ws.cdi.web.impl.security.PrincipalServletRequestListener;
 import com.ibm.ws.cdi.web.interfaces.CDIWebRuntime;
@@ -104,13 +104,10 @@ public abstract class AbstractServletInitializer implements ServletContainerInit
                     beanManager.wrapExpressionFactory(applicationCtx.getExpressionFactory());
                     applicationCtx.addELResolver(beanManager.getELResolver());
                 }
-                if (CDIUtils.isDevelopementMode()) {
-
+                WeldDevelopmentMode devMode = cdiWebRuntime.getWeldDevelopmentMode();
+                if (devMode != null) {
                     //add probeFilter
-                    Dynamic servletDynamic = isc.addServlet("ProbeServlet", ProbeDummyServlet.class);
-                    servletDynamic.addMapping("/weld-probe/*");
-                    javax.servlet.FilterRegistration.Dynamic filterDynamic = isc.addFilter("ProbeFilter", ProbeFilter.class);
-                    filterDynamic.addMappingForUrlPatterns(null, false, "/*");
+                    devMode.addProbeFilter(isc);
                 }
             }
         }

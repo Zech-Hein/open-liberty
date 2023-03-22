@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,6 +22,7 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
+import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
 import com.ibm.ws.ejbcontainer.remote.fat.ann.sf.web.AdvBasicCMTStatefulAnnRemoteServlet;
 import com.ibm.ws.ejbcontainer.remote.fat.ann.sf.web.AdvCompCMTStatefulAnnRemoteServlet;
 import com.ibm.ws.ejbcontainer.remote.fat.ann.sf.web.BasicCMTStatefulAnnRemoteServlet;
@@ -46,6 +49,7 @@ import componenttest.annotation.TestServlet;
 import componenttest.annotation.TestServlets;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.rules.repeater.FeatureReplacementAction;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
@@ -82,7 +86,7 @@ public class RemoteSessionTests extends AbstractTest {
     }
 
     @ClassRule
-    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteSessionServer")).andWith(FeatureReplacementAction.EE8_FEATURES().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteSessionServer")).andWith(new JakartaEE9Action().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteSessionServer"));
+    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteSessionServer")).andWith(FeatureReplacementAction.EE8_FEATURES().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteSessionServer")).andWith(new JakartaEE9Action().conditionalFullFATOnly(FeatureReplacementAction.GREATER_THAN_OR_EQUAL_JAVA_11).forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteSessionServer")).andWith(new JakartaEE10Action().forServers("com.ibm.ws.ejbcontainer.remote.fat.RemoteSessionServer"));
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -94,7 +98,7 @@ public class RemoteSessionTests extends AbstractTest {
         EnterpriseArchive InitTxRecoveryLogApp = ShrinkWrap.create(EnterpriseArchive.class, "InitTxRecoveryLogApp.ear");
         InitTxRecoveryLogApp.addAsModule(InitTxRecoveryLogEJBJar);
 
-        ShrinkHelper.exportDropinAppToServer(server, InitTxRecoveryLogApp);
+        ShrinkHelper.exportDropinAppToServer(server, InitTxRecoveryLogApp, DeployOptions.SERVER_ONLY);
 
         //#################### StatefulAnnRemoteTest.ear
         JavaArchive StatefulAnnRemoteEJB = ShrinkHelper.buildJavaArchive("StatefulAnnRemoteEJB.jar", "com.ibm.ws.ejbcontainer.remote.fat.ann.sf.ejb.");
@@ -105,7 +109,7 @@ public class RemoteSessionTests extends AbstractTest {
         StatefulAnnRemoteTest.addAsModule(StatefulAnnRemoteEJB).addAsModule(StatefulAnnRemoteWeb);
         StatefulAnnRemoteTest = (EnterpriseArchive) ShrinkHelper.addDirectory(StatefulAnnRemoteTest, "test-applications/StatefulAnnRemoteTest.ear/resources");
 
-        ShrinkHelper.exportDropinAppToServer(server, StatefulAnnRemoteTest);
+        ShrinkHelper.exportDropinAppToServer(server, StatefulAnnRemoteTest, DeployOptions.SERVER_ONLY);
 
         //#################### StatefulMixRemoteTest.ear
         JavaArchive StatefulMixRemoteEJB = ShrinkHelper.buildJavaArchive("StatefulMixRemoteEJB.jar", "com.ibm.ws.ejbcontainer.remote.fat.mix.sf.ejb.");
@@ -117,7 +121,7 @@ public class RemoteSessionTests extends AbstractTest {
         StatefulMixRemoteTest.addAsModule(StatefulMixRemoteEJB).addAsModule(StatefulMixRemoteWeb);
         StatefulMixRemoteTest = (EnterpriseArchive) ShrinkHelper.addDirectory(StatefulMixRemoteTest, "test-applications/StatefulMixRemoteTest.ear/resources");
 
-        ShrinkHelper.exportDropinAppToServer(server, StatefulMixRemoteTest);
+        ShrinkHelper.exportDropinAppToServer(server, StatefulMixRemoteTest, DeployOptions.SERVER_ONLY);
 
         //#################### StatefulXMLRemoteTest.ear
         JavaArchive StatefulXMLRemoteEJB = ShrinkHelper.buildJavaArchive("StatefulXMLRemoteEJB.jar", "com.ibm.ws.ejbcontainer.remote.fat.xml.sf.ejb.");
@@ -129,7 +133,7 @@ public class RemoteSessionTests extends AbstractTest {
         StatefulXMLRemoteTest.addAsModule(StatefulXMLRemoteEJB).addAsModule(StatefulXMLRemoteWeb);
         StatefulXMLRemoteTest = (EnterpriseArchive) ShrinkHelper.addDirectory(StatefulXMLRemoteTest, "test-applications/StatefulXMLRemoteTest.ear/resources");
 
-        ShrinkHelper.exportDropinAppToServer(server, StatefulXMLRemoteTest);
+        ShrinkHelper.exportDropinAppToServer(server, StatefulXMLRemoteTest, DeployOptions.SERVER_ONLY);
 
         // Finally, start server
         server.startServer();

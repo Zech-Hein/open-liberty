@@ -1,29 +1,26 @@
 #*******************************************************************************
-# Copyright (c) 2017, 2020 IBM Corporation and others.
+# Copyright (c) 2017, 2023 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
--include= ~../cnf/resources/bnd/bundle.props, \
-          ~../cnf/resources/bnd/app-resources.bnd
+-include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 -nouses=true
 bVersion=1.0
 bSymbolicName=com.ibm.ws.wsoc11
 
-Bundle-Name: WebSocket
-Bundle-SymbolicName: com.ibm.ws.wsoc.1.1; singleton:=true
-Bundle-Description: WebSocket, version ${bVersion}
-
-jakartaeeMe:true
-
 Private-Package: \
   com.ibm.ws.wsoc.external.v11
 
-# Register a marker service to enable 1.1 WebSocket incompatibilities.
 Service-Component: \
   com.ibm.ws.wsoc.external.v11; \
     implementation:=com.ibm.ws.wsoc.external.v11.WebSocketFactoryV11; \
@@ -33,5 +30,11 @@ Service-Component: \
     properties:="service.vendor=IBM"
 
 -buildpath: \
-	com.ibm.websphere.javaee.websocket.1.1;version=latest,\
-	com.ibm.ws.wsoc;version=latest
+  com.ibm.websphere.javaee.websocket.1.1;version=latest, \
+  com.ibm.ws.wsoc;version=latest, \
+  com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
+  com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
+  com.ibm.ws.webcontainer;version=latest, \
+  com.ibm.websphere.javaee.servlet.3.1;version=latest, \
+  com.ibm.wsspi.org.osgi.service.component.annotations, \
+  com.ibm.ws.org.osgi.annotation.versioning;version=latest

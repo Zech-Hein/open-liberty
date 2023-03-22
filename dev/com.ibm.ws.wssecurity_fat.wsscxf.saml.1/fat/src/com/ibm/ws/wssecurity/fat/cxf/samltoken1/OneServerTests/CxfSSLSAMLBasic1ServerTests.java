@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,6 +29,7 @@ import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.topology.impl.LibertyServerWrapper;
 import static componenttest.annotation.SkipForRepeat.EE9_FEATURES;
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 import componenttest.annotation.SkipForRepeat;
 
 /**
@@ -45,13 +48,14 @@ import componenttest.annotation.SkipForRepeat;
  * 2.0 token in the HTTP POST request.
  */
 
-@SkipForRepeat({ EE9_FEATURES })
+@SkipForRepeat({ EE9_FEATURES, EE10_FEATURES })
 @LibertyServerWrapper
 @Mode(TestMode.FULL)
 @RunWith(FATRunner.class)
 public class CxfSSLSAMLBasic1ServerTests extends CxfSSLSAMLBasicTests {
 
     private static final Class<?> thisClass = CxfSSLSAMLBasicTests.class;
+    protected static String repeatAction = "";
 
     @BeforeClass
     public static void setupBeforeTest() throws Exception {
@@ -73,7 +77,7 @@ public class CxfSSLSAMLBasic1ServerTests extends CxfSSLSAMLBasicTests {
         extraApps.add(SAMLConstants.SAML_CXF_CLIENT_APP);
 
         startSPWithIDPServer("com.ibm.ws.wssecurity_fat.saml", "server_2_in_1.xml", SAMLConstants.SAML_SERVER_TYPE, extraMsgs, extraApps, true);
-
+        //The test does not use Callbackhandler
         testSAMLServer.addIgnoredServerExceptions(SAMLMessageConstants.CWWKS5207W_SAML_CONFIG_IGNORE_ATTRIBUTES, SAMLMessageConstants.CWWKF0001E_FEATURE_MISSING, SAMLMessageConstants.CWWKG0101W_CONFIG_NOT_VISIBLE_TO_OTHER_BUNDLES);
 
         servicePort = Integer.toString(testSAMLServer.getServerHttpPort());
@@ -84,6 +88,7 @@ public class CxfSSLSAMLBasic1ServerTests extends CxfSSLSAMLBasicTests {
         testSettings.setIdpUserPwd("security");
         testSettings.setSpTargetApp(testSAMLServer.getHttpsString() + "/samlcxfclient/CxfSamlSvcClient");
         testSettings.setSamlTokenValidationData(testSettings.getIdpUserName(), testSettings.getSamlTokenValidationData().getIssuer(), testSettings.getSamlTokenValidationData().getInResponseTo(), testSettings.getSamlTokenValidationData().getMessageID(), testSettings.getSamlTokenValidationData().getEncryptionKeyUser(), testSettings.getSamlTokenValidationData().getRecipient(), testSettings.getSamlTokenValidationData().getEncryptAlg());
-
+        
+        
     }
 }

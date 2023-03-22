@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,23 +23,17 @@ import org.testcontainers.containers.MSSQLServerContainer;
 
 import com.ibm.websphere.simplicity.log.Log;
 
-import componenttest.containers.ExternalTestServiceDockerClientStrategy;
+import componenttest.containers.TestContainerSuite;
 
 @RunWith(Suite.class)
 @SuiteClasses({
                 SQLServerTest.class,
                 SQLServerSSLTest.class
 })
-public class FATSuite {
+public class FATSuite extends TestContainerSuite {
 
     public static final String DB_NAME = "test";
     public static final String TABLE_NAME = "MYTABLE";
-
-    //Required to ensure we calculate the correct strategy each run even when
-    //switching between local and remote docker hosts.
-    static {
-        ExternalTestServiceDockerClientStrategy.setupTestcontainers();
-    }
 
     /**
      * Create database and tables needed by test servlet.
@@ -68,7 +64,7 @@ public class FATSuite {
         //Create test table
         sqlserver.withUrlParam("databaseName", DB_NAME);
         Log.info(FATSuite.class, "setupDatabase", "Attempting to setup database table with name: " + TABLE_NAME + "."
-                                          + " With connection URL: " + sqlserver.getJdbcUrl());
+                                                  + " With connection URL: " + sqlserver.getJdbcUrl());
         try (Connection conn = sqlserver.createConnection(""); Statement stmt = conn.createStatement()) {
             // Create tables
             int version = conn.getMetaData().getDatabaseMajorVersion();

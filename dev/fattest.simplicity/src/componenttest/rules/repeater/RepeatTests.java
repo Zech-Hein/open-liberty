@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2021 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -141,6 +143,7 @@ public class RepeatTests extends ExternalResource {
                         Log.info(c, m, "===================================");
                         action.setup();
                         statement.evaluate();
+                        action.cleanup();
                     } else {
                         Log.info(c, m, "===================================");
                         Log.info(c, m, "");
@@ -170,8 +173,20 @@ public class RepeatTests extends ExternalResource {
                     // Note: If the user has requested this specific action, we ignore the isEnabled() flag
                     return action.getID().equals(repeatOnly);
                 } else { // repeatAny != null
-                    // Note: If the user has requested any of the active actions, we ignore isEnabled() flag.
-                    return RepeatTestFilter.isRepeatActionActive(repeatAny);
+                    boolean repeatNotAny = false;
+                    if (repeatAny.startsWith("!")) {
+                        repeatNotAny = true;
+                        repeatAny = repeatAny.substring(1, repeatAny.length());
+                    }
+
+                    if (repeatNotAny) {
+                        // Note: If the user has requested an action NOT be any of the
+                        //       active actions, we ignore isEnabled() flag.
+                        return !RepeatTestFilter.isRepeatActionActive(repeatAny);
+                    } else {
+                        // Note: If the user has requested any of the active actions, we ignore isEnabled() flag.
+                        return RepeatTestFilter.isRepeatActionActive(repeatAny);
+                    }
                 }
             }
         }

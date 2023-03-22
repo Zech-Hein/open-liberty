@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,7 +28,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.annotation.Server;
-import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
@@ -37,7 +38,6 @@ import componenttest.topology.utils.FATServletClient;
  * @author anupag
  *
  */
-@SkipForRepeat(SkipForRepeat.EE9_FEATURES)
 @RunWith(FATRunner.class)
 @Mode(TestMode.FULL)
 public class StoreProducerServletClientTests extends FATServletClient {
@@ -428,7 +428,7 @@ public class StoreProducerServletClientTests extends FATServletClient {
                 // Log the page for debugging if necessary in the future.
                 Log.info(c, name.getMethodName(), ": client stream entity/result: " + metricValue);
 
-                if (metricValue == null || Integer.parseInt(metricValue) < 200) {
+                if (metricValue == null || new Float(metricValue).intValue() < 200) {
                     fail(String.format("Incorrect metric value [%s]. Expected [%s], got [%s]", "grpc.client.receivedMessages.total", ">=200", metricValue));
                 }
             } else {

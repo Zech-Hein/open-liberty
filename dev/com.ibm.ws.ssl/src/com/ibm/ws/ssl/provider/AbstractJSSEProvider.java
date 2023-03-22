@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2020 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -51,6 +53,7 @@ import com.ibm.websphere.ssl.JSSEProvider;
 import com.ibm.websphere.ssl.SSLConfig;
 import com.ibm.websphere.ssl.SSLException;
 import com.ibm.ws.ffdc.FFDCFilter;
+import com.ibm.ws.kernel.service.util.JavaInfo;
 import com.ibm.ws.runtime.util.StreamHandlerUtils;
 import com.ibm.ws.ssl.JSSEProviderFactory;
 import com.ibm.ws.ssl.config.KeyStoreManager;
@@ -106,7 +109,8 @@ public abstract class AbstractJSSEProvider implements JSSEProvider {
         this.socketFactory = factory;
         this.defaultProtocol = protocolType;
 
-        if (!handlersInitialized && System.getProperty("os.name").equalsIgnoreCase("z/OS"))
+        if (!handlersInitialized && System.getProperty("os.name").equalsIgnoreCase("z/OS")
+            && JavaInfo.majorVersion() < 11)
             addHandlers();
         else {
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
@@ -212,6 +216,11 @@ public abstract class AbstractJSSEProvider implements JSSEProvider {
             return sslContext;
         }
 
+        String direction = Constants.DIRECTION_OUTBOUND;
+        if (connectionInfo != null) {
+            direction = (String) connectionInfo.get(Constants.CONNECTION_INFO_DIRECTION);
+        }
+
         // Create the SSL context needed by the JSSE.
         sslContext = getSSLContextInstance(sslConfig);
 
@@ -227,12 +236,18 @@ public abstract class AbstractJSSEProvider implements JSSEProvider {
             TrustManager[] trustManagers = trustMgrs.toArray(new TrustManager[trustMgrs.size()]);
             // use default SecureRandom
             sslContext.init(keyManagers, trustManagers, null);
+        } else if (keyMgrs.isEmpty() && (direction != null && direction.equals(Constants.DIRECTION_INBOUND))) {
+            String message = TraceNLSHelper.getInstance().getString("ssl.config.error.CWPKI0835E",
+                                                                    "An SSL/TLS configuration cannot be created for inbound connection due to no key manager being created.");
+            throw new SSLException(message);
         } else if (keyMgrs.isEmpty() && !trustMgrs.isEmpty()) {
             TrustManager[] trustManagers = trustMgrs.toArray(new TrustManager[trustMgrs.size()]);
             // use default SecureRandom
             sslContext.init(null, trustManagers, null);
         } else {
-            throw new SSLException("Null trust and key managers.");
+            String message = TraceNLSHelper.getInstance().getString("ssl.config.error.CWPKI0836E",
+                                                                    "An SSL/TLS configuration cannot created due to no key and trust managers being created.");
+            throw new SSLException(message);
         }
 
         // this may need to be made configurable at some point.
@@ -441,10 +456,9 @@ public abstract class AbstractJSSEProvider implements JSSEProvider {
             }
 
             keyManagerFactory = getKeyManagerFactoryInstance(keyMgr, ctxtProvider);
-            String kspass = wsks.getPassword();
-            if (!kspass.isEmpty()) {
+            SerializableProtectedString keypass = wsks.getKeyPassword();
+            if (keypass != null && !keypass.isEmpty()) {
                 try {
-                    SerializableProtectedString keypass = wsks.getKeyPassword();
                     String decodedPass = WSKeyStore.decodePassword(new String(keypass.getChars()));
                     synchronized (_lockObj) {
                         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
@@ -464,7 +478,7 @@ public abstract class AbstractJSSEProvider implements JSSEProvider {
                 }
 
                 // Initialize the SSL context with the key and trust manager factories.
-                WSX509KeyManager wsKeyManager = new WSX509KeyManager(keyStore, kspass.toCharArray(), keyManagerFactory, sslConfig, null);
+                WSX509KeyManager wsKeyManager = new WSX509KeyManager(keyStore, null, keyManagerFactory, sslConfig, null);
 
                 if (serverAliasName != null && serverAliasName.length() > 0)
                     wsKeyManager.setServerAlias(serverAliasName);
@@ -609,15 +623,21 @@ public abstract class AbstractJSSEProvider implements JSSEProvider {
 
         // now generate a new SSLContext
         final String ctxtProvider = config.getProperty(Constants.SSLPROP_CONTEXT_PROVIDER);
-        final String protocol = config.getProperty(Constants.SSLPROP_PROTOCOL);
         final String alias = config.getProperty(Constants.SSLPROP_ALIAS);
         final String configURL = config.getProperty(Constants.SSLPROP_CONFIGURL_LOADED_FROM);
+        String protocolVal = config.getProperty(Constants.SSLPROP_PROTOCOL);
 
         SSLContext sslContext = null;
 
-        if (protocol == null) {
+        if (protocolVal == null) {
             throw new IllegalArgumentException("Protocol is not specified.");
+        } else {
+            String[] protocols = protocolVal.split(",");
+            if (protocols.length > 1)
+                protocolVal = defaultProtocol;
         }
+
+        final String protocol = protocolVal;
 
         try {
             sslContext = AccessController.doPrivileged(new PrivilegedExceptionAction<SSLContext>() {
@@ -663,6 +683,11 @@ public abstract class AbstractJSSEProvider implements JSSEProvider {
             } else {
                 throw new SSLException(ex);
             }
+        } catch (Throwable t) {
+            Throwable cause = t.getCause();
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                Tr.debug(tc, "Throwable occurred getting SSL context.", new Object[] { cause });
+            throw new SSLException(cause.getMessage());
         }
 
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())

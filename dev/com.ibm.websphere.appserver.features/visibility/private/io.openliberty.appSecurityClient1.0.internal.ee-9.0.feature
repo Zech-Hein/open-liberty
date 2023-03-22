@@ -3,8 +3,8 @@ symbolicName = io.openliberty.appSecurityClient1.0.internal.ee-9.0
 singleton=true
 visibility = private
 -features=\
-  io.openliberty.servlet.api-5.0
+  io.openliberty.servlet.api-5.0; ibm.tolerates:="6.0"
 -bundles=\
   io.openliberty.security.jaas.internal.common
-kind=beta
+kind=ga
 edition=base

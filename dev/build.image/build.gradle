@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2021 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,7 +21,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 def releaseVersion = "${bnd.libertyRelease}-" + rootProject.userProps.getProperty("version.qualifier")
 
@@ -76,22 +78,61 @@ task copyLicenseToBuildImage (type:Copy) {
            tokens: [BUILD_ID: bnd.buildID, LIBERTY_VERSION: bnd.libertyRelease])
 }
 
+task copyBetaLicenseToBuildImage (type:Copy) {
+    dependsOn jar
+    from project.file('publish')
+    into project.file('wlp')
+    include 'BETA_NOTICES'
+    filter(ReplaceTokens,
+           tokens: [BUILD_ID: bnd.buildID, LIBERTY_VERSION: libertyBeta])
+}
+
 task copySwidTagToBuildImage (type:Copy) {
     dependsOn jar
     from project.file('publish')
     into project.file('wlp/lib/versions/tags')
-    include 'ibm.com_Open_Liberty*.swidtag'
-    include 'openliberty.io_OpenLiberty.swidtag'
+    include 'ibm.com_Open_Liberty-*.swidtag'
     filter(ReplaceTokens,
            tokens: [ VERSION: bnd.libertyRelease ])
 }
 
-assemble {
+task copySwidFixpackTagToBuildImage (type:Copy) {
+    dependsOn jar
+    from project.file('publish')
+    into project.file('wlp/lib/versions/tags')
+    include 'ibm.com_Open_Liberty_release.swidtag'
+    rename { filename ->
+        filename.replace("_release", "-" + bnd.libertyRelease)
+    }
+    filter(ReplaceTokens,
+           tokens: [PRODUCT_VERSION: bnd.libertyRelease])
+}
+
+task publishEmptyTemplatesFolders {
+  dependsOn jar
+  outputs.dirs(buildImage.file('wlp/templates/servers/defaultServer/apps'),
+               buildImage.file('wlp/templates/servers/defaultServer/dropins'))
+  doLast {
+    buildImage.mkdir('wlp/templates/servers/defaultServer/apps')
+    buildImage.mkdir('wlp/templates/servers/defaultServer/dropins')
+  }
+}
+
+task publishTemplates (type:Copy) {
+    dependsOn publishEmptyTemplatesFolders
+    from project.file('publish/wlp/templates')
+    into project.file('wlp/templates')
+}
+
+assemble { 
+    dependsOn publishTemplates
     dependsOn copyPropertiesToBuildImage
     dependsOn addServiceFingerprint
     dependsOn copyReadmeToBuildImage
+    dependsOn copyBetaLicenseToBuildImage
     dependsOn copyLicenseToBuildImage
     dependsOn copySwidTagToBuildImage
+    dependsOn copySwidFixpackTagToBuildImage
 }
 
 File packageDir = new File(project.buildDir, 'openliberty')
@@ -103,7 +144,9 @@ File packageDir = new File(project.buildDir, 'openliberty')
 
 
 class PackageLibertyWithFeatures extends DefaultTask {
+    @Internal
     Closure withFeatures
+    @Internal
     Boolean completeFeatureList
     // packageServerConflict does not need to be set unless the list of features includes conflicting features
     //
@@ -113,8 +156,13 @@ class PackageLibertyWithFeatures extends DefaultTask {
     //
     // To solve the issues with the use of a value of "true", this property can be set to a comma separated
     // list of base symbolic names (the feature name without the hyphen and version number).
+    @Internal
     String packageServerConflict
+    // ?
+    @OutputDirectory
     File outputTo
+    @Internal
+    Boolean isBeta
 
     @TaskAction
     void buildPackage() {
@@ -163,13 +211,29 @@ class PackageLibertyWithFeatures extends DefaultTask {
                 into outputTo
             }
 
-            //Now add the LICENSE files
+            //Now add the LICENSE file
             project.copy {
                 from project.file('wlp')
                 include 'LICENSE'
-                include 'NOTICES'
                 into "$outputTo/wlp"
             }
+
+            if(isBeta) {
+                //Now add the BETA_NOTICES file
+                project.copy {
+                    from project.file('wlp')
+                    include 'BETA_NOTICES'
+                    into "$outputTo/wlp"
+                }
+            } else {
+                //Now add the NOTICES file
+                project.copy {
+                    from project.file('wlp')
+                    include 'NOTICES'
+                    into "$outputTo/wlp"
+                }
+            }
+
         } catch (all) {
             println "-- EXCEPTION PACKAGING SERVER --"
             println all
@@ -230,10 +294,7 @@ def gaPublicFeatures() {
 }
 
 def gaAndBetaPublicFeatures() {
-    String features = ""
-    gaFeatures(false).each {
-        features += '<feature>' + it + '</feature>\n'
-    }
+    String features = gaPublicFeatures()
     betaFeatures().each {
         features += '<feature>' + it + '</feature>\n'
     }
@@ -241,48 +302,22 @@ def gaAndBetaPublicFeatures() {
 }
 
 def gaAndBetaAndNoShipPublicFeatures() {
-    String features = ""
-    gaFeatures(false).each {
-        features += '<feature>' + it + '</feature>\n'
-    }
-    betaFeatures().each {
-        features += '<feature>' + it + '</feature>\n'
-    }
+    String features = gaAndBetaPublicFeatures()
     noShipFeatures().each {
         features += '<feature>' + it + '</feature>\n'
     }
     features
 }
 
-def webProfile8Features() {
-    String features = project.file('profiles/webProfile8/features.xml').readLines()
-    features
-}
-
-def webProfile9Features() {
-    String features = project.file('profiles/webProfile9/features.xml').readLines()
-    features
-}
-
-def javaee8Features() {
-    String features = project.file('profiles/javaee8/features.xml').readLines()
-    features
-}
-
-def jakartaee9Features() {
-    String features = project.file('profiles/jakartaee9/features.xml').readLines()
-    features
-}
-
-def microProfile4Features() {
-    String features = project.file('profiles/microProfile4/features.xml').readLines()
-    features
-}
-
-def microProfile5Features() {
-    String features = project.file('profiles/microProfile5/features.xml').readLines()
-    features
-}
+def webProfile8Features() { project.file("profiles/webProfile8/features.xml").readLines() }
+def webProfile9Features() { project.file("profiles/webProfile9/features.xml").readLines() }
+def webProfile10Features() { project.file("profiles/webProfile10/features.xml").readLines() }
+def javaee8Features() { project.file("profiles/javaee8/features.xml").readLines() }
+def jakartaee9Features() { project.file("profiles/jakartaee9/features.xml").readLines() }
+def jakartaee10Features() { project.file("profiles/jakartaee10/features.xml").readLines() }
+def microProfile4Features() { project.file("profiles/microProfile4/features.xml").readLines() }
+def microProfile5Features() { project.file("profiles/microProfile5/features.xml").readLines() }
+def microProfile6Features() { project.file("profiles/microProfile6/features.xml").readLines() }
 
 def getFeaturePath(feature) {
     def file = getFeaturePath(feature, "")
@@ -355,12 +390,14 @@ if (isAutomatedBuild && !isIFIXBuild) {
     task packageOpenLibertyBeta(type: PackageLibertyWithFeatures) {
         enabled rootProject.userProps["ghe.build.type"] == null || !rootProject.userProps["ghe.build.type"].contains("ifix")
         dependsOn parent.subprojects.assemble
+        dependsOn copyBetaLicenseToBuildImage
         dependsOn ':com.ibm.websphere.appserver.features:publishFeatureResources'
         withFeatures this.&gaAndBetaPublicFeatures
         completeFeatureList = true
         outputTo packageDir
+        isBeta = true
         doLast {
-            ["$packageDir/wlp/NOTICES", "$packageDir/wlp/README.TXT", "$packageDir/wlp/lib/versions/openliberty.properties"].each { path ->
+            ["$packageDir/wlp/BETA_NOTICES","$packageDir/wlp/README.TXT", "$packageDir/wlp/lib/versions/openliberty.properties"].each { path ->
                 replaceBetaVersionAndEdition(path, bnd.libertyRelease, libertyBeta)
             }
         }
@@ -429,18 +466,14 @@ if (isAutomatedBuild && !isIFIXBuild) {
         }
     }
 
-    //BETA
+    //GA
     task packageOpenLibertyWebProfile9(type: PackageLibertyWithFeatures) {
-        enabled rootProject.userProps["ghe.build.type"] == null || !rootProject.userProps["ghe.build.type"].contains("ifix")
         dependsOn parent.subprojects.assemble
         dependsOn ':com.ibm.websphere.appserver.features:publishFeatureResources'
         withFeatures this.&webProfile9Features
         packageServerConflict = "com.ibm.websphere.appserver.sessionStore"
         outputTo packageDir
         doLast {
-            ["$packageDir/wlp/NOTICES", "$packageDir/wlp/README.TXT", "$packageDir/wlp/lib/versions/openliberty.properties"].each { path ->
-                replaceBetaVersionAndEdition(path, bnd.libertyRelease, libertyBeta)
-            }
             copy {
                 from "$packageDir/wlp/templates/servers/webProfile9/server.xml"
                 into "$packageDir/wlp/templates/servers/defaultServer"
@@ -451,26 +484,59 @@ if (isAutomatedBuild && !isIFIXBuild) {
             }
         }
     }
+    
+    //GA
+    task packageOpenLibertyWebProfile10(type: PackageLibertyWithFeatures) {
+        dependsOn parent.subprojects.assemble
+        dependsOn ':com.ibm.websphere.appserver.features:publishFeatureResources'
+        withFeatures this.&webProfile10Features
+        packageServerConflict = "com.ibm.websphere.appserver.sessionStore"
+        outputTo packageDir
+        doLast {
+            copy {
+                from "$packageDir/wlp/templates/servers/webProfile10/server.xml"
+                into "$packageDir/wlp/templates/servers/defaultServer"
+            }
+            copy {
+                from "$packageDir/wlp/templates/clients/jakartaeeClient10/client.xml"
+                into "$packageDir/wlp/templates/clients/defaultClient"
+            }
+        }
+    }
 
-    //BETA
+    //GA
     task packageOpenLibertyJakartaee9(type: PackageLibertyWithFeatures) {
-        enabled rootProject.userProps["ghe.build.type"] == null || !rootProject.userProps["ghe.build.type"].contains("ifix")
         dependsOn parent.subprojects.assemble
         dependsOn ':com.ibm.websphere.appserver.features:publishFeatureResources'
         withFeatures this.&jakartaee9Features
         packageServerConflict = "com.ibm.websphere.appserver.sessionStore"
         outputTo packageDir
         doLast {
-            ["$packageDir/wlp/NOTICES", "$packageDir/wlp/README.TXT", "$packageDir/wlp/lib/versions/openliberty.properties"].each { path ->
-                replaceBetaVersionAndEdition(path, bnd.libertyRelease, libertyBeta)
-            }
-
             copy {
                 from "$packageDir/wlp/templates/servers/jakartaee9/server.xml"
                 into "$packageDir/wlp/templates/servers/defaultServer"
             }
             copy {
                 from "$packageDir/wlp/templates/clients/jakartaeeClient9/client.xml"
+                into "$packageDir/wlp/templates/clients/defaultClient"
+            }
+        }
+    }
+    
+    //GA
+    task packageOpenLibertyJakartaee10(type: PackageLibertyWithFeatures) {
+        dependsOn parent.subprojects.assemble
+        dependsOn ':com.ibm.websphere.appserver.features:publishFeatureResources'
+        withFeatures this.&jakartaee10Features
+        packageServerConflict = "com.ibm.websphere.appserver.sessionStore"
+        outputTo packageDir
+        doLast {
+            copy {
+                from "$packageDir/wlp/templates/servers/jakartaee10/server.xml"
+                into "$packageDir/wlp/templates/servers/defaultServer"
+            }
+            copy {
+                from "$packageDir/wlp/templates/clients/jakartaeeClient10/client.xml"
                 into "$packageDir/wlp/templates/clients/defaultClient"
             }
         }
@@ -499,19 +565,29 @@ if (isAutomatedBuild && !isIFIXBuild) {
         }
     }
     
-    //BETA
+    //GA
     task packageOpenLibertyMicroProfile5(type: PackageLibertyWithFeatures) {
-        enabled rootProject.userProps["ghe.build.type"] == null || !rootProject.userProps["ghe.build.type"].contains("ifix")
         dependsOn parent.subprojects.assemble
         dependsOn ':com.ibm.websphere.appserver.features:publishFeatureResources'
         withFeatures this.&microProfile5Features
         outputTo packageDir
         doLast {
-            ["$packageDir/wlp/NOTICES", "$packageDir/wlp/README.TXT", "$packageDir/wlp/lib/versions/openliberty.properties"].each { path ->
-                replaceBetaVersionAndEdition(path, bnd.libertyRelease, libertyBeta)
-            }
             copy {
                 from "$packageDir/wlp/templates/servers/microProfile5/server.xml"
+                into "$packageDir/wlp/templates/servers/defaultServer"
+            }
+        }
+    }
+    
+    //GA
+    task packageOpenLibertyMicroProfile6(type: PackageLibertyWithFeatures) {
+        dependsOn parent.subprojects.assemble
+        dependsOn ':com.ibm.websphere.appserver.features:publishFeatureResources'
+        withFeatures this.&microProfile6Features
+        outputTo packageDir
+        doLast {
+            copy {
+                from "$packageDir/wlp/templates/servers/microProfile6/server.xml"
                 into "$packageDir/wlp/templates/servers/defaultServer"
             }
         }
@@ -537,7 +613,7 @@ task zipOpenLibertyDev(type: Zip) {
     from projectDir
     include 'wlp/**'
     exclude 'wlp/usr/servers/**'
-    destinationDir distsDir
+    destinationDirectory = distsDirectory
     version releaseVersion
 }
 publish.dependsOn zipOpenLibertyDev
@@ -550,7 +626,7 @@ if (isAutomatedBuild && !isIFIXBuild) {
         dependsOn genChecksums
         baseName 'openliberty-all'
         from packageDir
-        destinationDir distsDir
+        destinationDirectory = distsDirectory
         version releaseVersion
         doLast {
             rootProject.userProps.setProperty('zipopenliberty.archivename', archivePath.toString())
@@ -565,7 +641,7 @@ if (isAutomatedBuild && !isIFIXBuild) {
         dependsOn genChecksums
         baseName 'openliberty'
         from packageDir
-        destinationDir distsDir
+        destinationDirectory = distsDirectory
         version releaseVersion
         doLast {
             rootProject.userProps.setProperty('zipopenliberty.runtime.archivename', archivePath.toString())
@@ -574,13 +650,13 @@ if (isAutomatedBuild && !isIFIXBuild) {
     }
     publish.dependsOn zipOpenLiberty
 
-    // GA: Includes only kind=ga features.
+    // GA: Includes only the kernel.
     task zipOpenLibertyKernel(type: Zip) {
         dependsOn packageOpenLibertyKernel
         dependsOn genChecksums
         baseName 'openliberty-kernel'
         from packageDir
-        destinationDir distsDir
+        destinationDirectory = distsDirectory
         version releaseVersion
         doLast {
             rootProject.userProps.setProperty('zipopenliberty.kernel.archivename', archivePath.toString())
@@ -589,13 +665,13 @@ if (isAutomatedBuild && !isIFIXBuild) {
     }
     publish.dependsOn zipOpenLibertyKernel
 
-    // GA: Includes only kind=ga features.
+    // GA: Includes only features listed in profiles/webProfile8/features.xml
     task zipOpenLibertyWebProfile8(type: Zip) {
         dependsOn packageOpenLibertyWebProfile8
         dependsOn genChecksums
         baseName 'openliberty-webProfile8'
         from packageDir
-        destinationDir distsDir
+        destinationDirectory = distsDirectory
         version releaseVersion
         doLast {
             rootProject.userProps.setProperty('zipopenliberty.webprofile8.archivename', archivePath.toString())
@@ -604,13 +680,13 @@ if (isAutomatedBuild && !isIFIXBuild) {
     }
     publish.dependsOn zipOpenLibertyWebProfile8
 
-    // GA: Includes only kind=ga features.
+    // GA: Includes only features listed in profiles/javaee8/features.xml
     task zipOpenLibertyJavaee8(type: Zip) {
         dependsOn packageOpenLibertyJavaee8
         dependsOn genChecksums
         baseName 'openliberty-javaee8'
         from packageDir
-        destinationDir distsDir
+        destinationDirectory = distsDirectory
         version releaseVersion
         doLast {
             rootProject.userProps.setProperty('zipopenliberty.javaee8.archivename', archivePath.toString())
@@ -619,14 +695,14 @@ if (isAutomatedBuild && !isIFIXBuild) {
     }
     publish.dependsOn zipOpenLibertyJavaee8
 
-    // BETA: Includes both kind=ga and kind=beta features.
+    // GA: Includes only features listed in profiles/webProfile9/features.xml
     task zipOpenLibertyWebProfile9(type: Zip) {
         dependsOn packageOpenLibertyWebProfile9
         dependsOn genChecksums
         baseName 'openliberty-webProfile9'
         from packageDir
-        destinationDir distsDir
-        version betaVersion
+        destinationDirectory = distsDirectory
+        version releaseVersion
         doLast {
             rootProject.userProps.setProperty('zipopenliberty.webprofile9.archivename', archivePath.toString())
             rootProject.storeProps()
@@ -634,14 +710,14 @@ if (isAutomatedBuild && !isIFIXBuild) {
     }
     publish.dependsOn zipOpenLibertyWebProfile9
 
-    // BETA: Includes both kind=ga and kind=beta features.
+    // GA: Includes only features listed in profiles/jakartaee9/features.xml
     task zipOpenLibertyJakartaee9(type: Zip) {
         dependsOn packageOpenLibertyJakartaee9
         dependsOn genChecksums
         baseName 'openliberty-jakartaee9'
         from packageDir
-        destinationDir distsDir
-        version betaVersion
+        destinationDirectory = distsDirectory
+        version releaseVersion
         doLast {
             rootProject.userProps.setProperty('zipopenliberty.jakartaee9.archivename', archivePath.toString())
             rootProject.storeProps()
@@ -649,13 +725,43 @@ if (isAutomatedBuild && !isIFIXBuild) {
     }
     publish.dependsOn zipOpenLibertyJakartaee9
 
-    // GA: Includes only kind=ga features.
+    // GA: Includes only features listed in profiles/webProfile10/features.xml
+    task zipOpenLibertyWebProfile10(type: Zip) {
+        dependsOn packageOpenLibertyWebProfile10
+        dependsOn genChecksums
+        baseName 'openliberty-webProfile10'
+        from packageDir
+        destinationDirectory = distsDirectory
+        version releaseVersion
+        doLast {
+            rootProject.userProps.setProperty('zipopenliberty.webprofile10.archivename', archivePath.toString())
+            rootProject.storeProps()
+        }
+    }
+    publish.dependsOn zipOpenLibertyWebProfile10
+
+    // GA: Includes only features listed in profiles/jakartaee10/features.xml
+    task zipOpenLibertyJakartaee10(type: Zip) {
+        dependsOn packageOpenLibertyJakartaee10
+        dependsOn genChecksums
+        baseName 'openliberty-jakartaee10'
+        from packageDir
+        destinationDirectory = distsDirectory
+        version releaseVersion
+        doLast {
+            rootProject.userProps.setProperty('zipopenliberty.jakartaee10.archivename', archivePath.toString())
+            rootProject.storeProps()
+        }
+    }
+    publish.dependsOn zipOpenLibertyJakartaee10
+
+    // GA: Includes only features listed in profiles/microProfile4/features.xml
     task zipOpenLibertyMicroProfile4(type: Zip) {
         dependsOn packageOpenLibertyMicroProfile4
         dependsOn genChecksums
         baseName 'openliberty-microProfile4'
         from packageDir
-        destinationDir distsDir
+        destinationDirectory = distsDirectory
         version releaseVersion
         doLast {
             rootProject.userProps.setProperty('zipopenliberty.microprofile4.archivename', archivePath.toString())
@@ -664,14 +770,14 @@ if (isAutomatedBuild && !isIFIXBuild) {
     }
     publish.dependsOn zipOpenLibertyMicroProfile4
 
-    //BETA: Includes both kind=ga and kind=beta features.
+    // GA: Includes only features listed in profiles/microProfile5/features.xml
     task zipOpenLibertyMicroProfile5(type: Zip) {
         dependsOn packageOpenLibertyMicroProfile5
         dependsOn genChecksums
         baseName 'openliberty-microProfile5'
         from packageDir
-        destinationDir distsDir
-        version betaVersion
+        destinationDirectory = distsDirectory
+        version releaseVersion
         doLast {
             rootProject.userProps.setProperty('zipopenliberty.microprofile5.archivename', archivePath.toString())
             rootProject.storeProps()
@@ -679,13 +785,28 @@ if (isAutomatedBuild && !isIFIXBuild) {
     }
     publish.dependsOn zipOpenLibertyMicroProfile5
 
+    // GA: Includes only features listed in profiles/microProfile6/features.xml
+    task zipOpenLibertyMicroProfile6(type: Zip) {
+        dependsOn packageOpenLibertyMicroProfile6
+        dependsOn genChecksums
+        baseName 'openliberty-microProfile6'
+        from packageDir
+        destinationDirectory = distsDirectory
+        version releaseVersion
+        doLast {
+            rootProject.userProps.setProperty('zipopenliberty.microprofile6.archivename', archivePath.toString())
+            rootProject.storeProps()
+        }
+    }
+    publish.dependsOn zipOpenLibertyMicroProfile6
+
     //BETA: Includes both kind=ga and kind=beta features.
     task zipOpenLibertyBeta(type: Zip) {
         dependsOn packageOpenLibertyBeta
         dependsOn genChecksums
         baseName 'openliberty'
         from packageDir
-        destinationDir distsDir
+        destinationDirectory = distsDirectory
         version betaVersion
         doLast {
             rootProject.userProps.setProperty('zipopenliberty.beta.archivename', archivePath.toString())
@@ -696,10 +817,23 @@ if (isAutomatedBuild && !isIFIXBuild) {
 
     // Generate checksums
     task genZipChecksums() {
-        dependsOn zipOpenLibertyDev, zipOpenLibertyAll, zipOpenLiberty, zipOpenLibertyKernel, zipOpenLibertyWebProfile8, zipOpenLibertyJavaee8, zipOpenLibertyJakartaee9, zipOpenLibertyWebProfile9, zipOpenLibertyMicroProfile4, zipOpenLibertyMicroProfile5, zipOpenLibertyBeta
+        dependsOn zipOpenLibertyDev
+        dependsOn zipOpenLibertyAll
+        dependsOn zipOpenLiberty
+        dependsOn zipOpenLibertyKernel
+        dependsOn zipOpenLibertyWebProfile8
+        dependsOn zipOpenLibertyJavaee8
+        dependsOn zipOpenLibertyJakartaee9
+        dependsOn zipOpenLibertyWebProfile9
+        dependsOn zipOpenLibertyJakartaee10
+        dependsOn zipOpenLibertyWebProfile10
+        dependsOn zipOpenLibertyMicroProfile4
+        dependsOn zipOpenLibertyMicroProfile5
+        dependsOn zipOpenLibertyMicroProfile6
+        dependsOn zipOpenLibertyBeta
         doLast {
           generateZipChecksums(ant)
-          ant.calcZipChecksums(installRoot:"${distsDir}") {}
+          ant.calcZipChecksums(installRoot:"${distsDirectory}") {}
         }
     }   
     publish.dependsOn genZipChecksums
@@ -725,7 +859,7 @@ if (isAutomatedBuild && !isIFIXBuild) {
     task zipTestReport(type: Zip) {
         baseName 'openliberty_test_report'
         from cnf.file('generated/testReports/allUnitTests')
-        destinationDir cnf.file('generated/testReports')
+        destinationDirectory = cnf.file('generated/testReports')
         rootProject.userProps.setProperty('gradle.test.report.zip', archivePath.toString())
         rootProject.storeProps()
     }
@@ -733,7 +867,7 @@ if (isAutomatedBuild && !isIFIXBuild) {
     task createJSONForPublicArtifacts {
         enabled isAutomatedBuild
         dependsOn zipTestReport
-
+        
         doLast {
             println "running createJSONForPublicArtifacts"
             delete "${buildDir}/info.json"
@@ -826,12 +960,12 @@ if (isAutomatedBuild && !isIFIXBuild) {
             from 'packaging'
             include 'rules.template'
             into 'packaging/debuild/openliberty/debian'
-            filter { line -> line.replaceAll('@VERSION@', bnd('libertyServiceVersion', 'Unknown')) }
+            filter { line -> line.replaceAll('@VERSION@', bnd.get('libertyServiceVersion', 'Unknown')) }
             rename { it.replace(".template", "") }
         }
 
         task buildOsNativePackages(type: Exec) {
-	    description 'builds OS Native packages'
+	        description 'builds OS Native packages'
 
             dependsOn copyOpenLiberty
             dependsOn updateRulesTemplate
@@ -840,8 +974,8 @@ if (isAutomatedBuild && !isIFIXBuild) {
             environment "GPG_PASS", rootProject.userProps.getProperty('gpgPassphrase')
             mkdir("packaging/tempPackagingDir/tempTar")
 
-            def rpms = file("./packaging/rpmbuild/RPMS/noarch/openliberty-" + bnd('libertyServiceVersion') + "-1.noarch.rpm")
-            def debs = file("./packaging/debuild/openliberty_" + bnd('libertyServiceVersion') + "-1ubuntu1_all.deb")
+            def rpms = file("./packaging/rpmbuild/RPMS/noarch/openliberty-" + bnd.get('libertyServiceVersion') + "-1.noarch.rpm")
+            def debs = file("./packaging/debuild/openliberty_" + bnd.get('libertyServiceVersion') + "-1ubuntu1_all.deb")
             def packageDate = new Date()
             def formattedRPMDate = packageDate.format("E MMM d y")
             def formattedDEBDate = packageDate.format("E, d MMM y hh:mm:ss Z")
@@ -852,7 +986,7 @@ if (isAutomatedBuild && !isIFIXBuild) {
 
             errorOutput = new ByteArrayOutputStream()
 
-            commandLine 'sh', './buildOsNativePackages.sh', bnd('libertyServiceVersion'), isRelease, formattedRPMDate, formattedDEBDate
+            commandLine 'sh', './buildOsNativePackages.sh', bnd.get('libertyServiceVersion'), isRelease, formattedRPMDate, formattedDEBDate
 
             ignoreExitValue true
 
@@ -869,4 +1003,4 @@ if (isAutomatedBuild && !isIFIXBuild) {
         }
         publish.dependsOn buildOsNativePackages
     }
-}
+} 

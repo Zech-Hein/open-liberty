@@ -1,0 +1,62 @@
+###############################################################################
+# Copyright (c) 2022 IBM Corporation and others.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License 2.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#     IBM Corporation - initial API and implementation
+###############################################################################
+#CMVCPATHNAME io.openliberty.checkpoint/resources/io/openliberty/checkpoint/resources/CheckpointMessages.nlsprops
+#ISMESSAGEFILE TRUE
+#NLS_ENCODING=UNICODE
+
+#COMPONENTPREFIX CWWKC                 
+#COMPONENTNAMEFOR CWWKC Checkpoint
+
+# Message numbers CWWKC0451-550 are reserved for this file.
+# NLS_MESSAGEFORMAT_VAR                
+# MSG_DESCRIPTIVE_NAME_CWWKC0000=CWWKC0000I: This is a message with inserts {0}
+# MSG_DESCRIPTIVE_NAME_CWWKC0000.explanation=Explanation text for the message
+# MSG_DESCRIPTIVE_NAME_CWWKC0000.useraction=User action text for the message
+
+CHECKPOINT_DUMP_INITIATED_CWWKC0451=CWWKC0451I: A fost solicitat un punct de control server. C\u00e2nd punctul de control finalizeaz\u0103, serverul se opre\u0219te.
+CHECKPOINT_DUMP_INITIATED_CWWKC0451.explanation=S-a cerut un punct de control. Serverul este oprit \u0219i starea sa actual\u0103 este scris\u0103 pe disc.
+CHECKPOINT_DUMP_INITIATED_CWWKC0451.useraction=Verifica\u021bi documenta\u021bia pentru detaliile punctului de control \u0219i restaura\u021bi opera\u021biile.
+
+CHECKPOINT_RESTORE_CWWKC0452I=CWWKC0452I: Procesul serverului Liberty \u0219i-a reluat activitatea de la un punct de control \u00een {0} secunde.
+CHECKPOINT_RESTORE_CWWKC0452I.explanation=O opera\u021bie de restaurare a fost executat\u0103 pe o imagine de punct de control a serverului Liberty.
+CHECKPOINT_RESTORE_CWWKC0452I.useraction=Verifica\u021bi documenta\u021bia pentru detaliile punctului de control \u0219i restaura\u021bi opera\u021biile.
+
+CHECKPOINT_FAILED_CWWKC0453E=CWWKC0453E: Cererea de punct de control server a e\u0219uat cu urm\u0103torul mesaj: {0}
+CHECKPOINT_FAILED_CWWKC0453E.explanation=O cerere de punct de control server a e\u0219uat.  Nu a fost creat\u0103 o imagine valid\u0103 a procesului de punct de control server.
+CHECKPOINT_FAILED_CWWKC0453E.useraction=Inspecta\u021bi \u00een directorul checkpoint situat \u00een directorul istoricelor de server fi\u0219ierele istoric suplimentare pentru a determina de ce punctul de control a e\u0219uat.
+
+RESTORE_FAILED_CWWKC0454E=CWWKC0454E: Serverul a e\u0219uat s\u0103 restaureze de la un punct de control cu urm\u0103torul mesaj: {0}
+RESTORE_FAILED_CWWKC0454E.explanation=O \u00eencercare de a restaura serverul de la un punct de control a e\u0219uat.  Serverul nu ruleaz\u0103.
+RESTORE_FAILED_CWWKC0454E.useraction=Inspecta\u021bi fi\u0219ierele istoric suplimentare din directorul punctului de control, situat \u00een directorul istoricelor de server, pentru a determina de ce nu a putut fi restaurat serverul.
+
+UKNOWN_FAILURE_CWWKC0455E=CWWKC0455E: A ap\u0103rut o eroare necunoscut\u0103 cu urm\u0103torul mesaj: {0}
+UKNOWN_FAILURE_CWWKC0455E.explanation=A ap\u0103rut o eroare nea\u0219teptat\u0103 \u00een timpul unei cereri de punct de control sau \u00een timpul unei \u00eencerc\u0103ri de a restaura serverul de la un punct de control.
+UKNOWN_FAILURE_CWWKC0455E.useraction=Inspecta\u021bi directorul punctului de control aflat \u00een directorul istoricelor de server pentru fi\u0219iere istoric suplimentare, pentru a determina de ce a ap\u0103rut eroarea.
+
+CHECKPOINT_FAILED_UNSUPPORTED_FEATURE_CWWKC0456E=CWWKC0456E: Un punct de control nu poate fi luat deoarece urm\u0103toarele caracteristici configurate \u00een fi\u0219ierul server.xml nu sunt acceptate pentru punctul de control: {0}
+CHECKPOINT_FAILED_UNSUPPORTED_FEATURE_CWWKC0456E.explanation=Ac\u021biunea de punct de control al serverului poate fi utilizat\u0103 numai cu caracteristicile care suport\u0103 punctul de control.  
+CHECKPOINT_FAILED_UNSUPPORTED_FEATURE_CWWKC0456E.useraction=Activa\u021bi doar caracteristici care accept\u0103 punctul de control pentru a utiliza o ac\u021biune de punct de control al serverului. Verifica\u021bi documenta\u021bia pentru detalii cu privire la caracteristicile care suport\u0103 punctul de control.
+
+CHECKPOINT_FAILED_PREPARE_EXCEPTION_CWWKC0457E=CWWKC0457E: A ap\u0103rut o eroare la preg\u0103tirea pentru a lua un punct de control, cu urm\u0103torul mesaj: {0}
+CHECKPOINT_FAILED_PREPARE_EXCEPTION_CWWKC0457E.explanation=A ap\u0103rut o excep\u021bie la preg\u0103tirea pentru a lua punctul de control.  
+CHECKPOINT_FAILED_PREPARE_EXCEPTION_CWWKC0457E.useraction=Inspecta\u021bi directorul istoricelor de server pentru fi\u0219iere istoric suplimentare, pentru a determina de ce a e\u0219uat punctul de control al serverului.
+
+RESTORE_FAILED_RESTORE_EXCEPTION_CWWKC0458E=CWWKC0458E: A ap\u0103rut o eroare la restaurarea procesului de server, cu urm\u0103torul mesaj: {0}
+RESTORE_FAILED_RESTORE_EXCEPTION_CWWKC0458E.explanation=A ap\u0103rut o excep\u021bie la restaurarea procesului de server.  
+RESTORE_FAILED_RESTORE_EXCEPTION_CWWKC0458E.useraction=Inspecta\u021bi directorul istoricelor de server pentru fi\u0219ierele istoric suplimentare, pentru a determina de ce nu a reu\u0219it restaurarea serverului.
+
+CHECKPOINT_FAILED_UNSUPPORTED_JVM_CWWKC0459E=CWWKC0459E: Un punct de control nu poate fi luat deoarece versiunea Java utilizat\u0103 nu are suport pentru punct de control.
+CHECKPOINT_FAILED_UNSUPPORTED_JVM_CWWKC0459E.explanation=Ac\u021biunea de punct de control al serverului poate fi utilizat\u0103 numai cu o versiune Java care suport\u0103 punctul de control.  
+CHECKPOINT_FAILED_UNSUPPORTED_JVM_CWWKC0459E.useraction=Utiliza\u021bi o versiune Java care suport\u0103 punctul de control. Verifica\u021bi documenta\u021bia pentru detalii cu privire la versiunea Java necesar\u0103 care suport\u0103 punctul de control.
+
+# CWWKC0460E - is a beta only message that gets removed for GA

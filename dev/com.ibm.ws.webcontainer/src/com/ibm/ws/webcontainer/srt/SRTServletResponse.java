@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2021 IBM Corporation and others.
+ * Copyright (c) 1997, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -23,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,6 +46,7 @@ import com.ibm.ws.webcontainer.core.Response;
 import com.ibm.ws.webcontainer.servlet.IServletWrapperInternal;
 import com.ibm.ws.webcontainer.webapp.WebApp;
 import com.ibm.ws.webcontainer.webapp.WebAppDispatcherContext;
+import com.ibm.wsspi.http.channel.values.HttpHeaderKeys;
 import com.ibm.wsspi.webcontainer.WCCustomProperties;
 import com.ibm.wsspi.webcontainer.WebContainerConstants;
 import com.ibm.wsspi.webcontainer.WebContainerRequestState;
@@ -57,6 +61,7 @@ import com.ibm.wsspi.webcontainer.util.EncodingUtils;
 import com.ibm.wsspi.webcontainer.util.IOutputStreamObserver;
 import com.ibm.wsspi.webcontainer.util.IResponseOutput;
 import com.ibm.wsspi.webcontainer.util.WrappingEnumeration;
+import com.ibm.ws.webcontainer.osgi.response.IResponseImpl;
 import com.ibm.ws.webcontainer.osgi.response.WCOutputStream;
 /**
  * The Servlet Runtime Response object
@@ -91,7 +96,8 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
     public static final int DEFAULT_BUFFER_SIZE = 4 * 1024;
     public static final Locale _defaultLocale = Locale.getDefault();
     public static final String _defaultEncoding = "ISO-8859-1";
-
+    private static final ConcurrentHashMap<Locale,String> localeStrings = new ConcurrentHashMap<>();
+    
     protected IResponse _response = null;
     // 104771 - begin
     protected boolean writerClosed = false;
@@ -135,7 +141,7 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
     protected int _statusCode = 200;
     private SRTConnectionContext _connContext;
     private IOutputMethodListener outputMethodListener = null;
-    private String _contentType;
+    protected String _contentType;
 
     // Custom property to revert to HttpDate
     // Deprecated since WAS 7.0
@@ -149,6 +155,11 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
     private static ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>();
     private static String formatStr = "EEE, dd MMM yyyy HH:mm:ss z";
     private static TimeZone gmtTimeZone = TimeZone.getTimeZone("GMT");
+   
+    /*Since Servlet 6.0 - need additional flag to tell when _encoding is set via setLocal.
+     * The isCharEncodingExplicit is used only in setCharacterEncoding and setContentType
+     */
+    protected boolean isCharEncodingExplicitViaSetLocale = false; 
     
     /**
      * 
@@ -309,6 +320,7 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
         _firstWriterRetrieval = true;
         _firstOutputStreamRetrieval = true;
         isCharEncodingExplicit = false;
+        isCharEncodingExplicitViaSetLocale = false;
 
         if (com.ibm.ws.webcontainer.osgi.WebContainer.getServletContainerSpecLevel() >= 31) {
             _gotOutputStream = false;
@@ -377,6 +389,14 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
             logger.logp(Level.FINE, CLASS_NAME,"containsHeader", " name --> " + name + " response --> " + String.valueOf(_response.containsHeader(name)));
         }
         return _response.containsHeader(name);
+    }
+
+    private boolean containsHeader(HttpHeaderKeys headerKey) {
+        // 311717
+        if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE)) {  //306998.15
+            logger.logp(Level.FINE, CLASS_NAME,"containsHeader", " headerKey --> " + headerKey.getName() + " response --> " + String.valueOf(_response.containsHeader(headerKey.getName())));
+        }
+        return _response instanceof IResponseImpl ? ((IResponseImpl)_response).containsHeader(headerKey) : _response.containsHeader(headerKey.getName());
     }
 
     public boolean containsHeader(byte[] name) {
@@ -936,7 +956,7 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
     }
 
     /**
-     * Commits the response by sending response codes and headers.  A response may only be commited once.
+     * Commits the response by sending response codes and headers.  A response may only be committed once.
      */
     synchronized protected void commit() {
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE)) {
@@ -952,7 +972,7 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
 
             // PQ59244 - disallow content length header if content is encoded
             // LIBERTY
-            if (containsHeader(HEADER_CONTENT_ENCODING) && containsHeader(HEADER_CONTENT_LENGTH)) {
+            if (containsHeader(HttpHeaderKeys.HDR_CONTENT_ENCODING) && containsHeader(HttpHeaderKeys.HDR_CONTENT_LENGTH)) {
 
                 if (keepContentLength){
                     if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE)) {
@@ -1002,8 +1022,13 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
     }
 
     private void addLocaleHeader() {
-        // 115097 - convert any underscores to dashes in the locale
-        _response.setContentLanguage(_locale.toString().replace('_', '-'));
+        String locale = localeStrings.get(_locale);
+        if( locale == null) {
+            // 115097 - convert any underscores to dashes in the locale
+            locale = _locale.toString().replace('_', '-');
+            localeStrings.put(_locale,locale);
+        }
+        _response.setContentLanguage(locale);
     }
     
     /**
@@ -1223,12 +1248,20 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
         return _encoding;
     }
 
+    //Servlet 6.0 - don't auto setContentType if header's contenttype is null; otherwise setContentType(null) will clear the set _encoding
     public String getContentType() {
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE)) {  //306998.15
             logger.logp(Level.FINE, CLASS_NAME,"getContentType","["+this+"]");
         }
         if (_contentType == null) {
-           setContentType(getHeader(HEADER_CONTENT_TYPE));
+            String contentTypeHeader = getHeader(HEADER_CONTENT_TYPE);
+
+            if (contentTypeHeader != null ) {
+                if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE)) {  //306998.15
+                    logger.logp(Level.FINE, CLASS_NAME,"getContentType"," content-type header is null, skip setContentType ["+this+"]");
+                }
+                setContentType(contentTypeHeader);
+            }
         }
         
         return _contentType;
@@ -1775,30 +1808,42 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
                 removeHeader(name);
             }
             else {
-                if (name.equalsIgnoreCase(WebContainerConstants.HEADER_CONTENT_TYPE)) {
+                if (!name.equalsIgnoreCase(WebContainerConstants.HEADER_CONTENT_TYPE)) {
+                    _response.setHeader(name, s);
+                } else {
                     // need to specially handle the content-type header
-                    String value = s.toLowerCase();
-                    int index = value.indexOf("charset=");
+                    // avoid the toLowerCase, substrings and concatenation if it already contains lower case charset=
+                    int index = s.indexOf("charset=");
                     if (index != -1) {
                         _encoding = s.substring(index + 8);
-                        s = s.substring(0, index) + "charset=" + _encoding;
-                    }
-                    else {
-                        if (dispatchContext.isAutoRequestEncoding()) {  //306998.15
-                            // only set default charset if auto response encoding is true.
-                            // otherwise cts test will fail.
-                            if (s.endsWith(";")) {
-                                s = s + "charset=" + getCharacterEncoding();
-                            }
-                            else {
-                                s = s + ";charset=" + getCharacterEncoding();
+                    } else {
+                        String value = s.toLowerCase();
+                        index = value.indexOf("charset=");
+                        if (index != -1) {
+                            _encoding = s.substring(index + 8);
+                            s = s.substring(0, index) + "charset=" + _encoding;
+                        }
+                        else {
+                            if (dispatchContext.isAutoRequestEncoding()) {  //306998.15
+                                // only set default charset if auto response encoding is true.
+                                // otherwise cts test will fail.
+                                if (s.endsWith(";")) {
+                                    s = s + "charset=" + getCharacterEncoding();
+                                }
+                                else {
+                                    s = s + ";charset=" + getCharacterEncoding();
+                                }
                             }
                         }
                     }
-                    _contentType = s;
-                }
 
-                _response.setHeader(name, s);
+                    _contentType = s;
+                    if (_response instanceof IResponseImpl) {
+                        ((IResponseImpl)_response).setHeader(HttpHeaderKeys.HDR_CONTENT_TYPE, s);
+                    } else {
+                        _response.setHeader(name, s);
+                    }
+                }
             }
         }
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE)) {  //306998.15
@@ -2082,7 +2127,9 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
          * @since Servlet 2.4
          */
 
-        isCharEncodingExplicit = false;
+       
+        isCharEncodingExplicitViaSetLocale = true;      //since servlet 6.0 
+        isCharEncodingExplicit = false;                 //reset since encoding is now set via setLocale
         _encoding = dispatchContext.getWebApp().getConfiguration().getLocaleEncoding(_locale);
 
         if (_encoding == null) {
@@ -2111,7 +2158,7 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
     /**
      * @return
      */
-    private boolean isCharEncodingSet()
+    protected boolean isCharEncodingSet()
     {
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE))  //306998.15
             logger.logp(Level.FINE, CLASS_NAME,"isCharEncodingSet", "_locale = " + _locale+ " ["+this+"]");
@@ -2125,9 +2172,12 @@ public class SRTServletResponse implements HttpServletResponse, IResponseOutput,
                 return isCharEncodingExplicit;
             }
         }
+        // if contentType is null, it means setContentType was NOT called before, but setCharacterEncoding may have been called
+        // so return isCharEncodingExplicit.
         if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&logger.isLoggable (Level.FINE))  //306998.15
-            logger.logp(Level.FINE, CLASS_NAME,"isCharEncodingSet", "false");
-        return false;
+            logger.logp(Level.FINE, CLASS_NAME,"isCharEncodingSet", " [" + isCharEncodingExplicit +"]");
+        
+        return isCharEncodingExplicit;
 
     }
 

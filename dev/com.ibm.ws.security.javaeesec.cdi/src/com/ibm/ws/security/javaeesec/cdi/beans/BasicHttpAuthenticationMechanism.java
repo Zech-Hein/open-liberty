@@ -1,16 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.security.javaeesec.cdi.beans;
 
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 
@@ -26,18 +27,17 @@ import javax.security.enterprise.authentication.mechanism.http.HttpAuthenticatio
 import javax.security.enterprise.authentication.mechanism.http.HttpMessageContext;
 import javax.security.enterprise.credential.BasicAuthenticationCredential;
 import javax.security.enterprise.credential.Credential;
+import javax.security.enterprise.credential.UsernamePasswordCredential;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Sensitive;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.security.javaeesec.JavaEESecConstants;
 import com.ibm.ws.security.javaeesec.properties.ModulePropertiesProvider;
-import com.ibm.ws.webcontainer.security.util.WebConfigUtils;
-import com.ibm.ws.webcontainer.security.WebAppSecurityConfig;
 import com.ibm.wsspi.security.token.AttributeNameConstants;
 
 @Default
@@ -126,7 +126,7 @@ public class BasicHttpAuthenticationMechanism implements HttpAuthenticationMecha
     private AuthenticationStatus setChallengeAuthorizationHeader(HttpMessageContext httpMessageContext) {
         HttpServletResponse rsp = httpMessageContext.getResponse();
         rsp.setHeader("WWW-Authenticate", "Basic realm=\"" + realmName + "\"");
-        rsp.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+        httpMessageContext.responseUnauthorized();
         httpMessageContext.getMessageInfo().getMap().put(AttributeNameConstants.WSCREDENTIAL_REALM, realmName);
 
         return AuthenticationStatus.SEND_CONTINUE;
@@ -136,26 +136,30 @@ public class BasicHttpAuthenticationMechanism implements HttpAuthenticationMecha
     private AuthenticationStatus handleAuthorizationHeader(@Sensitive String authorizationHeader, Subject clientSubject,
                                                            HttpMessageContext httpMessageContext) throws AuthenticationException {
         AuthenticationStatus status = AuthenticationStatus.SEND_FAILURE;
-        int rspStatus = HttpServletResponse.SC_UNAUTHORIZED;
+        HttpServletResponse rsp = httpMessageContext.getResponse();
         if (authorizationHeader.startsWith("Basic ")) {
             String encodedHeader = authorizationHeader.substring(6);
             String basicAuthHeader = decodeCookieString(encodedHeader);
 
             if (isAuthorizationHeaderValid(basicAuthHeader)) { // BasicAuthenticationCredential.isValid does not work
                 BasicAuthenticationCredential basicAuthCredential = new BasicAuthenticationCredential(encodedHeader);
-                status = utils.validateUserAndPassword(getCDI(), realmName, clientSubject, basicAuthCredential, httpMessageContext);
+                UsernamePasswordCredential userPassCredential = new UsernamePasswordCredential(basicAuthCredential.getCaller(), basicAuthCredential.getPasswordAsString());
+                status = utils.validateUserAndPassword(getCDI(), realmName, clientSubject, userPassCredential, httpMessageContext);
                 if (status == AuthenticationStatus.SUCCESS) {
                     Map messageInfoMap = httpMessageContext.getMessageInfo().getMap();
                     messageInfoMap.put("javax.servlet.http.authType", "BASIC");
                     messageInfoMap.put("javax.servlet.http.registerSession", Boolean.TRUE.toString());
-                    rspStatus = HttpServletResponse.SC_OK;
+                    rsp.setStatus(HttpServletResponse.SC_OK);
                 } else if (status == AuthenticationStatus.NOT_DONE) {
                     // set SC_OK, since if the target is not protected, it'll be processed.
-                    rspStatus = HttpServletResponse.SC_OK;
+                    rsp.setStatus(HttpServletResponse.SC_OK);
+                } else if (status == AuthenticationStatus.SEND_FAILURE) {
+                    rsp.setHeader("WWW-Authenticate", "Basic realm=\"" + realmName + "\"");
+                    httpMessageContext.getMessageInfo().getMap().put(AttributeNameConstants.WSCREDENTIAL_REALM, realmName);
+                    httpMessageContext.responseUnauthorized();
                 }
             }
         }
-        httpMessageContext.getResponse().setStatus(rspStatus);
         return status;
     }
 

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -1787,6 +1789,7 @@ protected class XMLRootHandler extends DefaultHandler implements LexicalHandler 
             StashfileLocation = (String) config.get("sslStashfileLocation");
             CertLabel = (String) config.get("sslCertlabel");
             IPv6Preferred = (Boolean) config.get("ipv6Preferred");
+            ignoreAffinityRequests = (Boolean) config.get("ignoreAffinityRequests");
             httpEndpointPid = (String) config.get("httpEndpointRef");
             serverIOTimeout = (Long) config.get("serverIOTimeout");
             wsServerIOTimeout = (Long) config.get("wsServerIOTimeout");
@@ -1798,7 +1801,7 @@ protected class XMLRootHandler extends DefaultHandler implements LexicalHandler 
             LogDirLocation = (String) config.get("logDirLocation"); //142740
             serverIOTimeoutRetry = (Integer) config.get("serverIOTimeoutRetry");
             loadBalanceWeight = (Integer) config.get("loadBalanceWeight");
-            //config.get("serverRole") in a server should not return null; sanity check since we are using equals.
+            //config.get("serverRole") in a server should not return null; verify since we are using equals.
             roleKind = (config.get("serverRole") != null && ((String) config.get("serverRole")).equals("BACKUP")) ? Role.SECONDARY : Role.PRIMARY;
             // PI76699 if the following ESI values are set in server.xml they will override default values.
             if (config.get("ESIEnable") != null) {

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -49,7 +51,7 @@ public class TopLevelStepInstanceEntity extends StepThreadInstanceEntity {
 	// This is meant to signify whether the step is partitioned or not.
 	// It is not meant, in contract, to say whether for a partitioned step, 
 	// this object represents the top-level or partition-level thread of the partitioned step.
-	@Column(name="PARTITIONED", nullable=false)
+	@Column(name="PARTITIONED")
 	private boolean isPartitionedStep;
 	
 	// Not a useful constructor from the "real" flow of creating a step execution for the first time,

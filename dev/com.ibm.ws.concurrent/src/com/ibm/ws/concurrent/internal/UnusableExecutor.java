@@ -1,20 +1,27 @@
 /*******************************************************************************
  * Copyright (c) 2018,2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.concurrent.internal;
 
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
+import java.util.function.BiFunction;
 
 import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.concurrent.WSManagedExecutorService;
 import com.ibm.ws.threading.PolicyExecutor;
+import com.ibm.wsspi.threadcontext.ThreadContextDescriptor;
 import com.ibm.wsspi.threadcontext.WSContextService;
 
 /**
@@ -32,13 +39,14 @@ class UnusableExecutor implements Executor, WSManagedExecutorService {
     }
 
     @Override
-    public void execute(Runnable command) {
-        throw new UnsupportedOperationException();
+    @SuppressWarnings("unchecked")
+    public ThreadContextDescriptor captureThreadContext(Map<String, String> props) {
+        return contextService.captureThreadContext(props);
     }
 
     @Override
-    public WSContextService getContextService() {
-        return contextService;
+    public void execute(Runnable command) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -54,5 +62,10 @@ class UnusableExecutor implements Executor, WSManagedExecutorService {
     @Override
     public int hashCode() {
         return contextService.hashCode(); // for easy correlation in trace with the context service that created it
+    }
+
+    @Override
+    public <I, T> CompletableFuture<T> newAsyncMethod(BiFunction<I, CompletableFuture<T>, CompletionStage<T>> invoker, I invocation) {
+        throw new UnsupportedOperationException();
     }
 }

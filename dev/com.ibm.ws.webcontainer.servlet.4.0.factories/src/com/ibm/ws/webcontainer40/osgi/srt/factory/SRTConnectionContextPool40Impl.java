@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,7 +18,7 @@ import com.ibm.ws.webcontainer.osgi.srt.SRTConnectionContextPool;
 import com.ibm.ws.webcontainer40.osgi.srt.SRTConnectionContext40;
 
 /**
- * A simple pool for SRTConnectionContext31 objects.
+ * A simple pool for SRTConnectionContext40 objects.
  */
 @Component(property = { "service.vendor=IBM", "service.ranking:Integer=31", "servlet.version=3.1" })
 public class SRTConnectionContextPool40Impl implements SRTConnectionContextPool {

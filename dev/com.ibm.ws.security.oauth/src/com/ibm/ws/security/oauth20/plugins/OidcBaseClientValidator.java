@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2021 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -103,6 +105,8 @@ public class OidcBaseClientValidator {
         validateFunctionalUserGroupIds();
 
         validateOutputParameters();
+
+        validateBackchannelLogoutUri();
 
         return this.client;
     }
@@ -656,4 +660,48 @@ public class OidcBaseClientValidator {
             }
         }
     }
+
+    /**
+     * Validates the backchannelLogoutUri/backchannel_logout_uri attribute of the client. Per Section 2.2 of
+     * https://openid.net/specs/openid-connect-backchannel-1_0.html:
+     * 1. The back-channel logout URI MUST be an absolute URI as defined by Section 4.3 of [RFC3986].
+     * 2. The back-channel logout URI MAY include an application/x-www-form-urlencoded formatted query component, per Section 3.4 of [RFC3986], which MUST be retained when adding additional query parameters.
+     * 3. The back-channel logout URI MUST NOT include a fragment component.
+     * 4. This URL SHOULD use the https scheme and MAY contain port, path, and query parameter components; however, it MAY use the http scheme, provided that the Client Type is confidential, as defined in Section 2.1 of OAuth 2.0 [RFC6749], and provided the OP allows the use of http RP URIs.
+     */
+    void validateBackchannelLogoutUri() throws OidcServerException {
+        String logoutUri = client.getBackchannelLogoutUri();
+        if (logoutUri == null) {
+            return;
+        }
+        validateBackchannelLogoutUri(client, logoutUri);
+    }
+
+    public static void validateBackchannelLogoutUri(OidcBaseClient client, String logoutUri) throws OidcServerException {
+        URI uri;
+        try {
+            uri = new URI(logoutUri);
+        } catch (URISyntaxException e) {
+            throw new OidcServerException(new BrowserAndServerLogMessage(tc, "OAUTH_CLIENT_REGISTRATION_VALUE_MALFORMED_URI", new Object[] { logoutUri, OidcBaseClient.SN_BACKCHANNEL_LOGOUT_URI }),
+                    OIDCConstants.ERROR_INVALID_CLIENT_METADATA, HttpServletResponse.SC_BAD_REQUEST, e);
+        }
+        if (!uri.isAbsolute()) {
+            throw new OidcServerException(new BrowserAndServerLogMessage(tc, "OAUTH_CLIENT_REGISTRATION_VALUE_NOT_ABSOLUTE_URI", new Object[] { logoutUri, OidcBaseClient.SN_BACKCHANNEL_LOGOUT_URI }),
+                    OIDCConstants.ERROR_INVALID_CLIENT_METADATA, HttpServletResponse.SC_BAD_REQUEST);
+        }
+        if (uri.getFragment() != null) {
+            throw new OidcServerException(new BrowserAndServerLogMessage(tc, "OAUTH_CLIENT_REGISTRATION_VALUE_URI_CONTAINS_FRAGMENT", new Object[] { logoutUri, OidcBaseClient.SN_BACKCHANNEL_LOGOUT_URI }),
+                    OIDCConstants.ERROR_INVALID_CLIENT_METADATA, HttpServletResponse.SC_BAD_REQUEST);
+        }
+        String scheme = uri.getScheme();
+        if (scheme == null || (!scheme.equalsIgnoreCase("http") && !scheme.equalsIgnoreCase("https"))) {
+            throw new OidcServerException(new BrowserAndServerLogMessage(tc, "OAUTH_CLIENT_REGISTRATION_VALUE_URI_INVALID_SCHEME", new Object[] { logoutUri, OidcBaseClient.SN_BACKCHANNEL_LOGOUT_URI }),
+                    OIDCConstants.ERROR_INVALID_CLIENT_METADATA, HttpServletResponse.SC_BAD_REQUEST);
+        }
+        if (scheme.equalsIgnoreCase("http") && client.isPublicClient()) {
+            throw new OidcServerException(new BrowserAndServerLogMessage(tc, "OAUTH_CLIENT_REGISTRATION_VALUE_URI_HTTP_SCHEME_CLIENT_NOT_CONFIDENTIAL", new Object[] { logoutUri, OidcBaseClient.SN_BACKCHANNEL_LOGOUT_URI, client.getClientId() }),
+                    OIDCConstants.ERROR_INVALID_CLIENT_METADATA, HttpServletResponse.SC_BAD_REQUEST);
+        }
+    }
+
 }

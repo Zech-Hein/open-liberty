@@ -1,12 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2021 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
- *     IBM Corporation - initial API and implementation
+ * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.security.oauth_oidc.fat.commonTest;
 
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.ibm.websphere.simplicity.log.Log;
 
 public class TestSettings {
@@ -96,7 +99,8 @@ public class TestSettings {
 
     protected Integer httpPort = null;
 
-    protected boolean allowPrint = true;
+    // turn printing of test settings and expectations OFF by default
+    protected boolean allowPrint = false;
 
     public enum StoreType {
         DATABASE, LOCAL, CUSTOM, CUSTOMBELL
@@ -124,6 +128,7 @@ public class TestSettings {
     protected boolean useJwtConsumer = false;
     protected String jwtConsumerUrl = null;
     protected List<String> requiredJwtKeys = null;
+    protected HttpMethod logoutHttpMethod = HttpMethod.POST;
 
     protected String inboundProp = null;
 
@@ -152,8 +157,6 @@ public class TestSettings {
         jwkEndpt = settings.jwkEndpt;
         appPasswordEndpt = settings.appPasswordEndpt;
         appTokenEndpt = settings.appTokenEndpt;
-        endSession = settings.endSession;
-        postLogoutRedirect = settings.postLogoutRedirect;
         endSession = settings.endSession;
         postLogoutRedirect = settings.postLogoutRedirect;
         protectedResource = settings.protectedResource;
@@ -227,6 +230,7 @@ public class TestSettings {
         httpPort = settings.httpPort;
         httpString = settings.httpString;
         componentID = settings.componentID;
+        logoutHttpMethod = settings.logoutHttpMethod;
     }
 
     public TestSettings copyTestSettings() {
@@ -319,6 +323,7 @@ public class TestSettings {
         Log.info(thisClass, thisMethod, "requiredJwtKeys: " + requiredJwtKeys);
         Log.info(thisClass, thisMethod, "allowPrint: " + allowPrint);
         Log.info(thisClass, thisMethod, "storeType: " + storeType.toString());
+        Log.info(thisClass, thisMethod, "logoutHttpMethod: " + logoutHttpMethod);
 
     }
 
@@ -1624,5 +1629,13 @@ public class TestSettings {
 
     public void setHttpPort(Integer httpPort) {
         this.httpPort = httpPort;
+    }
+
+    public HttpMethod getLogoutHttpMethod() {
+        return logoutHttpMethod;
+    }
+
+    public void setLogoutHttpMethod(HttpMethod logoutHttpMethod) {
+        this.logoutHttpMethod = logoutHttpMethod;
     }
 }

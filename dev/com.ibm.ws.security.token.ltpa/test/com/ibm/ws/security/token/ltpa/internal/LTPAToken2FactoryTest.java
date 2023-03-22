@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,7 +29,7 @@ import test.UTLocationHelper;
 import test.common.SharedOutputManager;
 
 import com.ibm.websphere.security.auth.TokenCreationFailedException;
-import com.ibm.ws.common.internal.encoder.Base64Coder;
+import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.crypto.ltpakeyutil.LTPAPrivateKey;
 import com.ibm.ws.crypto.ltpakeyutil.LTPAPublicKey;
 import com.ibm.ws.security.token.ltpa.LTPAKeyInfoManager;
@@ -75,11 +77,13 @@ public class LTPAToken2FactoryTest {
 
     private Map<String, Object> createTestTokenFactoryMap() {
         long expectedExpirationLimit = 120;
+        long expDiffAllowed = 0;
         Map<String, Object> tokenFactoryMap = new HashMap<String, Object>();
         tokenFactoryMap.put("expiration", expectedExpirationLimit);
         tokenFactoryMap.put("ltpa_shared_key", encodedSharedKey.getBytes());
         tokenFactoryMap.put("ltpa_public_key", ltpaPublicKey);
         tokenFactoryMap.put("ltpa_private_key", ltpaPrivateKey);
+        tokenFactoryMap.put("expirationDifferenceAllowed", expDiffAllowed);
 
         return tokenFactoryMap;
     }
@@ -165,11 +169,12 @@ public class LTPAToken2FactoryTest {
         byte[] tokenBytes = token.getBytes();
         Token validatedToken = tokenFactory.validateTokenBytes(tokenBytes);
         assertNotNull("There must be a validated token.", validatedToken);
+        assertTrue("Token is invalid.", validatedToken.isValid());
     }
 
     private Map<String, Object> createBasicLTPA2TokenData() {
         Map<String, Object> tokenData = new HashMap<String, Object>();
-        tokenData.put("unique_id", "user:BasicRealm/user1");
+        tokenData.put("unique_id", "user:BasicRealm/u\\ser |1$");
         return tokenData;
     }
 }

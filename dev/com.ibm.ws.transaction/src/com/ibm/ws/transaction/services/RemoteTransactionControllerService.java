@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,6 +27,7 @@ import javax.transaction.TransactionManager;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import com.ibm.tx.jta.embeddable.impl.EmbeddableTranManagerSet;
 import com.ibm.tx.jta.embeddable.impl.EmbeddableTransactionImpl;
 import com.ibm.tx.jta.embeddable.impl.WSATRecoveryCoordinator;
 import com.ibm.tx.jta.impl.LocalTIDTable;
@@ -38,9 +41,9 @@ import com.ibm.tx.util.TMHelper;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.LocalTransaction.LocalTransactionCoordinator;
-import com.ibm.ws.Transaction.JTA.HeuristicHazardException;
 import com.ibm.ws.Transaction.UOWCoordinator;
 import com.ibm.ws.Transaction.UOWCurrent;
+import com.ibm.ws.Transaction.JTA.HeuristicHazardException;
 
 /**
  *
@@ -76,6 +79,11 @@ public class RemoteTransactionControllerService implements RemoteTransactionCont
     public boolean importTransaction(String globalId, int expires) throws SystemException {
 
         // Make sure TM is open for business
+        if (((EmbeddableTranManagerSet) EmbeddableTranManagerSet.instance()).isQuiesced()) {
+            final SystemException se = new SystemException();
+            throw se;
+        }
+
         try {
             TMHelper.checkTMState();
         } catch (NotSupportedException e) {
@@ -386,5 +394,45 @@ public class RemoteTransactionControllerService implements RemoteTransactionCont
         }
 
         return ((DistributableTransaction) uowCoord).getGlobalId();
+    }
+
+    @Override
+    public Object getResource(String globalId) {
+        TransactionWrapper tw;
+        try {
+            tw = TransactionWrapper.getTransactionWrapper(globalId);
+        } catch (SystemException e) {
+            return null;
+        }
+
+        if (tw != null) {
+            EmbeddableTransactionImpl tx = tw.getTransaction();
+
+            if (tx != null) {
+                return tx.getResource(globalId);
+            } else {
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                    Tr.debug(tc, "No matching Transaction");
+            }
+        } else {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                Tr.debug(tc, "No matching TransactionWrapper");
+
+            DistributableTransaction tx = getTransactionForID(globalId);
+
+            if (tx instanceof EmbeddableTransactionImpl) {
+                return ((EmbeddableTransactionImpl) tx).getResource(globalId);
+            } else {
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                    Tr.debug(tc, "No matching DistributableTransaction");
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public void putResource(String globalId, Object o) {
+        ((TransactionImpl) getTransactionForID(globalId)).putResource(globalId, o);
     }
 }

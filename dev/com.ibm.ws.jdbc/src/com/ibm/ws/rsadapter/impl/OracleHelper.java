@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2021 IBM Corporation and others.
+ * Copyright (c) 2003, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,11 +36,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.XMLFormatter;
@@ -46,11 +50,8 @@ import java.util.logging.XMLFormatter;
 import javax.resource.ResourceException;
 import javax.sql.CommonDataSource;
 import javax.sql.DataSource;
-import javax.sql.PooledConnection;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
-
-import org.ietf.jgss.GSSCredential;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
@@ -68,14 +69,9 @@ import com.ibm.ws.rsadapter.jdbc.WSJdbcTracer;
 public class OracleHelper extends DatabaseHelper {
 
     private static TraceComponent tc = Tr.register(OracleHelper.class, AdapterUtil.TRACE_GROUP, AdapterUtil.NLS_FILE);
-
-    private static final String
-        ORACLELOG_FILE_SIZE_LIMIT = "oracleLogFileSizeLimit",
-        ORACLELOG_FILE_COUNT = "oracleLogFileCount",
-        ORACLELOG_FILENAME = "oracleLogFileName",
-        ORACLELOG_TRACELEVEL = "oracleLogTraceLevel",
-        ORACLELOG_FORMAT = "oracleLogFormat",
-        ORACLELOG_PACKAGENAME = "oracleLogPackageName";
+    
+    @SuppressWarnings("deprecation")
+    private static final TraceComponent oraTc = com.ibm.ejs.ras.Tr.register("com.ibm.ws.oracle.logwriter", "WAS.database", null); 
 
     private static final int NOT_CACHED = -99;
     private int driverMajorVersion = NOT_CACHED;
@@ -123,9 +119,10 @@ public class OracleHelper extends DatabaseHelper {
                     setSessionTimeZone = new AtomicReference<Method>();
 
     private String matrix[];
+    
+    private static final AtomicBoolean warnedAboutReadOnly = new AtomicBoolean();
+    
 
-    @SuppressWarnings("deprecation")
-    private static final TraceComponent oraTc = com.ibm.ejs.ras.Tr.register("com.ibm.ws.oracle.logwriter", "WAS.database", null); 
 
     /**
      * Construct a helper class for Oracle.
@@ -141,102 +138,6 @@ public class OracleHelper extends DatabaseHelper {
         xaEndResetsAutoCommit = true;
 
         matrix = new String[4]; // OracleConnection.END_TO_END_STATE_INDEX_MAX
-
-        int limit = 0; // unlimited
-        int count = 1; // only one file to rotate through
-        String _oracleLogFileName = null;
-
-        Logger _logger = null;
-        Formatter _formatter = null;
-        Handler _handler = null;
-
-        String _oraclePackageName = "oracle.jdbc.driver";
-        String _oracleLogTraceLevel = "INFO";
-        String _oracleLogFormat = "SimpleFormat";
-        String holder = null;
-
-        Properties props = mcf.dsConfig.get().vendorProps;
-        if (props != null) {
-            // get the package name:
-            holder = props.getProperty(ORACLELOG_PACKAGENAME);
-            if (holder != null && !holder.equals(""))
-                _oraclePackageName = holder;
-
-            //now getting the file name  
-            holder = props.getProperty(ORACLELOG_FILENAME);
-            if (holder != null && !holder.equals(""))
-                _oracleLogFileName = holder;
-
-            if (oraTc.isDebugEnabled()) {
-                Tr.debug(oraTc, "DSConfigHelper.ORACLELOG_PACKAGENAME is: ", _oraclePackageName); 
-                Tr.debug(oraTc, "DSConfigHelper.ORACLELOG_FILENAME is:  ", _oracleLogFileName); 
-            }
-
-            //now get the logger for the package name specified above
-            _logger = Logger.getLogger(_oraclePackageName);
-
-            //if the file name is not set, then we can't set any other values and we have to use 
-            // the WAS logging file and settings. 
-            if (_oracleLogFileName != null && (!_oracleLogFileName.equals(""))) {
-
-                // now get the trace level
-                holder = props.getProperty(ORACLELOG_TRACELEVEL);
-                if (holder != null && !holder.equals(""))
-                    _oracleLogTraceLevel = holder;
-
-                // now get the log format needed
-                holder = props.getProperty(ORACLELOG_FORMAT);
-                if (holder != null && !holder.equals(""))
-                    _oracleLogFormat = holder;
-
-                //now set the format of the oracle log output                   
-                if (_oracleLogFormat != null && (_oracleLogFormat.charAt(0) == 'S' || _oracleLogFormat.charAt(0) == 's')) {
-                    if (oraTc.isDebugEnabled())
-                        Tr.debug(oraTc, "SimpleFormatter is used");
-                    _formatter = new SimpleFormatter();
-                } else // default for everything else
-                {
-                    if (oraTc.isDebugEnabled())
-                        Tr.debug(oraTc, "XMLFormatter is used");
-                    _formatter = new XMLFormatter();
-                }
-
-                // GET limit setting which is how big each file is in bytes before switching (approximate)
-                holder = props.getProperty(ORACLELOG_FILE_SIZE_LIMIT);
-                if (holder != null && (!holder.equals("")))
-                    limit = Integer.parseInt(holder);
-
-                holder = props.getProperty(ORACLELOG_FILE_COUNT);
-                // Get file count Setting which is how many files to rotate through
-                if (holder != null && (!holder.equals("")))
-                    count = Integer.parseInt(holder);
-
-                if (oraTc.isDebugEnabled()) {
-                    Tr.debug(oraTc, "DSConfigHelper.ORACLELOG_FILE_COUNT is: " + count); 
-                    Tr.debug(oraTc, "DSConfigHelper.ORACLELOG_FILE_SIZE_LIMIT is: " + limit); 
-                    Tr.debug(oraTc, "DSConfigHelper.ORACLELOG_FORMAT is: ", _oracleLogFormat); 
-                    Tr.debug(oraTc, "DSConfigHelper.ORACLELOG_TRACELEVEL is: ", _oracleLogTraceLevel); 
-                }
-                // now setting up the file handlers and the logger since at this point we know the user wanted to 
-                // to log/trace to a seperate file                              
-                try {
-                    _handler = new FileHandler(_oracleLogFileName + "%g.%u", limit, count); // g is generation number, u is unique number
-                    _handler.setFormatter(_formatter);
-                    _handler.setLevel(Level.ALL); // for the handler, i will set it to all so that only the logger 
-                                                  // controls the output
-                    _logger.setLevel(AdapterUtil.getLevelBasedOnName(_oracleLogTraceLevel));
-                    _logger.setUseParentHandlers(false); // this will make sure that we don't send oracle trace to WAS trace file                                           
-                    _logger.addHandler(_handler);
-                } catch (IOException iox) {
-                    // No FFDC needed
-                    Tr.warning(tc, "ORACLE_TRACE_WARNING", _oracleLogFileName, iox);
-                }
-            } else // merge logs with WAS logs since no file is specified
-            {
-                if (oraTc.isDebugEnabled())
-                    Tr.debug(oraTc, "Oracle trace file is not set, Oracle logging/tracing will be mergned with WAS logging based on WAS logging settings");
-            }
-        }
         
         Collections.addAll(staleConCodes,
                            20,
@@ -294,10 +195,6 @@ public class OracleHelper extends DatabaseHelper {
      * @return XA start flag value for the specified coupling type
      */
     public int branchCouplingSupported(int couplingType) {
-        // TODO remove this check at GA
-        if (!mcf.dsConfig.get().enableBranchCouplingExtension)
-            return super.branchCouplingSupported(couplingType);
-
         if (couplingType == ResourceRefInfo.BRANCH_COUPLING_LOOSE)
             if (dataStoreHelper == null)
                 return 0x10000; // value of oracle.jdbc.xa.OracleXAResource.ORATRANSLOOSE
@@ -765,22 +662,25 @@ public class OracleHelper extends DatabaseHelper {
     public void setReadOnly(WSRdbManagedConnectionImpl managedConn, boolean readOnly, boolean externalCall) 
     throws SQLException {
         if (tc.isDebugEnabled())
-            Tr.debug(this, tc, "setReadOnly", managedConn, readOnly, externalCall); 
-
-        if (externalCall) 
-        {
-            if (readOnly) {
-                // Fix this message later
-                throw new SQLException(AdapterUtil.getNLSMessage("METHOD_UNSUPPORTED", "setReadOnly", Connection.class.getName()));
-            } else {
-                // ignore it but log an informational message stating that we won't start a transaction
-                Tr.info(tc, "ORA_READONLY"); 
-
-            }
-        } else 
-        {
+            Tr.debug(this, tc, "setReadOnly", managedConn, readOnly, externalCall);
+        
+        if(!externalCall) {
             if (tc.isDebugEnabled())
                 Tr.debug(this, tc, "setReadOnly ignored for internal call"); 
+            
+            return;
+        }
+
+        if (readOnly) {
+            // Fix this message later
+            throw new SQLException(AdapterUtil.getNLSMessage("METHOD_UNSUPPORTED", "setReadOnly", Connection.class.getName()));
+        } else {
+            if (tc.isDebugEnabled())
+                Tr.debug(this, tc, "setReadOnly ignored for external call");
+            if(warnedAboutReadOnly.compareAndSet(false, true)) {
+                // ignore it but log an informational message once stating that we won't start a transaction
+                Tr.warning(tc, "ORA_READONLY");
+            }
         }
     }
 
@@ -860,25 +760,6 @@ public class OracleHelper extends DatabaseHelper {
             } catch (ResourceException ex) {
                 throw AdapterUtil.toSQLException(ex);
             }
-            
-            //Workaround for Oracle Driver + IBM JDK issue with non-connection builder path
-            if (mcf.dsConfig.get().sendGSSCredentialOnOracleBuilder) {
-                try {
-                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-                        Tr.debug(this, tc, "Using Connection Builder path for Kerberos");
-                        Connection conn = AccessController.doPrivilegedWithCombiner(new PrivilegedExceptionAction<Connection>() {
-                            public Connection run() throws SQLException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-                                Object oracleConnectionBuilder = ds.getClass().getMethod("createConnectionBuilder").invoke(ds);
-                                Object oracleConnectionBuilder2 = oracleConnectionBuilder.getClass().getMethod("gssCredential", GSSCredential.class).invoke(oracleConnectionBuilder, gssCredential);
-                                Method m = oracleConnectionBuilder.getClass().getMethod("build");
-                                m.setAccessible(true);
-                                return (Connection) m.invoke(oracleConnectionBuilder2);
-                            }
-                        });
-                } catch (Throwable t) {
-                    throw AdapterUtil.toSQLException(t);
-                }
-            };
         }
         
         return super.getConnectionFromDatasource(ds, useKerb, gssCredential);
@@ -896,33 +777,6 @@ public class OracleHelper extends DatabaseHelper {
         if (useKerberos != KerbUsage.NONE) {
             assertIBMKerberosSupported();
             setKerberosDatasourceProperties(ds);
-            
-            //Workaround for Oracle Driver + IBM JDK issue with non-connection builder path
-            if (mcf.dsConfig.get().sendGSSCredentialOnOracleBuilder) {
-                try {
-                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-                        Tr.debug(this, tc, "Using Connection Builder path for Kerberos");
-
-                    PooledConnection pConn = AccessController.doPrivilegedWithCombiner(new PrivilegedExceptionAction<PooledConnection>() {
-                        public PooledConnection run() throws SQLException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-                            Object oracleConnectionBuilder;
-                            if (is2Phase) { //XAConnection
-                                oracleConnectionBuilder = ds.getClass().getMethod("createXAConnectionBuilder").invoke(ds);
-                            } else { //PooledConnection
-                                oracleConnectionBuilder = ds.getClass().getMethod("createPooledConnectionBuilder").invoke(ds);    
-                            }
-                            Object oracleConnectionBuilder2 = oracleConnectionBuilder.getClass().getMethod("gssCredential", GSSCredential.class).invoke(oracleConnectionBuilder, gssCredential);
-                            Method m = oracleConnectionBuilder.getClass().getMethod("build");
-                            m.setAccessible(true);
-                            return (PooledConnection) m.invoke(oracleConnectionBuilder2);                          
-                        }
-                    });
-                    return new ConnectionResults(pConn, null);
-                } catch (Throwable e) {
-                    throw new ResourceException(e);
-                }
-            };
-            
         }
         ConnectionResults results = super.getPooledConnection(ds, userName, password, is2Phase, cri, useKerberos, gssCredential);
 

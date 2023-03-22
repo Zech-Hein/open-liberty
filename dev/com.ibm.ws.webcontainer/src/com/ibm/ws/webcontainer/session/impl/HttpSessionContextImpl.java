@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 IBM Corporation and others.
+ * Copyright (c) 2011, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,6 +30,7 @@ import javax.servlet.http.HttpSession;
 import com.ibm.websphere.security.WSSecurityHelper;
 import com.ibm.websphere.servlet.session.UnauthorizedSessionRequestException;
 import com.ibm.ws.security.core.SecurityContext;
+import com.ibm.ws.session.AbstractSessionData;
 import com.ibm.ws.session.MemoryStoreHelper;
 import com.ibm.ws.session.SessionAffinityManager;
 import com.ibm.ws.session.SessionApplicationParameters;
@@ -40,6 +43,8 @@ import com.ibm.ws.session.store.memory.MemoryStore;
 import com.ibm.ws.session.utils.LoggingUtil;
 import com.ibm.ws.webcontainer.osgi.collaborator.CollaboratorHelperImpl;
 import com.ibm.ws.webcontainer.session.IHttpSessionContext;
+import com.ibm.ws.webcontainer.srt.ISRTServletRequest;
+import com.ibm.wsspi.http.channel.values.HttpHeaderKeys;
 import com.ibm.wsspi.session.IGenericSessionManager;
 import com.ibm.wsspi.session.ISession;
 import com.ibm.wsspi.session.ISessionAffinityManager;
@@ -77,12 +82,12 @@ public class HttpSessionContextImpl extends SessionContext implements IHttpSessi
               // if session exits, start locking procedures
               if (sess != null) {
                   Object lock = new Object(); //create a new lock object for this request; 
-                  LinkedList ll = ((SessionData)sess).getLockList(); //gets the linked lists of lock objects for this session;
+                  LinkedList ll = ((AbstractSessionData)sess).getLockList(); //gets the linked lists of lock objects for this session;
                   int llsize;
                   
                   // PK09786 BEGIN -- Always synchronize on linklist before lock to avoid deadlock 
                   synchronized (ll) {
-                     ((SessionData)sess).setSessionLock(Thread.currentThread(), lock); //adds thread to WsSession locks hashtable so we know who to notify in PostInvoke
+                     ((AbstractSessionData)sess).setSessionLock(Thread.currentThread(), lock); //adds thread to WsSession locks hashtable so we know who to notify in PostInvoke
                      ll.addLast(lock);
                      llsize = ll.size();
                   }       //PK19389 when another thread is in sessionPostInvoke, trying to lock linkedlist in order to notify the thread in lock.wait()
@@ -139,7 +144,7 @@ public class HttpSessionContextImpl extends SessionContext implements IHttpSessi
       if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled()&&LoggingUtil.SESSION_LOGGER_CORE.isLoggable(Level.FINE)) {
           LoggingUtil.SESSION_LOGGER_CORE.entering(methodClassName, methodNames[UNLOCK_SESSION]);
       }
-      SessionData session= (SessionData)sess;
+      AbstractSessionData session= (AbstractSessionData)sess;
       Object obj = session.getSessionLock(Thread.currentThread());
       if (obj!=null) {
           LinkedList linkList = session.getLockList();
@@ -240,14 +245,14 @@ public class HttpSessionContextImpl extends SessionContext implements IHttpSessi
       LoggingUtil.SESSION_LOGGER_CORE.entering(methodClassName, methodNames[IS_VALID]);
     }
 
-    ISession isess = ((SessionData) sess).getISession();
+    ISession isess = ((AbstractSessionData) sess).getISession();
     boolean valid = isess.isValid();
     if (valid)
     {
       if (_smc.getIntegrateSecurity())
       {
           try {
-              checkSecurity((SessionData)sess, req); // PK01801 check security here - 
+              checkSecurity((AbstractSessionData)sess, req); // PK01801 check security here - 
                                                      // may result in UnauthorizedSessionRequestException
           } 
           catch (UnauthorizedSessionRequestException unauthException) {
@@ -480,7 +485,7 @@ public class HttpSessionContextImpl extends SessionContext implements IHttpSessi
      * retrieves the latest session copy from the backend if the incoming
      * request is the failover one.
      */
-    if ( (id != null) && (Boolean.valueOf(_request.getHeader("$WSFO")).booleanValue()) ) {
+    if ( (id != null) && (Boolean.valueOf(ISRTServletRequest.getHeader(_request, HttpHeaderKeys.HDR_$WSFO)).booleanValue()) ) {
         IStore iStore = _coreHttpSessionManager.getIStore();
         iStore.removeFromMemory( id );
     }
@@ -538,8 +543,7 @@ public class HttpSessionContextImpl extends SessionContext implements IHttpSessi
       createdOnThisRequest = true;
     }
 
-    SessionData sd = (SessionData) session;
-
+    AbstractSessionData sd = (AbstractSessionData) session;
 
     if (sd != null) {
         // security integration stuff
@@ -549,7 +553,7 @@ public class HttpSessionContextImpl extends SessionContext implements IHttpSessi
                 boolean reuseId = shouldReuseId(_request,sac) && 
                         checkSessionIdIsRightLength(_sam.getInUseSessionID(_request, sac)); 
                 session = (HttpSession) _coreHttpSessionManager.createSession(_request, _response, sac, reuseId);
-                sd = (SessionData)session;
+                sd = (AbstractSessionData)session;
                 createdOnThisRequest = true;
                 securityCheckObject = doSecurityCheck(sd, _request, create); //shouldn't have an issue with the session being owned by someone else since we invalidated the previous session and created a brand new session
             }
@@ -574,7 +578,7 @@ public class HttpSessionContextImpl extends SessionContext implements IHttpSessi
         // want to throw an exception if the response is committed)
         if (!_response.isCommitted())
         {
-          setSIPCookieIfApplicable(_request, _response, sd);
+          setSIPCookieIfApplicable(_request, _response, (SessionData) sd);
         }
       }
     }
@@ -599,7 +603,7 @@ public class HttpSessionContextImpl extends SessionContext implements IHttpSessi
 
   }
   
-  private SecurityCheckObject doSecurityCheck(SessionData sd, HttpServletRequest _request, boolean create) {
+  private SecurityCheckObject doSecurityCheck(AbstractSessionData sd, HttpServletRequest _request, boolean create) {
       SecurityCheckObject securityCheckObject = new SecurityCheckObject();
       if (sd.isNew()) { // set user name
           String userName = null;
@@ -690,8 +694,7 @@ private String getUser() {
             session = (HttpSession) _coreHttpSessionManager.getSession(request, response, sac, false); // don't create here
         }
         if( session != null ){
-            SessionData sd = (SessionData) session;
-            return sd.getUserName();            
+            return ((AbstractSessionData) session).getUserName();       //Issue 23111
         } else{
             return null;
         }
@@ -713,7 +716,7 @@ private String getUser() {
    * session. This ensures we can safely give out session to collaborators while
    * denying applications with the UnauthorizedSessionRequestException.
    */
-  protected void checkSecurity(SessionData s, HttpServletRequest req)
+  protected void checkSecurity(AbstractSessionData s, HttpServletRequest req)
   {
     if (com.ibm.ejs.ras.TraceComponent.isAnyTracingEnabled() && LoggingUtil.SESSION_LOGGER_CORE.isLoggable(Level.FINE))
     {
@@ -823,7 +826,7 @@ private String getUser() {
     {
       if (_smc.getEnableUrlRewriting())
       {
-        boolean useCookies = _smc.getEnableCookies() && _request.getHeader("Cookie") != null;
+        boolean useCookies = _smc.getEnableCookies() && ISRTServletRequest.getHeader(_request, HttpHeaderKeys.HDR_COOKIE) != null;
         if (!useCookies)
         { // Either the server doesn't support cookies, or we didn't get
           // any cookies from the client, so we have to assume url-rewriting.
@@ -973,7 +976,7 @@ private String getUser() {
 
   // PK80439: Check that id is of exact length permitted as determined by the session length 
   // custom property
-  private boolean checkSessionIdIsRightLength( String sessionIdOnly )
+  protected boolean checkSessionIdIsRightLength( String sessionIdOnly )
   {
       boolean correctLength = true;
       boolean forceSessionIdLengthCheck = _smc.getForceSessionIdLengthCheck();
@@ -1010,12 +1013,12 @@ private String getUser() {
   } // end "checkSessionIdIsRightLength"
 
   private static class SecurityCheckObject {
-      private SessionData sd=null;
+      private AbstractSessionData sd=null;
       private boolean doSecurityCheckAgain=false;
       
       SecurityCheckObject() {}
       
-      SessionData getSessionObject() {
+      AbstractSessionData getSessionObject() {
           return sd;
       }
       
@@ -1023,7 +1026,7 @@ private String getUser() {
           return doSecurityCheckAgain;
       }
       
-      void setSessionObject(SessionData sd) {
+      void setSessionObject(AbstractSessionData sd) {
           this.sd=sd;
       }
       

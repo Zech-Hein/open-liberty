@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2004 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,6 +29,7 @@ public class ValidateResult extends JspVisitorResult {
     protected String language = "";
     protected String pageEncoding = "";
     protected boolean isELIgnored = false;
+    protected boolean isErrorOnELNotFound = false;
     protected String trimDirectiveWhitespacesValue = null; // jsp2.1work
     protected String deferredSyntaxAllowedAsLiteralValue = null; // jsp2.1ELwork
     protected boolean trimDirectiveWhitespaces = false; // jsp2.1work
@@ -61,6 +64,14 @@ public class ValidateResult extends JspVisitorResult {
      */
     public boolean isELIgnored() {
         return isELIgnored;
+    }
+
+    /**
+     * Returns the isELIgnored.
+     * @return boolean
+     */
+    public boolean isErrorOnELNotFound() {
+        return isErrorOnELNotFound;
     }
     
     // jsp2.1work
@@ -121,6 +132,14 @@ public class ValidateResult extends JspVisitorResult {
      */
     public void setIsELIgnored(boolean isELIgnored) {
         this.isELIgnored = isELIgnored;
+    }
+
+    /**
+     * Sets the isErrorOnELNotFound.
+     * @param isErrorOnELNotFound The isErrorOnELNotFound to set
+     */
+    public void setErrorOnELNotFound(boolean isErrorOnELNotFound) {
+        this.isErrorOnELNotFound = isErrorOnELNotFound;
     }
 
     // jsp2.1work

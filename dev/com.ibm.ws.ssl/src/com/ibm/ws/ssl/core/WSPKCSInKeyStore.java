@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 1997, 2008 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,6 +34,7 @@ import javax.net.ssl.TrustManagerFactory;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.websphere.ssl.Constants;
 import com.ibm.websphere.ssl.JSSEProvider;
 import com.ibm.ws.ffdc.FFDCFilter;
 import com.ibm.ws.kernel.service.util.JavaInfo;
@@ -87,18 +90,22 @@ public final class WSPKCSInKeyStore {
      * @throws Exception
      */
     public WSPKCSInKeyStore(String tokenConfigName, String ksProvider) throws Exception {
-        if (ksProvider.equals(SUNPKCS11_PROVIDER_NAME)) {
+        if (!ksProvider.equals(Constants.IBMPKCS11Impl_NAME)) {
             pkcsType = pkcsType_oracle;
-            pkcsProvider = SUNPKCS11_PROVIDER_NAME;
+            pkcsProvider = ksProvider;
             pkcsProviderClass = ORACLE_PKCS11_PROVIDER_CLASS_NAME;
         }
 
-        initializePKCS11ImplProvider(tokenConfigName);
+        if (ksProvider.equals(Constants.IBMPKCS11Impl_NAME) || ksProvider.equals(SUNPKCS11_PROVIDER_NAME))
+            initializePKCS11ImplProvider(tokenConfigName);
     }
 
     public void asKeyStore(String tokenType, String tokenlib, String tokenPwd) throws Exception {
 
         jsseProvider = JSSEProviderFactory.getInstance();
+        String provider = pkcsProvider;
+        if (hwProvider != null)
+            provider = hwProvider.getName();
 
         try {
             if (tokenLib_key != null && tokenLib_key.compareToIgnoreCase(tokenlib) == 0 && ks != null) {
@@ -112,7 +119,7 @@ public final class WSPKCSInKeyStore {
                 kmf.init(ts, tokenPwd.toCharArray());
             } else {
                 kmf = jsseProvider.getKeyManagerFactoryInstance();
-                ks = KeyStore.getInstance(pkcsType, hwProvider.getName());
+                ks = KeyStore.getInstance(pkcsType, provider);
                 // no need to load the keystore if it is used for pure acceleration
                 // purpose
                 ks.load(null, tokenPwd.toCharArray());
@@ -138,6 +145,9 @@ public final class WSPKCSInKeyStore {
 
     public void asTrustStore(String tokenType, String tokenlib, String tokenPwd) throws Exception {
         jsseProvider = JSSEProviderFactory.getInstance();
+        String provider = pkcsProvider;
+        if (hwProvider != null)
+            provider = hwProvider.getName();
 
         try {
             if (tokenLib_trust != null && tokenLib_trust.compareToIgnoreCase(tokenlib) == 0 && ts != null) {
@@ -151,7 +161,7 @@ public final class WSPKCSInKeyStore {
                 tmf.init(ks);
             } else {
                 tmf = jsseProvider.getTrustManagerFactoryInstance();
-                ts = KeyStore.getInstance(pkcsType, hwProvider.getName());
+                ts = KeyStore.getInstance(pkcsType, provider);
                 ts.load(null, tokenPwd.toCharArray());
                 tmf.init(ts);
             }

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,7 @@
 package com.ibm.ws.kernel.boot.security;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -27,20 +30,20 @@ import javax.net.ssl.SSLSocketFactory;
 public class SSLSocketFactoryProxy extends javax.net.ssl.SSLSocketFactory {
     private javax.net.ssl.SSLSocketFactory factory = null;
     private static com.ibm.ws.kernel.boot.security.SSLSocketFactoryProxy thisClass = null;
+    private static volatile Class<SSLSocketFactory> theFactoryClass = null;
 
     public SSLSocketFactoryProxy() {
 
-        Class<?> target;
+        Class<?> theClazz = theFactoryClass;
+        if (theClazz == null) {
+            throw new RuntimeException("No factory set.");
+        }
         try {
-            target = Thread.currentThread().getContextClassLoader().loadClass("com.ibm.ws.ssl.protocol.LibertySSLSocketFactory");
-            factory = (SSLSocketFactory) target.newInstance();
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e.getMessage());
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e.getMessage());
-        } catch (InstantiationException e) {
+            factory = (SSLSocketFactory) theClazz.getConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException e) {
             throw new RuntimeException(e.getMessage());
         }
+
     }
 
     public static javax.net.SocketFactory getDefault() {

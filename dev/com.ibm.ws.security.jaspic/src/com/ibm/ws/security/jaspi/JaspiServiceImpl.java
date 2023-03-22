@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2018 IBM Corporation and others.
+ * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -93,6 +95,7 @@ public class JaspiServiceImpl implements JaspiService, WebAuthenticator {
     private static final TraceComponent tc = Tr.register(JaspiServiceImpl.class);
     private static final String AUTH_TYPE = "javax.servlet.http.authType";
     private static final String IS_MANDATORY_POLICY = "javax.security.auth.message.MessagePolicy.isMandatory";
+    private static final String JAKARTA_IS_AUTHENTICATION_REQUEST = "jakarta.servlet.http.isAuthenticationRequest";
     private static final String JACC_POLICY_CONTEXT = "javax.security.jacc.PolicyContext";
     public static final String UNAUTHENTICATED_ID = "UNAUTHENTICATED"; // TODO find a better home for this
 
@@ -414,7 +417,7 @@ public class JaspiServiceImpl implements JaspiService, WebAuthenticator {
     private AuthenticationResult processAuthStatus(Subject clientSubject, JaspiRequest jaspiRequest, AuthStatus status,
                                                    MessageInfo msgInfo, boolean isJSR375) throws WSLoginFailedException {
         AuthenticationResult authResult;
-        if (AuthStatus.SUCCESS == status || AuthStatus.SEND_SUCCESS == status) {
+        if (AuthStatus.SUCCESS == status) {
             // if the provider asked that the subject be used on subsequent
             // invocations then indicate that in the request object. later we will
             // create an ltpa token cookie for the jaspi session
@@ -538,6 +541,7 @@ public class JaspiServiceImpl implements JaspiService, WebAuthenticator {
         HttpServletRequest req = jaspiRequest.getHttpServletRequest();
         MessageInfo msgInfo = new JaspiMessageInfo(req, jaspiRequest.getHttpServletResponse());
         msgInfo.getMap().put(IS_MANDATORY_POLICY, Boolean.toString(jaspiRequest.isMandatory()));
+        msgInfo.getMap().put(JAKARTA_IS_AUTHENTICATION_REQUEST, Boolean.toString(jaspiRequest.isRequestAuthenticate()));
         return msgInfo;
     }
 
@@ -694,8 +698,14 @@ public class JaspiServiceImpl implements JaspiService, WebAuthenticator {
             Tr.entry(tc, "mapToAuthenticationResult", "AuthStatus=" + status);
         AuthenticationResult authResult = null;
         String pretty = "FAILURE";
-        if (AuthStatus.SUCCESS == status || AuthStatus.SEND_SUCCESS == status) {
-
+        if (AuthStatus.SEND_SUCCESS == status) {
+            if (tc.isDebugEnabled())
+                Tr.debug(tc, "SEND_SUCCES received. Returning without going to the service.");
+            int responseStatus = getResponseStatus(jaspiRequest.getHttpServletResponse());
+            authResult = new AuthenticationResult(AuthResult.RETURN, "Returning response from JASPIC Authenticated with status: " + responseStatus);
+            pretty = "SEND_SUCCESS";
+        }
+        if (AuthStatus.SUCCESS == status) {
             authResult = new AuthenticationResult(AuthResult.SUCCESS, clientSubject);
             pretty = "SUCCESS";
 

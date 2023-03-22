@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -840,7 +842,8 @@ public final class WSX509TrustManager extends X509ExtendedTrustManager {
 
         Exception excpt = configTrustEx;
         if (excpt.getClass().toString().startsWith("class com.ibm.jsse2")) {
-            excpt = (Exception) excpt.getCause();
+            if (excpt.getCause() != null)
+                excpt = (Exception) excpt.getCause();
         }
 
         FFDCFilter.processException(excpt, getClass().getName(), "checkClientTrusted", this, new Object[] { chain, authType });
@@ -899,7 +902,8 @@ public final class WSX509TrustManager extends X509ExtendedTrustManager {
         // IBM JDK will throw the exception in obfuscated code, get the cause
         Exception e = excpt;
         if (e.getClass().toString().startsWith("class com.ibm.jsse2")) {
-            e = (Exception) excpt.getCause();
+            if (excpt.getCause() != null)
+                e = (Exception) excpt.getCause();
         }
 
         // This the server print a message and rethrow the exception

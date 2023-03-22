@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -76,6 +78,20 @@ public class DeferrableScheduledExecutorImpl implements ScheduledExecutorService
     @Override
     public void execute(Runnable command) {
         executor.execute(command);
+    }
+
+    // Java 19 Method
+    public void close() {
+        if (executor instanceof AutoCloseable) {
+            // Java 19
+            try {
+                ((AutoCloseable) executor).close();
+            } catch (Exception e) {
+                // Should not happen - the executor close method does not throw an exception
+            }
+        } else {
+            throw new UnsupportedOperationException("Method 'close' is not supported prior to Java 19");
+        }
     }
 
     @Override

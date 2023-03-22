@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,33 +24,28 @@ import com.ibm.wsspi.sib.core.SelectorDomain;
 /**
  * @author Neil Young
  */
-public class MPSelectionCriteriaFactoryImpl extends MPSelectionCriteriaFactory 
+public class MPSelectionCriteriaFactoryImpl extends MPSelectionCriteriaFactory
 {
-  //trace
-  private static final TraceComponent tc =
-    SibTr.register(
-      MPSelectionCriteriaFactoryImpl.class,
-      SIMPConstants.MP_TRACE_GROUP,
-      SIMPConstants.RESOURCE_BUNDLE);
-  
+  private static final TraceComponent tc = SibTr.register(MPSelectionCriteriaFactoryImpl.class, SIMPConstants.MP_TRACE_GROUP, SIMPConstants.RESOURCE_BUNDLE);
+
   @Override
   public MPSelectionCriteria createSelectionCriteria(String discriminator,
       String selectorString, SelectorDomain selectorDomain,
       Map<String, Object> selectorProperties)
   {
-    if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) 
-      SibTr.entry(tc, "createSelectionCriteria" );        
-    
-    MPSelectionCriteria mpSelectionCriteria = 
+    if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
+      SibTr.entry(tc, "createSelectionCriteria" );
+
+    MPSelectionCriteria mpSelectionCriteria =
       new MPSelectionCriteriaImpl(discriminator,
-                                  selectorString, 
+                                  selectorString,
                                   selectorDomain,
                                   selectorProperties);
-    
+
     if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
       SibTr.exit(tc, "createSelectionCriteria", mpSelectionCriteria);
-      
+
     return mpSelectionCriteria;
-  } 
+  }
 
 }

@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,20 +14,17 @@ package com.ibm.jbatch.container.persistence.jpa;
 
 import javax.batch.operations.BatchRuntimeException;
 
-import org.eclipse.persistence.descriptors.ClassExtractor;
-import org.eclipse.persistence.sessions.Record;
-import org.eclipse.persistence.sessions.Session;
-
+import com.ibm.jbatch.container.persistence.jpa.extractor.AbstractStepThreadExecutionEntityExtractor;
 import com.ibm.jbatch.container.servicesmanager.ServicesManagerStaticAnchor;
 
 /**
  *
  */
-public class StepThreadExecutionEntityExtractor extends ClassExtractor {
+public class StepThreadExecutionEntityExtractor extends AbstractStepThreadExecutionEntityExtractor {
 
     /** {@inheritDoc} */
     @Override
-    public Class extractClassFromRow(Record record, Session session) {
+    public Class getStepThreadExecutionEntityType() {
 
         //
         // If we understood the lifecycle of ClassExtractor within EclipseLink we

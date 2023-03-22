@@ -1,14 +1,18 @@
 /*******************************************************************************
  * Copyright (c) 2003, 2009 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.sib.jfapchannel.richclient.framework.impl;
+
+import static com.ibm.ws.messaging.lifecycle.SingletonsReady.requireService;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -192,7 +196,7 @@ public class ChannelFrameworkReference
    * @return Returns the singleton instance of the channel framework.
    */
     public static synchronized ChannelFramework getInstance() {
-       return CommsClientServiceFacade.getChannelFramewrok();
+       return requireService(CommsClientServiceFacade.class).getChannelFramework();
     }
     
     public static boolean isOutboundSSLChainDefinedWithoutProperties()

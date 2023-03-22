@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,6 +18,9 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,7 +48,7 @@ import com.ibm.ws.logging.collector.LogFieldConstants;
 import com.ibm.ws.logging.data.GenericData;
 import com.ibm.ws.logging.utils.SequenceNumber;
 import com.ibm.ws.security.audit.event.AuditMgmtEvent;
-import com.ibm.ws.security.audit.utils.AuditUtils;
+import com.ibm.ws.security.audit.source.utils.AuditUtils;
 import com.ibm.wsspi.collector.manager.BufferManager;
 import com.ibm.wsspi.collector.manager.Source;
 import com.ibm.wsspi.kernel.service.location.VariableRegistry;
@@ -115,7 +120,11 @@ public class AuditServiceImpl implements AuditService, Source {
     private String[] auditData = null;
     private String[] outcome = null;
     private Map<String, Object> thisConfiguration = null;
-    private AuditEvent[] savedEvent = new AuditEvent[10];
+    //private int maxSavedEvents = 200;
+    List<AuditEvent> list = new ArrayList<AuditEvent>();
+    private List<AuditEvent> savedEvent = Collections.synchronizedList(list);
+
+    //private AuditEvent[] savedEvent = new AuditEvent[maxSavedEvents];
     private int savedEventIndex = 0;
     private final boolean savedEventEmitted = false;
     private String serverID = null;
@@ -123,6 +132,7 @@ public class AuditServiceImpl implements AuditService, Source {
     private boolean auditServiceStarted = false;
     private boolean emitted1 = false;
     private final boolean emitted2 = false;
+    private boolean emitMsgOnce = true; 
 
     @Activate
     protected void activate(ComponentContext cc, Map<String, Object> configuration) {
@@ -380,26 +390,11 @@ public class AuditServiceImpl implements AuditService, Source {
                     }
                     return true;
                 } else {
-                    boolean foundMatchingEvent = false;
-                    boolean foundAnOutcome = false;
-                    boolean foundMatchingEventAndOutcome = false;
-                    for (Entry<String, Object> entry : handlerEvents.entrySet()) {
-                        if (entry.getKey().equals(AuditConstants.EVENT_NAME) && entry.getValue().equals(eventType)) {
-                            foundMatchingEvent = true;
-                        } else {
-                            if (entry.getKey().equals(AuditConstants.OUTCOME)) {
-                                foundAnOutcome = true;
-                                if (entry.getValue().toString().equalsIgnoreCase(outcome)) {
-                                    if (foundMatchingEvent) {
-                                        foundMatchingEventAndOutcome = true;
-                                    }
-                                }
-                            }
+                    if (eventType.equals(handlerEvents.get(AuditConstants.EVENT_NAME))) {
+                        Object eventOutcome = handlerEvents.get(AuditConstants.OUTCOME);
+                        if (eventOutcome == null || eventOutcome.toString().equalsIgnoreCase(outcome)) {
+                            return true;
                         }
-
-                    }
-                    if (foundMatchingEventAndOutcome || (foundMatchingEvent && !foundAnOutcome)) {
-                        return true;
                     }
                 }
             }
@@ -480,7 +475,18 @@ public class AuditServiceImpl implements AuditService, Source {
                         if (tc.isDebugEnabled()) {
                             Tr.debug(tc, "sendEvent, savedEventIndex = " + savedEventIndex + " saved event: " + event.toString());
                         }
-                        savedEvent[savedEventIndex++] = event;
+                        savedEvent.add(event);
+                        savedEventIndex++;
+                        //if (savedEventIndex < maxSavedEvents) {
+                        //    savedEvent[savedEventIndex++] = event;
+                        //} else {
+                        //    if (emitMsgOnce) {
+                        //        if (tc.isDebugEnabled()) {
+                        //            Tr.debug("Exceeded the maximum number of saved audit events, truncating");
+                        //        }
+                        //        emitMsgOnce = false;
+                        //    }
+                        //}
                     }
                 }
 
@@ -496,16 +502,25 @@ public class AuditServiceImpl implements AuditService, Source {
             if (bufferMgr == null)
                 Tr.debug(tc, "emitSavedEvents, bufferMgr is null");
         }
-        if (bufferMgr != null) {
+        if (bufferMgr != null) {                                
             if (!savedEventEmitted) {
-                if (savedEvent != null && savedEvent.length > 0) {
-                    for (int i = 0; i < savedEventIndex; i++) {
-                        sendEvent(savedEvent[i]);
-                    }
-                    //savedEventEmitted = true;
-                    savedEvent = new AuditEvent[10];
-                    savedEventIndex = 0;
+
+                Iterator iter = savedEvent.iterator();
+                while (iter.hasNext()) {
+                    sendEvent((AuditEvent)iter.next());
                 }
+                savedEvent.clear();
+                savedEventIndex = 0;
+                //if (savedEvent != null && savedEvent.length > 0) {
+                //    for (int i = 0; i < savedEventIndex; i++) {
+                //        if (i < maxSavedEvents) {
+                //            sendEvent(savedEvent[i]);
+                //        }
+                //    }
+                    //savedEventEmitted = true;
+                //    savedEvent = new AuditEvent[maxSavedEvents];
+                //    savedEventIndex = 0;
+                //}
             }
         }
     }

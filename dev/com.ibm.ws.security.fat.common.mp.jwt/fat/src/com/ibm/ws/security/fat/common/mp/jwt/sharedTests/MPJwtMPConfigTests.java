@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -117,6 +119,7 @@ public class MPJwtMPConfigTests extends CommonMpJwtFat {
         fatUtils.updateFeatureFiles(server, setActionInstance(RepeatTestFilter.getRepeatActionsAsString()), "mpConfigFeatures", "rsFeatures");
 
         serverTracker.addServer(server);
+        transformApps(server);
         server.startServerUsingExpandedConfiguration(configFile, commonStartMsgs);
         SecurityFatHttpUtils.saveServerPorts(server, MPJwtFatConstants.BVT_SERVER_1_PORT_NAME_ROOT);
         server.addIgnoredErrors(Arrays.asList(MpJwtMessageConstants.CWWKW1001W_CDI_RESOURCE_SCOPE_MISMATCH, MpJwtMessageConstants.CWWKG0032W_CONFIG_INVALID_VALUE));
@@ -152,6 +155,7 @@ public class MPJwtMPConfigTests extends CommonMpJwtFat {
 
         baseSetupUtils.deployMicroProfileApp(rs_server);
         serverTracker.addServer(rs_server);
+        transformApps(rs_server);
         rs_server.startServerUsingExpandedConfiguration(configFile, commonStartMsgs);
         SecurityFatHttpUtils.saveServerPorts(rs_server, MPJwt11FatConstants.BVT_SERVER_1_PORT_NAME_ROOT);
         rs_server.addIgnoredErrors(Arrays.asList(MpJwtMessageConstants.CWWKW1001W_CDI_RESOURCE_SCOPE_MISMATCH));

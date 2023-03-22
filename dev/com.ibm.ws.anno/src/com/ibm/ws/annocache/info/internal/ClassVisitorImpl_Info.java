@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -23,6 +25,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import com.ibm.ws.annocache.info.internal.AnnotationVisitorImpl_Info.AnnotationInfoVisitor;
+
+import io.openliberty.asm.ASMHelper;
 
 // Visit rules:
 //
@@ -144,7 +148,7 @@ public class ClassVisitorImpl_Info extends ClassVisitor {
          * annotations.
          */
         public MethodVisitorImpl_Info() {
-            super(Opcodes.ASM8);
+            super(ASMHelper.getCurrentASM());
 
             this.methodInfo = null;
             this.methodAnnotations = null;
@@ -284,7 +288,7 @@ public class ClassVisitorImpl_Info extends ClassVisitor {
          * to a field, and has a null method and null annotations.
          */
         public FieldVisitorImpl_Info() {
-            super(Opcodes.ASM8);
+            super(ASMHelper.getCurrentASM());
 
             fieldInfo = null;
             annotations = null;
@@ -356,7 +360,7 @@ public class ClassVisitorImpl_Info extends ClassVisitor {
     //
 
     public ClassVisitorImpl_Info(InfoStoreImpl infoStore, String externalName) {
-        super(Opcodes.ASM8);
+        super(ASMHelper.getCurrentASM());
 
         String methodName = "<init>";
 

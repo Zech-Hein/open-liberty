@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2021 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,6 +35,7 @@ import componenttest.annotation.TestServlet;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.LibertyServer;
 
@@ -49,7 +52,7 @@ import componenttest.topology.impl.LibertyServer;
  * request during the mbean call which happens inside the initial servlet call.
  */
 @RunWith(FATRunner.class)
-@SkipForRepeat(JakartaEE9Action.ID)
+@SkipForRepeat({ JakartaEE9Action.ID, JakartaEE10Action.ID })
 public class RequestTimingMetricsTest {
 
     private static final Class<RequestTimingMetricsTest> c = RequestTimingMetricsTest.class;

@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2021 IBM Corporation and others.
+ * Copyright (c) 2020, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -37,9 +39,11 @@ import com.ibm.ws.kernel.boot.ReturnCode;
 import com.ibm.ws.kernel.boot.cmdline.ActionHandler;
 import com.ibm.ws.kernel.boot.cmdline.Arguments;
 import com.ibm.ws.kernel.boot.cmdline.ExitCode;
+import com.ibm.ws.kernel.boot.cmdline.Utils;
 import com.ibm.ws.kernel.feature.internal.cmdline.ArgumentsImpl;
 import com.ibm.ws.kernel.provisioning.BundleRepositoryRegistry;
 import com.ibm.ws.product.utility.CommandConsole;
+import com.ibm.ws.product.utility.CommandConstants;
 import com.ibm.ws.product.utility.CommandTaskRegistry;
 import com.ibm.ws.product.utility.ExecutionContext;
 import com.ibm.ws.product.utility.extension.ValidateCommandTask;
@@ -54,7 +58,6 @@ public class InstallFeatureAction implements ActionHandler {
         private String fromDir;
         private String to;
         private String featuresBom;
-        private File esaFile;
         private List<File> esaFiles;
         private List<String> additionalJsons;
         private Boolean noCache;
@@ -128,7 +131,7 @@ public class InstallFeatureAction implements ActionHandler {
                         return rc;
                 }
                 try {
-                        checkAssetsNotInstalled(new ArrayList<>(featureNames));
+					checkAssetsNotInstalled(new ArrayList<>(featureNames), true);
                 } catch (InstallException e) {
                 	logger.log(Level.SEVERE, e.getMessage(), e);
                     return FeatureUtilityExecutor.returnCode(e.getRc());
@@ -183,12 +186,10 @@ public class InstallFeatureAction implements ActionHandler {
         private ReturnCode esaInstallInit(String esaPath) {
 
                 try {
-                        String feature = InstallUtils.getFeatureName(esaFile);
-//                        Set<String> features = new HashSet<String>();
-//                        features.add(feature);
-                        featureNames.add(feature);
-//                        installKernel.resolve(feature, esaFile, repoType);
-//                        featureLicenses = installKernel.getFeatureLicense(Locale.getDefault());
+		    File esaFile = new File(esaPath);
+		    String feature = InstallUtils.getFeatureName(esaFile);
+		    featureNames.add(feature);
+		    esaFiles.add(esaFile);
                 } catch (InstallException e) {
                         logger.log(Level.SEVERE, e.getMessage(), e);
                         return FeatureUtilityExecutor.returnCode(e.getRc());
@@ -208,8 +209,8 @@ public class InstallFeatureAction implements ActionHandler {
         }
 
         // call the install kernel to verify we are installing at least 1 new asset
-        private void checkAssetsNotInstalled(List<String> assetIds) throws InstallException {
-                installKernel.checkAssetsNotInstalled(assetIds);
+		private void checkAssetsNotInstalled(List<String> assetIds, boolean installingFeature) throws InstallException {
+			installKernel.checkAssetsNotInstalled(assetIds, installingFeature);
         }
 
         private ReturnCode validateFromDir(String fromDir) {
@@ -347,6 +348,9 @@ public class InstallFeatureAction implements ActionHandler {
 
                         @Override
                         public <T> T getAttribute(String name, Class<T> cls) {
+						if (name.equals(CommandConstants.WLP_INSTALLATION_LOCATION)) {
+							return (T) Utils.getInstallDir();
+						}
                                 return null;
                         }
 

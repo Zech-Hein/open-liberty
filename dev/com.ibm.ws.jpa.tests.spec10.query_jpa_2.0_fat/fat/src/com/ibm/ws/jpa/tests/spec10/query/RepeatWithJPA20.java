@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2021 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,30 +14,22 @@
 package com.ibm.ws.jpa.tests.spec10.query;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
+
+import com.ibm.ws.testtooling.jpaprovider.JPAPersistenceProvider;
 
 import componenttest.common.apiservices.Bootstrap;
-import componenttest.rules.repeater.EE7FeatureReplacementAction;
-import componenttest.rules.repeater.FeatureReplacementAction;
+import componenttest.custom.junit.runner.Mode.TestMode;
+import componenttest.rules.repeater.EE6FeatureReplacementAction;
 
-/**
- *
- */
-public class RepeatWithJPA20 extends FeatureReplacementAction {
-    public static final String ID = "JPA20_FEATURES";
+public class RepeatWithJPA20 extends EE6FeatureReplacementAction {
+    public static final String ID = "JPA20";
 
+    /**
+     * Allow the default repeat action to run on LITE mode
+     */
     public RepeatWithJPA20() {
-        super(EE7FeatureReplacementAction.EE7_FEATURE_SET, featuresToAdd());
-        forceAddFeatures(false);
-        this.withID(ID);
-    }
-
-    private static Set<String> featuresToAdd() {
-        Set<String> addFeatures = new HashSet<>(EE7FeatureReplacementAction.EE7_FEATURE_SET);
-        addFeatures.remove("jpa-2.1");
-        addFeatures.add("jpa-2.0");
-        return addFeatures;
+        // Used in componenttest.rules.repeater.RepeatTestAction.isEnabled() to determine if the test should run
+        withTestMode(TestMode.LITE);
     }
 
     @Override
@@ -44,7 +38,7 @@ public class RepeatWithJPA20 extends FeatureReplacementAction {
             Bootstrap b = Bootstrap.getInstance();
             String installRoot = b.getValue("libertyInstallPath");
             File jpa20Feature = new File(installRoot + "/lib/features/com.ibm.websphere.appserver.jpa-2.0.mf");
-            return jpa20Feature.exists();
+            return jpa20Feature.exists() && super.isEnabled();
         } catch (Exception e) {
             return false;
         }
@@ -52,6 +46,17 @@ public class RepeatWithJPA20 extends FeatureReplacementAction {
 
     @Override
     public String toString() {
-        return "Set JPA feature to 2.0 version";
+        return "JPA 2.0";
+    }
+
+    @Override
+    public void setup() throws Exception {
+        FATSuite.repeatPhase = "jpa20-cfg.xml";
+        FATSuite.provider = JPAPersistenceProvider.OPENJPA;
+    }
+
+    @Override
+    public String getID() {
+        return ID;
     }
 }

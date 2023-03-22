@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 IBM Corporation and others.
+ * Copyright (c) 2011, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,12 +17,16 @@ import java.util.List;
 
 import com.ibm.ws.javaee.dd.common.AdministeredObject;
 import com.ibm.ws.javaee.dd.common.ConnectionFactory;
+import com.ibm.ws.javaee.dd.common.ContextService;
 import com.ibm.ws.javaee.dd.common.DataSource;
 import com.ibm.ws.javaee.dd.common.EJBRef;
 import com.ibm.ws.javaee.dd.common.EnvEntry;
 import com.ibm.ws.javaee.dd.common.JMSConnectionFactory;
 import com.ibm.ws.javaee.dd.common.JMSDestination;
 import com.ibm.ws.javaee.dd.common.MailSession;
+import com.ibm.ws.javaee.dd.common.ManagedExecutor;
+import com.ibm.ws.javaee.dd.common.ManagedScheduledExecutor;
+import com.ibm.ws.javaee.dd.common.ManagedThreadFactory;
 import com.ibm.ws.javaee.dd.common.MessageDestinationRef;
 import com.ibm.ws.javaee.dd.common.PersistenceContextRef;
 import com.ibm.ws.javaee.dd.common.PersistenceUnitRef;
@@ -34,73 +40,75 @@ import com.ibm.ws.javaee.ddmodel.common.wsclient.ServiceRefGroup;
  <xsd:group name="jndiEnvironmentRefsGroup">
  <xsd:sequence>
  <xsd:element name="env-entry"
- type="javaee:env-entryType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:env-entryType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="ejb-ref"
- type="javaee:ejb-refType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:ejb-refType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="ejb-local-ref"
- type="javaee:ejb-local-refType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:ejb-local-refType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:group ref="javaee:service-refGroup"/>
  <xsd:element name="resource-ref"
- type="javaee:resource-refType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:resource-refType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="resource-env-ref"
- type="javaee:resource-env-refType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:resource-env-refType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="message-destination-ref"
- type="javaee:message-destination-refType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:message-destination-refType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="persistence-context-ref"
- type="javaee:persistence-context-refType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:persistence-context-refType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="persistence-unit-ref"
- type="javaee:persistence-unit-refType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:persistence-unit-refType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="post-construct"
- type="javaee:lifecycle-callbackType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:lifecycle-callbackType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="pre-destroy"
- type="javaee:lifecycle-callbackType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:lifecycle-callbackType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="data-source"
- type="javaee:data-sourceType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:data-sourceType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="jms-connection-factory"
- type="javaee:jms-connection-factoryType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:jms-connection-factoryType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="jms-destination"
- type="javaee:jms-destinationType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:jms-destinationType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="mail-session"
- type="javaee:mail-sessionType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:mail-sessionType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="connection-factory"
- type="javaee:connection-factory-resourceType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:connection-factory-resourceType"
+              minOccurs="0" maxOccurs="unbounded"/>
  <xsd:element name="administered-object"
- type="javaee:administered-objectType"
- minOccurs="0"
- maxOccurs="unbounded"/>
+              type="javaee:administered-objectType"
+              minOccurs="0" maxOccurs="unbounded"/>
  </xsd:sequence>
  </xsd:group>
  */
+
+/*
+ Jakarta EE 10:
+ <xsd:group name="jndiEnvironmentRefsGroup">
+   ...
+   <xsd:element name="context-service"
+                type="jakartaee:context-serviceType"
+                minOccurs="0" maxOccurs="unbounded"/>
+   <xsd:element name="managed-executor"
+                type="jakartaee:managed-executorType"
+                minOccurs="0" maxOccurs="unbounded"/>
+   <xsd:element name="managed-scheduled-executor"
+                type="jakartaee:managed-scheduled-executorType"
+                minOccurs="0" maxOccurs="unbounded"/>
+   <xsd:element name="managed-thread-factory"
+                type="jakartaee:managed-thread-factoryType"
+                minOccurs="0" maxOccurs="unbounded"/>
+*/
 
 public class JNDIEnvironmentRefs extends ServiceRefGroup implements com.ibm.ws.javaee.dd.common.JNDIEnvironmentRefs {
 
@@ -191,6 +199,15 @@ public class JNDIEnvironmentRefs extends ServiceRefGroup implements com.ibm.ws.j
     }
 
     @Override
+    public List<ContextService> getContextServices() {
+        if (context_service != null) {
+            return context_service.getList();
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
     public List<DataSource> getDataSources() {
         if (data_source != null) {
             return data_source.getList();
@@ -221,6 +238,33 @@ public class JNDIEnvironmentRefs extends ServiceRefGroup implements com.ibm.ws.j
     public List<MailSession> getMailSessions() {
         if (mail_session != null) {
             return mail_session.getList();
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public List<ManagedExecutor> getManagedExecutors() {
+        if (managed_executor != null) {
+            return managed_executor.getList();
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public List<ManagedScheduledExecutor> getManagedScheduledExecutors() {
+        if (managed_scheduled_executor != null) {
+            return managed_scheduled_executor.getList();
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public List<ManagedThreadFactory> getManagedThreadFactories() {
+        if (managed_thread_factory != null) {
+            return managed_thread_factory.getList();
         } else {
             return Collections.emptyList();
         }
@@ -259,7 +303,11 @@ public class JNDIEnvironmentRefs extends ServiceRefGroup implements com.ibm.ws.j
     private MailSessionType.ListType mail_session;
     private ConnectionFactoryType.ListType connection_factory;
     private AdministeredObjectType.ListType administered_object;
-
+    private ContextServiceType.ListType context_service;
+    private ManagedExecutorType.ListType managed_executor;
+    private ManagedScheduledExecutorType.ListType managed_scheduled_executor;
+    private ManagedThreadFactoryType.ListType managed_thread_factory;
+    
     @Override
     public boolean handleChild(DDParser parser, String localName) throws ParseException {
         if (super.handleChild(parser, localName)) {
@@ -319,36 +367,60 @@ public class JNDIEnvironmentRefs extends ServiceRefGroup implements com.ibm.ws.j
             addDataSource(data_source);
             return true;
         }
-        if (parser.eePlatformVersion >= 70 && "jms-connection-factory".equals(localName)) {
-            JMSConnectionFactoryType jms_connection_factory = new JMSConnectionFactoryType();
-            parser.parse(jms_connection_factory);
-            addJMSConnectionFactory(jms_connection_factory);
-            return true;
+        if ( parser.eePlatformVersion >= 70 ) {
+            if ("jms-connection-factory".equals(localName)) {
+                JMSConnectionFactoryType jms_connection_factory = new JMSConnectionFactoryType();
+                parser.parse(jms_connection_factory);
+                addJMSConnectionFactory(jms_connection_factory);
+                return true;
+            } else if( "jms-destination".equals(localName) ) {
+                JMSDestinationType jms_destination = new JMSDestinationType();
+                parser.parse(jms_destination);
+                addJMSDestination(jms_destination);
+                return true;
+            } else if ( "mail-session".equals(localName) ) {
+                MailSessionType mail_session = new MailSessionType();
+                parser.parse(mail_session);
+                addMailSession(mail_session);
+                return true;
+            } else if ( "connection-factory".equals(localName) ) {
+                ConnectionFactoryType connection_factory = new ConnectionFactoryType();
+                parser.parse(connection_factory);
+                addConnectionFactory(connection_factory);
+                return true;
+            } else if ( "administered-object".equals(localName) ) {
+                AdministeredObjectType administered_object = new AdministeredObjectType();
+                parser.parse(administered_object);
+                addAdministeredObject(administered_object);
+                return true;
+            }
         }
-        if (parser.eePlatformVersion >= 70 && "jms-destination".equals(localName)) {
-            JMSDestinationType jms_destination = new JMSDestinationType();
-            parser.parse(jms_destination);
-            addJMSDestination(jms_destination);
-            return true;
+
+        if ( parser.eePlatformVersion >= 100 ) {
+            if ( "context-service".equals(localName) ) {
+                ContextServiceType contextService = new ContextServiceType();
+                parser.parse(contextService);
+                addContextService(contextService);
+                return true;
+            } else if ( "managed-executor".equals(localName) ) {
+                ManagedExecutorType managedExecutor = new ManagedExecutorType();
+                parser.parse(managedExecutor);
+                addManagedExecutor(managedExecutor);
+                return true;
+            } else if ( "managed-scheduled-executor".equals(localName) ) {
+                ManagedScheduledExecutorType scheduledExecutor =
+                new ManagedScheduledExecutorType();
+                parser.parse(scheduledExecutor);
+                addManagedScheduledExecutor(scheduledExecutor);
+                return true;
+            } else if ( "managed-thread-factory".equals(localName) ) {
+                ManagedThreadFactoryType managedFactory = new ManagedThreadFactoryType();
+                parser.parse(managedFactory);
+                addManagedThreadFactory(managedFactory);
+                return true;
+            }
         }
-        if (parser.eePlatformVersion >= 70 && "mail-session".equals(localName)) {
-            MailSessionType mail_session = new MailSessionType();
-            parser.parse(mail_session);
-            addMailSession(mail_session);
-            return true;
-        }
-        if (parser.eePlatformVersion >= 70 && "connection-factory".equals(localName)) {
-            ConnectionFactoryType connection_factory = new ConnectionFactoryType();
-            parser.parse(connection_factory);
-            addConnectionFactory(connection_factory);
-            return true;
-        }
-        if (parser.eePlatformVersion >= 70 && "administered-object".equals(localName)) {
-            AdministeredObjectType administered_object = new AdministeredObjectType();
-            parser.parse(administered_object);
-            addAdministeredObject(administered_object);
-            return true;
-        }
+
         return false;
     }
 
@@ -450,6 +522,34 @@ public class JNDIEnvironmentRefs extends ServiceRefGroup implements com.ibm.ws.j
         this.administered_object.add(administered_object);
     }
 
+    private void addContextService(ContextServiceType context_service) {
+        if (this.context_service == null) {
+            this.context_service = new ContextServiceType.ListType();
+        }
+        this.context_service.add(context_service);
+    }
+
+    private void addManagedExecutor(ManagedExecutorType managed_executor) {
+        if (this.managed_executor == null) {
+            this.managed_executor = new ManagedExecutorType.ListType();
+        }
+        this.managed_executor.add(managed_executor);
+    }
+
+    private void addManagedScheduledExecutor(ManagedScheduledExecutorType managed_executor) {
+        if (this.managed_scheduled_executor == null) {
+            this.managed_scheduled_executor = new ManagedScheduledExecutorType.ListType();
+        }
+        this.managed_scheduled_executor.add(managed_executor);
+    }    
+
+    private void addManagedThreadFactory(ManagedThreadFactoryType managed_factory) {
+        if (this.managed_thread_factory == null) {
+            this.managed_thread_factory = new ManagedThreadFactoryType.ListType();
+        }
+        this.managed_thread_factory.add(managed_factory);
+    }    
+    
     @Override
     public void describe(DDParser.Diagnostics diag) {
         diag.describeIfSet("env-entry", env_entry);
@@ -467,5 +567,9 @@ public class JNDIEnvironmentRefs extends ServiceRefGroup implements com.ibm.ws.j
         diag.describeIfSet("mail-session", mail_session);
         diag.describeIfSet("connection-factory", connection_factory);
         diag.describeIfSet("administered-object", administered_object);
+        diag.describeIfSet("context-service", context_service); // Jakarta EE 10
+        diag.describeIfSet("managed-executor", managed_executor); // Jakarta EE 10
+        diag.describeIfSet("managed-scheduled-executor", managed_scheduled_executor); // Jakarta EE 10
+        diag.describeIfSet("managed-thread-factory", managed_thread_factory); // Jakarta EE 10
     }
 }

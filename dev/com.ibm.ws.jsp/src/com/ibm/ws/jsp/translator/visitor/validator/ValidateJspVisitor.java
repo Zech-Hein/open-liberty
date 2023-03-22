@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2004 IBM Corporation and others.
+ * Copyright (c) 1997, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,6 +22,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import com.ibm.ws.jsp.JspCoreException;
+import com.ibm.ws.jsp.PagesVersionHandler;
 import com.ibm.ws.jsp.configuration.JspConfiguration;
 import com.ibm.ws.jsp.translator.JspTranslationException;
 import com.ibm.ws.jsp.translator.utils.JspId;
@@ -324,6 +327,24 @@ public class ValidateJspVisitor extends ValidateVisitor {
 	                        throw new JspTranslationException(jspElement, "jsp.error.page.conflict.deferredsyntaxallowedasliteral");
                     }
                 }
+
+                if(PagesVersionHandler.isPages31OrHigherLoaded()){
+                    if (directiveName.equals("errorOnELNotFound")) {
+                        valid = true;
+                        if (directiveValue.equalsIgnoreCase("true")) {
+                            jspResult.setErrorOnELNotFound(true);
+                            jspConfiguration.setErrorOnELNotFound(true);
+                            jspConfiguration.setErrorOnELNotFoundSetTrueInPage(true);
+                        }
+                        else if (directiveValue.equalsIgnoreCase("false")) {
+                            jspResult.setErrorOnELNotFound(false);
+                            jspConfiguration.setErrorOnELNotFound(false);
+                        }
+                        else
+                            throw new JspTranslationException(jspElement, "jsp.error.page.invalid.erroronelnotfound");
+                    }
+                }
+                
                 if (valid == false) {
                     throw new JspTranslationException(jspElement, "jsp.error.page.directive.unknown", new Object[] { directiveName });
                 }

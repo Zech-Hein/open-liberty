@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012,2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -45,8 +47,8 @@ public class GeneratorOptions {
     private String outputFile;
     private String encoding = "UTF-8";
     private Locale locale = Locale.getDefault();
-    private SchemaVersion schemaVersion = SchemaVersion.getEnum("");
-    private OutputVersion outputVersion = OutputVersion.getEnum("");
+    private SchemaVersion schemaVersion = SchemaVersion.v1_0;
+    private OutputVersion outputVersion = OutputVersion.v1;
     private boolean compactOutput = false;
 
     /**
@@ -78,6 +80,10 @@ public class GeneratorOptions {
      */
     public ReturnCode processArgs(String[] args) {
         ReturnCode rc = ReturnCode.OK;
+        
+        if ((args.length == 0)) {
+            return ReturnCode.NO_ARGUMENT;
+        }
 
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
@@ -86,32 +92,56 @@ public class GeneratorOptions {
             if (arg.startsWith("-")) {
                 if (argToLower.contains("-help")) {
                     return ReturnCode.HELP_ACTION;
+                    
+                } else if (argToLower.contains("-compactoutput")) {
+                    compactOutput = processBooleanArg(argToLower);
+                                      
                 } else if (argToLower.contains("-ignorepidsfile")) {
                     try {
-                        addExcludeFile(new PidFileArgument(args[i]));
+                        addExcludeFile(new PidFileArgument(arg));
                     } catch (IOException ex) {
                         System.out.println(MessageFormat.format(messages.getString("error.fileNotFound"), args[i]));
                         System.out.println();
-                        rc = ReturnCode.BAD_ARGUMENT;
+                        return(ReturnCode.BAD_ARGUMENT);
                     }
+                    
                 } else if (argToLower.contains("-encoding")) {
-                    setEncoding(getArgumentValue(args[i]));
+                    setEncoding(getArgumentValue(arg));
+                    
                 } else if (argToLower.contains("-locale")) {
                     setLocale(new LocaleArgument(args[i]).getLocale());
+                    
                 } else if (argToLower.contains("-schemaversion")) {
-                    setSchemaVersion(SchemaVersion.getEnum(getArgumentValue(argToLower)));
+                    String argValue = getArgumentValue(argToLower);
+                    if (SchemaVersion.isValid(argValue)) {
+                        schemaVersion = SchemaVersion.getEnum(argValue);
+                    } else {
+                        System.out.println(MessageFormat.format(messages.getString("error.unknownSchemaVersion"), argValue));
+                        return(ReturnCode.BAD_ARGUMENT);
+                    }
+                    
                 } else if (argToLower.contains("-outputversion")) {
-                    setOutputVersion(OutputVersion.getEnum(getArgumentValue(argToLower)));
-                } else if (argToLower.contains("-compactoutput")) {
-                	setCompactOutput(Boolean.parseBoolean(getArgumentValue(args[i])));
+                    String argValue = getArgumentValue(argToLower);
+                    if (OutputVersion.isValid(argValue)) {
+                        outputVersion = OutputVersion.getEnum(argValue);
+                    } else {
+                        System.out.println(MessageFormat.format(messages.getString("error.unknownOutputVersion"), argValue));
+                        return(ReturnCode.BAD_ARGUMENT);
+                    }
+                	
                 }  else {
                     System.out.println(MessageFormat.format(messages.getString("error.unknownArgument"), arg));
-                    System.out.println();
-                    rc = ReturnCode.BAD_ARGUMENT;
+                    return(ReturnCode.BAD_ARGUMENT);
                 }
             } else {
+                // The online help doesn't indicate this, but the output file can be placed anywhere on the command line.
+                // It is indicated by not starting with a hyphen "-".  If we encounter a second non-hyphenated argument,
+                // flag the first one.  Reasoning:  the help says that the outputFile should be the final argument.  So
+                // if there are multipled non-hypenated args, the first should be considered as the invalid one; not the
+                // current arg that we are processing.
                 if (outputFile != null) {
-                    System.out.println(MessageFormat.format(messages.getString("error.unknownArgument"), arg));
+                    System.out.println(MessageFormat.format(messages.getString("error.unknownArgument"), outputFile));
+                    return(ReturnCode.BAD_ARGUMENT);
                 } else {
                     outputFile = arg;
                     rc = ReturnCode.GENERATE_ACTION;
@@ -127,6 +157,36 @@ public class GeneratorOptions {
         return rc;
     }
 
+    /**
+     * Boolean args are expected to be unary and are true if specified as unary.
+     * However, allow them to be specified as an assignment.  For example:
+     * Expected: 
+     *    --compactoutput    meaning: compactOutput=true
+     *
+     * Acceptable:
+     *    --compactoutput=true  (any value other than true is false)
+     *
+     * @param arg
+     * @return
+     */
+    private boolean processBooleanArg(String arg) {
+        String argValue;
+        try {
+            argValue= getArgumentValue(arg);
+            if (Boolean.parseBoolean(argValue)) {
+                return true;
+            } else {
+                return false;
+            }
+            
+        // If no "assignment" is specified, then it means the unary option is "true".
+        // This is actually the normal, documented, expected case, but code this 
+        // way to allow -unaryOption=true
+        } catch (SchemaGeneratorException sge) {
+            return true;
+        }
+    }
+    
     /**
      * @return
      */

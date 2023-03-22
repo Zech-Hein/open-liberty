@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -38,7 +40,7 @@ public abstract class AbstractTxSyncTestLogic extends AbstractTestLogic {
     /*
      * Note that the methods below that determines the synchronization type of a JPA resource is strictly a
      * declarative model from the test suite standpoint, and does not actually pull Synchronization configuration
-     * from an injected PersistenceContext. It is intended to be a sanity tester for test development.
+     * from an injected PersistenceContext. It is intended to be a tester for test development.
      *
      */
     protected final boolean isUnsynchronized(TestExecutionResources testExecResources, String resourceName) {

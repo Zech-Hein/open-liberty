@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2021 IBM Corporation and others.
+ * Copyright (c) 2017, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,6 +29,10 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.ibm.websphere.simplicity.config.cache.AuthCache;
+import com.ibm.websphere.simplicity.config.cache.Cache;
+import com.ibm.websphere.simplicity.config.cache.CacheManager;
+import com.ibm.websphere.simplicity.config.cache.CachingProvider;
 import com.ibm.websphere.simplicity.config.wim.FederatedRepository;
 import com.ibm.websphere.simplicity.config.wim.LdapFilters;
 import com.ibm.websphere.simplicity.config.wim.LdapRegistry;
@@ -56,6 +62,12 @@ public class ServerConfiguration implements Cloneable {
     @XmlElement(name = "bell")
     private ConfigElementList<Bell> bells;
 
+    @XmlElement(name = "cdi")
+    private ConfigElementList<Cdi> cdi;
+
+    @XmlElement(name = "cdi12")
+    private ConfigElementList<Cdi12> cdi12;
+
     @XmlElement(name = "httpEndpoint")
     private ConfigElementList<HttpEndpoint> httpEndpoints;
 
@@ -76,6 +88,18 @@ public class ServerConfiguration implements Cloneable {
 
     @XmlElement(name = "httpSessionDatabase")
     private HttpSessionDatabase httpSessionDatabase;
+
+    @XmlElement(name = "cache")
+    private ConfigElementList<Cache> caches;
+
+    @XmlElement(name = "authCache")
+    private ConfigElementList<AuthCache> authCaches;
+
+    @XmlElement(name = "cacheManager")
+    private ConfigElementList<CacheManager> cacheManagers;
+
+    @XmlElement(name = "cachingProvider")
+    private ConfigElementList<CachingProvider> cachingProviders;
 
     @XmlElement(name = "application")
     private ConfigElementList<Application> applications;
@@ -210,6 +234,9 @@ public class ServerConfiguration implements Cloneable {
     @XmlElement(name = "transaction")
     private Transaction transaction;
 
+    @XmlElement(name = "wsAtomicTransaction")
+    private WsAtomicTransaction wsAtomicTransaction;
+
     @XmlElement(name = "jndiEntry")
     private ConfigElementList<JNDIEntry> jndiEntryElements;
 
@@ -275,13 +302,25 @@ public class ServerConfiguration implements Cloneable {
 
     @XmlElement(name = "samesite")
     private ConfigElementList<SameSite> samesites;
-    
+
     @XmlElement(name = "headers")
     private ConfigElementList<Headers> headers;
 
     @XmlElement(name = "javaPermission")
     private ConfigElementList<JavaPermission> javaPermissions;
 
+    @XmlElement(name = "oauth2Login")
+    private ConfigElementList<OAuth2Login> oauth2Logins;
+
+    @XmlElement(name = "oidcLogin")
+    private ConfigElementList<OidcLogin> oidcLogins;
+    
+    @XmlElement(name = "openidConnectClient")
+    private ConfigElementList<OpenidConnectClient> openIdConnectClients;
+
+    @XmlElement(name = "jwtBuilder")
+    private ConfigElementList<JwtBuilder> jwtBuilders;
+    
     public ServerConfiguration() {
         this.description = "Generation date: " + new Date();
     }
@@ -386,6 +425,20 @@ public class ServerConfiguration implements Cloneable {
             this.bells = new ConfigElementList<Bell>();
         }
         return this.bells;
+    }
+
+    public ConfigElementList<Cdi> getCdi() {
+        if (this.cdi == null) {
+            this.cdi = new ConfigElementList<Cdi>();
+        }
+        return this.cdi;
+    }
+
+    public ConfigElementList<Cdi12> getCdi12() {
+        if (this.cdi12 == null) {
+            this.cdi12 = new ConfigElementList<Cdi12>();
+        }
+        return this.cdi12;
     }
 
     public ConfigElementList<Cloudant> getCloudants() {
@@ -499,6 +552,42 @@ public class ServerConfiguration implements Cloneable {
             this.httpSessionDatabase = new HttpSessionDatabase();
         }
         return this.httpSessionDatabase;
+    }
+
+    /**
+     * @return the list of caches configuration elements
+     */
+    public ConfigElementList<Cache> getCaches() {
+        if (this.caches == null)
+            this.caches = new ConfigElementList<Cache>();
+        return this.caches;
+    }
+
+    /**
+     * @return the list of authCaches configuration elements
+     */
+    public ConfigElementList<AuthCache> getAuthCaches() {
+        if (this.authCaches == null)
+            this.authCaches = new ConfigElementList<AuthCache>();
+        return this.authCaches;
+    }
+
+    /**
+     * @return the list of cachingProvider configuration elements
+     */
+    public ConfigElementList<CachingProvider> getCachingProviders() {
+        if (this.cachingProviders == null)
+            this.cachingProviders = new ConfigElementList<CachingProvider>();
+        return this.cachingProviders;
+    }
+
+    /**
+     * @return the list of cacheManagers configuration elements
+     */
+    public ConfigElementList<CacheManager> getCacheManagers() {
+        if (this.cacheManagers == null)
+            this.cacheManagers = new ConfigElementList<CacheManager>();
+        return this.cacheManagers;
     }
 
     public ConfigElementList<JMSActivationSpec> getJMSActivationSpecs() {
@@ -807,10 +896,10 @@ public class ServerConfiguration implements Cloneable {
     /**
      * Removes all applications with a specific name
      *
-     * @param name
-     * the name of the applications to remove
-     * @return the removed applications (no longer bound to the server
-     * configuration)
+     * @param  name
+     *                  the name of the applications to remove
+     * @return      the removed applications (no longer bound to the server
+     *              configuration)
      */
     public ConfigElementList<Application> removeApplicationsByName(String name) {
         ConfigElementList<Application> installedApps = this.getApplications();
@@ -828,14 +917,14 @@ public class ServerConfiguration implements Cloneable {
      * Adds an application to the current config, or updates an application with
      * a specific name if it already exists
      *
-     * @param name
-     * the name of the application
-     * @param path
-     * the fully qualified path to the application archive on the
-     * liberty machine
-     * @param type
-     * the type of the application (ear/war/etc)
-     * @return the deployed application
+     * @param  name
+     *                  the name of the application
+     * @param  path
+     *                  the fully qualified path to the application archive on the
+     *                  liberty machine
+     * @param  type
+     *                  the type of the application (ear/war/etc)
+     * @return      the deployed application
      */
     public Application addApplication(String name, String path, String type) {
         ConfigElementList<Application> apps = this.getApplications();
@@ -942,6 +1031,12 @@ public class ServerConfiguration implements Cloneable {
         if (this.transaction == null)
             this.transaction = new Transaction();
         return this.transaction;
+    }
+
+    public WsAtomicTransaction getWsAtomicTransaction() {
+        if (this.wsAtomicTransaction == null)
+            this.wsAtomicTransaction = new WsAtomicTransaction();
+        return this.wsAtomicTransaction;
     }
 
     /**
@@ -1137,8 +1232,8 @@ public class ServerConfiguration implements Cloneable {
      * which is currently deprecated. But this method is specific to Database rotation. If we start using the
      * fat.modify tag and modifiableConfigElement interface for other modification purposes this method can be un-deprecated
      *
-     * @param element The config element to check.
-     * @param modifiableConfigElements The list containing all modifiable elements.
+     * @param  element                  The config element to check.
+     * @param  modifiableConfigElements The list containing all modifiable elements.
      * @throws Exception
      */
     @Deprecated
@@ -1172,9 +1267,9 @@ public class ServerConfiguration implements Cloneable {
      * configuration for a feature which is not part of the product, for example one
      * that is built and installed by a FAT bucket.
      *
-     * @param tagName The tag name that should be removed.
+     * @param   tagName The tag name that should be removed.
      *
-     * @returns A list of the items that were removed.
+     * @returns         A list of the items that were removed.
      */
     public List<Element> removeUnknownElement(String tagName) {
         List<Element> removedElements = new LinkedList<Element>();
@@ -1294,31 +1389,80 @@ public class ServerConfiguration implements Cloneable {
         }
         return this.javaPermissions;
     }
-    
+
     /**
      * Add a Headers configuration to this server
+     *
      * @param headers The headers element to be added to this server
      */
     public void addHeaders(Headers headers) {
-        
+
         ConfigElementList<Headers> headersCfgs = getHeaders();
-        
-        for(Headers headersEntry: headersCfgs) {
-            if(headersEntry.getId().equals(headers.getId())) {
+
+        for (Headers headersEntry : headersCfgs) {
+            if (headersEntry.getId().equals(headers.getId())) {
                 headersCfgs.remove(headersEntry);
             }
         }
         headersCfgs.add(headers);
     }
-    
+
     /**
      * @return the headers configuration for this server
      */
-    public ConfigElementList<Headers> getHeaders(){
-        if(this.headers == null) {
+    public ConfigElementList<Headers> getHeaders() {
+        if (this.headers == null) {
             this.headers = new ConfigElementList<Headers>();
         }
         return this.headers;
-        
+
+    }
+
+    /**
+     * Get the 'oauth2Login' elements.
+     *
+     * @return The {@link OAuth2Login} configuration instance.
+     */
+    public ConfigElementList<OAuth2Login> getOAuth2Logins() {
+        if (this.oauth2Logins == null) {
+            this.oauth2Logins = new ConfigElementList<OAuth2Login>();
+        }
+        return this.oauth2Logins;
+    }
+
+    /**
+     * Get the 'oidcLogin' elements.
+     *
+     * @return The {@link OidcLogin} configuration instance.
+     */
+    public ConfigElementList<OidcLogin> getOidcLogins() {
+        if (this.oidcLogins == null) {
+            this.oidcLogins = new ConfigElementList<OidcLogin>();
+        }
+        return this.oidcLogins;
+    }
+
+    /**
+     * Get the 'openidConnectClient' elements.
+     *
+     * @return The {@link OpenidConnectClient} configuration instance.
+     */
+    public ConfigElementList<OpenidConnectClient> getOpenidConnectClients() {
+        if (this.openIdConnectClients == null) {
+            this.openIdConnectClients = new ConfigElementList<OpenidConnectClient>();
+        }
+        return this.openIdConnectClients;
+    }
+
+    /**
+     * Get the 'jwtBuilder' elements.
+     *
+     * @return The {@link JwtBuilder} configuration instance.
+     */
+    public ConfigElementList<JwtBuilder> getJwtBuilders() {
+        if (this.jwtBuilders == null) {
+            this.jwtBuilders = new ConfigElementList<JwtBuilder>();
+        }
+        return this.jwtBuilders;
     }
 }

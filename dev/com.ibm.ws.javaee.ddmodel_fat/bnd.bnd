@@ -1,9 +1,11 @@
 #*******************************************************************************
-# Copyright (c) 2018,2020 IBM Corporation and others.
+# Copyright (c) 2018, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -18,15 +20,34 @@ src: \
     test-applications/EJBTestNoBnd.jar/src, \
     test-applications/ServletTest.war/src, \
     test-applications/ServletTestNoBnd.war/src, \
+    test-applications/Simple.war/src, \
     test-bundles/ddmodel_fat_bundle/src
 
 test.project: true
+
+# The update of the features from servlet-5.0 to servlet-6.0 impacts the
+# resolution of the EJB dependencies by the AutoFVT framework.
+#
+# AutoFVT automatically computes tested features based on a static analysis
+# of the FAT server provisioned features.  Explicit features are automatically
+# added as tested features.  Condition "tolerated" features are not automatically
+# added.
+#
+# ejb-4.0, a FAT provisioned feature, depends on connectors-2.0, which tolerates
+# connectors-2.1.  connectors-2.1 depends on xmlBinding-4.0.
+#
+# servlet-6.0 triggers EE 10 dependencies, including connectors-2.1, and
+# consequently xmlBindings-4.0.  Since provisioning only conditionally
+# has dependencies on these features, they must be be explicitly added to
+# the tested features list.
+
+tested.features: connectors-2.1, xmlbinding-4.0
 
 -sub: *.bnd
 
 # To define a global minimum java level for the FAT, use the following property.
 # If unspecified, the default value is ${javac.source}
-# runtime.minimum.java.level: 1.8
+# fat.minimum.java.level: 11
 
 # Dependencies may be local bundles (com.ibm.websphere.javaee.servlet.3.1)
 # or binaries from Artifactory (org.apache.derby:derbynet).
@@ -37,25 +58,32 @@ test.project: true
 #   componenttest-1.0
 
 -buildpath: \
+    com.ibm.websphere.javaee.annotation.1.2;version=latest, \
+    com.ibm.websphere.javaee.servlet.3.1;version=latest, \
+    com.ibm.websphere.javaee.ejb.3.2;version=latest, \
+    com.ibm.websphere.javaee.interceptor.1.2;version=latest, \
+    io.openliberty.jakarta.annotation.2.0;version=latest, \
+    io.openliberty.jakarta.servlet.5.0;version=latest, \
+    io.openliberty.jakarta.enterpriseBeans.4.0;version=latest, \
+    io.openliberty.jakarta.interceptor.2.0;version=latest, \
+\
     com.ibm.ws.javaee.dd.common;version=latest, \
     com.ibm.ws.javaee.dd;version=latest, \
     com.ibm.ws.javaee.dd.ejb;version=latest, \
     com.ibm.ws.javaee.ddmodel;version=latest, \
     com.ibm.ws.javaee.ddmodel.wsbnd;version=latest, \
+\
     com.ibm.websphere.org.osgi.core;version=latest, \
     com.ibm.websphere.org.osgi.service.cm;version=latest, \
     com.ibm.websphere.org.osgi.service.component;version=latest, \
     com.ibm.wsspi.org.osgi.service.component.annotations;version=latest, \
+\
     com.ibm.ws.bnd.annotations;version=latest, \
     com.ibm.ws.logging;version=latest, \
     com.ibm.ws.artifact;version=latest, \
     com.ibm.ws.adaptable.module;version=latest, \
     com.ibm.ws.container.service;version=latest, \
-    com.ibm.ws.app.manager;version=latest, \
-    com.ibm.websphere.javaee.annotation.1.2;version=latest, \
-    com.ibm.websphere.javaee.servlet.3.1;version=latest, \
-    com.ibm.websphere.javaee.ejb.3.2;version=latest, \
-    com.ibm.websphere.javaee.interceptor.1.2;version=latest
+    com.ibm.ws.app.manager;version=latest
 
 -testpath: \
     org.hamcrest:hamcrest-all;version=1.3, \

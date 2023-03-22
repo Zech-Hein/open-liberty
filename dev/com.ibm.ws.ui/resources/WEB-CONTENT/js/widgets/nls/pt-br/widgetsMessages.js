@@ -1,16 +1,18 @@
 /*******************************************************************************
  * Copyright (c) 2016, 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
 define({
-    LIBERTY_HEADER_TITLE: "Centro de Administração Liberty",
+    LIBERTY_HEADER_TITLE: "Liberty Admin Center",
     LIBERTY_HEADER_PROFILE: "Preferências",
     LIBERTY_HEADER_LOGOUT: "Efetuar logout",
     LIBERTY_HEADER_LOGOUT_USERNAME: "Efetuar logout de {0}",

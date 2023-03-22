@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2010 IBM Corporation and others.
+ * Copyright (c) 2010, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -36,7 +38,8 @@ public class Activator implements BundleActivator {
 
     private LoggingConfigurationService logCfgService;
 
-    private Instrumentation inst;
+    private static Instrumentation instrumentation;
+    private static BundleContext bundleContext;
     private RuntimeTransformerComponentListener runtimeTransformer = null;
 
     private static TraceComponentChangeListenerTracker listenerTracker = null;
@@ -51,9 +54,10 @@ public class Activator implements BundleActivator {
         // and will never go away.
         ServiceReference<Instrumentation> instReference = context.getServiceReference(Instrumentation.class);
         if (instReference != null) {
-            inst = context.getService(instReference);
-            LibertyRuntimeTransformer.setInstrumentation(inst);
-            LibertyJava8WorkaroundRuntimeTransformer.setInstrumentation(inst);
+            instrumentation = context.getService(instReference);
+            LibertyRuntimeTransformer.setInstrumentation(instrumentation);
+            LibertyJava8WorkaroundRuntimeTransformer.setInstrumentation(instrumentation);
+            bundleContext = context;
         } else {
             LibertyRuntimeTransformer.setInstrumentation(null);
             LibertyJava8WorkaroundRuntimeTransformer.setInstrumentation(null);
@@ -71,7 +75,7 @@ public class Activator implements BundleActivator {
         listenerTracker.open(true);
 
         // Register a managed service for dynamic configuration changes
-        logCfgService = new LoggingConfigurationService(context, (inst != null));
+        logCfgService = new LoggingConfigurationService(context, (instrumentation != null));
 
         // Create the MessageRouterConfigurator to ...
         // 1. create the MessageRouter and install it into the non-OSGI side of logging
@@ -118,6 +122,15 @@ public class Activator implements BundleActivator {
             //The java8 workaround transformer doesn't need to respond to this since
             //it's not doing dynamic injection.
         }
+    }
+    
+    
+    public static Instrumentation getInstrumentation() {
+        return instrumentation;
+    }
+    
+    public static BundleContext getBundleContex() {
+        return bundleContext;
     }
 
 }

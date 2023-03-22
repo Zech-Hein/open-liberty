@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2021 IBM Corporation and others.
+ * Copyright (c) 2014, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,13 +22,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
-
-import org.opensaml.xml.util.Base64;
 
 import com.gargoylesoftware.htmlunit.CookieManager;
 import com.gargoylesoftware.htmlunit.HttpMethod;
@@ -167,7 +168,7 @@ public class SAMLCommonTestHelpers extends TestHelpers {
             return null;
         }
         byte[] bytes = rawString.getBytes("UTF-8");
-        String encodedHeaderContent = Base64.encodeBytes(bytes);
+        String encodedHeaderContent = Base64.getEncoder().encodeToString(bytes);
         String encodedValue = URLEncoder.encode(encodedHeaderContent, "UTF-8");
         return encodedValue;
     }
@@ -1353,7 +1354,7 @@ public class SAMLCommonTestHelpers extends TestHelpers {
             expectations = vData.addExpectation(expectations, SAMLConstants.INVOKE_ALTERNATE_APP, SAMLConstants.RESPONSE_FULL, SAMLConstants.STRING_CONTAINS,
                                                 "Did not land alternate app", null, SAMLConstants.APP2_TITLE);
         }
-        setSimpleServletExpecatations(expectations, testSettings);
+        setSimpleServletExpectations(expectations, testSettings);
         return expectations;
     }
 
@@ -1379,15 +1380,15 @@ public class SAMLCommonTestHelpers extends TestHelpers {
 
     }
 
-    public void setSimpleServletExpecatations(List<validationData> expectations, SAMLTestSettings testSettings) throws Exception {
+    public void setSimpleServletExpectations(List<validationData> expectations, SAMLTestSettings testSettings) throws Exception {
 
         //		getRequestURL
         // determine where/if we're using SimpleServlet (usually using it as the alternate app, but check both to be sure)
         if (testSettings.getSpTargetApp() != null && testSettings.getSpTargetApp().contains(SAMLConstants.ALTERNATE_SERVLET)) {
-            setSimpleServletExpecatations(expectations, testSettings, SAMLConstants.INVOKE_DEFAULT_APP, testSettings.getSpTargetApp());
+            setSimpleServletExpectations(expectations, testSettings, SAMLConstants.INVOKE_DEFAULT_APP, testSettings.getSpTargetApp());
         }
         if (testSettings.getSpAlternateApp() != null && testSettings.getSpAlternateApp().contains(SAMLConstants.ALTERNATE_SERVLET)) {
-            setSimpleServletExpecatations(expectations, testSettings, SAMLConstants.INVOKE_ALTERNATE_APP, testSettings.getSpAlternateApp());
+            setSimpleServletExpectations(expectations, testSettings, SAMLConstants.INVOKE_ALTERNATE_APP, testSettings.getSpAlternateApp());
         }
 
     }
@@ -1396,7 +1397,7 @@ public class SAMLCommonTestHelpers extends TestHelpers {
         return "(?s)\\A.*?\\bRunAs subject: Subject:.*?\\bPublic Credential:.*?realmName=" + realm;
     }
 
-    public void setSimpleServletExpecatations(List<validationData> expectations, SAMLTestSettings testSettings, String step, String theApp) throws Exception {
+    public void setSimpleServletExpectations(List<validationData> expectations, SAMLTestSettings testSettings, String step, String theApp) throws Exception {
 
         if (step != null) {
             //			expectations = vData.addExpectation(expectations, step, SAMLConstants.RESPONSE_TITLE, SAMLConstants.STRING_CONTAINS, "Did not land on correct app for step: " + step, null, SAMLConstants.APP2_TITLE);
@@ -1767,7 +1768,7 @@ public class SAMLCommonTestHelpers extends TestHelpers {
      * server exceptions for this particular server.
      *
      * @param theServer
-     *            - the server to register the allowed excpetion to.
+     *                           - the server to register the allowed excpetion to.
      * @param expected
      * @param step
      * @param log
@@ -1866,6 +1867,7 @@ public class SAMLCommonTestHelpers extends TestHelpers {
 
     }
 
+    @Override
     public boolean pingExternalServer(String testcase, String serverUrl, String expectedTitle, int waitTime) throws Exception {
 
         String thisMethod = "pingExternalServer";
@@ -1910,7 +1912,9 @@ public class SAMLCommonTestHelpers extends TestHelpers {
                 } else {
                     keepChecking = false;
                     status = true;
-                    Log.info(thisClass, thisMethod, "The title in the reqponse was NOT validated - the actual title was: " + title);
+                    Log.info(thisClass, thisMethod, "The title in the response was NOT validated - the actual title was: " + title);
+                    Log.info(thisClass, thisMethod, "Caller is just checking to make sure that we can successfully access the requested url.");
+                    msgUtils.printResponseParts(thePage, testcase, thisMethod + " response");
                 }
                 Log.info(thisClass, thisMethod, "**********************************************************");
             } catch (Exception e) {

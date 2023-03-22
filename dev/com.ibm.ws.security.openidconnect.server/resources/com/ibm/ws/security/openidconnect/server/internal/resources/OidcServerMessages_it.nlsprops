@@ -1,9 +1,11 @@
 ###############################################################################
-# Copyright (c) 2019 IBM Corporation and others.
+# Copyright (c) 2019, 2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
@@ -15,7 +17,7 @@
 #NLS_MESSAGEFORMAT_VAR
 #NLS_ENCODING=UNICODE
 # -------------------------------------------------------------------------------------------------
-# Message prefix block: CWWKS1600 - CWWKS1649
+# Message prefix block: CWWKS1600 - CWWKS1649, CWWKS1950 - CWWKS1999
 OIDC_SERVER_CONFIG_PROCESSED=CWWKS1600I: La configurazione {0} del provider OpenID Connect \u00e8 stata elaborata correttamente.
 OIDC_SERVER_CONFIG_PROCESSED.explanation=La configurazione del provider OpenID Connect \u00e8 stata elaborata correttamente.
 OIDC_SERVER_CONFIG_PROCESSED.useraction=Nessuna
@@ -180,8 +182,61 @@ OIDC_SERVER_JWK_NOT_AVAILABLE=CWWKS1640W: Una richiesta per una stringa JWK JSON
 OIDC_SERVER_JWK_NOT_AVAILABLE.explanation=La creazione di una stringa JWK JSON richiede che l'attributo signatureAlgorithm del provider OpenID Connect sia impostato su RS256. Gli attributi KeyStoreRef e keyAliasName devono essere validi se specificati. 
 OIDC_SERVER_JWK_NOT_AVAILABLE.useraction=Correggere gli attributi di configurazione del provider OpenID Connect.
 
+OIDC_SERVER_THIRDPARTY_IDTOKEN_ERROR=CWWKS1641E: Non \u00e8 stato possibile propagare le asserzioni dal token ID di terze parti per il provider OpenID Connect {0}. {1}
+OIDC_SERVER_THIRDPARTY_IDTOKEN_ERROR.explanation=Impossibile estrarre le asserzioni dal token ID di terze parti. Visualizzare il messaggio di errore per ulteriori informazioni.
+OIDC_SERVER_THIRDPARTY_IDTOKEN_ERROR.useraction=Assicurarsi che il provider OpenID Connect di terze parti stia inviando un token ID valido.
 
+OIDC_SERVER_BACKCHANNEL_LOGOUT_REQUEST_ERROR=CWWKS1642E: Il provider {0} OpenID Connect ha riscontrato il seguente errore quando ha provato a creare i token di disconnessione per le richieste di disconnessione di backchannel: {1}
+OIDC_SERVER_BACKCHANNEL_LOGOUT_REQUEST_ERROR.explanation=La stringa del token ID nel parametro id_token_hint, se ne \u00e8 stato fornito uno, potrebbe avere un formato non valido. Il provider potrebbe non essere in grado di determinare la serie di client per inviare richieste di disconnessione di backchannel. Se il formato del parametro id_token_hint \u00e8 corretto, si \u00e8 verificato un altro errore quando il provider ha provato a creare un token di disconnessione.
+OIDC_SERVER_BACKCHANNEL_LOGOUT_REQUEST_ERROR.useraction=Consultare l'azione dell'utente per l'errore incluso nel messaggio.
+
+LOGOUT_TOKEN_ERROR_GETTING_CLAIMS_FROM_ID_TOKEN=CWWKS1643E: Il provider OpenID Connect non pu\u00f2 estrarre le attestazioni da riutilizzare dal token ID. L''errore \u00e8: {0}
+LOGOUT_TOKEN_ERROR_GETTING_CLAIMS_FROM_ID_TOKEN.explanation=Il token ID potrebbe avere un formato non valido oppure un'attestazione all'interno del token potrebbe avere un valore di un tipo di dati imprevisto. In alternativa, al token potrebbero mancare delle attestazioni che sono richieste oppure l'emittente del token non \u00e8 quello previsto.
+LOGOUT_TOKEN_ERROR_GETTING_CLAIMS_FROM_ID_TOKEN.useraction=Assicurarsi che il token ID abbia un formato corretto. Per ulteriori informazioni, consultare l'errore incluso nel messaggio.
+
+ERROR_RETRIEVING_CLIENT_TO_BUILD_LOGOUT_TOKENS=CWWKS1644E: Il provider {0} OpenID Connect ha riscontrato il seguente errore quando ha richiamato il client {1} per costruire i token di logout del back-channel: {2}
+ERROR_RETRIEVING_CLIENT_TO_BUILD_LOGOUT_TOKENS.explanation=Il client OAuth non esiste, o si \u00e8 verificato un altro errore.
+ERROR_RETRIEVING_CLIENT_TO_BUILD_LOGOUT_TOKENS.useraction=Per ulteriori informazioni, vedere l'errore incluso nel messaggio.
+
+# NOTE: THE CWWKS1645W MESSAGE IS NOT BEING USED IN THE PRODUCT AS OF 19.0.0.8
 IDT_MEDIATOR_SPI_REQUIRES_JDK=CWWKS1645W: La versione Java utilizzata da questo runtime [{0}] non \u00e8 supportata dallo SPI Mediator token ID. La versione Java supportata \u00e8 1.7 o successive.
 IDT_MEDIATOR_SPI_REQUIRES_JDK.explanation=La versione Java nel messaggio non pu\u00f2 supportare la funzione SPI Mediator token ID. 
 IDT_MEDIATOR_SPI_REQUIRES_JDK.useraction=Installare Java versione 1.7 o successive.
 
+ID_TOKEN_ISSUER_NOT_THIS_OP=CWWKS1646E: L''attestazione dell''emittente [{0}] nel token ID non corrisponde all''emittente previsto [{1}] per il provider OpenID Connect {2}.
+ID_TOKEN_ISSUER_NOT_THIS_OP.explanation=Il provider OpenID Connect non ha emesso il token ID, quindi il token non pu\u00f2 essere gestito da questo provider OpenID Connect.
+ID_TOKEN_ISSUER_NOT_THIS_OP.useraction=Inviare solo token ID con un'attestazione dell'emittente che corrisponda alla configurazione per il provider OpenID Connect specificato nel messaggio.
+
+ID_TOKEN_MISSING_REQUIRED_CLAIMS=CWWKS1647E: Il token ID non \u00e8 valido perch\u00e9 manca almeno un''attestazione richiesta: {0}
+ID_TOKEN_MISSING_REQUIRED_CLAIMS.explanation=La specifica OpenID Connect richiede che l'attestazione o le attestazioni elencate nel messaggio di errore debbano essere presenti nel token ID.
+ID_TOKEN_MISSING_REQUIRED_CLAIMS.useraction=Assicurarsi che il token ID contenga tutte le attestazioni richieste.
+
+BACKCHANNEL_LOGOUT_RESPONSE_NOT_SUCCESSFUL=CWWKS1648E: Una richiesta di logout del back-channel inviata dal provider {0} OpenID Connect a {1} con un token di logout con richieste {2} non \u00e8 andata a buon fine. Il codice di stato della risposta \u00e8 {3} e il corpo della risposta \u00e8 [{4}].
+BACKCHANNEL_LOGOUT_RESPONSE_NOT_SUCCESSFUL.explanation=Il client OpenID Connect non ha restituito un codice di stato valido per la richiesta di disconnessione del back-channel. Se il codice di stato \u00e8 400, la richiesta di disconnessione non risulta valida. Se il codice di stato \u00e8 501, la disconnessione al client OpenID Connect non \u00e8 andata a buon fine. Se il codice di stato \u00e8 504, la disconnessione locale al client OpenID Connect \u00e8 andata a buon fine, ma alcuni tentativi di disconnessione a valle non sono andati a buon fine.
+BACKCHANNEL_LOGOUT_RESPONSE_NOT_SUCCESSFUL.useraction=Inviare un'altra richiesta di disconnessione per riprovare la disconnessione del back-channel. Per ulteriori informazioni, vedere l'errore incluso nel messaggio.
+
+BACKCHANNEL_LOGOUT_REQUEST_EXCEPTION=CWWKS1649E: Una richiesta di disconnessione di back-channel inviata dal provider {0} OpenID Connect a {1} con un token di disconnessione con richieste {2} ha riscontrato un errore: {3}
+BACKCHANNEL_LOGOUT_REQUEST_EXCEPTION.explanation=La richiesta di disconnessione del back-channel \u00e8 scaduta, ha generato un'eccezione, \u00e8 stata annullata o \u00e8 stata interrotta.
+BACKCHANNEL_LOGOUT_REQUEST_EXCEPTION.useraction=Assicurarsi che l'URI di disconnessione del back-channel sia responsivo. Aggiornare l'attributo di configurazione backchannelLogoutRequestTimeout nel provider OpenID Connect se la richiesta di disconnessione del back-channel ha bisogno di pi\u00f9 tempo. Per ulteriori informazioni, vedere l'errore incluso nel messaggio.
+
+# STOP at CWWKS1649
+
+#
+# NOTE: Start of new NLS prefix block: CWWKS1950 - CWWKS1999
+#
+
+BACKCHANNEL_LOGOUT_REQUESTS_INVOKE_ALL_FAILED=CWWKS1950E: Il provider {0} OpenID Connect ha riscontrato un errore durante l''inoltro delle richieste di disconnessione del back-channel: {1}
+BACKCHANNEL_LOGOUT_REQUESTS_INVOKE_ALL_FAILED.explanation=Le richieste inviate agli URI di disconnessione del back-channel sono state interrotte o si \u00e8 verificato un altro errore nella pianificazione delle richieste di esecuzione.
+BACKCHANNEL_LOGOUT_REQUESTS_INVOKE_ALL_FAILED.useraction=Inviare un'altra richiesta di disconnessione per riprovare la disconnessione del back-channel. Per ulteriori informazioni, vedere l'errore incluso nel messaggio.
+
+ERROR_BUILDING_OR_SENDING_BACKCHANNEL_LOGOUT_REQUEST=CWWKS1951E: Il provider {0} OpenID Connect ha riscontrato un errore durante la creazione o l''invio di una richiesta di disconnessione back-channel a {1}: {2}
+ERROR_BUILDING_OR_SENDING_BACKCHANNEL_LOGOUT_REQUEST.explanation=La connessione HTTP ha riscontrato un errore o la connessione non \u00e8 andata a buon fine.
+ERROR_BUILDING_OR_SENDING_BACKCHANNEL_LOGOUT_REQUEST.useraction=Inviare un'altra richiesta di disconnessione per riprovare la disconnessione del back-channel. Per ulteriori informazioni, vedere l'errore incluso nel messaggio.
+
+ERROR_BUILDING_LOGOUT_TOKEN_BASED_ON_ID_TOKEN=CWWKS1952E: Un token di disconnessione di back-channel che si basa su un token ID in cache per il client {0} non pu\u00f2 essere creato a causa del seguente errore: {1}
+ERROR_BUILDING_LOGOUT_TOKEN_BASED_ON_ID_TOKEN.explanation=Si \u00e8 verificato un errore nella costruzione della stringa del token di disconnessione. In alternativa, l'emittente del token ID memorizzato nella cache, potrebbe non corrispondere a questo provider OpenID Connect, oppure al token ID memorizzato nella cache potrebbero mancare alcune attestazioni necessarie.
+ERROR_BUILDING_LOGOUT_TOKEN_BASED_ON_ID_TOKEN.useraction=Per ulteriori informazioni, vedere l'errore incluso nel messaggio.
+
+ERROR_BUILDING_LOGOUT_TOKEN_BASED_ON_ID_TOKEN_CLAIMS=CWWKS1953E: Un token di disconnessione di back-channel che si basa su un token ID memorizzato con attestazioni [{0}] per il client {1} non pu\u00f2 essere creato a causa del seguente errore: {2}
+ERROR_BUILDING_LOGOUT_TOKEN_BASED_ON_ID_TOKEN_CLAIMS.explanation=Si \u00e8 verificato un errore nella costruzione della stringa del token di disconnessione. In alternativa, l'emittente del token ID memorizzato nella cache, potrebbe non corrispondere a questo provider OpenID Connect, oppure al token ID memorizzato nella cache potrebbero mancare alcune attestazioni necessarie.
+ERROR_BUILDING_LOGOUT_TOKEN_BASED_ON_ID_TOKEN_CLAIMS.useraction=Per ulteriori informazioni, vedere l'errore incluso nel messaggio.

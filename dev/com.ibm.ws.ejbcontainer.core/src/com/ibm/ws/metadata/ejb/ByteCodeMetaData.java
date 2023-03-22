@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,6 +30,8 @@ import com.ibm.ejs.container.util.MethodAttribUtils;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.ffdc.FFDCFilter;
+
+import io.openliberty.asm.ASMHelper;
 
 /**
  * Metadata obtained by scanning the bytecode of an EJB implementation class.
@@ -119,11 +123,11 @@ public class ByteCodeMetaData extends ClassVisitor {
     private Map<String, BridgeMethodMetaData> ivBridgeMethodMetaData;
 
     /**
-     * @param implClass the implementation class
+     * @param implClass     the implementation class
      * @param publicMethods all public methods on the implementation class
      */
     ByteCodeMetaData(Class<?> implClass, Method[] publicMethods) {
-        super(Opcodes.ASM8);
+        super(ASMHelper.getCurrentASM());
         ivClass = implClass;
         ivPublicMethods = publicMethods;
     }
@@ -237,7 +241,7 @@ public class ByteCodeMetaData extends ClassVisitor {
 
     /**
      * @param methodName the method name
-     * @param desc the method descriptor in JVM format; e.g.: (La/b/c;)V
+     * @param desc       the method descriptor in JVM format; e.g.: (La/b/c;)V
      * @return the key for {@link #ivNonPrivateMethodMetaData}
      */
     private String getNonPrivateMethodKey(String methodName, String desc) {
@@ -328,7 +332,7 @@ public class ByteCodeMetaData extends ClassVisitor {
 
     private abstract class AbstractMethodVisitor extends MethodVisitor {
         public AbstractMethodVisitor() {
-            super(Opcodes.ASM8);
+            super(ASMHelper.getCurrentASM());
         }
 
         @Override

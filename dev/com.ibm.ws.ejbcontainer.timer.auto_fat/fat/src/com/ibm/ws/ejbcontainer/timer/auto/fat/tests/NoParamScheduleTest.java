@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2020 IBM Corporation and others.
+ * Copyright (c) 2014, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,12 +23,14 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
+import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
 import com.ibm.ws.ejbcontainer.timer.auto.noparam.web.NoParamScheduleServlet;
 
 import componenttest.annotation.Server;
 import componenttest.annotation.TestServlet;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.rules.repeater.FeatureReplacementAction;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
@@ -50,7 +54,7 @@ public class NoParamScheduleTest extends FATServletClient {
     public static LibertyServer server;
 
     @ClassRule
-    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().fullFATOnly().forServers("AutoNPTimerNoParamServer")).andWith(FeatureReplacementAction.EE8_FEATURES().forServers("AutoNPTimerNoParamServer")).andWith(new JakartaEE9Action().fullFATOnly().forServers("AutoNPTimerNoParamServer"));
+    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().fullFATOnly().forServers("AutoNPTimerNoParamServer")).andWith(FeatureReplacementAction.EE8_FEATURES().forServers("AutoNPTimerNoParamServer")).andWith(new JakartaEE9Action().fullFATOnly().forServers("AutoNPTimerNoParamServer")).andWith(new JakartaEE10Action().fullFATOnly().forServers("AutoNPTimerNoParamServer"));
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -68,7 +72,7 @@ public class NoParamScheduleTest extends FATServletClient {
         EnterpriseArchive NoParamTimerApp = ShrinkWrap.create(EnterpriseArchive.class, "NoParamTimerApp.ear");
         NoParamTimerApp.addAsModule(NoParamTimerEJB).addAsModule(NoParamTimerWeb);
 
-        ShrinkHelper.exportDropinAppToServer(server, NoParamTimerApp);
+        ShrinkHelper.exportDropinAppToServer(server, NoParamTimerApp, DeployOptions.SERVER_ONLY);
 
         // Finally, start server
         server.startServer();

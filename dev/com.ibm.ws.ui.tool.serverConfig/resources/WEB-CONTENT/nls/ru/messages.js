@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ var editorMessages = {
 "ADD_CHILD": "Добавить дочерний элемент",
 "REMOVE": "Удалить",
 "TEST" : "Тест",
-"TEST_CONNECTION": "Проверить соединение",
+"TEST_CONNECTION": "Проверка соединения",
+"TEST_CONNECTION_DESCRIPTION": "Проверить соединение",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "Сохранить изменения для проверки соединения",
 "DESCRIPTION": "Описание",
 "PREVIOUS": "Назад",
 "NEXT": "Далее",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "Окно Удалить элемент",
 "VALIDATE_DATASOURCE_DIALOG": "Окно Проверить соединение с источником данных",
 "VALIDATE_DATASOURCE": "Проверка соединения с источником данных",
+"VALIDATE_CONNECTION_DIALOG":"Диалоговое окно Проверить соединение",
+"DEFAULT_AUTHENTICATION_ALIAS":"Аутентификация по умолчанию",
+"SPECIFY_AUTHENTICATION_ALIAS":"Укажите алиас аутентификации",
+"LOGIN_CONFIG":"Конфигурация входа в систему",
+"LOGIN_CONFIG_ID":"ID конфигурации входа в систему",
+"ADD_LOGIN_CONFIG_PROPERTY":"Добавить свойство конфигурации входа в систему",
+"KEY":"Ключ",
+"CHOOSE_AN_OPTION":"Выберите вариант",
 "ENUMERATION_SELECTION_DIALOG": "Окно Выбор перечисления",
 "SAVE_BEFORE_CLOSING_DIALOG": "Окно Сохранить перед закрытием",
 "ERROR_SAVING_FILE_DIALOG": "Окно Ошибка сохранения файла",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "Псевдоним идентификации (необязательный)",
 "AUTH_ALIAS": "Псевдоним идентификации",
 "CONTAINER_AUTHENTICATION": "Идентификация контейнера",
+"RESOURCE_REFERENCE": "Ссылка на ресурс",
 "NO_RESOURCE_REFERENCE": "Нет ссылки на ресурс",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "Проверьте соединение с помощью ссылки на ресурс, которая выполняет аутентификацию с помощью аутентификации приложения.",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "Проверьте соединение с помощью ссылки на ресурс, которая выполняет аутентификацию с помощью аутентификации контейнера.",
+"RESOURCE_REFERENCE_IN_USE": "Включена аутентификация контейнера для прямых просмотров. Тест соединения использует сконфигурированные данные аутентификации контейнера по умолчанию.",
+"NO_RESOURCE_REFERENCE_IN_USE": "Проверить соединение без использования ссылки на ресурс.",
 "APPLICATION_AUTHENTICATION": "Идентификация приложения",
 "CUSTOM_LOGIN_MODULE": "Пользовательский модуль сеанса (необязательный)",
 "LOGIN_PROPERTIES": "Свойства входа (необязательные)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "Выберите функцию для просмотра ее описания.",
 "SUPPORT_MESSAGE" : "Конфигурация сервера недоступна ни для серверов Node.js, ни для серверов в контейнере Docker, доступ к которым осуществляется через групповой контроллер.",
 "NO_ROLE_MESSAGE": "Пользователю не присвоена роль, обладающая правами на внесение изменений в конфигурацию. Файлы доступны в режиме только чтения.",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "ТРЕБУЕМЫЕ ДЕЙСТВИЯ ДЛЯ ЧЛЕНОВ КОЛЛЕКТИВА:",
 "RUN_UPDATE_HOST" : "Выполните 'collective updateHost' или 'collective registerHost' с параметром '--hostWritePath', указав в нем путь к каталогу, к которому у rpcUser есть права доступа на запись.  Правильные идентификационные данные хоста тоже должны быть указаны.",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "Создав ссылку на JAVA в /usr/bin. Пример: /usr/bin/java -> [путь-к-JAVA]",
 "JAVA_ON_PATH" : "Добавить JAVA в переменную среды PATH.  В Linux переменная PATH должны экспортироваться в файле .bashrc.", 
 "MORE_INFORMATION" : "Дополнительная информация: "
-
 };

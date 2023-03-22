@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2013 IBM Corporation and others.
+ * Copyright (c) 2013, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -62,8 +64,6 @@ public class URLUtils extends CommonJSONRESTHandler implements V1UtilsConstants 
     public boolean isKnownChildResource(String child, RESTRequest request) {
         if ("getTool".equals(child)) {
             return true;
-        } else if ("getStatus".equals(child)) {
-            return true;
         } else {
             return false;
         }
@@ -84,7 +84,6 @@ public class URLUtils extends CommonJSONRESTHandler implements V1UtilsConstants 
         Map<String, String> map = new HashMap<String, String>();
         String url = request.getURL();
         map.put("getTool", url + (url.endsWith("/") ? "getTool" : "/getTool"));
-        map.put("getStatus", url + (url.endsWith("/") ? "getStatus" : "/getStatus"));
 
         return map;
     }
@@ -116,19 +115,6 @@ public class URLUtils extends CommonJSONRESTHandler implements V1UtilsConstants 
     }
 
     /**
-     * Retrieve the HTTP status of a GET request for the provided URL.
-     * The URL to GET is specified in the parameter 'url'.
-     *
-     * @param request The RESTRequest from handleRequest
-     * @return
-     * @throws RESTException
-     */
-    private Object getStatus(RESTRequest request) throws RESTException {
-        final URL url = getURLParameter("getStatus", request);
-        return utils.getStatus(url);
-    }
-
-    /**
      * Attempt to construct a Tool object to represent the specified URL.
      * The URL to GET is specified in the parameter 'url'.
      *
@@ -147,9 +133,7 @@ public class URLUtils extends CommonJSONRESTHandler implements V1UtilsConstants 
         if (!isAuthorizedDefault(request, response)) {
             throw new UserNotAuthorizedException();
         }
-        if ("getStatus".equals(childResource)) {
-            return getStatus(request);
-        } else if ("getTool".equals(childResource)) {
+        if ("getTool".equals(childResource)) {
             return getTool(request);
         } else {
             throw new NoSuchResourceException();

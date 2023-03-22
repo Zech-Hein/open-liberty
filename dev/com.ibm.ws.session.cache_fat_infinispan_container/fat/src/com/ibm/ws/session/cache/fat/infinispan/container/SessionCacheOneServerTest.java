@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,9 +13,11 @@
 package com.ibm.ws.session.cache.fat.infinispan.container;
 
 import static com.ibm.ws.session.cache.fat.infinispan.container.FATSuite.infinispan;
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 import static componenttest.annotation.SkipForRepeat.EE9_FEATURES;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -24,6 +28,7 @@ import java.util.concurrent.Future;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,7 +37,10 @@ import com.ibm.websphere.simplicity.RemoteFile;
 import componenttest.annotation.Server;
 import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.custom.junit.runner.RepeatTestFilter;
+import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyFileManager;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -51,7 +59,8 @@ public class SessionCacheOneServerTest extends FATServletClient {
 
     public static ExecutorService executor;
 
-    private static final Class<?> c = SessionCacheOneServerTest.class;
+    @ClassRule
+    public static RepeatTests repeatRule = RepeatTests.withoutModification().andWith(new CacheManagerRepeatAction());
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -59,7 +68,7 @@ public class SessionCacheOneServerTest extends FATServletClient {
         // TODO Executors.newFixedThreadPool(12);
         executor = Executors.newFixedThreadPool(1);
 
-        if (JakartaEE9Action.isActive()) {
+        if (JakartaEE9Action.isActive() || JakartaEE10Action.isActive()) {
             RemoteFile originalResourceDir = LibertyFileManager.getLibertyFile(server.getMachine(), server.getInstallRoot() + "/usr/shared/resources/infinispan");
             RemoteFile jakartaResourceDir = LibertyFileManager.getLibertyFile(server.getMachine(), server.getInstallRoot() + "/usr/shared/resources/infinispan-jakarta");
 
@@ -67,9 +76,15 @@ public class SessionCacheOneServerTest extends FATServletClient {
             ResourceTransformationHelper.transformResourcestoEE9(originalResourceDir, jakartaResourceDir, server, null);
         }
 
+        String sessionCacheConfigFile = "httpSessionCache_1.xml";
+        if (RepeatTestFilter.isRepeatActionActive(CacheManagerRepeatAction.ID)) {
+            sessionCacheConfigFile = "httpSessionCache_2.xml";
+        }
+
         app = new SessionCacheApp(server, true, "session.cache.infinispan.web", "session.cache.infinispan.web.listener1", "session.cache.infinispan.web.listener2");
 
-        server.addEnvVar("INF_SERVERLIST", infinispan.getContainerIpAddress() + ":" + infinispan.getMappedPort(11222));
+        server.addEnvVar("INF_SERVERLIST", infinispan.getHost() + ":" + infinispan.getMappedPort(11222));
+        server.setJvmOptions(Arrays.asList("-Dsession.cache.config.file=" + sessionCacheConfigFile));
         server.startServer();
 
     }
@@ -408,7 +423,8 @@ public class SessionCacheOneServerTest extends FATServletClient {
      * can be obtained and report statistics about the cache.
      */
     @Test
-    @SkipForRepeat({ EE9_FEATURES }) //Needs further attention for jakartaee 9
+    @SkipForRepeat({ EE9_FEATURES, EE10_FEATURES, //Needs further attention for jakartaee 9
+                     CacheManagerRepeatAction.ID }) // Passes when run alone, fails when repeated
     public void testMXBeansEnabled() throws Exception {
         app.invokeServlet("testMXBeansEnabled", new ArrayList<>());
     }
@@ -452,7 +468,8 @@ public class SessionCacheOneServerTest extends FATServletClient {
      * Error Thrown: ISPN021011: Incompatible cache value types specified, expected class java.lang.String but class java.lang.Object was specified
      */
     @Test
-    @SkipForRepeat({ EE9_FEATURES }) //Needs further attention for jakartaee 9
+    @SkipForRepeat({ EE9_FEATURES, EE10_FEATURES, //Needs further attention for jakartaee 9
+                     CacheManagerRepeatAction.ID }) // Passes when run alone, fails when repeated
     public void testInfinispanClassCastException() throws Exception {
         //This should not fail here as this is the first test suite running.
         app.invokeServlet("testInfinispanClassCastException&shouldFail=false", null);

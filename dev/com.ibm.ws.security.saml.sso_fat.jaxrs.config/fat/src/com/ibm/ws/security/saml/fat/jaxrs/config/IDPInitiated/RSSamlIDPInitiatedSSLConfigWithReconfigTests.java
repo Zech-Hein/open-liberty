@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2014, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -96,9 +98,7 @@ public class RSSamlIDPInitiatedSSLConfigWithReconfigTests extends RSSamlIDPIniti
      *
      * @throws Exception
      */
-    @ExpectedFFDC({ "com.ibm.ws.security.saml.error.SamlException" })
-    @ExpectedFFDC(value = { "org.opensaml.ws.security.SecurityPolicyException" }, repeatAction = {EmptyAction.ID})
-    @ExpectedFFDC(value = { "org.opensaml.messaging.handler.MessageHandlerException" }, repeatAction = {JakartaEE9Action.ID})
+    @ExpectedFFDC({ "com.ibm.ws.security.saml.error.SamlException", "org.opensaml.messaging.handler.MessageHandlerException" })
     @Test
     public void RSSamlIDPInitiatedConfigTests_signatureMethodAlgorithm_SHA256() throws Exception {
 

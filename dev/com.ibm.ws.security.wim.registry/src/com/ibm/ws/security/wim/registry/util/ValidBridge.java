@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -24,6 +26,8 @@ import com.ibm.wsspi.security.wim.exception.WIMException;
 import com.ibm.wsspi.security.wim.model.Context;
 import com.ibm.wsspi.security.wim.model.Control;
 import com.ibm.wsspi.security.wim.model.Entity;
+import com.ibm.wsspi.security.wim.model.Group;
+import com.ibm.wsspi.security.wim.model.PersonAccount;
 import com.ibm.wsspi.security.wim.model.Root;
 import com.ibm.wsspi.security.wim.model.SearchControl;
 
@@ -119,8 +123,8 @@ public class ValidBridge {
             List<Entity> returnList = root.getEntities();
             // f113366
             if (returnList.size() == 1) {
-                // set the boolean to true
-                returnValue = true;
+                // The getEntityByIdentifier call above doesn't filter out by entity type.
+                returnValue = returnList.get(0) instanceof PersonAccount;
             }
         }
         // other cases
@@ -202,8 +206,8 @@ public class ValidBridge {
             List<Entity> returnList = root.getEntities();
             // f113366
             if (returnList.size() == 1) {
-                // set the boolean to true
-                returnValue = true;
+                // The getEntityByIdentifier call above doesn't filter out by entity type.
+                returnValue = returnList.get(0) instanceof Group;
             }
         }
         // other cases

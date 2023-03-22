@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,7 +32,6 @@ public class IRequestResponseFactory40Impl implements IRequestFactory, IResponse
      */
     @Override
     public IRequest createRequest(HttpInboundConnection inboundConnection) {
-        // there appears to be nothing in IRequestImpl that needs to be different in servlet 3.1, so return the 3.0 version
         return new IRequest40Impl(inboundConnection);
     }
 

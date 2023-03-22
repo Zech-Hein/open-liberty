@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,7 +29,7 @@ define([
                 resourceManager.__reset();
               });
               
-              tdd.test("resourceManager.getCached - sanity check all return null when not loaded", function() {
+              tdd.test("resourceManager.getCached - Verify all return null when not loaded", function() {
                 var LOAD_ALL_NULL_MSG = 'resourceManager has not loaded anything, all cached requests should return null';
                 
                 assert.equal(resourceManager.getCached('applications'), null, LOAD_ALL_NULL_MSG);
@@ -39,7 +41,7 @@ define([
                 assert.equal(resourceManager.getCached('host', 'h1'), null, LOAD_ALL_NULL_MSG);
               });
 
-              tdd.test("resourceManager.getCached - sanity check all when populated", function() {
+              tdd.test("resourceManager.getCached - Verify all when populated", function() {
                 var LOAD_OK_MSG = 'When the resourceManager has fake loaded things, the calls should returned the cached value';
                 var LOAD_NULL_MSG = 'resourceManager has not loaded this resource, so null should be returned';
                 

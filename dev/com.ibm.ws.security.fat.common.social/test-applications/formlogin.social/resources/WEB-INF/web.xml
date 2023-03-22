@@ -2,9 +2,11 @@
 <!--
     Copyright (c) 2018 IBM Corporation and others.
     All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
+    are made available under the terms of the Eclipse Public License 2.0
     which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    http://www.eclipse.org/legal/epl-2.0/
+    
+    SPDX-License-Identifier: EPL-2.0
     
     Contributors:
         IBM Corporation - initial API and implementation
@@ -54,6 +56,10 @@
     <servlet-mapping>
         <servlet-name>FormLoginServlet</servlet-name>
         <url-pattern>/SecureSimpleServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+      <servlet-name>FormLoginServlet</servlet-name>
+      <url-pattern>/simple/*</url-pattern>
     </servlet-mapping>
 
     <!-- SECURITY CONSTRAINTS -->
@@ -123,6 +129,18 @@
         <user-data-constraint>
             <transport-guarantee>CONFIDENTIAL</transport-guarantee>
         </user-data-constraint>
+    </security-constraint>
+    <security-constraint>
+       <web-resource-collection>
+          <web-resource-name>Protected with Employee or Manager roles</web-resource-name>
+          <url-pattern>/simple/*</url-pattern>
+          <http-method>GET</http-method>
+          <http-method>POST</http-method>
+       </web-resource-collection>
+       <auth-constraint>
+          <role-name>Employee</role-name>
+          <role-name>Manager</role-name>        
+       </auth-constraint>
     </security-constraint>
 
     <!-- CHALLENGE TYPE -->

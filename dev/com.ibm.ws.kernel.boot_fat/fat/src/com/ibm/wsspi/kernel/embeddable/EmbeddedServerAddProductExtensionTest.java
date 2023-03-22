@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,15 +33,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
+import org.junit.runner.RunWith;
 import org.junit.runners.model.Statement;
 
 import com.ibm.websphere.simplicity.OperatingSystem;
 import com.ibm.websphere.simplicity.log.Log;
 
+import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.impl.LibertyServerFactory;
 import junit.framework.AssertionFailedError;
 
+@RunWith(FATRunner.class)
 public class EmbeddedServerAddProductExtensionTest {
 
     static final Class<?> c = EmbeddedServerAddProductExtensionTest.class;
@@ -146,7 +151,8 @@ public class EmbeddedServerAddProductExtensionTest {
     }
 
     @Test
-    public void testAddProductExtension() throws Throwable {}
+    public void testAddProductExtension() throws Throwable {
+    }
 
     private static void embeddedServerTestHelper(final String REMOTE_METHOD_NAME) throws Throwable {
         final String METHOD_NAME = "embeddedServerTestHelper";

@@ -1,28 +1,25 @@
 #*******************************************************************************
-# Copyright (c) 2017,2020 IBM Corporation and others.
+# Copyright (c) 2017,2022 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# http://www.eclipse.org/legal/epl-2.0/
+# 
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     IBM Corporation - initial API and implementation
 #*******************************************************************************
 -include= ~../cnf/resources/bnd/bundle.props
+
+-sub: *.bnd
+
 bVersion=1.0
 
-Bundle-Name: Webcontainer Security Collaborator
-Bundle-Description: Webcontainer Security Collaborator Common Classes, version=${bVersion}
-Bundle-SymbolicName: com.ibm.ws.webcontainer.security
 
 #
 # Produce a JakartaEE compliant JAR.
 #
-jakartaeeMe: true
-jakartaFinalJarName: io.openliberty.webcontainer.security.internal.jar
-jakartaFinalBundleName: Webcontainer Security Collaborator internal
-jakartaFinalBundleId: io.openliberty.webcontainer.security.internal
-jakartaFinalBundleDescription: Webcontainer Security Collaborator internal; Jakarta Enabled
   
 Export-Package: \
   com.ibm.websphere.security.web, \
@@ -36,7 +33,9 @@ Export-Package: \
   com.ibm.ws.webcontainer.security.openid20, \
   com.ibm.ws.webcontainer.security.openidconnect
 
-Import-Package: com.ibm.ws.common.internal.encoder, !com.ibm.ws.kernel.boot.cmdline, *
+Import-Package: \
+	!com.ibm.ws.kernel.boot.cmdline,\
+	*
 
 Private-Package: \
   com.ibm.ws.webcontainer.security.jacc, \
@@ -58,7 +57,7 @@ Service-Component: \
     activate:=activate;\
     deactivate:=deactivate;\
     tokenManager=com.ibm.ws.security.token.TokenManager;\
-    properties:="service.vendor=IBM",\
+    properties:="service.vendor=IBM,service.ranking:Integer=1",\
   com.ibm.ws.webcontainer.security.internal.WebSecurityHelperImpl;\
     implementation:=com.ibm.ws.webcontainer.security.internal.WebSecurityHelperImpl;\
     configuration-policy:=ignore;\
@@ -84,7 +83,7 @@ instrument.classesExcludes: com/ibm/ws/webcontainer/security/resources/*.class
 	com.ibm.ws.kernel.security.thread,\
 	com.ibm.ws.security.authorization;version=latest,\
 	com.ibm.ws.security.registry;version=latest,\
-	com.ibm.ws.common.encoder;version=latest,\
+	com.ibm.ws.kernel.service;version=latest,\
 	com.ibm.ws.container.service;version=latest,\
 	com.ibm.ws.adaptable.module;version=latest,\
 	com.ibm.ws.webcontainer;version=latest,\
@@ -100,9 +99,14 @@ instrument.classesExcludes: com/ibm/ws/webcontainer/security/resources/*.class
 	com.ibm.ws.security.token;version=latest,\
 	com.ibm.ws.transport.http;version=latest,\
 	com.ibm.ws.logging;version=latest,\
+	com.ibm.ws.logging.core;version=latest,\
 	com.ibm.ws.security.audit.utils;version=latest,\
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
-	com.ibm.ws.security.mp.jwt.proxy;version=latest
+	com.ibm.ws.security.mp.jwt.proxy;version=latest,\
+	io.openliberty.jcache.internal;version=latest,\
+	com.ibm.websphere.javaee.jcache.1.1.core;version=latest,\
+	com.ibm.ws.kernel.boot.core;version=latest
+	
 
 -testpath: \
 	../build.sharedResources/lib/junit/old/junit.jar;version=file, \
@@ -122,5 +126,4 @@ instrument.classesExcludes: com/ibm/ws/webcontainer/security/resources/*.class
 	com.ibm.ws.threading,\
 	com.ibm.ws.org.apache.commons.io;version=latest, \
 	com.ibm.ws.org.apache.commons.fileupload;version=latest, \
-	com.ibm.ws.security.mp.jwt.proxy;version=latest, \
-	com.ibm.ws.kernel.service;version=latest	
+	com.ibm.ws.security.mp.jwt.proxy;version=latest

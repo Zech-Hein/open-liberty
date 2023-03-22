@@ -1,17 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2018, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package com.ibm.ws.cdi.annotations.fat.tests;
-
-import static componenttest.rules.repeater.EERepeatTests.EEVersion.EE7;
-import static componenttest.rules.repeater.EERepeatTests.EEVersion.EE9;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
@@ -25,6 +24,7 @@ import org.junit.runner.RunWith;
 import com.ibm.websphere.simplicity.CDIArchiveHelper;
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
+import com.ibm.websphere.simplicity.beansxml.BeansAsset.DiscoveryMode;
 import com.ibm.ws.cdi.annotations.fat.apps.defaultDecorator.DefaultDecoratorServlet;
 import com.ibm.ws.cdi.annotations.fat.apps.dependentScopedProducer.AppScopedMethodServlet;
 import com.ibm.ws.cdi.annotations.fat.apps.dependentScopedProducer.AppScopedSteryotypedServlet;
@@ -42,7 +42,7 @@ import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.custom.junit.runner.TestModeFilter;
-import componenttest.rules.repeater.EERepeatTests;
+import componenttest.rules.repeater.EERepeatActions;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -62,7 +62,7 @@ public class AnnotationsTests extends FATServletClient {
     public static final String WITH_ANNOTATIONS_APP_NAME = "withAnnotationsApp";
 
     @ClassRule
-    public static RepeatTests r = EERepeatTests.with(SERVER_NAME, EE9, EE7); //not bothering to repeat with EE8 ... the EE9 version is mostly a transformed version of the EE8 code
+    public static RepeatTests r = EERepeatActions.repeat(SERVER_NAME, EERepeatActions.EE7, EERepeatActions.EE9, EERepeatActions.EE10); //not bothering to repeat with EE8 ... the EE9 version is mostly a transformed version of the EE8 code
 
     @Server(SERVER_NAME)
     @TestServlets({
@@ -92,11 +92,11 @@ public class AnnotationsTests extends FATServletClient {
 
             JavaArchive utilLib = ShrinkWrap.create(JavaArchive.class, "utilLib.jar")
                                             .addPackage(ChainableListImpl.class.getPackage());
-            CDIArchiveHelper.addEmptyBeansXML(utilLib);
+            CDIArchiveHelper.addBeansXML(utilLib, DiscoveryMode.ALL);
 
             WebArchive globalPriorityWebApp = ShrinkWrap.create(WebArchive.class, GLOBAL_PRIORITY_APP_NAME + ".war")
                                                         .addPackage(GlobalPriorityTestServlet.class.getPackage());
-            CDIArchiveHelper.addEmptyBeansXML(globalPriorityWebApp);
+            CDIArchiveHelper.addBeansXML(globalPriorityWebApp, DiscoveryMode.ALL);
 
             EnterpriseArchive globalPriorityApp = ShrinkWrap.create(EnterpriseArchive.class, "globalPriorityApp.ear")
                                                             .addAsLibrary(globalPriorityLib)
@@ -106,7 +106,7 @@ public class AnnotationsTests extends FATServletClient {
             WebArchive withAnnotationsApp = ShrinkWrap.create(WebArchive.class, WITH_ANNOTATIONS_APP_NAME + ".war")
                                                       .addPackage(WithAnnotationsServlet.class.getPackage())
                                                       .addAsLibrary(utilLib);
-            CDIArchiveHelper.addEmptyBeansXML(withAnnotationsApp);
+            CDIArchiveHelper.addBeansXML(withAnnotationsApp, DiscoveryMode.ALL);
             CDIArchiveHelper.addCDIExtensionService(withAnnotationsApp, WithAnnotationsExtension.class);
 
             ShrinkHelper.exportDropinAppToServer(server, withAnnotationsApp, DeployOptions.SERVER_ONLY);

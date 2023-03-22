@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -58,11 +60,11 @@ public class LibertyLoginModuleXorTest {
     @BeforeClass
     public static void setup() throws Exception {
 
-        String testUser = SaslPlainTests.kafkaContainer.getTestUser();
-        String testSecret = PasswordUtil.encode(SaslPlainTests.kafkaContainer.getTestSecret(), "xor");
+        String testUser = SaslPlainTests.TEST_USER;
+        String testSecret = PasswordUtil.encode(SaslPlainTests.TEST_SECRET, "xor");
 
         // Override SASL_JAAS_CONFIG in the connection props to test the liberty login module
-        Map<String, Object> connectionProps = KafkaUtils.connectionProperties(SaslPlainTests.kafkaContainer);
+        Map<String, Object> connectionProps = SaslPlainTests.connectionProperties();
         connectionProps.put(SaslConfigs.SASL_JAAS_CONFIG, "com.ibm.ws.kafka.security.LibertyLoginModule required "
                                                           + "username=\"" + testUser + "\" "
                                                           + "password=\"" + testSecret + "\";");

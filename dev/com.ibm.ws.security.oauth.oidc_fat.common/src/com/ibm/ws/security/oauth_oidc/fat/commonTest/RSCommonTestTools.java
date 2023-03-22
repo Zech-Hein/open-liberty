@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -180,16 +182,10 @@ public class RSCommonTestTools {
             if (Constants.OIDC_OP.equals(providerType)) {
                 tokenType = Utils.getEnvVar("tokenType");
                 if (tokenType == null || tokenType.equals("")) {
-                    String jdkVersion = System.getProperty("java.version");
-                    if (jdkVersion.compareTo("1.7") < 0) {
-                        Log.info(thisClass, thisMethod, "Using JDK 1.6 or earlier; JWT requires JDK 1.7 or later, so forcing token type to " + Constants.ACCESS_TOKEN_KEY);
-                        tokenType = Constants.ACCESS_TOKEN_KEY;
+                    if (allow_MP_JWT) {
+                        tokenType = Utils.getRandomSelection(Constants.JWT_TOKEN, Constants.MP_JWT_TOKEN, Constants.ACCESS_TOKEN_KEY);
                     } else {
-                        if (allow_MP_JWT) {
-                            tokenType = Utils.getRandomSelection(Constants.JWT_TOKEN, Constants.MP_JWT_TOKEN, Constants.ACCESS_TOKEN_KEY);
-                        } else {
-                            tokenType = Utils.getRandomSelection(Constants.JWT_TOKEN, Constants.ACCESS_TOKEN_KEY);
-                        }
+                        tokenType = Utils.getRandomSelection(Constants.JWT_TOKEN, Constants.ACCESS_TOKEN_KEY);
                     }
                 } else {
                     Log.info(thisClass, thisMethod, "Using caller override value of: " + tokenType);

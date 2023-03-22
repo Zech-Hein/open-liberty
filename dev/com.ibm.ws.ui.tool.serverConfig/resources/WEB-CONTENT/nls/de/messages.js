@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 IBM Corporation and others.
+ * Copyright (c) 2016, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +20,9 @@ var editorMessages = {
 "ADD_CHILD": "Untergeordnetes Element hinzufügen",
 "REMOVE": "Entfernen",
 "TEST" : "Testen",
-"TEST_CONNECTION": "Verbindung testen",
+"TEST_CONNECTION": "Verbindungstest",
+"TEST_CONNECTION_DESCRIPTION": "Verbindung testen",
+"TEST_CONNECTION_DISABLED_DESCRIPTION": "Änderungen zum Testen der Verbindung speichern",
 "DESCRIPTION": "Beschreibung",
 "PREVIOUS": "Zurück",
 "NEXT": "Weiter",
@@ -132,6 +136,14 @@ var editorMessages = {
 "REMOVE_ELEMENT_DIALOG": "Elementdialog entfernen",
 "VALIDATE_DATASOURCE_DIALOG": "Datenquellenverbindungsdialog überprüfen",
 "VALIDATE_DATASOURCE": "Datenquellenverbindung wird getestet.",
+"VALIDATE_CONNECTION_DIALOG":"Dialog zum Validieren der Verbindung",
+"DEFAULT_AUTHENTICATION_ALIAS":"Standardauthentifizierung",
+"SPECIFY_AUTHENTICATION_ALIAS":"Authentifizierungsalias angeben",
+"LOGIN_CONFIG":"Anmeldekonfiguration",
+"LOGIN_CONFIG_ID":"Anmeldekonfigurations-ID",
+"ADD_LOGIN_CONFIG_PROPERTY":"Anmeldekonfigurationseigenschaft hinzufügen",
+"KEY":"Schlüssel",
+"CHOOSE_AN_OPTION":"Wählen Sie eine Option aus",
 "ENUMERATION_SELECTION_DIALOG": "Dialog für Aufzählungsauswahl",
 "SAVE_BEFORE_CLOSING_DIALOG": "Vor dem Schließen des Dialogs speichern",
 "ERROR_SAVING_FILE_DIALOG": "Fehler beim Speichern des Dateidialogs",
@@ -146,7 +158,12 @@ var editorMessages = {
 "AUTH_ALIAS_OPTIONAL": "Authentifizierungsalias (Optional)",
 "AUTH_ALIAS": "Authentifizierungsalias",
 "CONTAINER_AUTHENTICATION": "Containerauthentifizierung",
+"RESOURCE_REFERENCE": "Ressourcenreferenz",
 "NO_RESOURCE_REFERENCE": "Keine Ressourcenreferenz",
+"RESOURCE_REFERENCE_WITH_APPILCATION_AUTHENTICATION_IN_USE": "Testen Sie die Verbindung mithilfe einer Ressourcenreferenz, die sich unter Verwendung der Anwendungsauthentifizierung authentifiziert.",
+"RESOURCE_REFERENCE_WITH_CONTAINER_AUTHENTICATION_IN_USE": "Testen Sie die Verbindung mithilfe einer Ressourcenreferenz, die sich unter Verwendung der Containerauthentifizierung authentifiziert.",
+"RESOURCE_REFERENCE_IN_USE": "Die Containerauthentifizierung für direkte Suchen ist aktiviert. Für den Verbindungstest werden die konfigurierten Standarddaten für die Containerauthentifizierung verwendet.",
+"NO_RESOURCE_REFERENCE_IN_USE": "Testen Sie die Verbindung ohne Verwendung einer Ressourcenreferenz.",
 "APPLICATION_AUTHENTICATION": "Anwendungsauthentifizierung",
 "CUSTOM_LOGIN_MODULE": "Angepasstes Anmeldemodul (Optional)",
 "LOGIN_PROPERTIES": "Anmeldeeigenschaften (Optional)",
@@ -158,7 +175,7 @@ var editorMessages = {
 "SELECT_FEATURE_TO_VIEW_DESCRIPTION": "Wählen Sie ein Feature aus, um dessen Beschreibung anzuzeigen.",
 "SUPPORT_MESSAGE" : "Es ist weder eine Serverkonfiguration für Node.js-Server noch eine Serverkonfiguration für Docker-Server, auf die über den Verbundcontroller zugegriffen wird, verfügbar.",
 "NO_ROLE_MESSAGE": "Der Benutzer hat nicht die Rolle, die für die Durchführung der Konfigurationsänderungen berechtigt ist. Die Dateien sind im Lesezugriffsmodus verfügbar. ",
-	
+    
 // Messages for Collective Debugging
 "REQUIRED_ACTIONS" : "Erforderliche Aktionen für Verbundmember:",
 "RUN_UPDATE_HOST" : "Führen Sie 'collective updateHost' oder 'collective registerHost' mit '--hostWritePath' aus und geben Sie dabei einen Pfad an, für den der RPC-Benutzer schreibberechtigt ist. Gültige Hostberechtigungsnachweise müssen ebenfalls angegeben werden.",
@@ -175,5 +192,4 @@ var editorMessages = {
 "LINK_JAVA" : "Erstellung eines Links zu JAVA in /usr/bin, z. B. /usr/bin/java -> [Pfad-zu_JAVA]",
 "JAVA_ON_PATH" : "Hinzufügen von JAVA zur Umgebungsvariablen PATH. Der Export der Variablen PATH muss unter Linux in .bashrc erfolgen.", 
 "MORE_INFORMATION" : "Weitere Informationen finden Sie hier: "
-
 };

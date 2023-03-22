@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,11 +24,14 @@ import java.util.concurrent.Future;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.custom.junit.runner.RepeatTestFilter;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
 
@@ -38,15 +43,27 @@ public class SessionCacheOneServerTest extends FATServletClient {
 
     public static SessionCacheApp app = null;
 
-    // TODO this is temporarily set to single-threaded in order to ensure coverage of codepath without actually enabling concurrent use yet (only invokeAll is used)
-    public static final ExecutorService executor = Executors.newFixedThreadPool(1); // TODO Executors.newFixedThreadPool(12);
+    public static ExecutorService executor;
+
+    @ClassRule
+    public static RepeatTests repeatRule = RepeatTests.withoutModification().andWith(new CacheManagerRepeatAction());
 
     @BeforeClass
     public static void setUp() throws Exception {
+        // TODO this is temporarily set to single-threaded in order to ensure coverage of codepath without actually enabling concurrent use yet (only invokeAll is used)
+        executor = Executors.newFixedThreadPool(1); // TODO Executors.newFixedThreadPool(12);
+
         app = new SessionCacheApp(server, true, "session.cache.infinispan.web", "session.cache.infinispan.web.listener1", "session.cache.infinispan.web.listener2");
         String rand = UUID.randomUUID().toString();
+
+        String sessionCacheConfigFile = "httpSessionCache_1.xml";
+        if (RepeatTestFilter.isRepeatActionActive(CacheManagerRepeatAction.ID)) {
+            sessionCacheConfigFile = "httpSessionCache_2.xml";
+        }
+
         Map<String, String> options = server.getJvmOptionsAsMap();
         options.put("-Dinfinispan.cluster.name", rand);
+        options.put("-Dsession.cache.config.file", sessionCacheConfigFile);
         server.setJvmOptions(options);
         server.startServer();
     }

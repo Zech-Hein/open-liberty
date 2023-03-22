@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 IBM Corporation and others.
+ * Copyright (c) 2015, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,6 +33,7 @@ import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.impl.LibertyServerFactory;
 
+import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.ws.messaging.JMS20.fat.TestUtils;
 
 @RunWith(FATRunner.class)
@@ -87,6 +90,8 @@ public class JMSContextInjectTest {
         } catch ( Exception e ) {
             e.printStackTrace();
         }
+        
+        ShrinkHelper.cleanAllExportedArchives();
     }
 
     //
@@ -180,5 +185,12 @@ public class JMSContextInjectTest {
     public void testEJBCallSecOff() throws Exception {
         boolean testResult = runInServlet("testEJBCallSecOff");
         assertTrue("testEJBCallSecOff failed", testResult);
+    }
+    
+    @Mode(TestMode.FULL)
+    @Test
+    public void testJMSDefinitionAnnotations() throws Exception {
+        boolean testResult = runInServlet("testJMSDefinitionAnnotations");
+        assertTrue("testJMSDefinitionAnnotations failed", testResult);
     }
 }

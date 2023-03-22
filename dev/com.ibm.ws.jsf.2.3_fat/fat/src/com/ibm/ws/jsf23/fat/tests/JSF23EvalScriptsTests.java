@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 IBM Corporation and others.
+ * Copyright (c) 2017, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +13,7 @@
 package com.ibm.ws.jsf23.fat.tests;
 
 import static org.junit.Assert.assertTrue;
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 
 import java.net.URL;
 
@@ -32,6 +35,7 @@ import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.jsf23.fat.JSFUtils;
 
 import componenttest.annotation.Server;
+import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
@@ -42,6 +46,7 @@ import componenttest.topology.impl.LibertyServer;
  * These test involve javascript calls which are added javax.faces.partialViewContext.getEvalScripts()
  */
 @RunWith(FATRunner.class)
+@SkipForRepeat(EE10_FEATURES)  // Skipped due to HTMLUnit / JavaScript Incompatabilty (New JS in RC5)
 public class JSF23EvalScriptsTests {
 
     protected static final Class<?> c = JSF23EvalScriptsTests.class;
@@ -49,23 +54,23 @@ public class JSF23EvalScriptsTests {
     @Rule
     public TestName name = new TestName();
 
-    @Server("jsf23CDIServer")
-    public static LibertyServer jsf23CDIServer;
+    @Server("jsf23EvalScriptsServer")
+    public static LibertyServer server;
 
     @BeforeClass
     public static void setup() throws Exception {
-        ShrinkHelper.defaultDropinApp(jsf23CDIServer, "EvalScripts.war", "com.ibm.ws.jsf23.fat.evalscripts.beans");
+        ShrinkHelper.defaultDropinApp(server, "EvalScripts.war", "com.ibm.ws.jsf23.fat.evalscripts.beans");
 
         // Start the server and use the class name so we can find logs easily.
         // Many tests use the same server
-        jsf23CDIServer.startServer(JSF23EvalScriptsTests.class.getSimpleName() + ".log");
+        server.startServer(JSF23EvalScriptsTests.class.getSimpleName() + ".log");
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
         // Stop the server
-        if (jsf23CDIServer != null && jsf23CDIServer.isStarted()) {
-            jsf23CDIServer.stopServer();
+        if (server != null && server.isStarted()) {
+            server.stopServer();
         }
     }
 
@@ -81,7 +86,7 @@ public class JSF23EvalScriptsTests {
         try (WebClient webClient = new WebClient()) {
             webClient.setAjaxController(new NicelyResynchronizingAjaxController());
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23CDIServer, contextRoot, "EvalScriptsSimple.xhtml");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "EvalScriptsSimple.xhtml");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -116,7 +121,7 @@ public class JSF23EvalScriptsTests {
         try (WebClient webClient = new WebClient()) {
             webClient.setAjaxController(new NicelyResynchronizingAjaxController());
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23CDIServer, contextRoot, "EvalScriptsList.xhtml");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "EvalScriptsList.xhtml");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -152,7 +157,7 @@ public class JSF23EvalScriptsTests {
         try (WebClient webClient = new WebClient()) {
             webClient.setAjaxController(new NicelyResynchronizingAjaxController());
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23CDIServer, contextRoot, "EvalScriptsFunction.xhtml");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "EvalScriptsFunction.xhtml");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 
@@ -189,7 +194,7 @@ public class JSF23EvalScriptsTests {
         try (WebClient webClient = new WebClient()) {
             webClient.setAjaxController(new NicelyResynchronizingAjaxController());
             // Construct the URL for the test
-            URL url = JSFUtils.createHttpUrl(jsf23CDIServer, contextRoot, "EvalScriptsMultiFieldUpdate.xhtml");
+            URL url = JSFUtils.createHttpUrl(server, contextRoot, "EvalScriptsMultiFieldUpdate.xhtml");
 
             HtmlPage page = (HtmlPage) webClient.getPage(url);
 

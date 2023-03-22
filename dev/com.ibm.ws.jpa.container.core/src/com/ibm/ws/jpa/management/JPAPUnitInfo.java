@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2019 IBM Corporation and others.
+ * Copyright (c) 2005, 2023 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -45,6 +47,7 @@ import javax.persistence.spi.PersistenceUnitTransactionType;
 import javax.sql.DataSource;
 
 import com.ibm.websphere.csi.J2EEName;
+import com.ibm.websphere.ras.ProtectedString;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.ffdc.FFDCFilter;
@@ -326,8 +329,11 @@ public abstract class JPAPUnitInfo implements PersistenceUnitInfo {
                 // be resolved. So, just return a 'generic' datasource, that should
                 // satisfy the provider, though will never actually be used. d510184
                 if (ivEMFactory == null &&
-                    (dsName.startsWith(JNDI_NAMESPACE_JAVA_COMP_ENV) ||
-                     dsName.startsWith(JNDI_NAMESPACE_JAVA_APP_ENV))) {
+                    (dsName.startsWith(JNDI_NAMESPACE_JAVA_COMP_ENV)
+                     || dsName.startsWith(JNDI_NAMESPACE_JAVA_APP_ENV)
+                     || getJPAComponent().shouldDelayEntityManagerFactoryCreate())) {
+                    if (isTraceOn && tc.isDebugEnabled())
+                        Tr.debug(tc, "returning GenericDataSource : " + ivArchivePuId + ", " + dsName);
                     ds = new GenericDataSource(ivArchivePuId, dsName);
                 }
 
@@ -819,7 +825,7 @@ public abstract class JPAPUnitInfo implements PersistenceUnitInfo {
         // Assume the EMF to be returned is the one created during app start.
         EntityManagerFactory emf = ivEMFactory;
 
-        // An EntityManagerFactory Map is only created if one of the datasrouces
+        // An EntityManagerFactory Map is only created if one of the datasource
         // has been defined in java:comp/env.  When this is true, a component
         // specific EMF needs to be obtained from the map, or created and added
         // to the map.
@@ -898,10 +904,21 @@ public abstract class JPAPUnitInfo implements PersistenceUnitInfo {
         getJPAComponent().addIntegrationProperties(xmlSchemaVersion,
                                                    integrationProperties, ivClassLoader);
 
+        // Add default persistence properties supplied from JPAComponent configuration
+        getJPAComponent().addDefaultProperties(integrationProperties);
+
         if (isTraceOn && tc.isDebugEnabled()) {
             Tr.debug(tc, "createContainerEMF properties:" + this.toString());
-            Tr.debug(tc, "createContainerEMF integration-properties:" +
-                         integrationProperties);
+
+            Map<String, Object> props = new HashMap<String, Object>();
+            for (Map.Entry<String, Object> entry : integrationProperties.entrySet()) {
+                if (AbstractJPAComponent.isPassword(entry.getKey())) {
+                    props.put(entry.getKey(), new ProtectedString(entry.getValue().toString().toCharArray()).toString());
+                } else {
+                    props.put(entry.getKey(), entry.getValue());
+                }
+            }
+            Tr.debug(tc, "createContainerEMF integration-properties: {0}", props);
         }
 
         EntityManagerFactory emfactory;
@@ -1274,10 +1291,12 @@ public abstract class JPAPUnitInfo implements PersistenceUnitInfo {
                         Tr.error(tc,
                                  "ILLEGAL_CLASS_FORMAT_IN_CLASS_TRANSFORMATION_CWWJP0014E",
                                  className);
-                    } catch (RuntimeException t) {
-                        // The transform() method should only throw IllegalClassFormatException but some
+                    } catch (Throwable t) {
+                        // The transform() method should only throw IllegalClassFormatException (in JPA < 3.1) but some
                         // providers may allow a RuntimeException to bubble through, so we have to deal with that
                         // possibility.
+                        // JPA 3.1: The transform method signature has been changed to throw jakarta.persistence.spi.TransformerException.  Since this
+                        // exception doesn't exist in earlier versions of JPA, this catch block has been updated to catch Throwable instead of RuntimeException.
                         final StringBuilder sb = new StringBuilder();
                         try {
                             sb.append("\n----------\n");
@@ -1285,7 +1304,7 @@ public abstract class JPAPUnitInfo implements PersistenceUnitInfo {
                             sb.append(") for class ").append(className).append(" :\n");
                             sb.append(dumpByteCode(classBytes));
 
-                            sb.append("\nRuntime Exception thrown by transformer:\n");
+                            sb.append("\nException thrown by transformer:\n");
                             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                             t.printStackTrace(new PrintStream(baos));
                             sb.append(baos.toString());

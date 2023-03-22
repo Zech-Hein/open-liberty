@@ -1,9 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 1997, 2008 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -196,18 +198,18 @@ public class JSPCache implements com.ibm.ws.cache.intf.JSPCache {
 	public com.ibm.websphere.cache.CacheEntry getEntry(EntryInfo entryInfo) {
 
 		com.ibm.websphere.cache.CacheEntry ce = cache.getEntry(entryInfo);
-		sanityCheck(entryInfo, ce);
+		validationCheck(entryInfo, ce);
 		return ce;
 	}
 
 	public com.ibm.websphere.cache.CacheEntry getEntry(EntryInfo ei, boolean ignoreCounting) {
 		
 	   com.ibm.websphere.cache.CacheEntry ce = cache.getEntry(ei, true, ignoreCounting);
-	   sanityCheck(ei, ce); 	
+	   validationCheck(ei, ce); 	
        return ce;      		
 	}
 
-	private void sanityCheck(EntryInfo entryInfo, com.ibm.websphere.cache.CacheEntry ce) {
+	private void validationCheck(EntryInfo entryInfo, com.ibm.websphere.cache.CacheEntry ce) {
 		if(ce != null){
 		    if(ce.getId() == null){
 		        if(TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())

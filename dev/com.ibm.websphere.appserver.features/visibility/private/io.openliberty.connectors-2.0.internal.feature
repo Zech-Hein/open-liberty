@@ -1,5 +1,6 @@
 -include= ~${workspace}/cnf/resources/bnd/feature.props
 symbolicName=io.openliberty.connectors-2.0.internal
+singleton=true
 IBM-API-Package: \
   com.ibm.ws.jca.service; type="internal", \
   jakarta.resource; type="spec", \
@@ -19,6 +20,6 @@ IBM-API-Package: \
   com.ibm.ws.jca.jakarta, \
   com.ibm.ws.jca.utils.jakarta, \
   com.ibm.ws.jca.feature.jakarta
-kind=beta
+kind=ga
 edition=base
 WLP-Activation-Type: parallel

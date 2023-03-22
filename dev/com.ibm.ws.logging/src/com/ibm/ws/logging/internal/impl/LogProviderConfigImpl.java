@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2020 IBM Corporation and others.
+ * Copyright (c) 2010, 2022 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http://www.eclipse.org/legal/epl-2.0/
+ * 
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import com.ibm.websphere.logging.WsLevel;
@@ -54,6 +57,9 @@ public class LogProviderConfigImpl implements LogProviderConfig {
 
     /** Format the date and time in ISO-8601 format */
     protected volatile boolean isoDateFormat = false;
+
+    /** Prevent potentially sensitive information from being exposed in log and trace files. */
+    protected volatile boolean suppressSensitiveTrace = false;
 
     /**
      * Max file size in MB: 0 for no limit
@@ -96,6 +102,8 @@ public class LogProviderConfigImpl implements LogProviderConfig {
     /** Format to use for messages.log */
     protected volatile String messageFormat = LoggingConstants.DEFAULT_MESSAGE_FORMAT;
 
+    protected volatile boolean stackTraceSingleEntry = false;
+
     /** Mapping to use for json.fields */
     protected volatile String jsonFields = "";
 
@@ -126,6 +134,22 @@ public class LogProviderConfigImpl implements LogProviderConfig {
     /** Allow JSON from applications write directly to System.out/System.err */
     protected volatile boolean appsWriteJson = false;
 
+    /** The rollover start time for time based log rollover */
+    protected volatile String rolloverStartTime = "";
+
+    /** The rollover interval for time based log rollover */
+    protected volatile long rolloverInterval = -1;
+
+    /** The maximum FFDC file age */
+    protected volatile long maxFfdcAge = -1;
+
+    /** A delay to start ffdc log cleanup. For internal test use only. */
+    protected volatile int ffdcCleanupStartDelay = -1;
+
+    private final boolean checkpoint;
+
+    private volatile boolean restore = false;
+
     /**
      * Initial configuration of BaseTraceService from TrServiceConfig.
      *
@@ -143,31 +167,8 @@ public class LogProviderConfigImpl implements LogProviderConfig {
                                                                     FFDCSummaryPolicy.DEFAULT);
 
         // Check ENV to see if the sources and formats are set
-        messageSource = LoggingConfigUtils.parseStringCollection("messageSource",
-                                                                 LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_MESSAGE_SOURCE),
-                                                                 messageSource);
+        setPropertiesFromEnv();
 
-        messageFormat = LoggingConfigUtils.getStringValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_MESSAGE_FORMAT),
-                                                          messageFormat);
-
-        jsonFields = LoggingConfigUtils.getStringValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_JSON_FIELD_MAPPINGS),
-                                                       jsonFields);
-
-        jsonAccessLogFields = LoggingConfigUtils.getStringValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_JSON_ACCESS_LOG_FIELDS),
-                                                                jsonAccessLogFields);
-
-        consoleSource = LoggingConfigUtils.parseStringCollection("consoleSource",
-                                                                 LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_CONSOLE_SOURCE),
-                                                                 consoleSource);
-
-        consoleFormat = LoggingConfigUtils.getStringValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_CONSOLE_FORMAT),
-                                                          consoleFormat);
-
-        consoleLogLevel = LoggingConfigUtils.getLogLevel(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_CONSOLE_LOGLEVEL),
-                                                         consoleLogLevel);
-
-        appsWriteJson = LoggingConfigUtils.getBooleanValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_APPS_WRITE_JSON),
-                                                           appsWriteJson);
         doCommonInit(config, true);
 
         // If the trace file name is 'java.util.logging', then Logger won't write output via Tr,
@@ -196,6 +197,50 @@ public class LogProviderConfigImpl implements LogProviderConfig {
         serverName = config.get("wlp.server.name");
 
         wlpUsrDir = config.get("wlp.user.dir");
+
+        checkpoint = config.get(LoggingConstants.CHECKPOINT_PROPERTY_NAME) != null ? true : false;
+    }
+
+    /**
+     * Check ENV to set sources and formats.
+     */
+    private void setPropertiesFromEnv() {
+        messageSource = LoggingConfigUtils.parseStringCollection("messageSource",
+                                                                 LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_MESSAGE_SOURCE),
+                                                                 messageSource);
+
+        messageFormat = LoggingConfigUtils.getStringValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_MESSAGE_FORMAT),
+                                                          messageFormat);
+
+        jsonFields = LoggingConfigUtils.getStringValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_JSON_FIELD_MAPPINGS),
+                                                       jsonFields);
+
+        jsonAccessLogFields = LoggingConfigUtils.getStringValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_JSON_ACCESS_LOG_FIELDS),
+                                                                jsonAccessLogFields);
+
+        consoleSource = LoggingConfigUtils.parseStringCollection("consoleSource",
+                                                                 LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_CONSOLE_SOURCE),
+                                                                 consoleSource);
+
+        consoleFormat = LoggingConfigUtils.getStringValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_CONSOLE_FORMAT),
+                                                          consoleFormat);
+
+        consoleLogLevel = LoggingConfigUtils.getLogLevel(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_CONSOLE_LOGLEVEL),
+                                                         consoleLogLevel);
+
+        appsWriteJson = LoggingConfigUtils.getBooleanValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_APPS_WRITE_JSON),
+                                                           appsWriteJson);
+
+        rolloverStartTime = LoggingConfigUtils.getStringValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_ROLLOVER_START_TIME), rolloverStartTime);
+
+        rolloverInterval = LoggingConfigUtils.getLongDurationValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_ROLLOVER_INTERVAL), rolloverInterval,
+                                                                   TimeUnit.MINUTES);
+
+        maxFfdcAge = LoggingConfigUtils.getLongDurationValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_MAX_FFDC_AGE), maxFfdcAge,
+                                                                   TimeUnit.MINUTES);
+
+        stackTraceSingleEntry = LoggingConfigUtils.getBooleanValue(LoggingConfigUtils.getEnvValue(LoggingConstants.ENV_WLP_LOGGING_STACK_TRACE_SINGLE_ENTRY),
+                                                                   stackTraceSingleEntry);
     }
 
     /**
@@ -204,7 +249,12 @@ public class LogProviderConfigImpl implements LogProviderConfig {
      */
     @Override
     public synchronized void update(Map<String, Object> config) {
-        doCommonInit(config, false);
+        if (config.get(LoggingConstants.RESTORE_ENABLED) != null) {
+            restore = LoggingConfigUtils.getBooleanValue(config.get(LoggingConstants.RESTORE_ENABLED), restore);
+            setPropertiesFromEnv();
+        } else {
+            doCommonInit(config, false);
+        }
     }
 
     @SuppressWarnings("rawtypes")
@@ -222,6 +272,8 @@ public class LogProviderConfigImpl implements LogProviderConfig {
         traceSpec = InitConfgAttribute.TRACE_SPEC.getStringValue(c, traceSpec, isInit);
         traceFormat = InitConfgAttribute.TRACE_FORMAT.getTraceFormatValue(c, traceFormat, isInit);
 
+        suppressSensitiveTrace = InitConfgAttribute.SUPPRESS_SENSITIVE_TRACE.getBooleanValue(c, suppressSensitiveTrace, isInit);
+
         isoDateFormat = InitConfgAttribute.ISO_DATE_FORMAT.getBooleanValue(c, isoDateFormat, isInit);
 
         consoleLogLevel = InitConfgAttribute.CONSOLE_LOG_LEVEL.getLogLevelValue(c, consoleLogLevel, isInit);
@@ -231,7 +283,7 @@ public class LogProviderConfigImpl implements LogProviderConfig {
         messageFileName = InitConfgAttribute.MSG_FILE_NAME.getStringValue(c, messageFileName, isInit);
         logDirectory = InitConfgAttribute.LOG_LOCATION.getLogDirectory(c, logDirectory, isInit);
 
-        hideMessageIds = InitConfgAttribute.HIDE_MESSAGES.getStringCollectionValue("hideMessage", c, hideMessageIds, isInit);
+        hideMessageIds = InitConfgAttribute.HIDE_MESSAGES.getStringCollectionValueAndSaveInit("hideMessage", c, hideMessageIds, isInit);
 
         messageSource = InitConfgAttribute.MESSAGE_SOURCE.getStringCollectionValueAndSaveInit("messageSource", c, messageSource, isInit);
         messageFormat = InitConfgAttribute.MESSAGE_FORMAT.getStringValueAndSaveInit(c, messageFormat, isInit);
@@ -244,6 +296,14 @@ public class LogProviderConfigImpl implements LogProviderConfig {
 
         newLogsOnStart = InitConfgAttribute.NEW_LOGS_ON_START.getBooleanValue(c, newLogsOnStart, isInit);
         appsWriteJson = InitConfgAttribute.APPS_WRITE_JSON.getBooleanValueAndSaveInit(c, appsWriteJson, isInit);
+
+        rolloverStartTime = InitConfgAttribute.ROLLOVER_START_TIME.getStringValueAndSaveInit(c, rolloverStartTime, isInit);
+        rolloverInterval = InitConfgAttribute.ROLLOVER_INTERVAL.getLongDurationValueAndSaveInit(c, rolloverInterval, isInit, TimeUnit.MINUTES);
+
+        maxFfdcAge = InitConfgAttribute.MAX_FFDC_AGE.getLongDurationValueAndSaveInit(c, maxFfdcAge, isInit, TimeUnit.MINUTES);
+        ffdcCleanupStartDelay = InitConfgAttribute.FFDC_CLEANUP_START_DELAY.getIntValue(c, ffdcCleanupStartDelay, isInit);
+
+        stackTraceSingleEntry = InitConfgAttribute.STACK_JOIN_CONFIGURATION.getBooleanValueAndSaveInit(c, stackTraceSingleEntry, isInit);
     }
 
     /**
@@ -295,6 +355,9 @@ public class LogProviderConfigImpl implements LogProviderConfig {
         }
         builder.append(LoggingConstants.nl);
 
+        builder.append("Classpath = ").append(System.getProperty(("java.class.path"))).append(LoggingConstants.nl);
+        builder.append("Java Library path = ").append((System.getProperty("java.library.path"))).append(LoggingConstants.nl);
+
         return builder.toString();
     }
 
@@ -313,6 +376,10 @@ public class LogProviderConfigImpl implements LogProviderConfig {
 
     public TraceFormat getTraceFormat() {
         return traceFormat;
+    }
+
+    public boolean getSuppressSensitiveTrace() {
+        return suppressSensitiveTrace;
     }
 
     public boolean getIsoDateFormat() {
@@ -403,6 +470,10 @@ public class LogProviderConfigImpl implements LogProviderConfig {
         return messageFormat;
     }
 
+    public boolean isStackTraceSingleEntry() {
+        return stackTraceSingleEntry;
+    }
+
     public String getjsonFields() {
         return jsonFields;
     }
@@ -427,11 +498,34 @@ public class LogProviderConfigImpl implements LogProviderConfig {
         return appsWriteJson;
     }
 
+    public String getRolloverStartTime() {
+        return rolloverStartTime;
+    }
+
+    public long getRolloverInterval() {
+        return rolloverInterval;
+    }
+
+    public long getMaxFfdcAge() {
+        return maxFfdcAge;
+    }
+
+    public int getFfdcCleanupStartDelay() {
+        return ffdcCleanupStartDelay;
+    }
     /**
      * @return true if we should use the logger -> tr handler
      */
     public boolean loggerUsesTr() {
         return loggerUsesTr;
+    }
+
+    public boolean isCheckpoint() {
+        return checkpoint;
+    }
+
+    public boolean isRestore() {
+        return restore;
     }
 
     @Override
@@ -448,7 +542,9 @@ public class LogProviderConfigImpl implements LogProviderConfig {
         sb.append(",traceFormat=").append(traceFormat);
         sb.append(",isoDateFormat=").append(isoDateFormat);
         sb.append(",traceFileName=").append(traceFileName);
+        sb.append(",suppressSensitiveTrace=").append(suppressSensitiveTrace);
         sb.append(",newLogsOnStart=").append(newLogsOnStart);
+        sb.append(",stackTraceSingleEntry=").append(stackTraceSingleEntry);
         sb.append("]");
 
         return sb.toString();
@@ -467,15 +563,21 @@ public class LogProviderConfigImpl implements LogProviderConfig {
         TRACE_FORMAT("traceFormat", "com.ibm.ws.logging.trace.format"),
         ISO_DATE_FORMAT("isoDateFormat", "com.ibm.ws.logging.isoDateFormat"),
         HIDE_MESSAGES("hideMessage", "com.ibm.ws.logging.hideMessage"),
+        SUPPRESS_SENSITIVE_TRACE("suppressSensitiveTrace", "com.ibm.ws.logging.suppress.sensitive.trace"),
 
         MESSAGE_SOURCE("messageSource", "com.ibm.ws.logging.message.source"),
         MESSAGE_FORMAT("messageFormat", "com.ibm.ws.logging.message.format"),
         CONSOLE_SOURCE("consoleSource", "com.ibm.ws.logging.console.source"),
         CONSOLE_FORMAT("consoleFormat", "com.ibm.ws.logging.console.format"),
         JSON_FIELD_MAPPINGS("jsonFieldMappings", "com.ibm.ws.logging.json.field.mappings"),
+        STACK_JOIN_CONFIGURATION("stackTraceSingleEntry", "com.ibm.ws.logging.stackTraceSingleEntry"),
 
         JSON_ENABLE_CUSTOM_ACCESS_LOG_FIELDS("jsonAccessLogFields", "com.ibm.ws.logging.json.access.log.fields"),
         APPS_WRITE_JSON("appsWriteJson", "com.ibm.ws.logging.apps.write.json"),
+        ROLLOVER_START_TIME("rolloverStartTime", "com.ibm.ws.logging.rollover.start.time"),
+        ROLLOVER_INTERVAL("rolloverInterval", "com.ibm.ws.logging.rollover.interval"),
+        MAX_FFDC_AGE("maxFfdcAge", "com.ibm.ws.logging.max.ffdc.age"),
+        FFDC_CLEANUP_START_DELAY("ffdcCleanupStartDelay", "com.ibm.ws.logging.ffdc.cleanup.start.delay"),
         NEW_LOGS_ON_START("newLogsOnStart", FileLogHolder.NEW_LOGS_ON_START_PROPERTY);
 
         final String configKey;
@@ -510,11 +612,25 @@ public class LogProviderConfigImpl implements LogProviderConfig {
             return LoggingConfigUtils.getStringValue(value, defaultValue);
         }
 
+        long getLongValue(Map<String, Object> config, long defaultValue, boolean isInit) {
+            Object value = config.get(isInit ? propertyKey : configKey);
+            return LoggingConfigUtils.getLongValue(value, defaultValue);
+        }
+
         TraceFormat getTraceFormatValue(Map<String, Object> config, TraceFormat defaultValue, boolean isInit) {
             Object value = config.get(isInit ? propertyKey : configKey);
             TraceFormat newValue = LoggingConfigUtils.getFormatValue(value, defaultValue);
             if (isInit && newValue != defaultValue) {
                 config.put(propertyKey, newValue.name());
+            }
+            return newValue;
+        }
+
+        long getLongDurationValueAndSaveInit(Map<String, Object> config, long defaultValue, boolean isInit, TimeUnit timeUnit) {
+            Object value = config.get(isInit ? propertyKey : configKey);
+            long newValue = LoggingConfigUtils.getLongDurationValue(value, defaultValue, timeUnit);
+            if (isInit && value == null) {
+                config.put(propertyKey, Long.toString(newValue));
             }
             return newValue;
         }
