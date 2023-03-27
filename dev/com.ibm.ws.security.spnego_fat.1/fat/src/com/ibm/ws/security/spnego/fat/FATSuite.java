@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -30,7 +30,6 @@ import com.ibm.ws.security.spnego.fat.config.InitClass;
 import com.ibm.ws.security.spnego.fat.config.SPNEGOConstants;
 
 import componenttest.custom.junit.runner.AlwaysPassesTest;
-import componenttest.rules.repeater.FeatureReplacementAction;
 import componenttest.rules.repeater.JakartaEE10Action;
 import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.topology.impl.JavaInfo;
@@ -148,10 +147,11 @@ public class FATSuite extends InitClass {
         protected void after() {
             try {
                 if (RUN_TESTS) {
-                    CommonTest.getKdcHelper().deleteUser();
-                    CommonTest.getKdcHelper()
-                                    .deleteRemoteFileFromRemoteMachine(CommonTest.getKdcHelper().getKdcMachine(),
-                                                                       SPNEGOConstants.KRB5_KEYTAB_FILE);
+                    System.out.println("RE-ENABLE DELETING THE USER!");
+                    //CommonTest.getKdcHelper().deleteUser();
+                    //CommonTest.getKdcHelper()
+                    //               .deleteRemoteFileFromRemoteMachine(CommonTest.getKdcHelper().getKdcMachine(),
+                    //                                                  SPNEGOConstants.KRB5_KEYTAB_FILE);
 
                     /*
                      * Don't delete the localhost_HTTP_krb5.keytab from the remote machine.

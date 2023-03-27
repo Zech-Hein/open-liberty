@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -126,6 +126,10 @@ public class InitClass {
 
             ConnectionInfo connInfo = new ConnectionInfo(KDC_HOSTNAME, InitClass.KDC_USER, InitClass.KDC_USER_PWD);
             Machine kdcMachine = Machine.getMachine(connInfo);
+
+            if (!KDC_REALM.contains("FYRE11")) {
+                throw new Exception("not using fyre11");
+            }
 
             try {
                 Log.info(c, thisMethod, "Testing connection to KDC: " + KDC_HOST_SHORTNAME);
@@ -272,11 +276,12 @@ public class InitClass {
                 canonicalHostName = createRandomStringHostNameForEbc(canonicalHostName);
             } else {
                 //canonicalHostName = createRandomStringHostName(canonicalHostName);
-                String rndhostname1 = "rndhostname1";
+                String rndhostname1 = "odbz21.fyre.ibm.com";//"rndhostname1";
                 libertyHostMap.put(canonicalHostName, rndhostname1);
                 canonicalHostName = rndhostname1;
             }
         }
+        canonicalHostName = "odbz21.fyre.ibm.com";
 
         /*
          * If we can't resolve a canonical hostname other than localhost, we will have problems with
@@ -357,8 +362,8 @@ public class InitClass {
      * "ibm.com", the same value provided for canonicalHostName is returned.
      *
      * @param canonicalHostName
-     * @param issueMsg - Boolean indicating whether a message should be logged if the canonical host name does not
-     *            include the IBM domain.
+     * @param issueMsg          - Boolean indicating whether a message should be logged if the canonical host name does not
+     *                              include the IBM domain.
      * @return
      */
     public static String getShortHostName(String canonicalHostName, boolean issueMsg) {
@@ -403,7 +408,7 @@ public class InitClass {
      * Get an SSH ClientSession to the specified machine.
      *
      * @param sshClient The SSH client.
-     * @param machine The machine to connect to.
+     * @param machine   The machine to connect to.
      * @return The session.
      * @throws IOException If there was an error getting an SSH session to the machine.
      */
