@@ -124,12 +124,18 @@ public class InitClass {
             USER_PWD = services.get(0).getProperties().get(SPNEGOConstants.USER_PWD_FROM_CONSUL);
             Z_USER_PWD = services.get(0).getProperties().get(SPNEGOConstants.USER0_PWD_FROM_CONSUL);
 
+            //Hardcode KDC mahcine info here:
+            System.out.println("!!!! ZECH >>> hardcoding KDC machine INFO !!!!");
+            KDC_HOSTNAME = "kdc1primary21.fyre.ibm.com";
+            KDC_HOST_SHORTNAME = "kdc1primary21";
+            KDC_REALM = "FYRE1.IBM.COM";
+
             ConnectionInfo connInfo = new ConnectionInfo(KDC_HOSTNAME, InitClass.KDC_USER, InitClass.KDC_USER_PWD);
             Machine kdcMachine = Machine.getMachine(connInfo);
 
-            if (!KDC_REALM.contains("FYRE11")) {
-                throw new Exception("not using fyre11");
-            }
+            //if (!KDC_REALM.contains("FYRE11")) {
+            //    throw new Exception("not using fyre11");
+            //}
 
             try {
                 Log.info(c, thisMethod, "Testing connection to KDC: " + KDC_HOST_SHORTNAME);
@@ -276,12 +282,13 @@ public class InitClass {
                 canonicalHostName = createRandomStringHostNameForEbc(canonicalHostName);
             } else {
                 //canonicalHostName = createRandomStringHostName(canonicalHostName);
-                String rndhostname1 = "odbz21.fyre.ibm.com";//"rndhostname1";
+                //String rndhostname1 = "odbz21.fyre.ibm.com";//"rndhostname1";
+                String rndhostname1 = "rndhostname1";
                 libertyHostMap.put(canonicalHostName, rndhostname1);
                 canonicalHostName = rndhostname1;
             }
         }
-        canonicalHostName = "odbz21.fyre.ibm.com";
+        //canonicalHostName = "odbz21.fyre.ibm.com";
 
         /*
          * If we can't resolve a canonical hostname other than localhost, we will have problems with
