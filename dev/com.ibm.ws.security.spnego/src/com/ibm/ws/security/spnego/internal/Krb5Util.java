@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -290,8 +290,7 @@ public class Krb5Util {
             Tr.debug(tc, "zech >>> addGSSDelegCredToSubject clientCred: " + clientCred);
         }
         try {
-            if (SpnegoHelperProxy.isS4U2proxyEnabled()) {
-                //if (clientCred == null && SpnegoHelperProxy.isS4U2proxyEnabled()) {
+            if (clientCred == null && SpnegoHelperProxy.isS4U2proxyEnabled()) {
                 String delegateServiceSpn = context.getTargName().toString();
                 clientCred = SpnegoHelperProxy.getDelegateGSSCredUsingS4U2proxy(userPrincipal, context, delegateServiceSpn);
             }
@@ -345,9 +344,9 @@ public class Krb5Util {
      * array.
      *
      * @param aBuffer
-     *            byte[] contains the bytes to convert to hex
+     *                    byte[] contains the bytes to convert to hex
      * @param nBytes
-     *            int the number of entries in the array to display
+     *                    int the number of entries in the array to display
      * @return String a string that represents the hex equivalent of the byte
      *         array.
      */
@@ -414,10 +413,10 @@ public class Krb5Util {
      * Prepend 0's to a hex string.
      *
      * @param aString
-     *            String is the string that contains the hex characters to which
-     *            '0' will be prepended
+     *                       String is the string that contains the hex characters to which
+     *                       '0' will be prepended
      * @param aPadLength
-     *            int is the number of '0's to prepend to aString
+     *                       int is the number of '0's to prepend to aString
      * @return String aString, now prepended with aPadLength of '0's
      */
     @Trivial
