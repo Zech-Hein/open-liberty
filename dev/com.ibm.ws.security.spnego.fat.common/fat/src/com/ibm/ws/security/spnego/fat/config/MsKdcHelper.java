@@ -486,7 +486,6 @@ public class MsKdcHelper extends KdcHelper {
     @Override
     public void teardown() {
         final String methodName = "teardown()";
-        System.out.println("msKDCHelper teardown getting called!");
 
         /*
          * Delete the default user.
@@ -570,7 +569,8 @@ public class MsKdcHelper extends KdcHelper {
     @Override
     public void deleteVbsScriptsFromKDC() {
         final String methodName = "deleteVbsScripts";
-        if (InitClass.sendvbs) {
+        Log.info(thisClass, methodName, "InitClass.sendvbs: " + InitClass.sendvbs);
+        if (!InitClass.sendvbs) {
             String file = getUniqueRemoteFileName(SPNEGOConstants.CREATE_WIN_KEYTAB_REMOTE_FILE);
             try {
                 deleteRemoteFileFromRemoteMachine(getKdcMachine(), file);

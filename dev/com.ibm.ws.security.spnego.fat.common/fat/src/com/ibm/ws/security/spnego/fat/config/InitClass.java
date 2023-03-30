@@ -129,6 +129,11 @@ public class InitClass {
             KDC_HOSTNAME = "kdc1primary21.fyre.ibm.com";
             KDC_HOST_SHORTNAME = "kdc1primary21";
             KDC_REALM = "FYRE1.IBM.COM";
+            System.out.println("\n\n krb5.conf: " + KRB5_CONF);
+            KRB5_CONF = KRB5_CONF.replaceAll("FYRE11", "FYRE1");
+            KRB5_CONF = KRB5_CONF.replaceAll("kdc1primary1", "kdc1primary21");
+            KRB5_CONF = KRB5_CONF.replaceAll("kdcprimaryreplica1", "kdc1primary21");
+            System.out.println("\n\n krb5.conf after replaces: " + KRB5_CONF);
 
             ConnectionInfo connInfo = new ConnectionInfo(KDC_HOSTNAME, InitClass.KDC_USER, InitClass.KDC_USER_PWD);
             Machine kdcMachine = Machine.getMachine(connInfo);
@@ -288,7 +293,7 @@ public class InitClass {
                 canonicalHostName = rndhostname1;
             }
         }
-        //canonicalHostName = "odbz21.fyre.ibm.com";
+        canonicalHostName = "rndhostname1";
 
         /*
          * If we can't resolve a canonical hostname other than localhost, we will have problems with
