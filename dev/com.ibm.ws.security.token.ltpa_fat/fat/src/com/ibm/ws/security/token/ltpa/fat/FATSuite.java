@@ -37,22 +37,19 @@ import componenttest.rules.repeater.RepeatTests;
 /**
  * Purpose: This suite collects and runs all known good test suites.
  */
-public class FATSuite extends CommonLocalLDAPServerSuite {
+public class FATSuite {
     private static final Set<String> EE78_FEATURES;
     private static final String[] EE78_FEATURES_ARRAY = {
                                                           "appSecurity-1.0",
                                                           "jsp-2.2",
-                                                          "usr:jaccTestProvider-1.0"
     };
 
     private static final Set<String> EE9_FEATURES;
     private static final String[] EE9_FEATURES_ARRAY = {
-                                                         "usr:jaccTestProvider-2.0"
     };
 
     private static final Set<String> EE10_FEATURES;
     private static final String[] EE10_FEATURES_ARRAY = {
-                                                          "usr:jaccTestProvider-2.1"
     };
 
     static {

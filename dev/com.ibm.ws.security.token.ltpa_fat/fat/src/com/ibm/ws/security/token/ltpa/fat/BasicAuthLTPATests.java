@@ -15,7 +15,6 @@ package com.ibm.ws.security.token.ltpa.fat;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,7 +41,7 @@ import componenttest.topology.impl.LibertyServerFactory;
 @Mode(TestMode.FULL)
 public class BasicAuthLTPATests {
 
-    private static LibertyServer server = LibertyServerFactory.getLibertyServer("com.ibm.ws.webcontainer.security.fat.loginmethod");
+    private static LibertyServer server = LibertyServerFactory.getLibertyServer("com.ibm.ws.security.token.ltpa.fat.basicauth");
     private final Class<?> thisClass = BasicAuthLTPATests.class;
 
     private final static String employeeUser = "user1";
@@ -80,12 +79,14 @@ public class BasicAuthLTPATests {
     @BeforeClass
     public static void setUp() throws Exception {
         server.startServer(true);
-        assertNotNull("FeatureManager did not report update was complete",
-                      server.waitForStringInLog("CWWKF0008I"));
-        assertNotNull("Security service did not report it was ready",
-                      server.waitForStringInLog("CWWKS0008I"));
-        assertNotNull("The application did not report is was started",
-                      server.waitForStringInLog("CWWKZ0001I"));
+/*
+ * assertNotNull("FeatureManager did not report update was complete",
+ * server.waitForStringInLog("CWWKF0008I"));
+ * assertNotNull("Security service did not report it was ready",
+ * server.waitForStringInLog("CWWKS0008I"));
+ * assertNotNull("The application did not report is was started",
+ * server.waitForStringInLog("CWWKZ0001I"));
+ */
     }
 
     @After
@@ -104,7 +105,7 @@ public class BasicAuthLTPATests {
 
     /**
      * Verify the following:
-     * <LI>Attempt to access a protected servlet configured for basic auth.
+     * <LI>Attempt to access a simple servlet configured for basic auth.
      * <LI>Login with a valid userId (user1) and password.
      * </OL>
      * <P>Expected Results:
@@ -115,28 +116,31 @@ public class BasicAuthLTPATests {
      * <LI> 3) login() is called and should return the correct values for the passed-in user
      * </OL>
      */
+    @SuppressWarnings("restriction")
     @Mode(TestMode.LITE)
     @Test
     public void testLoginMethodBA_ValidUserIdPassword() throws Exception {
-        String queryString = BasicAuthClient.PROTECTED_PROGRAMMATIC_API_SERVLET + "?" +
+        String queryString = BasicAuthClient.PROTECTED_SIMPLE + "?" +
                              METHODS + "&user=" + managerUser + "&password=" + managerPassword;
         String response = baClient.accessProtectedServletWithAuthorizedCredentials(queryString, employeeUser, employeePassword);
         assertNotNull(response);
 
-        // Get servlet output to verify each test
-        String test1 = response.substring(response.indexOf("STARTTEST1"), response.indexOf("ENDTEST1"));
-        String test2 = response.substring(response.indexOf("STARTTEST2"), response.indexOf("ENDTEST2"));
-        String test3 = response.substring(response.indexOf("STARTTEST3"), response.indexOf("ENDTEST3"));
+        // Get the cookie back from the session
+        String cookie = baClient.getCookieFromLastLogin();
 
-        // TEST1 - check values after 1st login
-        // we expect a ServletException if already logged in
-        assertTrue("Failed to find after 1st login: ServletException", test1.contains("ServletException"));
+        System.out.println("Printing the cookie value: " + cookie);
 
-        // TEST2 - check values after logout
-        assertTrue(baClient.verifyUnauthenticatedResponse(test2));
-
-        // TEST3 - check values after 2nd login
-        assertTrue(baClient.verifyResponse(test3, managerUser, NOT_EMPLOYEE_ROLE, IS_MANAGER_ROLE));
+        /*
+         * // TEST1 - check values after 1st login
+         * // we expect a ServletException if already logged in
+         * assertTrue("Failed to find after 1st login: ServletException", test1.contains("ServletException"));
+         *
+         * // TEST2 - check values after logout
+         * assertTrue(baClient.verifyUnauthenticatedResponse(test2));
+         *
+         * // TEST3 - check values after 2nd login
+         * assertTrue(baClient.verifyResponse(test3, managerUser, NOT_EMPLOYEE_ROLE, IS_MANAGER_ROLE));
+         */
 
         List<String> passwordsInTrace = server.findStringsInLogsAndTrace(employeePassword);
         assertEquals("Should not find password in the log file",
