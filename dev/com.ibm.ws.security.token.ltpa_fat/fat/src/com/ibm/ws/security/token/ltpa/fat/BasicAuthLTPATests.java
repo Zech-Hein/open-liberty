@@ -61,7 +61,7 @@ public class BasicAuthLTPATests {
     private final boolean IS_EMPLOYEE_ROLE = true;
     private final boolean NOT_EMPLOYEE_ROLE = false;
 
-    private static final BasicAuthClient baClient = new BasicAuthClient(server, BasicAuthClient.DEFAULT_REALM, "ProgrammaticAPIServlet", BasicAuthClient.DEFAULT_CONTEXT_ROOT);
+    private static final BasicAuthClient baClient = new BasicAuthClient(server, BasicAuthClient.DEFAULT_REALM, "SimpleServlet", BasicAuthClient.DEFAULT_CONTEXT_ROOT);
 
     @Rule
     public final TestWatcher logger = new TestWatcher() {
@@ -120,15 +120,43 @@ public class BasicAuthLTPATests {
     @Mode(TestMode.LITE)
     @Test
     public void testLoginMethodBA_ValidUserIdPassword() throws Exception {
-        String queryString = BasicAuthClient.PROTECTED_SIMPLE + "?" +
-                             METHODS + "&user=" + managerUser + "&password=" + managerPassword;
-        String response = baClient.accessProtectedServletWithAuthorizedCredentials(queryString, employeeUser, employeePassword);
+
+        // Test Scenarios:
+        // When useContextRootForSSOCookiePath has been set to true
+        // 1. Successful authentication with LTPA, using . app1 ("/basicauth/SimpleServlet"), ltpatoken works,
+        // then app2 ("/basicauth/ManagerRoleServlet") ltpatoken still works. (because "/basicauth" domain root is the same)
+
+        String simpleServletQueryString = BasicAuthClient.PROTECTED_SIMPLE + "?" +
+                                          METHODS + "&user=" + managerUser + "&password=" + managerPassword;
+        String response = baClient.accessProtectedServletWithAuthorizedCredentials(simpleServletQueryString, managerUser, managerPassword);
         assertNotNull(response);
 
         // Get the cookie back from the session
         String cookie = baClient.getCookieFromLastLogin();
+        assertNotNull(cookie);
 
-        System.out.println("Printing the cookie value: " + cookie);
+        // Return the path value of the cookie
+        String cookiePath = baClient.getContextRoot();
+        assertNotNull(cookiePath);
+
+        // Print both values
+        System.out.println("Cookie: " + cookie);
+        System.out.println("Cookie Path: " + cookiePath);
+
+        // Now try to access the servlet with the cookie
+        response = baClient.accessProtectedServletWithAuthorizedCookie(simpleServletQueryString, cookie);
+        assertNotNull(response);
+
+        // Now access the manager servlet ("/ManagerRoleServlet") with the cookie
+        String managerServletQueryString = BasicAuthClient.PROTECTED_MANAGER_ROLE + "?" +
+                                           METHODS + "&user=" + managerUser + "&password=" + managerPassword;
+
+        response = baClient.accessProtectedServletWithAuthorizedCookie(managerServletQueryString, cookie);
+        assertNotNull(response);
+
+        // Print both values
+        System.out.println("Cookie: " + cookie);
+        System.out.println("Cookie Path: " + cookiePath);
 
         /*
          * // TEST1 - check values after 1st login
