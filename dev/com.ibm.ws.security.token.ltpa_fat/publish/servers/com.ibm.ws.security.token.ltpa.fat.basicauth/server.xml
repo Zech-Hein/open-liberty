@@ -68,6 +68,8 @@
 
 	<webAppSecurity useContextRootForSSOCookiePath="true" />
 
+	<authentication id="Basic" cacheEnabled="false" />
+
 	<include location="../fatTestPorts.xml" />
 	<javaPermission className="javax.security.auth.AuthPermission" name="createLoginContext.system.WEB_INBOUND"/>
 	<javaPermission className="javax.security.auth.AuthPermission" name="wssecurity.getCallerSubject"/>
