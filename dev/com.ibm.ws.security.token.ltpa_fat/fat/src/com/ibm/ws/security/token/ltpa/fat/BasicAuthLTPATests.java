@@ -266,9 +266,9 @@ public class BasicAuthLTPATests {
         server.updateServerConfiguration(config);
         //CWWKG0017I: The server configuration was successfully updated in {0} seconds.
         //CWWKG0018I: The server configuration was not updated. No functional changes were detected.
-        server.waitForStringInLogUsingMark("CWWKG001[7-8]I");
-        if (waitForAppToStart) {
-            server.waitForStringInLogUsingMark("CWWKZ0003I"); //CWWKZ0003I: The application userRegistry updated in 0.020 seconds.
+        String logLine = server.waitForStringInLogUsingMark("CWWKG001[7-8]I");
+        if (waitForAppToStart && !logLine.contains("CWWKG0018I")) {
+            server.waitForStringInLogUsingMark("CWWKZ0003I", 10000); //CWWKZ0003I: The application userRegistry updated in 0.020 seconds.
         }
     }
 }
