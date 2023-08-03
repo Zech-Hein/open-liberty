@@ -102,7 +102,7 @@
 
     <authentication id="Basic" cacheEnabled="false" />
     
-    <ltpa expiration="10" keysFileName="/security/ltpa.keys" password="{aes}abc" monitorDirectory="true"/>
+    <ltpa expiration="10" keysFileName="resources/security/ltpa.keys" password="{xor}Lz4sLCgwLTs=" monitorDirectory="true"/>
 
     <include location="../fatTestPorts.xml" />
     <javaPermission className="javax.security.auth.AuthPermission" name="createLoginContext.system.WEB_INBOUND"/>

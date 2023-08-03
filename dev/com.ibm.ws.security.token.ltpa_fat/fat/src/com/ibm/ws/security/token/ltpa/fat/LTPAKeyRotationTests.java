@@ -13,25 +13,17 @@
 
 package com.ibm.ws.security.token.ltpa.fat;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpMessage;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -41,13 +33,12 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 
+import com.ibm.websphere.simplicity.RemoteFile;
+import com.ibm.websphere.simplicity.config.LTPA;
 import com.ibm.websphere.simplicity.config.ServerConfiguration;
-import com.ibm.websphere.simplicity.config.WebAppSecurity;
 import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.webcontainer.security.test.servlets.BasicAuthClient;
 import com.ibm.ws.webcontainer.security.test.servlets.FormLoginClient;
-import com.ibm.ws.webcontainer.security.test.servlets.FormLoginClient.LogoutOption;
-import com.ibm.ws.webcontainer.security.test.servlets.SSLHelper;
 
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
@@ -60,8 +51,9 @@ import componenttest.topology.impl.LibertyServerFactory;
 @Mode(TestMode.FULL)
 public class LTPAKeyRotationTests {
 
-     // Initialize needed strings for the tests
+    // Initialize needed strings for the tests
     protected static String METHODS = null;
+    protected static final String APP_NAME = "ltpaKeyRotationTestServer";
     protected static final String PROGRAMMATIC_API_SERVLET = "ProgrammaticAPIServlet";
     protected static final String authTypeForm = "FORM";
     protected static final String authTypeBasic = "BASIC";
@@ -75,7 +67,7 @@ public class LTPAKeyRotationTests {
 
     // Initialize a liberty server for basic auth and form login
     private static LibertyServer server = LibertyServerFactory.getLibertyServer("com.ibm.ws.security.token.ltpa.fat.ltpaKeyRotationTestServer");
-    
+
     private final Class<?> thisClass = LTPAKeyRotationTests.class;
 
     // Initialize the user
@@ -92,6 +84,11 @@ public class LTPAKeyRotationTests {
     // Initialize the FormLogin Clients
     private static final FormLoginClient flClient1 = new FormLoginClient(server, FormLoginClient.DEFAULT_SERVLET_NAME, "/formlogin1");
     private static final FormLoginClient flClient2 = new FormLoginClient(server, FormLoginClient.DEFAULT_SERVLET_NAME, "/formlogin2");
+
+    // Define the paths to the key files
+    private static final String DEFAULT_KEY_PATH = "resources/security/ltpa.keys";
+    private static final String VALIDATION_KEY_PATH = "resources/security/";
+    private static final String DEFAULT_SERVER_XML = "server.xml";
 
     @Rule
     public final TestWatcher logger = new TestWatcher() {
@@ -137,6 +134,92 @@ public class LTPAKeyRotationTests {
     /**
      * Verify the following:
      * <OL>
+     * <LI>Start the server with a default server config file (server.xml)
+     * </OL>
+     * <P>Expected results:
+     * <OL>
+     * <LI>The server starts successfully
+     * <LI>The server successfully generated a default LTPA key file if the LTPA key file does not exist.
+     * <LI>A LTPA token can be created
+     * </OL>
+     */
+    @Test
+    public void genDefaultLTPAKeyFile() throws Exception {
+        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "genDefaultLTPAKeyFile.log");
+        assertFeatureCompleteWithKeysGeneratedAndTestApp(DEFAULT_KEY_PATH);
+        assertTokenCanBeCreated();
+        assertFileWasCreated(DEFAULT_KEY_PATH);
+    }
+
+    /**
+     * Verify the following:
+     * <OL>
+     * <LI>Set MonitorDirectory to true
+     * <LI>Start the server with a default ltpa.keys file
+     * <LI>Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
+     * <LI>Update the server.xml file to include both old and new LTPA keys
+     * <LI>Attempt to access a simple servlet configured for basic auth1 with existing ltap1 cookie
+     * <LI>Attempt to access a simple servlet configured for basic auth2 with ltap2 cookie
+     * </OL>
+     * <P>Expected Results:
+     * <OL>
+     * <LI>MonitorDirectory is set to true
+     * <LI>Server starts successfully
+     * <LI>Successful authentication to simple servlet
+     * <LI>Successful update of server.xml file
+     * <LI>Continued authentication to simple servlet; server is not restarted and does not need to login again
+     * <LI>Successful authentication to simple servlet; new key is used for verification
+     * </OL>
+     */
+    @Test
+    public void testMultipleLTPAKeyFilesSupport_monitorDirectory_true() throws Exception {
+        // Set MonitorDirectory to true
+        setLTPAMonitorDirectoryElement(server, "true");
+
+        // Start the server with a default ltpa.keys file
+        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "genDefaultLTPAKeyFile.log");
+        assertFeatureCompleteWithKeysGeneratedAndTestApp(DEFAULT_KEY_PATH);
+
+        // Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
+
+    }
+
+    /**
+     * Verify the following:
+     * <OL>
+     * <LI>Set MonitorDirectory to false
+     * <LI>Start the server with a default ltpa.keys file
+     * <LI>Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
+     * <LI>Update the server.xml file to include both old and new LTPA keys
+     * <LI>Attempt to access a simple servlet configured for basic auth1 with existing ltap1 cookie
+     * <LI>Attempt to access a simple servlet configured for basic auth2 with ltap2 cookie
+     * </OL>
+     * <P>Expected Results:
+     * <OL>
+     * <LI>MonitorDirectory is set to false
+     * <LI>Server starts successfully
+     * <LI>Successful authentication to simple servlet
+     * <LI>Successful update of server.xml file
+     * <LI>Unsuccessful authentication to simple servlet; server is not restarted and user does need to login again
+     * <LI>Successful authentication to simple servlet; new key is used for verification
+     * </OL>
+     */
+    @Test
+    public void testMultipleLTPAKeyFilesSupport_monitorDirectory_false() throws Exception {
+        // Set MonitorDirectory to false
+        setLTPAMonitorDirectoryElement(server, "false");
+
+        // Start the server with a default ltpa.keys file
+        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "genDefaultLTPAKeyFile.log");
+        assertFeatureCompleteWithKeysGeneratedAndTestApp(DEFAULT_KEY_PATH);
+
+        // Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
+
+    }
+
+    /**
+     * Verify the following:
+     * <OL>
      * <LI>Attempt to access a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
      * <LI>Get the cookie back from the session
      * <LI>Complete a key rotation, and add key 2 to ltpa1.keys
@@ -152,12 +235,9 @@ public class LTPAKeyRotationTests {
      * <LI>Successful verification of original LTPA key in ltpa1.keys file
      * </OL>
      */
-    @SuppressWarnings("restriction")
     @Mode(TestMode.LITE)
     @Test
     public void testSuccessfulAuthenticationWithOriginalKeys() {
-        // Set the multipleLTPAKeys to true
-        setWebAppSecurityConfigElement(server, "true");
 
         String response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, managerUser, managerPassword);
         assertNotNull(response);
@@ -199,8 +279,6 @@ public class LTPAKeyRotationTests {
     @Mode(TestMode.LITE)
     @Test
     public void testNewUserAuthentication() {
-        // Set the multipleLTPAKeys to true
-        setWebAppSecurityConfigElement(server, "true");
 
         String response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, managerUser, managerPassword);
         assertNotNull(response);
@@ -251,8 +329,7 @@ public class LTPAKeyRotationTests {
     @Mode(TestMode.LITE)
     @Test
     public void testExpiredKeyForcesReauthentication() {
-        // Set the multipleLTPAKeys to true
-        setWebAppSecurityConfigElement(server, "true");
+        ;
 
         // Set ltpa expiration to 3 second
         //server.setLTPAExpiration(3);
@@ -300,8 +377,6 @@ public class LTPAKeyRotationTests {
     @Mode(TestMode.LITE)
     @Test
     public void testAuthenticationFailureAfterKeyReplacement() {
-        // Set the multipleLTPAKeys to false
-        setWebAppSecurityConfigElement(server, "false");
 
         // Initialize a session with a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
         String response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, managerUser, managerPassword);
@@ -319,18 +394,26 @@ public class LTPAKeyRotationTests {
                    baClient1.accessProtectedServletWithUnauthorizedCookie(BasicAuthClient.PROTECTED_SIMPLE, cookie));
     }
 
-    // Function to set the multipleLTPAKeys to true or false
-    public WebAppSecurity setWebAppSecurityConfigElement(LibertyServer server, String multipleLTPAKeys) {
-        WebAppSecurity waSecurity;
+    /**
+     * Helper method to delete an existing ltpa keys file if it exists
+     */
+    private void deleteExistingLTPAKeysFiles() throws Exception {
+        deleteFileIfExists(DEFAULT_KEY_PATH);
+        deleteFileIfExists(VALIDATION_KEY_PATH);
+    }
+
+    // Function to set the monitorDirectory to true or false
+    public LTPA setLTPAMonitorDirectoryElement(LibertyServer server, String monitorDirectory) {
+        LTPA ltpaConfiguration;
         try {
             ServerConfiguration configuration = server.getServerConfiguration();
-            waSecurity = configuration.getWebAppSecurity();
-            waSecurity.multipleLTPAKeys = multipleLTPAKeys;
+            ltpaConfiguration = configuration.getLTPA();
+            ltpaConfiguration.monitorDirectory = monitorDirectory;
             updateConfigDynamically(server, configuration, true);
-            return waSecurity;
+            return ltpaConfiguration;
         } catch (Exception e) {
             e.printStackTrace();
-            Log.info(thisClass, "setWebAppSecurityConfigElement", "Failure getting server configuration");
+            Log.info(thisClass, "setLTPAMonitorDirectoryElement", "Failure getting server configuration");
         }
         return null;
     }
@@ -347,5 +430,135 @@ public class LTPAKeyRotationTests {
         if (waitForAppToStart) {
             server.waitForStringInLogUsingMark("CWWKZ0003I"); //CWWKZ0003I: The application userRegistry updated in 0.020 seconds.
         }
+    }
+
+    /**
+     * Delete the file if it exists. If we can't delete it, then
+     * throw an exception as we need to be able to delete these files.
+     *
+     * @param filePath
+     *
+     * @throws Exception
+     */
+    private void deleteFileIfExists(String filePath) throws Exception {
+        if (fileExists(filePath)) {
+            if (!server.getFileFromLibertyServerRoot(filePath).delete()) {
+                throw new Exception("Delete action failed for file: " + filePath);
+            }
+
+            // Double check to make sure the file is gone
+            if (fileExists(filePath))
+                throw new Exception("Unable to delete file: " + filePath);
+        }
+
+    }
+
+    /**
+     * Start the server with the given configuration file and log file.
+     */
+    private void startServerWithConfigFileAndLog(String configFile, String logFileName) throws Exception {
+        server.setServerConfigurationFile(configFile);
+        server.startServer(logFileName);
+    }
+
+    /**
+     * Asserts that the feature update is complete, the LTPA keys are generated,
+     * and the test application was installed. Requires info trace.
+     */
+    private void assertFeatureCompleteWithKeysGeneratedAndTestApp(String generatedLTPAKeysPath) {
+        assertApplicationStarted();
+        assertFeatureUpdateComplete();
+        assertKeysGenerated(generatedLTPAKeysPath);
+    }
+
+    private void assertApplicationStarted() {
+        assertNotNull("Application ltpaTest does not appear to have started.",
+                      server.waitForStringInLog("CWWKZ0001I:.*ltpaTest"));
+    }
+
+    private void assertFeatureUpdateComplete() {
+        assertNotNull("The app start will cause the token bundle to start. The token bundle did not start.",
+                      server.waitForStringInLog("CWWKF0008I:.*"));
+    }
+
+    private void assertKeysGenerated(String generatedLTPAKeysPath) {
+        assertNotNull("We need to wait for the LTPA keys to be generated at " + generatedLTPAKeysPath + ", but we did not recieve the message",
+                      server.waitForStringInLog("CWWKS4104A:.*" + generatedLTPAKeysPath));
+    }
+
+    /**
+     * Asserts that a token can be created.
+     * It will cause the LTPA keys file to get created if it does not exist.
+     */
+    private void assertTokenCanBeCreated() throws Exception {
+        HttpURLConnection con = null;
+        try {
+            URL url = new URL("http://" + server.getHostname() + ":" + server.getHttpDefaultPort() + "/" + APP_NAME);
+            con = (HttpURLConnection) url.openConnection();
+            con.setDoInput(true);
+            con.setDoOutput(true);
+            con.setUseCaches(false);
+            con.setRequestMethod("GET");
+            InputStream is = con.getInputStream();
+            assertNotNull(is);
+
+            String output = read(is);
+            assertTrue(output, output.trim().startsWith("Test Passed"));
+        } finally {
+            if (con != null) {
+                con.disconnect();
+            }
+        }
+    }
+
+    /**
+     * Assert that file was created
+     */
+    private void assertFileWasCreated(String filePath) {
+        assertTrue(fileExists(filePath));
+    }
+
+    /**
+     * Check to see if the file exists. We will wait a bit to ensure
+     * that the system was not slow to flush the file.
+     *
+     * @param filePath
+     *
+     * @return
+     */
+    private boolean fileExists(String filePath) {
+        try {
+            RemoteFile remote = server.getFileFromLibertyServerRoot(filePath);
+            boolean exists = false;
+            int count = 0;
+            do {
+                //sleep half a second
+                Thread.sleep(500);
+                exists = remote.exists();
+                count++;
+            }
+            //wait up to 10 seconds for the key file to appear
+            while ((!exists) && count < 20);
+
+            return exists;
+
+        } catch (Exception e) {
+            // assume the file does not exist and move on
+        }
+
+        // if we make it here assume it does not exists
+        return false;
+    }
+
+    private static String read(InputStream in) throws IOException {
+        InputStreamReader isr = new InputStreamReader(in);
+        BufferedReader br = new BufferedReader(isr);
+        StringBuilder builder = new StringBuilder();
+        String line;
+        while ((line = br.readLine()) != null) {
+            builder.append(line);
+            builder.append(System.getProperty("line.separator"));
+        }
+        return builder.toString();
     }
 }
