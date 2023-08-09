@@ -161,10 +161,6 @@ public class LTPAKeyInfoManager {
         }
     }
 
-    private boolean shouldWeLoadThisKeysFile() {
-        return true;
-    }
-
     public boolean isNotUseAfterDate(String filename, OffsetDateTime notUseAfterDateOdt) {
         OffsetDateTime currentTime = OffsetDateTime.now(notUseAfterDateOdt.getOffset());
 
