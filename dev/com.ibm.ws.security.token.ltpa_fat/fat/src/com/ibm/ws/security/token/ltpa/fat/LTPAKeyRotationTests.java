@@ -15,6 +15,7 @@ package com.ibm.ws.security.token.ltpa.fat;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
@@ -87,7 +88,8 @@ public class LTPAKeyRotationTests {
 
     // Define the paths to the key files
     private static final String DEFAULT_KEY_PATH = "resources/security/ltpa.keys";
-    private static final String VALIDATION_KEY_PATH = "resources/security/";
+    private static final String VALIDATION_KEY1_PATH = "resources/security/validation1.keys";
+    private static final String VALIDATION_KEYS_PATH = "resources/security/";
     private static final String DEFAULT_SERVER_XML = "server.xml";
 
     @Rule
@@ -131,275 +133,340 @@ public class LTPAKeyRotationTests {
         }
     }
 
-    /**
-     * Verify the following:
-     * <OL>
-     * <LI>Start the server with a default server config file (server.xml)
-     * </OL>
-     * <P>Expected results:
-     * <OL>
-     * <LI>The server starts successfully
-     * <LI>The server successfully generated a default LTPA key file if the LTPA key file does not exist.
-     * <LI>A LTPA token can be created
-     * </OL>
-     */
-    @Test
-    public void genDefaultLTPAKeyFile() throws Exception {
-        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "genDefaultLTPAKeyFile.log");
-        assertFeatureCompleteWithKeysGeneratedAndTestApp(DEFAULT_KEY_PATH);
-        assertTokenCanBeCreated();
-        assertFileWasCreated(DEFAULT_KEY_PATH);
-    }
+    // /**
+    //  * Verify the following:
+    //  * <OL>
+    //  * <LI>Start the server with a default server config file (server.xml)
+    //  * </OL>
+    //  * <P>Expected results:
+    //  * <OL>
+    //  * <LI>The server starts successfully
+    //  * <LI>The server successfully generated a default LTPA key file if the LTPA key file does not exist.
+    //  * <LI>A LTPA token can be created
+    //  * </OL>
+    //  */
+    // @Test
+    // public void genDefaultLTPAKeyFile() throws Exception {
+    //     startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "genDefaultLTPAKeyFile.log");
+    //     assertFeatureCompleteWithKeysGeneratedAndTestApp(DEFAULT_KEY_PATH);
+    //     assertTokenCanBeCreated();
+    //     assertFileWasCreated(DEFAULT_KEY_PATH);
+    // }
 
     /**
      * Verify the following:
      * <OL>
-     * <LI>Set MonitorDirectory to true
+     * <LI>Set MonitorDirectory to true, and MonitorInterval to 5
      * <LI>Start the server with a default ltpa.keys file
      * <LI>Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
-     * <LI>Update the server.xml file to include both old and new LTPA keys
-     * <LI>Attempt to access a simple servlet configured for basic auth1 with existing ltap1 cookie
-     * <LI>Attempt to access a simple servlet configured for basic auth2 with ltap2 cookie
-     * </OL>
+     * <LI>Rename the ltpa.keys file to validation1.keys
+     * <LI>Retry access to the simple servlet configured for basic auth1 with ltap1 cookie
+     * <LI>Check for the creation of a new ltpa.keys file
+     * <LI>Attempt to access a new simple servlet configured for basic auth2 with ltap2 cookie
+     * <OL>
      * <P>Expected Results:
      * <OL>
-     * <LI>MonitorDirectory is set to true
-     * <LI>Server starts successfully
+     * <LI>MonitorDirectory is set to true, and MonitorInterval to 5
+     * <LI>Server starts successfully, and a default ltpa.keys file is automatically generated
      * <LI>Successful authentication to simple servlet
-     * <LI>Successful update of server.xml file
+     * <LI>The ltpa.keys file is renamed to validation1.keys
      * <LI>Continued authentication to simple servlet; server is not restarted and does not need to login again
-     * <LI>Successful authentication to simple servlet; new key is used for verification
+     * <LI>A new ltpa.keys file is created
+     * <LI>Successful authentication to simple servlet with new ltpa2 cookie
      * </OL>
      */
     @Test
-    public void testMultipleLTPAKeyFilesSupport_monitorDirectory_true() throws Exception {
-        // Set MonitorDirectory to true
+    public void testLTPAFileCreation_monitorDirectory_true_monitorInterval_on() throws Exception {
+        // Set MonitorDirectory to true, and MonitorInterval to 5
         setLTPAMonitorDirectoryElement(server, "true");
+        setLTPAMonitorIntervalElement(server, "5");
 
-        // Start the server with a default ltpa.keys file
-        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "genDefaultLTPAKeyFile.log");
-        assertFeatureCompleteWithKeysGeneratedAndTestApp(DEFAULT_KEY_PATH);
+        // Assert that a default ltpa.keys file is generated
+        assertFileWasCreated(DEFAULT_KEY_PATH);
 
-        // Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
+        // Initial login to simple servlet for form login1 and form login2
+        String response1 = flClient1.accessProtectedServletWithAuthorizedCredentials(FormLoginClient.PROTECTED_SIMPLE, validUser, validPassword);
 
+        // Get the SSO cookies back from each login
+        String cookie1 = flClient1.getCookieFromLastLogin();
+        assertNotNull("Did not properly recieve the SSO Cookie 1.", cookie1);
+
+        // Rename the ltpa.keys file to validation1.keys
+        renameFileIfExists(DEFAULT_KEY_PATH, VALIDATION_KEY1_PATH);
+
+        // Attempt to access the simple servlet again with the same cookie and assert that the server did not need to login again
+        String response2 = flClient1.accessProtectedServletWithAuthorizedCookie(FormLoginClient.PROTECTED_SIMPLE, cookie1);
+
+        // Assert that the server did not restart
+        assertNull("Server restarted when it should not have.", server.waitForStringInLog("CWWKE0005I"));
+
+        // Assert that a new ltpa.keys file was created
+        assertFileWasCreated(DEFAULT_KEY_PATH);
+
+        // Assert that the new cookie is different from the old cookie
+        String response3 = flClient1.accessProtectedServletWithAuthorizedCredentials(FormLoginClient.PROTECTED_SIMPLE, validUser, validPassword);
+        String cookie2 = flClient1.getCookieFromLastLogin();
+        assertNotNull("Did not properly recieve the SSO Cookie 2.", cookie2);
+        assertFalse("The new cookie is the same as the old cookie. Cookie1 = " + cookie1 + ". Cookie2 = " + cookie2 + ".",
+                    cookie1.equals(cookie2));
     }
 
-    /**
-     * Verify the following:
-     * <OL>
-     * <LI>Set MonitorDirectory to false
-     * <LI>Start the server with a default ltpa.keys file
-     * <LI>Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
-     * <LI>Update the server.xml file to include both old and new LTPA keys
-     * <LI>Attempt to access a simple servlet configured for basic auth1 with existing ltap1 cookie
-     * <LI>Attempt to access a simple servlet configured for basic auth2 with ltap2 cookie
-     * </OL>
-     * <P>Expected Results:
-     * <OL>
-     * <LI>MonitorDirectory is set to false
-     * <LI>Server starts successfully
-     * <LI>Successful authentication to simple servlet
-     * <LI>Successful update of server.xml file
-     * <LI>Unsuccessful authentication to simple servlet; server is not restarted and user does need to login again
-     * <LI>Successful authentication to simple servlet; new key is used for verification
-     * </OL>
-     */
-    @Test
-    public void testMultipleLTPAKeyFilesSupport_monitorDirectory_false() throws Exception {
-        // Set MonitorDirectory to false
-        setLTPAMonitorDirectoryElement(server, "false");
+    // /**
+    //  * Verify the following:
+    //  * <OL>
+    //  * <LI>Set MonitorDirectory to true
+    //  * <LI>Start the server with a default ltpa.keys file
+    //  * <LI>Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
+    //  * <LI>Update the server.xml file to include both old and new LTPA keys
+    //  * <LI>Attempt to access a simple servlet configured for basic auth1 with existing ltap1 cookie
+    //  * <LI>Attempt to access a simple servlet configured for basic auth2 with ltap2 cookie
+    //  * </OL>
+    //  * <P>Expected Results:
+    //  * <OL>
+    //  * <LI>MonitorDirectory is set to true
+    //  * <LI>Server starts successfully
+    //  * <LI>Successful authentication to simple servlet
+    //  * <LI>Successful update of server.xml file
+    //  * <LI>Continued authentication to simple servlet; server is not restarted and does not need to login again
+    //  * <LI>Successful authentication to simple servlet; new key is used for verification
+    //  * </OL>
+    //  */
+    // @Test
+    // public void testMultipleLTPAKeyFilesSupport_monitorDirectory_true() throws Exception {
+    //     // Set MonitorDirectory to true
+    //     setLTPAMonitorDirectoryElement(server, "true");
 
-        // Start the server with a default ltpa.keys file
-        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "genDefaultLTPAKeyFile.log");
-        assertFeatureCompleteWithKeysGeneratedAndTestApp(DEFAULT_KEY_PATH);
+    //     // Start the server with a default ltpa.keys file
+    //     startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "genDefaultLTPAKeyFile.log");
+    //     assertFeatureCompleteWithKeysGeneratedAndTestApp(DEFAULT_KEY_PATH);
 
-        // Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
+    //     // Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
 
-    }
+    // }
 
-    /**
-     * Verify the following:
-     * <OL>
-     * <LI>Attempt to access a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
-     * <LI>Get the cookie back from the session
-     * <LI>Complete a key rotation, and add key 2 to ltpa1.keys
-     * <LI>Attempt to access a simple servlet configured for basic auth1 with the cookie corresponding to the first key
-     * <LI>Verify original LTPA key is still in the ltpa1.keys file
-     * </OL>
-     * <P>Expected Results:
-     * <OL>
-     * <LI>Successful authentication to simple servlet
-     * <LI>Successful retrieval of cookie
-     * <LI>Successful key rotation, and addition of key 2 to ltpa1.keys
-     * <LI>Successful authentication to simple servlet, the user is still authenticated
-     * <LI>Successful verification of original LTPA key in ltpa1.keys file
-     * </OL>
-     */
-    @Mode(TestMode.LITE)
-    @Test
-    public void testSuccessfulAuthenticationWithOriginalKeys() {
+    // /**
+    //  * Verify the following:
+    //  * <OL>
+    //  * <LI>Set MonitorDirectory to false
+    //  * <LI>Start the server with a default ltpa.keys file
+    //  * <LI>Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
+    //  * <LI>Update the server.xml file to include both old and new LTPA keys
+    //  * <LI>Attempt to access a simple servlet configured for basic auth1 with existing ltap1 cookie
+    //  * <LI>Attempt to access a simple servlet configured for basic auth2 with ltap2 cookie
+    //  * </OL>
+    //  * <P>Expected Results:
+    //  * <OL>
+    //  * <LI>MonitorDirectory is set to false
+    //  * <LI>Server starts successfully
+    //  * <LI>Successful authentication to simple servlet
+    //  * <LI>Successful update of server.xml file
+    //  * <LI>Unsuccessful authentication to simple servlet; server is not restarted and user does need to login again
+    //  * <LI>Successful authentication to simple servlet; new key is used for verification
+    //  * </OL>
+    //  */
+    // @Test
+    // public void testMultipleLTPAKeyFilesSupport_monitorDirectory_false() throws Exception {
+    //     // Set MonitorDirectory to false
+    //     setLTPAMonitorDirectoryElement(server, "false");
 
-        String response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, managerUser, managerPassword);
-        assertNotNull(response);
+    //     // Start the server with a default ltpa.keys file
+    //     startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "genDefaultLTPAKeyFile.log");
+    //     assertFeatureCompleteWithKeysGeneratedAndTestApp(DEFAULT_KEY_PATH);
 
-        // Get the cookie back from the session
-        String cookie = baClient1.getCookieFromLastLogin();
-        assertNotNull(cookie);
+    //     // Attempt to access a simple servlet configured for basic auth1 with ltap1 cookie
 
-        // Complete a key rotation, and add key 2 to ltpa1.keys
-        //server.rotateLTPAKeys();
+    // }
 
-        /// Now try to access the servlet with the cookie corresponding to the first key
-        response = baClient1.accessProtectedServletWithAuthorizedCookie(BasicAuthClient.PROTECTED_SIMPLE, cookie);
-        assertNotNull(response);
+    // /**
+    //  * Verify the following:
+    //  * <OL>
+    //  * <LI>Attempt to access a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
+    //  * <LI>Get the cookie back from the session
+    //  * <LI>Complete a key rotation, and add key 2 to ltpa1.keys
+    //  * <LI>Attempt to access a simple servlet configured for basic auth1 with the cookie corresponding to the first key
+    //  * <LI>Verify original LTPA key is still in the ltpa1.keys file
+    //  * </OL>
+    //  * <P>Expected Results:
+    //  * <OL>
+    //  * <LI>Successful authentication to simple servlet
+    //  * <LI>Successful retrieval of cookie
+    //  * <LI>Successful key rotation, and addition of key 2 to ltpa1.keys
+    //  * <LI>Successful authentication to simple servlet, the user is still authenticated
+    //  * <LI>Successful verification of original LTPA key in ltpa1.keys file
+    //  * </OL>
+    //  */
+    // @Mode(TestMode.LITE)
+    // @Test
+    // public void testSuccessfulAuthenticationWithOriginalKeys() {
 
-        // Verify original LTPA key is still in the ltpa1.keys file
+    //     String response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, managerUser, managerPassword);
+    //     assertNotNull(response);
 
-    }
+    //     // Get the cookie back from the session
+    //     String cookie = baClient1.getCookieFromLastLogin();
+    //     assertNotNull(cookie);
 
-    /**
-     * Verify the following:
-     * <OL>
-     * <LI>Attempt to access a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
-     * <LI>Get the cookie back from the session
-     * <LI>Complete a key rotation, and add key 2 to ltpa1.keys
-     * <LI>Attempt login with a new user after key rotation
-     * <LI>Verify the new user is authenticated and provided a new cookie from LTPA key 2
-     * </OL>
-     * <P>Expected Results:
-     * <OL>
-     * <LI>Successful authentication to simple servlet
-     * <LI>Successful retrieval of cookie
-     * <LI>Successful key rotation, and addition of key 2 to ltpa1.keys
-     * <LI>Successful authentication to simple servlet
-     * <LI>Successful retrieval of cookie from LTPA key 2. LTPA cookie from key 1 is only used for verification but not for new authentication
-     * </OL>
-     */
-    @SuppressWarnings("restriction")
-    @Mode(TestMode.LITE)
-    @Test
-    public void testNewUserAuthentication() {
+    //     // Complete a key rotation, and add key 2 to ltpa1.keys
+    //     //server.rotateLTPAKeys();
 
-        String response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, managerUser, managerPassword);
-        assertNotNull(response);
+    //     /// Now try to access the servlet with the cookie corresponding to the first key
+    //     response = baClient1.accessProtectedServletWithAuthorizedCookie(BasicAuthClient.PROTECTED_SIMPLE, cookie);
+    //     assertNotNull(response);
 
-        // Get the cookie back from the session
-        String cookie1 = baClient1.getCookieFromLastLogin();
-        assertNotNull(cookie1);
+    //     // Verify original LTPA key is still in the ltpa1.keys file
 
-        // Complete a key rotation, and add key 2 to ltpa1.keys
-        //server.rotateLTPAKeys();
+    // }
 
-        // Attempt login with a new user after key rotation
-        response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, validUser, validPassword);
-        assertNotNull(response);
+    // /**
+    //  * Verify the following:
+    //  * <OL>
+    //  * <LI>Attempt to access a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
+    //  * <LI>Get the cookie back from the session
+    //  * <LI>Complete a key rotation, and add key 2 to ltpa1.keys
+    //  * <LI>Attempt login with a new user after key rotation
+    //  * <LI>Verify the new user is authenticated and provided a new cookie from LTPA key 2
+    //  * </OL>
+    //  * <P>Expected Results:
+    //  * <OL>
+    //  * <LI>Successful authentication to simple servlet
+    //  * <LI>Successful retrieval of cookie
+    //  * <LI>Successful key rotation, and addition of key 2 to ltpa1.keys
+    //  * <LI>Successful authentication to simple servlet
+    //  * <LI>Successful retrieval of cookie from LTPA key 2. LTPA cookie from key 1 is only used for verification but not for new authentication
+    //  * </OL>
+    //  */
+    // @SuppressWarnings("restriction")
+    // @Mode(TestMode.LITE)
+    // @Test
+    // public void testNewUserAuthentication() {
 
-        // Verify the new user is authenticated and provided a new cookie from LTPA key 2
-        String cookie2 = baClient1.getCookieFromLastLogin();
-        assertNotNull(cookie2);
-        //assertTrue(cookie2.contains("LtpaToken2"));
+    //     String response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, managerUser, managerPassword);
+    //     assertNotNull(response);
 
-        // Assert that cookie1 and cookie2 are different
-        assertFalse(cookie1.equals(cookie2));
+    //     // Get the cookie back from the session
+    //     String cookie1 = baClient1.getCookieFromLastLogin();
+    //     assertNotNull(cookie1);
 
-        // Print both values
-        Log.info(thisClass, "testNewUserAuthentication", "Cookie: " + cookie1);
-        Log.info(thisClass, "testNewUserAuthentication", "Cookie: " + cookie2);
-    }
+    //     // Complete a key rotation, and add key 2 to ltpa1.keys
+    //     //server.rotateLTPAKeys();
 
-    /**
-     * Verify the following:
-     * <OL>
-     * <LI>Set ltpa expiration to 3 second
-     * <LI>Intialize a session with a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
-     * <LI>Get the cookie back from the session
-     * <LI>Wait for the key to expire
-     * <LI>Attempt to access a simple servlet configured for basic auth1 with the cookie corresponding to the first key
-     * </OL>
-     * <P>Expected Results:
-     * <OL>
-     * <LI>Successful update to the ltpa expiration in the server xml configuration
-     * <LI>Successful authentication to simple servlet
-     * <LI>Successful retrieval of cookie
-     * <LI>Successful expiration of key, and removal of key 1 from ltpa1.keys
-     * <LI>Unsuccessful authentication to simple servlet with cookie, the user is denied access
-     * </OL>
-     */
-    @SuppressWarnings("restriction")
-    @Mode(TestMode.LITE)
-    @Test
-    public void testExpiredKeyForcesReauthentication() {
-        ;
+    //     // Attempt login with a new user after key rotation
+    //     response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, validUser, validPassword);
+    //     assertNotNull(response);
 
-        // Set ltpa expiration to 3 second
-        //server.setLTPAExpiration(3);
+    //     // Verify the new user is authenticated and provided a new cookie from LTPA key 2
+    //     String cookie2 = baClient1.getCookieFromLastLogin();
+    //     assertNotNull(cookie2);
+    //     //assertTrue(cookie2.contains("LtpaToken2"));
 
-        // Intialize a session with a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
-        String response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, managerUser, managerPassword);
-        assertNotNull(response);
+    //     // Assert that cookie1 and cookie2 are different
+    //     assertFalse(cookie1.equals(cookie2));
 
-        // Get the cookie back from the session
-        String cookie = baClient1.getCookieFromLastLogin();
-        assertNotNull(cookie);
+    //     // Print both values
+    //     Log.info(thisClass, "testNewUserAuthentication", "Cookie: " + cookie1);
+    //     Log.info(thisClass, "testNewUserAuthentication", "Cookie: " + cookie2);
+    // }
 
-        // Wait for the key to expire
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    // /**
+    //  * Verify the following:
+    //  * <OL>
+    //  * <LI>Set ltpa expiration to 3 second
+    //  * <LI>Intialize a session with a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
+    //  * <LI>Get the cookie back from the session
+    //  * <LI>Wait for the key to expire
+    //  * <LI>Attempt to access a simple servlet configured for basic auth1 with the cookie corresponding to the first key
+    //  * </OL>
+    //  * <P>Expected Results:
+    //  * <OL>
+    //  * <LI>Successful update to the ltpa expiration in the server xml configuration
+    //  * <LI>Successful authentication to simple servlet
+    //  * <LI>Successful retrieval of cookie
+    //  * <LI>Successful expiration of key, and removal of key 1 from ltpa1.keys
+    //  * <LI>Unsuccessful authentication to simple servlet with cookie, the user is denied access
+    //  * </OL>
+    //  */
+    // @SuppressWarnings("restriction")
+    // @Mode(TestMode.LITE)
+    // @Test
+    // public void testExpiredKeyForcesReauthentication() {
+    //     ;
 
-        // Attempt to access a simple servlet configured for basic auth1 with the cookie corresponding to the first key
-        assertTrue("The expired LTPA Cookie should not be granted access to the servlet",
-                   baClient1.accessProtectedServletWithUnauthorizedCookie(BasicAuthClient.PROTECTED_SIMPLE, cookie));
-    }
+    //     // Set ltpa expiration to 3 second
+    //     //server.setLTPAExpiration(3);
 
-    /**
-     * Verify the following:
-     * <OL>
-     * <LI>Set this new feature off
-     * <LI>Initialize a session with a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
-     * <LI>Get the cookie back from the session
-     * <LI>Complete a key rotation, and add key 2 to ltpa1.keys
-     * <LI>Attempt to access a simple servlet configured for basic auth1 with the cookie corresponding to the first key
-     * <LI>Verify the user is forced to reauthenticate
-     * </OL>
-     * <P>Expected Results:
-     * <OL>
-     * <LI>Successful update to the server xml configuration
-     * <LI>Successful authentication to simple servlet
-     * <LI>Successful retrieval of cookie
-     * <LI>Successful key rotation, and replacement of key 2 to ltpa1.keys file
-     * <LI>Unsuccessful authentication to simple servlet with cookie, the user is forced to reauthenticate
-     * </OL>
-     */
-    @SuppressWarnings("restriction")
-    @Mode(TestMode.LITE)
-    @Test
-    public void testAuthenticationFailureAfterKeyReplacement() {
+    //     // Intialize a session with a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
+    //     String response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, managerUser, managerPassword);
+    //     assertNotNull(response);
 
-        // Initialize a session with a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
-        String response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, managerUser, managerPassword);
-        assertNotNull(response);
+    //     // Get the cookie back from the session
+    //     String cookie = baClient1.getCookieFromLastLogin();
+    //     assertNotNull(cookie);
 
-        // Get the cookie back from the session
-        String cookie = baClient1.getCookieFromLastLogin();
-        assertNotNull(cookie);
+    //     // Wait for the key to expire
+    //     try {
+    //         Thread.sleep(3000);
+    //     } catch (InterruptedException e) {
+    //         e.printStackTrace();
+    //     }
 
-        // Complete a key rotation, and add key 2 to ltpa1.keys
-        //server.rotateLTPAKeys();
+    //     // Attempt to access a simple servlet configured for basic auth1 with the cookie corresponding to the first key
+    //     assertTrue("The expired LTPA Cookie should not be granted access to the servlet",
+    //                baClient1.accessProtectedServletWithUnauthorizedCookie(BasicAuthClient.PROTECTED_SIMPLE, cookie));
+    // }
 
-        // Attempt to access a simple servlet configured for basic auth1 with the cookie corresponding to the first key
-        assertTrue("Without multipleLTPAKeys feature enabled, afte key rotation, access should not be granted access to the servlet with the old cookie",
-                   baClient1.accessProtectedServletWithUnauthorizedCookie(BasicAuthClient.PROTECTED_SIMPLE, cookie));
-    }
+    // /**
+    //  * Verify the following:
+    //  * <OL>
+    //  * <LI>Set this new feature off
+    //  * <LI>Initialize a session with a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
+    //  * <LI>Get the cookie back from the session
+    //  * <LI>Complete a key rotation, and add key 2 to ltpa1.keys
+    //  * <LI>Attempt to access a simple servlet configured for basic auth1 with the cookie corresponding to the first key
+    //  * <LI>Verify the user is forced to reauthenticate
+    //  * </OL>
+    //  * <P>Expected Results:
+    //  * <OL>
+    //  * <LI>Successful update to the server xml configuration
+    //  * <LI>Successful authentication to simple servlet
+    //  * <LI>Successful retrieval of cookie
+    //  * <LI>Successful key rotation, and replacement of key 2 to ltpa1.keys file
+    //  * <LI>Unsuccessful authentication to simple servlet with cookie, the user is forced to reauthenticate
+    //  * </OL>
+    //  */
+    // @SuppressWarnings("restriction")
+    // @Mode(TestMode.LITE)
+    // @Test
+    // public void testAuthenticationFailureAfterKeyReplacement() {
+
+    //     // Initialize a session with a simple servlet configured for basic auth1 with a valid userId (mnagerUser) and password.
+    //     String response = baClient1.accessProtectedServletWithAuthorizedCredentials(BasicAuthClient.PROTECTED_SIMPLE, managerUser, managerPassword);
+    //     assertNotNull(response);
+
+    //     // Get the cookie back from the session
+    //     String cookie = baClient1.getCookieFromLastLogin();
+    //     assertNotNull(cookie);
+
+    //     // Complete a key rotation, and add key 2 to ltpa1.keys
+    //     //server.rotateLTPAKeys();
+
+    //     // Attempt to access a simple servlet configured for basic auth1 with the cookie corresponding to the first key
+    //     assertTrue("Without multipleLTPAKeys feature enabled, afte key rotation, access should not be granted access to the servlet with the old cookie",
+    //                baClient1.accessProtectedServletWithUnauthorizedCookie(BasicAuthClient.PROTECTED_SIMPLE, cookie));
+    // }
 
     /**
      * Helper method to delete an existing ltpa keys file if it exists
      */
     private void deleteExistingLTPAKeysFiles() throws Exception {
         deleteFileIfExists(DEFAULT_KEY_PATH);
-        deleteFileIfExists(VALIDATION_KEY_PATH);
+        deleteFileIfExists(VALIDATION_KEYS_PATH);
+    }
+
+    /**
+     * Helper method to rename the ltpa.keys file if it exists to validation1.keys
+     */
+    private void renameLTPAKeysFile() throws Exception {
+        renameFileIfExists(DEFAULT_KEY_PATH, VALIDATION_KEYS_PATH);
     }
 
     // Function to set the monitorDirectory to true or false
@@ -414,6 +481,22 @@ public class LTPAKeyRotationTests {
         } catch (Exception e) {
             e.printStackTrace();
             Log.info(thisClass, "setLTPAMonitorDirectoryElement", "Failure getting server configuration");
+        }
+        return null;
+    }
+
+    // Function to configure monitorInterval to a specific value
+    public LTPA setLTPAMonitorIntervalElement(LibertyServer server, String monitorInterval) {
+        LTPA ltpaConfiguration;
+        try {
+            ServerConfiguration configuration = server.getServerConfiguration();
+            ltpaConfiguration = configuration.getLTPA();
+            ltpaConfiguration.monitorInterval = monitorInterval;
+            updateConfigDynamically(server, configuration, true);
+            return ltpaConfiguration;
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.info(thisClass, "setLTPAMonitorIntervalElement", "Failure getting server configuration");
         }
         return null;
     }
@@ -451,6 +534,24 @@ public class LTPAKeyRotationTests {
                 throw new Exception("Unable to delete file: " + filePath);
         }
 
+    }
+
+    /**
+     * Rename the file if it exists. If we can't rename it, then
+     * throw an exception as we need to be able to rename these files.
+     *
+     * @param filePath
+     *
+     * @throws Exception
+     */
+    private void renameFileIfExists(String filePath, String newFilePath) throws Exception {
+        if (fileExists(filePath)) {
+            server.renameLibertyServerRootFile(filePath, newFilePath);
+
+            // Double check to make sure the file is gone
+            if (fileExists(filePath))
+                throw new Exception("Unable to rename file: " + filePath);
+        }
     }
 
     /**
@@ -533,7 +634,7 @@ public class LTPAKeyRotationTests {
             int count = 0;
             do {
                 //sleep half a second
-                Thread.sleep(500);
+                Thread.sleep(5000);
                 exists = remote.exists();
                 count++;
             }

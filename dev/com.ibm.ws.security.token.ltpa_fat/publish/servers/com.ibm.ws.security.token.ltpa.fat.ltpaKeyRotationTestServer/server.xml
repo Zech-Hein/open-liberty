@@ -13,9 +13,9 @@
 <server description="com.ibm.ws.webcontainer.security.fat.ltpaKeyRotationTestServer">
 
     <featureManager>
-        <feature>jsp-2.2</feature>
-        <feature>servlet-3.1</feature>
         <feature>appSecurity-2.0</feature>
+        <feature>jsp-2.3</feature>
+        <feature>servlet-3.1</feature>
     </featureManager>
 
     <keyStore id="defaultKeyStore" password="{xor}EzY9Oi0rJg==" /> <!-- pwd: Liberty, expires 1/4/2099 -->
@@ -66,7 +66,7 @@
         </application-bnd>
     </application>
 
-        <application type="war" id="formlogin1" name="formlogin1" location="${server.config.dir}/apps/formlogin.war">
+    <application type="war" id="formlogin1" name="formlogin1" location="${server.config.dir}/apps/formlogin.war">
         <application-bnd>
             <security-role name="Employee">
                 <user name="user1" />
@@ -98,11 +98,17 @@
         </application-bnd>
     </application>
 
-    <webAppSecurity useContextRootForSSOCookiePath="true" />
+    <webAppSecurity useContextRootForSSOCookiePath="false" />
+
+    <httpSession securityIntegrationEnabled="false"/>
 
     <authentication id="Basic" cacheEnabled="false" />
-    
-    <ltpa expiration="10" keysFileName="resources/security/ltpa.keys" password="{xor}Lz4sLCgwLTs=" monitorDirectory="true"/>
+
+    <ltpa keysFileName="${server.config.dir}/resources/security/ltpa.keys" monitorInterval = "5" monitorDirectory="true" keysPassword="{xor}Lz4sLCgwLTs=">
+        <!--
+        <validationKeys fileName="validation1.keys" password="{xor}Lz4sLCgwLTs="/>
+        -->
+    </ltpa>
 
     <include location="../fatTestPorts.xml" />
     <javaPermission className="javax.security.auth.AuthPermission" name="createLoginContext.system.WEB_INBOUND"/>

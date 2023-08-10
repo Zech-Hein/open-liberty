@@ -21,12 +21,14 @@ public class LTPA extends ConfigElement {
 
     @XmlAttribute
     public String monitorDirectory;
+    public String monitorInterval;
 
     @Override
     public String toString() {
         StringBuilder buf = new StringBuilder(getClass().getSimpleName()).append('{');
         // attributes
         buf.append("monitorDirectory=").append(monitorDirectory);
+        buf.append(", monitorInterval=").append(monitorInterval);
         buf.append('}');
         return buf.toString();
     }
