@@ -18,6 +18,7 @@ import javax.security.auth.Subject;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
@@ -189,6 +190,27 @@ public class SSOAuthenticator implements WebAuthenticator {
                         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                             Tr.debug(tc, "handleSSO Exception: ", new Object[] { e });
                         }
+                        // CWWKS4001I: The security token cannot be validated. This can be for the following reasons ...
+                        if (e.toString().contains("CWWKS4001I")) {
+                            //If the ltpa.keys are changed, and an existing LTPA token cookie is no longer valid.
+                            //we will logout the user, so they are properly redirected to the login page to login again and get a new LTPA token cookie
+                            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                                Tr.debug(tc, "handleLtpaSSO: The LTPAToken was invalid(CWWKS4001I), performing logout to clean the session.");
+                            }
+                            try {
+                                // req.logout(); - results in infinite loop of unable to decrypt token exception
+                                invalidateSession(req);
+                            } catch (Exception e1) {
+                                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                                    Tr.debug(tc, "handleLtpaSSO Exception while performing logout: ", new Object[] { e1 });
+                                }
+                            }
+                        } else {
+                            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                                Tr.debug(tc, "handleLtpaSSO Exception: Did not contain CWWKS4001I. Not performing logout.");
+                            }
+                        }
+
                         //TODO - Remove authentication cache.
                     }
                 }
@@ -357,6 +379,23 @@ public class SSOAuthenticator implements WebAuthenticator {
         }
         //If no authFilterRef or SSO authFilter service, we will process all request
         return true;
+    }
+
+    /**
+     * Invalidates the session associated with the request.
+     *
+     * @param req
+     */
+    private void invalidateSession(HttpServletRequest req) {
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                Tr.debug(tc, "invalidating existing HTTP Session");
+            session.invalidate();
+        } else {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                Tr.debug(tc, "Existing HTTP Session does not exist, nothing to invalidate");
+        }
     }
 
 }
