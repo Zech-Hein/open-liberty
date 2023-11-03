@@ -147,6 +147,9 @@ public interface FileMonitor {
     /** <h4>Property value</h4> Defer monitoring to an external agent. */
     String MONITOR_TYPE_EXTERNAL = "external";
 
+    /** <h4>Property value</h4> Disable monitoring. */
+    String MONITOR_TYPE_DISABLED = "disabled";
+
     /**
      * Called with the result of a scan of specified resources.
      * Only resources that existed at the time of the scan will

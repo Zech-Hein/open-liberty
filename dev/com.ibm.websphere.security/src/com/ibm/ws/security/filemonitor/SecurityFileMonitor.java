@@ -157,7 +157,6 @@ public class SecurityFileMonitor implements FileMonitor {
 
     /**
      * Action is needed if a file is modified or if it is recreated after it was deleted.
-     *
      * @param createdFiles
      * @param modifiedFiles
      */
