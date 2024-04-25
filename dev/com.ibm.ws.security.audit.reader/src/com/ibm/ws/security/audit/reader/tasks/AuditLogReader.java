@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -241,6 +241,10 @@ public class AuditLogReader {
 
                 byte[] sk = encryptedSignerSharedKey.getBytes();
                 String x = new String(sk);
+
+                if (debugEnabled)
+                    theLogger.fine("entering decryptSharedKey");
+
                 byte[] decryptedSharedKey = as.decryptSharedKey(yy, publicKey);
                 String z = new String(decryptedSharedKey);
 
@@ -250,6 +254,9 @@ public class AuditLogReader {
                 } catch (java.io.FileNotFoundException fnf) {
                     throw fnf;
                 }
+
+                if (debugEnabled)
+                    theLogger.fine("calling processRecord");
 
                 processRecord(file_reader, signedLog, encryptedLog, null, null);
 
@@ -282,11 +289,21 @@ public class AuditLogReader {
                 byte[] yy = Base64Coder.base64Decode(encSharedKey.getBytes("UTF8"));
                 byte[] sk = encSharedKey.getBytes();
                 String x = new String(sk);
+
+                if (debugEnabled)
+                    theLogger.fine("before decryptSharedKey");
+
                 byte[] decryptedSharedKey = ae.decryptSharedKey(yy, publicKey);
+
+                if (debugEnabled)
+                    theLogger.fine("after decryptSharedKey: " + decryptedSharedKey);
+
                 String z = new String(decryptedSharedKey);
 
                 // Read our encrypted audit records
                 try {
+                    if (debugEnabled)
+                        theLogger.fine("reading audit file: " + filename);
                     file_reader = new FileReader(filename);
                 } catch (java.io.FileNotFoundException fnf) {
                     throw fnf;

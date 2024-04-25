@@ -29,6 +29,7 @@ import javax.management.ObjectName;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.ws.crypto.common.FipsUtils;
 import com.ibm.wsspi.kernel.service.location.WsLocationAdmin;
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 import com.ibm.wsspi.security.audit.AuditDecryptionException;
@@ -52,7 +53,7 @@ public class AuditSigningImpl implements AuditSigning {
     private static String certLabelPrefix = "auditcert";
     private static String CRYPTO_ALGORITHM = "SHA256withRSA";
 
-    private static boolean fips140_3Enabled = false;
+    private static boolean fips140_3Enabled = FipsUtils.isFips140_3Enabled();
 
     private static final String IBMJCE_NAME = "IBMJCE";
     private static final String IBMJCE_PLUS_FIPS_NAME = "IBMJCEPlusFIPS";
@@ -106,16 +107,16 @@ public class AuditSigningImpl implements AuditSigning {
 
         crypto = new AuditCrypto();
 
-//        try {
-//            if (fips140_3Enabled)
-//                signature = Signature.getInstance(SIGNATURE_ALGORITHM_SHA256WITHRSA, IBMJCE_PLUS_FIPS_NAME);
-//            else
-//                signature = Signature.getInstance(SIGNATURE_ALGORITHM_SHA256WITHRSA);
-//
-//        } catch (Exception e) {
-//            Tr.error(tc, "security.audit.signing.init.error", new Object[] { e });
-//            throw new AuditSigningException(e.getMessage());
-//        }
+        try {
+            if (fips140_3Enabled)
+                signature = Signature.getInstance(SIGNATURE_ALGORITHM_SHA256WITHRSA, IBMJCE_PLUS_FIPS_NAME);
+            else
+                signature = Signature.getInstance(SIGNATURE_ALGORITHM_SHA256WITHRSA);
+
+        } catch (Exception e) {
+            Tr.error(tc, "security.audit.signing.init.error", new Object[] { e });
+            throw new AuditSigningException(e.getMessage());
+        }
         signature = crypto.getSignature();
 
         if (tc.isDebugEnabled()) {

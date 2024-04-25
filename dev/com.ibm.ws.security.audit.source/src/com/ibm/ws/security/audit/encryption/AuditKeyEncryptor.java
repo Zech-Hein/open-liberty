@@ -12,6 +12,7 @@
  *******************************************************************************/
 package com.ibm.ws.security.audit.encryption;
 
+import com.ibm.ws.crypto.common.FipsUtils;
 import com.ibm.ws.security.audit.source.utils.ByteArray;
 
 /**
@@ -33,7 +34,7 @@ public class AuditKeyEncryptor {
         this.password = password;
         java.security.MessageDigest md = null;
         try {
-            if (isFips140_3Enabled()) {
+            if (FipsUtils.isFips140_3Enabled()) {
                 algorithm = MESSAGE_DIGEST_ALGORITHM_SHA256;
                 len = 32;
             }
@@ -60,10 +61,5 @@ public class AuditKeyEncryptor {
 
     public byte[] encrypt(byte[] key) {
         return des.encrypt(key, desKey);
-    }
-
-    public boolean isFips140_3Enabled() {
-        //TODO:UTLE
-        return true;
     }
 }
