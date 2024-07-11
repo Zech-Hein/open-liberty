@@ -48,7 +48,8 @@ final class LTPADigSignature {
 	}
 
 	static void generateRSAKeys(byte[][] rsaPubKey, byte[][] rsaPrivKey) {
-		byte[][] rsaKey = LTPACrypto.rsaKey(128, true, true); // 64 is 512, 128
+		System.out.println("ZECH >>> calling LTPACrypto.rsaKey with 256");
+		byte[][] rsaKey = LTPACrypto.rsaKey(256, true, true); // 64 is 512, 128
 																// is 1024
 
 		rsaPrivKey[0] = rsaKey[0];

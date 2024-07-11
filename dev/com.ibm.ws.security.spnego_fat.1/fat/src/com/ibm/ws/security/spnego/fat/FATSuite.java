@@ -13,7 +13,6 @@
 package com.ibm.ws.security.spnego.fat;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,7 +36,6 @@ import componenttest.rules.repeater.JakartaEE9Action;
 import componenttest.rules.repeater.JakartaEEAction;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.JavaInfo;
-import componenttest.topology.impl.JavaInfo.Vendor;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.impl.LibertyServerFactory;
 
@@ -74,8 +72,8 @@ public class FATSuite extends InitClass {
 
             getKDCInfoFromConsul();
 
-            if (!isSupportJDK())
-                return;
+            JavaInfo javaInfo = JavaInfo.forServer(LibertyServerFactory.getLibertyServer("DynamicSpnegoConfigTest"));
+            SUN_KRB5_LOGIN_MODULE_AVAILABLE = JavaInfo.isSystemClassAvailable("com.sun.security.auth.module.Krb5LoginModule");
 
             String ip = InetAddress.getByName("localhost").getHostAddress();
             if (!"127.0.0.1".equals(ip)) {
@@ -100,36 +98,6 @@ public class FATSuite extends InitClass {
             KEYTAB_FILE_LOCATION = "tmp/" + SPNEGOConstants.KRB5_KEYTAB_FILE;
 
             Log.info(c, thisMethod, "Common setup is complete");
-        }
-
-        private boolean isSupportJDK() throws IOException {
-            String thisMethod = "isSupportJDK";
-            JavaInfo javaInfo = JavaInfo.forServer(LibertyServerFactory.getLibertyServer("DynamicSpnegoConfigTest"));
-
-            IBM_HYBRID_JDK = isHybridJDK(javaInfo);
-
-            Log.info(c, thisMethod, "The JDK used on this system is version: " + javaInfo.majorVersion() + " and vendor: " + javaInfo.vendor());
-            if (IBM_HYBRID_JDK) {
-                Log.info(c, thisMethod, "SPENGO and constrained delegation do not support IBM hybrid JDK. Test will not be run as isHybridJDK: " + IBM_HYBRID_JDK);
-                RUN_TESTS = false;
-            }
-            return RUN_TESTS;
-        };
-
-        private boolean isHybridJDK(JavaInfo javaInfo) {
-            String thisMethod = "isHybridJDK";
-
-            boolean hybridJdk = false;
-            String javaRuntime = System.getProperty("java.runtime.version");
-            Log.info(c, thisMethod, "The  current runtime version is: " + javaRuntime);
-
-            if ((javaInfo.vendor() == Vendor.SUN_ORACLE) && javaRuntime.contains("SR")) {
-                hybridJdk = true;
-            } else {
-                hybridJdk = false;
-            }
-            Log.info(c, thisMethod, "Hybrid JDK: " + hybridJdk);
-            return hybridJdk;
         }
     };
 

@@ -103,7 +103,7 @@ public final class LTPAKeyUtil {
 		if (ibmJCEPlusFIPSProviderChecked) {
 			return ibmJCEPlusFIPSAvailable;
 		} else {
-			String ibmjceplusfipsprovider = AccessController.doPrivileged(new PrivilegedAction<String>() {
+			String ibmjceplusfipsprovider = AccessController.doPrivileged(new PrivilegedAction <String>() {
 				@Override
 				public String run() {
 					return System.getProperty("com.ibm.jsse2.usefipsProviderName");
@@ -139,13 +139,14 @@ public final class LTPAKeyUtil {
 	}
 
 	public static boolean isFIPSEnabled() {
-		String fipsON = AccessController.doPrivileged(new PrivilegedAction<String>() {
+		String fipsON = AccessController.doPrivileged(new PrivilegedAction <String>() {
 			@Override
 			public String run() {
 				return System.getProperty("com.ibm.jsse2.usefipsprovider");
 			}
 		});
-		if (fipsON == "true") {
+		System.out.println("with == fix");
+		if (fipsON.equalsIgnoreCase("true")) {
 			return true;
 		} else {
 			return false;

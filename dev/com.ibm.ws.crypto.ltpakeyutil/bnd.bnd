@@ -34,9 +34,10 @@ Service-Component:\
               com.ibm.ws.crypto.ltpakeyutil.LTPAPublicKey"
 
 -buildpath: \
-	com.ibm.ws.logging;version=latest, \
-	com.ibm.ws.kernel.service;version=latest, \
-	com.ibm.ws.kernel.boot.core;version=latest, \
+	com.ibm.ws.logging;version=latest,\
+	com.ibm.ws.kernel.service;version=latest,\
+	com.ibm.ws.kernel.boot.core;version=latest,\
+	com.ibm.ws.crypto.common;version=latest,\
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest
 
 -testpath: \

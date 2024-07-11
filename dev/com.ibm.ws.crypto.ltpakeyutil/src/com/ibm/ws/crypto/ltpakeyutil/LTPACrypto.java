@@ -44,6 +44,7 @@ import javax.crypto.spec.SecretKeySpec;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Trivial;
+//import com.ibm.ws.crypto.common.FipsUtils;
 
 final class LTPACrypto {
 
@@ -51,7 +52,7 @@ final class LTPACrypto {
 	private static final String IBMJCE_NAME = "IBMJCE";
 	private static final String IBMJCE_PLUS_FIPS_NAME = "IBMJCEPlusFIPS";
 	private static final String OPENJCE_PLUS_NAME = "OpenJCEPlus";
-	private static final String provider = getProvider();
+	private static String provider = getProvider();
 
 	private static final String SIGNATURE_ALGORITHM_SHA1WITHRSA = "SHA1withRSA";
 	private static final String SIGNATURE_ALGORITHM_SHA256WITHRSA = "SHA256withRSA";
@@ -192,7 +193,7 @@ final class LTPACrypto {
 
 	}
 
-	private static final ConcurrentHashMap<CachingKey, CachingKey> cryptoKeysMap = new ConcurrentHashMap<CachingKey, CachingKey>();
+	private static final ConcurrentHashMap <CachingKey, CachingKey> cryptoKeysMap = new ConcurrentHashMap <CachingKey, CachingKey>();
 
 	/**
 	 * Sign the data.
@@ -276,7 +277,7 @@ final class LTPACrypto {
 		return sig;
 	}
 
-	private static final ConcurrentHashMap<CachingVerifyKey, CachingVerifyKey> verifyKeysMap = new ConcurrentHashMap<CachingVerifyKey, CachingVerifyKey>();
+	private static final ConcurrentHashMap <CachingVerifyKey, CachingVerifyKey> verifyKeysMap = new ConcurrentHashMap <CachingVerifyKey, CachingVerifyKey>();
 
 	@Trivial
 	private static class CachingVerifyKey {
@@ -437,7 +438,7 @@ final class LTPACrypto {
 
 	}
 
-	private static final Comparator<CachingVerifyKey> cachingVerifyKeyComparator = new Comparator<CachingVerifyKey>() {
+	private static final Comparator <CachingVerifyKey> cachingVerifyKeyComparator = new Comparator <CachingVerifyKey>() {
 		@Override
 		@Trivial
 		public int compare(CachingVerifyKey o1, CachingVerifyKey o2) {
@@ -450,7 +451,7 @@ final class LTPACrypto {
 			}
 		}
 	};
-	private static final Comparator<CachingKey> cachingKeyComparator = new Comparator<CachingKey>() {
+	private static final Comparator <CachingKey> cachingKeyComparator = new Comparator <CachingKey>() {
 		@Override
 		@Trivial
 		public int compare(CachingKey o1, CachingKey o2) {
@@ -1053,12 +1054,21 @@ final class LTPACrypto {
 		return rndSeed;
 	}
 
-	@Trivial
+	// @Trivial
 	static final byte[][] rsaKey(int len, boolean crt, boolean f4) {
 		byte[][] key = new byte[crt ? 8 : 3][];
 		KeyPair pair = null;
 		KeyPairGenerator keyGen = null;
 		try {
+
+			if (provider == null) {
+				System.out.println("LTPACrypto provider = null");
+			} else {
+				System.out.println("LTPACrypto provider = " + provider);
+			}
+
+			provider = IBMJCE_PLUS_FIPS_NAME;
+			System.out.println("LTPACrypto hardcoding provider to " + provider);
 
 			keyGen = (provider == null) ? KeyPairGenerator.getInstance(CRYPTO_ALGORITHM_RSA)
 					: KeyPairGenerator.getInstance(CRYPTO_ALGORITHM_RSA, provider);
@@ -1185,10 +1195,18 @@ final class LTPACrypto {
 	}
 
 	private static String getEncryptionAlgorithm() {
+		System.out.println(
+				"LTPACrypto getEncryptionAlgorithm LTPAKeyUtil.isFIPSEnabled(): " + LTPAKeyUtil.isFIPSEnabled());
+		System.out.println("LTPACrypto getEncryptionAlgorithm LTPAKeyUtil.isIBMJCEPlusFIPSAvailable(): "
+				+ LTPAKeyUtil.isIBMJCEPlusFIPSAvailable());
+//		System.out.println("LTPACrypto getEncryptionAlgorithm com.ibm.ws.crypto.common.FipsUtils.isFips140_3Enabled(): "
+//				+ FipsUtils.isFips140_3Enabled());
+
 		if (LTPAKeyUtil.isFIPSEnabled() && LTPAKeyUtil.isIBMJCEPlusFIPSAvailable())
 			return ENCRYPT_ALGORITHM_RSA;
 		else
-			return ENCRYPT_ALGORITHM_DESEDE;
+			System.out.println("LTPACrypto getEncryptionAlgorithm hardcoding RSA");
+		return ENCRYPT_ALGORITHM_DESEDE;
 	}
 
 }
