@@ -73,7 +73,7 @@ public class FATSuite extends InitClass {
             getKDCInfoFromConsul();
 
             JavaInfo javaInfo = JavaInfo.forServer(LibertyServerFactory.getLibertyServer("DynamicSpnegoConfigTest"));
-            SUN_KRB5_LOGIN_MODULE_AVAILABLE = JavaInfo.isSystemClassAvailable("com.sun.security.auth.module.Krb5LoginModule");
+            //TODO boolean SUN_KRB5_LOGIN_MODULE_AVAILABLE = JavaInfo.isSystemClassAvailable("com.sun.security.auth.module.Krb5LoginModule");
 
             String ip = InetAddress.getByName("localhost").getHostAddress();
             if (!"127.0.0.1".equals(ip)) {

@@ -249,6 +249,7 @@ final class LTPACrypto {
 		BigInteger e = new BigInteger(key[2]);
 		BigInteger p = new BigInteger(key[3]);
 		BigInteger q = new BigInteger(key[4]);
+		System.out.println("BEFORE modInverse len: " + len);
 		BigInteger d = e.modInverse((p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE)));
 		KeyFactory kFact = null;
 
@@ -265,6 +266,9 @@ final class LTPACrypto {
 
 		rsaSig = (provider == null) ? Signature.getInstance(signatureAlgorithm)
 				: Signature.getInstance(signatureAlgorithm, provider);
+
+		System.out.println("DEBUG KAREL1: " + privKey.getAlgorithm());
+		System.out.println("DEBUG KAREL1: " + privKey.toString());
 
 		rsaSig.initSign(privKey);
 		rsaSig.update(data, off, len);
@@ -554,8 +558,10 @@ final class LTPACrypto {
 	 */
 	@Trivial
 	protected static final void setRSAKey(byte[][] key) {
+		System.out.println("DEBUG KAREL: rsaKey len: " + key.length);
 		BigInteger[] k = new BigInteger[8];
 		for (int i = 0; i < 8; i++) {
+			System.out.println("DEBUG KAREL: rsaKey: " + i + "len: " + Arrays.toString(key[i]));
 			if (key[i] != null) {
 				k[i] = new BigInteger(1, key[i]);
 			}
@@ -572,6 +578,7 @@ final class LTPACrypto {
 			k[7] = null;
 		}
 		if (k[7] == null) {
+			System.out.println("inside setRSAKey k[4].modInverse(k[3]): " + k[4] + " " + k[3]);
 			k[7] = k[4].modInverse(k[3]);
 		}
 		if (k[0] == null) {
@@ -611,8 +618,8 @@ final class LTPACrypto {
 			DESedeKeySpec kSpec = new DESedeKeySpec(key);
 			SecretKeyFactory kFact = null;
 
-			kFact = (provider == null) ? SecretKeyFactory.getInstance(encryptAlgorithm)
-					: SecretKeyFactory.getInstance(encryptAlgorithm, provider);
+			kFact = (provider == null) ? SecretKeyFactory.getInstance("AES")
+					: SecretKeyFactory.getInstance("AES", provider);
 
 			sKey = kFact.generateSecret(kSpec);
 		}
@@ -1054,7 +1061,7 @@ final class LTPACrypto {
 		return rndSeed;
 	}
 
-	// @Trivial
+	@Trivial
 	static final byte[][] rsaKey(int len, boolean crt, boolean f4) {
 		byte[][] key = new byte[crt ? 8 : 3][];
 		KeyPair pair = null;
@@ -1189,9 +1196,11 @@ final class LTPACrypto {
 
 	private static String getSignatureAlgorithm() {
 		if (LTPAKeyUtil.isFIPSEnabled() && LTPAKeyUtil.isIBMJCEPlusFIPSAvailable())
-			return SIGNATURE_ALGORITHM_SHA256WITHRSA;
+			System.out.println("getSignatureAlgorithm hardcode SHA256 - FIPS true"); // return
+																						// SIGNATURE_ALGORITHM_SHA256WITHRSA;
 		else
-			return SIGNATURE_ALGORITHM_SHA1WITHRSA;
+			System.out.println("getSignatureAlgorithm hardcode SHA256 - FIPS false");
+		return SIGNATURE_ALGORITHM_SHA256WITHRSA; // used to be SHA1
 	}
 
 	private static String getEncryptionAlgorithm() {
@@ -1203,10 +1212,10 @@ final class LTPACrypto {
 //				+ FipsUtils.isFips140_3Enabled());
 
 		if (LTPAKeyUtil.isFIPSEnabled() && LTPAKeyUtil.isIBMJCEPlusFIPSAvailable())
-			return ENCRYPT_ALGORITHM_RSA;
+			System.out.println("getEncryptionAlgorithm hardcode RSA - FIPS true"); // return ENCRYPT_ALGORITHM_RSA;
 		else
-			System.out.println("LTPACrypto getEncryptionAlgorithm hardcoding RSA");
-		return ENCRYPT_ALGORITHM_DESEDE;
+			System.out.println("getEncryptionAlgorithm hardcode RSA - FIPS false");
+		return ENCRYPT_ALGORITHM_RSA; // used to be DESEDE
 	}
 
 }
