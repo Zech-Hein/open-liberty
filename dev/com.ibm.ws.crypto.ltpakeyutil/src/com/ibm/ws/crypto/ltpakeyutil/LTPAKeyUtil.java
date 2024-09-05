@@ -100,9 +100,13 @@ public final class LTPAKeyUtil {
 	}
 
 	public static boolean isIBMJCEPlusFIPSAvailable() {
+		boolean debug = tc.isDebugEnabled();
 		if (ibmJCEPlusFIPSProviderChecked) {
+			if (debug)
+				Tr.debug(tc, "isIBMJCEPlusFIPSAvailable: " + ibmJCEPlusFIPSAvailable);
 			return ibmJCEPlusFIPSAvailable;
 		} else {
+			// When the property is actually checked the first time this method is called.
 			String ibmjceplusfipsprovider = AccessController.doPrivileged(new PrivilegedAction<String>() {
 				@Override
 				public String run() {
@@ -112,12 +116,19 @@ public final class LTPAKeyUtil {
 			ibmJCEPlusFIPSProviderChecked = true;
 			if (isRunningBetaMode() && "IBMJCEPlusFIPS".equalsIgnoreCase(ibmjceplusfipsprovider)) {
 				ibmJCEPlusFIPSAvailable = true;
+				if (debug)
+					Tr.debug(tc, "isIBMJCEPlusFIPSAvailable initialCheck: true");
 				return ibmJCEPlusFIPSAvailable;
 			} else {
 				if (isFIPSEnabled()) {
 					// UTLE TODO: error msg - FIPS is enabled but the IBMJCEPlusFIPS is not
 					// available
+					if (debug)
+						Tr.debug(tc,
+								"isIBMJCEPlusFIPSAvailable FIPS is enabled, but the IBMJCEPlusFIPS provider is not available.");
 				}
+				if (debug)
+					Tr.debug(tc, "isIBMJCEPlusFIPSAvailable initialCheck: false");
 				return false;
 			}
 		}
@@ -145,7 +156,7 @@ public final class LTPAKeyUtil {
 				return System.getProperty("com.ibm.jsse2.usefipsprovider");
 			}
 		});
-		if (fipsON == "true") {
+		if (fipsON.equalsIgnoreCase("true")) {
 			return true;
 		} else {
 			return false;
