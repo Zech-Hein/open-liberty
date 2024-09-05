@@ -21,14 +21,12 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateCrtKeySpec;
-import java.security.spec.RSAPublicKeySpec;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
@@ -195,7 +193,7 @@ final class LTPACrypto {
 
 	}
 
-	private static final ConcurrentHashMap <CachingKey, CachingKey> cryptoKeysMap = new ConcurrentHashMap <CachingKey, CachingKey>();
+	private static final ConcurrentHashMap<CachingKey, CachingKey> cryptoKeysMap = new ConcurrentHashMap<CachingKey, CachingKey>();
 
 	/**
 	 * Sign the data.
@@ -288,7 +286,7 @@ final class LTPACrypto {
 		return sig;
 	}
 
-	private static final ConcurrentHashMap <CachingVerifyKey, CachingVerifyKey> verifyKeysMap = new ConcurrentHashMap <CachingVerifyKey, CachingVerifyKey>();
+	private static final ConcurrentHashMap<CachingVerifyKey, CachingVerifyKey> verifyKeysMap = new ConcurrentHashMap<CachingVerifyKey, CachingVerifyKey>();
 
 	@Trivial
 	private static class CachingVerifyKey {
@@ -449,7 +447,7 @@ final class LTPACrypto {
 
 	}
 
-	private static final Comparator <CachingVerifyKey> cachingVerifyKeyComparator = new Comparator <CachingVerifyKey>() {
+	private static final Comparator<CachingVerifyKey> cachingVerifyKeyComparator = new Comparator<CachingVerifyKey>() {
 		@Override
 		@Trivial
 		public int compare(CachingVerifyKey o1, CachingVerifyKey o2) {
@@ -462,7 +460,7 @@ final class LTPACrypto {
 			}
 		}
 	};
-	private static final Comparator <CachingKey> cachingKeyComparator = new Comparator <CachingKey>() {
+	private static final Comparator<CachingKey> cachingKeyComparator = new Comparator<CachingKey>() {
 		@Override
 		@Trivial
 		public int compare(CachingKey o1, CachingKey o2) {
@@ -541,13 +539,13 @@ final class LTPACrypto {
 		kFact = (provider == null) ? KeyFactory.getInstance(CRYPTO_ALGORITHM_RSA)
 				: KeyFactory.getInstance(CRYPTO_ALGORITHM_RSA, provider);
 
-		RSAPublicKeySpec pubKeySpec = new RSAPublicKeySpec(n, e);
-		PublicKey pubKey = kFact.generatePublic(pubKeySpec);
+		// RSAPublicKeySpec pubKeySpec = new RSAPublicKeySpec(n, e);
+		// PublicKey pubKey = kFact.generatePublic(pubKeySpec);
 
 		rsaSig = (provider == null) ? Signature.getInstance(signatureAlgorithm)
 				: Signature.getInstance(signatureAlgorithm, provider);
 
-		rsaSig.initVerify(pubKey);
+		rsaSig.initVerify(rsaPubKey);
 		rsaSig.update(data, off, len);
 		verified = rsaSig.verify(sig);
 
