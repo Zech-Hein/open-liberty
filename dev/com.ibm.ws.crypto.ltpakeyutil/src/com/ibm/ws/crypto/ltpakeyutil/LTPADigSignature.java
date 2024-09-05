@@ -52,6 +52,7 @@ final class LTPADigSignature {
 																// is 1024
 
 		rsaPrivKey[0] = rsaKey[0];
+		rsaPrivKey[1] = rsaKey[1]; // JOHN TRY
 		rsaPrivKey[2] = rsaKey[2];
 		rsaPrivKey[4] = rsaKey[3];
 		rsaPrivKey[3] = rsaKey[4];

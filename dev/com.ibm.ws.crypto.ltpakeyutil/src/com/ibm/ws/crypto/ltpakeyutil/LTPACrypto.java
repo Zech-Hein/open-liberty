@@ -63,6 +63,9 @@ final class LTPACrypto {
 	private static final String ENCRYPT_ALGORITHM_RSA = "RSA";
 	private static final String encryptAlgorithm = getEncryptionAlgorithm();
 
+	private static RSAPublicKey rsaPubKey;
+	private static RSAPrivateCrtKey rsaPrivKey;
+
 	private static int MAX_CACHE = 500;
 	private static IvParameterSpec ivs8 = null;
 	private static IvParameterSpec ivs16 = null;
@@ -192,7 +195,7 @@ final class LTPACrypto {
 
 	}
 
-	private static final ConcurrentHashMap<CachingKey, CachingKey> cryptoKeysMap = new ConcurrentHashMap<CachingKey, CachingKey>();
+	private static final ConcurrentHashMap <CachingKey, CachingKey> cryptoKeysMap = new ConcurrentHashMap <CachingKey, CachingKey>();
 
 	/**
 	 * Sign the data.
@@ -248,8 +251,11 @@ final class LTPACrypto {
 		BigInteger e = new BigInteger(key[2]);
 		BigInteger p = new BigInteger(key[3]);
 		BigInteger q = new BigInteger(key[4]);
-		System.out.println("BEFORE modInverse len: " + len);
-		BigInteger d = e.modInverse((p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE)));
+		System.out.println("REMOVED modInverse len: " + len);
+		// BigInteger d =
+		// e.modInverse((p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE)));
+		BigInteger d = new BigInteger(key[1]); // JOHN TRY
+		System.out.println("private exponent: " + d);
 		System.out.println("AFTER modInverse");
 		KeyFactory kFact = null;
 
@@ -269,7 +275,9 @@ final class LTPACrypto {
 
 		System.out.println("DEBUG KAREL1: " + privKey.getAlgorithm());
 		System.out.println("DEBUG KAREL1: " + privKey.toString());
-		rsaSig.initSign(privKey);
+		// rsaSig.initSign(privKey);
+		System.out.println("not recreating the privKey"); // TODO prototype
+		rsaSig.initSign(rsaPrivKey); // TODO prototype
 		rsaSig.update(data, off, len);
 		byte[] sig = rsaSig.sign();
 
@@ -280,7 +288,7 @@ final class LTPACrypto {
 		return sig;
 	}
 
-	private static final ConcurrentHashMap<CachingVerifyKey, CachingVerifyKey> verifyKeysMap = new ConcurrentHashMap<CachingVerifyKey, CachingVerifyKey>();
+	private static final ConcurrentHashMap <CachingVerifyKey, CachingVerifyKey> verifyKeysMap = new ConcurrentHashMap <CachingVerifyKey, CachingVerifyKey>();
 
 	@Trivial
 	private static class CachingVerifyKey {
@@ -441,7 +449,7 @@ final class LTPACrypto {
 
 	}
 
-	private static final Comparator<CachingVerifyKey> cachingVerifyKeyComparator = new Comparator<CachingVerifyKey>() {
+	private static final Comparator <CachingVerifyKey> cachingVerifyKeyComparator = new Comparator <CachingVerifyKey>() {
 		@Override
 		@Trivial
 		public int compare(CachingVerifyKey o1, CachingVerifyKey o2) {
@@ -454,7 +462,7 @@ final class LTPACrypto {
 			}
 		}
 	};
-	private static final Comparator<CachingKey> cachingKeyComparator = new Comparator<CachingKey>() {
+	private static final Comparator <CachingKey> cachingKeyComparator = new Comparator <CachingKey>() {
 		@Override
 		@Trivial
 		public int compare(CachingKey o1, CachingKey o2) {
@@ -560,7 +568,7 @@ final class LTPACrypto {
 		System.out.println("DEBUG KAREL: rsaKey len: " + key.length);
 		BigInteger[] k = new BigInteger[8];
 		for (int i = 0; i < 8; i++) {
-			System.out.println("DEBUG KAREL: rsaKey: "+ i +"len: " + Arrays.toString(key[i]));
+			System.out.println("DEBUG KAREL: rsaKey: " + i + "len: " + Arrays.toString(key[i]));
 			if (key[i] != null) {
 				k[i] = new BigInteger(1, key[i]);
 			}
@@ -1072,14 +1080,17 @@ final class LTPACrypto {
 
 			keyGen.initialize(len * 8, new SecureRandom());
 			pair = keyGen.generateKeyPair();
-			RSAPublicKey rsaPubKey = (RSAPublicKey) pair.getPublic();
-			RSAPrivateCrtKey rsaPrivKey = (RSAPrivateCrtKey) pair.getPrivate();
+			rsaPubKey = (RSAPublicKey) pair.getPublic();
+			rsaPrivKey = (RSAPrivateCrtKey) pair.getPrivate();
+			// RSAPublicKey rsaPubKey = (RSAPublicKey) pair.getPublic();
+			// RSAPrivateCrtKey rsaPrivKey = (RSAPrivateCrtKey) pair.getPrivate();
 
 			BigInteger e = rsaPubKey.getPublicExponent();
 			BigInteger n = rsaPubKey.getModulus();
 			BigInteger pe = rsaPrivKey.getPrivateExponent();
+			System.out.println("rsakey private exponent: " + pe);
 			key[0] = n.toByteArray();
-			key[1] = crt ? null : pe.toByteArray();
+			key[1] = pe.toByteArray(); // crt ? null : pe.toByteArray(); //JOHN TRY
 			key[2] = e.toByteArray();
 
 			if (crt) {
