@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -19,12 +19,13 @@ import java.io.OutputStream;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.Arrays;
 import java.util.Properties;
 
 import com.ibm.ws.common.encoder.Base64Coder;
 
 /**
- * 
+ *
  */
 public class LTPAKeyFileUtilityImpl implements LTPAKeyFileUtility {
 
@@ -50,15 +51,23 @@ public class LTPAKeyFileUtilityImpl implements LTPAKeyFileUtility {
         try {
             KeyEncryptor encryptor = new KeyEncryptor(keyPasswordBytes);
             LTPAKeyPair pair = LTPADigSignature.generateLTPAKeyPair();
-            byte[] publicKey = pair.getPublic().getEncoded();
-            byte[] privateKey = pair.getPrivate().getEncoded();
+            byte[] publicKey = pair.getPublic().rsaKey.getEncoded();
+            byte[] privateKey = pair.getPrivate().rsaKey.getEncoded();
             byte[] encryptedPrivateKey = encryptor.encrypt(privateKey);
             byte[] sharedKey = LTPACrypto.generate3DESKey(); // key length is 24 for 3DES
             byte[] encryptedSharedKey = encryptor.encrypt(sharedKey);
 
-            String tmpShared = Base64Coder.base64EncodeToString(encryptedSharedKey);
-            String tmpPrivate = Base64Coder.base64EncodeToString(encryptedPrivateKey);
+            System.out.println("LTPAKeyFileUtilityImpl.generateLTPAKeys privKeyBytes: " + Arrays.toString(privateKey));
+
+            // String tmpShared = Base64Coder.base64EncodeToString(encryptedSharedKey);
+            // String tmpPrivate = Base64Coder.base64EncodeToString(encryptedPrivateKey);
+            // TODO prototype hardcode hack - remove encryption to ltpa.keys
+            String tmpShared = Base64Coder.base64EncodeToString(sharedKey);
+            String tmpPrivate = Base64Coder.base64EncodeToString(privateKey);
             String tmpPublic = Base64Coder.base64EncodeToString(publicKey);
+
+            System.out.println("LTPAKeyFileUtilityImpl.generateLTPAKeys base64Encoded privKeyBytes: "
+                    + Arrays.toString(tmpPrivate.getBytes()));
 
             expProps = new Properties();
 
@@ -79,7 +88,7 @@ public class LTPAKeyFileUtilityImpl implements LTPAKeyFileUtility {
 
     /**
      * Obtain the OutputStream for the given file.
-     * 
+     *
      * @param keyFile
      * @return
      * @throws IOException
@@ -99,11 +108,11 @@ public class LTPAKeyFileUtilityImpl implements LTPAKeyFileUtility {
     }
 
     /**
-     * Write the LTPA key properties to the given OutputStream. This method
-     * will close the OutputStream.
+     * Write the LTPA key properties to the given OutputStream. This method will
+     * close the OutputStream.
      *
      * @param keyImportFile The import file to be created
-     * @param ltpaProps The properties containing the LTPA keys
+     * @param ltpaProps     The properties containing the LTPA keys
      *
      * @throws TokenException
      * @throws IOException
@@ -118,8 +127,7 @@ public class LTPAKeyFileUtilityImpl implements LTPAKeyFileUtility {
             if (os != null)
                 try {
                     os.close();
-                } catch (IOException e) {
-                }
+                } catch (IOException e) {}
         }
 
         return;

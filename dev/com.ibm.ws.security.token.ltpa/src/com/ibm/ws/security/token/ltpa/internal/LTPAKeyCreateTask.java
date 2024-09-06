@@ -24,11 +24,9 @@ import com.ibm.websphere.crypto.PasswordUtil;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Sensitive;
-import com.ibm.ws.crypto.ltpakeyutil.LTPAPrivateKey;
-import com.ibm.ws.crypto.ltpakeyutil.LTPAPublicKey;
 import com.ibm.ws.security.token.ltpa.LTPAConfiguration;
-import com.ibm.ws.security.token.ltpa.LTPAValidationKeysInfo;
 import com.ibm.ws.security.token.ltpa.LTPAKeyInfoManager;
+import com.ibm.ws.security.token.ltpa.LTPAValidationKeysInfo;
 import com.ibm.wsspi.kernel.service.location.WsLocationAdmin;
 import com.ibm.wsspi.kernel.service.utils.TimestampUtils;
 import com.ibm.wsspi.security.ltpa.TokenFactory;
@@ -63,8 +61,10 @@ class LTPAKeyCreateTask implements Runnable {
     @Sensitive
     private Map<String, Object> createTokenFactoryMap() {
         LTPAKeyInfoManager keyInfoManager = config.getLTPAKeyInfoManager();
-        LTPAPrivateKey primaryPrivateKey = new LTPAPrivateKey(keyInfoManager.getPrivateKey(config.getPrimaryKeyFile()));
-        LTPAPublicKey primaryPublicKey = new LTPAPublicKey(keyInfoManager.getPublicKey(config.getPrimaryKeyFile()));
+        //LTPAPrivateKey primaryPrivateKey = new LTPAPrivateKey(keyInfoManager.getPrivateKey(config.getPrimaryKeyFile()));
+        //LTPAPublicKey primaryPublicKey = new LTPAPublicKey(keyInfoManager.getPublicKey(config.getPrimaryKeyFile()));
+        byte[] primaryPrivateKey = keyInfoManager.getPrivateKey(config.getPrimaryKeyFile());
+        byte[] primaryPublicKey = keyInfoManager.getPublicKey(config.getPrimaryKeyFile());
         byte[] primarySharedKey = keyInfoManager.getSecretKey(config.getPrimaryKeyFile());
         List<LTPAValidationKeysInfo> validationKeys = keyInfoManager.getValidationLTPAKeys();
         long expDiffAllowed = config.getExpirationDifferenceAllowed();

@@ -244,7 +244,7 @@ public class LTPAKeyInfoManager {
                 throw new IllegalArgumentException(formattedMessage);
             } else {
                 byte[] keyEncoded = Base64Coder.base64DecodeString(secretKeyStr);
-                secretKey = encryptor.decrypt(keyEncoded);
+                secretKey = keyEncoded; //prototype encryptor.decrypt(keyEncoded);
             }
             // Private key
             if ((privateKeyStr == null) || (privateKeyStr.length() == 0)) {
@@ -253,7 +253,7 @@ public class LTPAKeyInfoManager {
                 throw new IllegalArgumentException(formattedMessage);
             } else {
                 byte[] keyEncoded = Base64Coder.base64DecodeString(privateKeyStr);
-                privateKey = encryptor.decrypt(keyEncoded);
+                privateKey = keyEncoded; //prototype hack encryptor.decrypt(keyEncoded);
             }
             // Public key
             if ((publicKeyStr == null) || (publicKeyStr.length() == 0)) {

@@ -14,10 +14,8 @@ package com.ibm.ws.security.token.ltpa.internal;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Map;
@@ -294,12 +292,14 @@ public class LTPAToken2 implements Token, Serializable {
             data = md1JCE.digest(msg);
         }
         byte[][] rsaPrivKey = LTPAKeyUtil.getRawKey(privKey);
-		System.out.println("DEBUG KAREL: rsaKey len: " + rsaPrivKey.length);
-		BigInteger[] k = new BigInteger[8];
-		for (int i = 0; i < 8; i++) {
-			System.out.println("DEBUG KAREL: rsaKey: "+ i +"len: " + Arrays.toString(rsaPrivKey[i]));
-        }
-        LTPAKeyUtil.setRSAKey(rsaPrivKey);
+        //System.out.println("DEBUG KAREL: rsaKey len: " + rsaPrivKey.length);
+        //BigInteger[] k = new BigInteger[8];
+        //for (int i = 0; i < 8; i++) {
+        //    System.out.println("DEBUG KAREL: rsaKey: " + i + "len: " + Arrays.toString(rsaPrivKey[i]));
+        //}
+        System.out.println("prototype >>> sign");
+        LTPAKeyUtil.setPrivateKey(privKey.rsaKey); //TODO prototype
+
         byte[] signature;
         signature = LTPAKeyUtil.signISO9796(rsaPrivKey, data, 0, data.length);
 
@@ -327,6 +327,8 @@ public class LTPAToken2 implements Token, Serializable {
             data = md2JCE.digest(msg);
         }
         byte[][] rsaPubKey = LTPAKeyUtil.getRawKey(pubKey);
+        System.out.println("prototype >>> verify");
+        LTPAKeyUtil.setPublicKey(pubKey.rsaKey); //TODO prototype
         return LTPAKeyUtil.verifyISO9796(rsaPubKey, data, 0, data.length, signature, 0, signature.length);
     }
 

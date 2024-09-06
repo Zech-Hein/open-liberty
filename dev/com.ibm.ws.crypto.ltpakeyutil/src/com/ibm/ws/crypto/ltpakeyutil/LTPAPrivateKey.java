@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -13,6 +13,7 @@
 package com.ibm.ws.crypto.ltpakeyutil;
 
 import java.security.PrivateKey;
+import java.security.interfaces.RSAPrivateCrtKey;
 
 /**
  * Represents an LTPA Private Key; Encoding is non-standard. Uses 128 byte RSA.
@@ -31,30 +32,41 @@ public final class LTPAPrivateKey implements PrivateKey {
     private int privateExponentLength;
     private final byte[][] rawKey;
     private final byte[] encodedKey;
+    public final RSAPrivateCrtKey rsaKey;
 
     LTPAPrivateKey(byte[][] key) {
         this.rawKey = key;
         LTPACrypto.setRSAKey(key);
         this.privateExponentLength = key[PRIVATE_EXPONENT].length;
         this.encodedKey = encode();
+        this.rsaKey = null;
     }
 
     public LTPAPrivateKey(byte[] encodedKey) {
         this.encodedKey = encodedKey.clone();
         this.rawKey = decode(encodedKey);
+        this.rsaKey = null;
+    }
+
+    // TODO prototype
+    public LTPAPrivateKey(RSAPrivateCrtKey key) {
+        this.rawKey = null;
+        this.encodedKey = null;
+        rsaKey = key;
     }
 
     /*
-     * Encoding/decoding are based on non-standard format;
-     * basically all the byte arrays are concatenated. As we know the length
-     * of the components, they can be reconstructed back.
-     * 
+     * Encoding/decoding are based on non-standard format; basically all the byte
+     * arrays are concatenated. As we know the length of the components, they can be
+     * reconstructed back.
+     *
      * @param encodedPrivateKey The encoded key
      */
     private final byte[][] decode(byte[] encodedPrivateKey) {
         byte[][] decodedKey = new byte[8][];
         if (encodedPrivateKey.length > (PUBLIC_EXPONENT_LENGTH + PRIME_P_LENGTH + PRIME_Q_LENGTH)) {
-            // it is potentially the new encoding mechanism based on R3.5 [with CRT key information added for Domino]
+            // it is potentially the new encoding mechanism based on R3.5 [with CRT key
+            // information added for Domino]
             // determine the length of the CRT key by looking at the first four bytes
             byte[] lengthBytes = new byte[PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH];
             for (int i = 0; i < PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH; i++) {
@@ -66,33 +78,43 @@ public final class LTPAPrivateKey implements PrivateKey {
             decodedKey[PRIME_P] = new byte[PRIME_P_LENGTH];
             decodedKey[PRIME_Q] = new byte[PRIME_Q_LENGTH];
 
-            System.arraycopy(encodedPrivateKey, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH, decodedKey[PRIVATE_EXPONENT], 0, privateExponentLength);
-            System.arraycopy(encodedPrivateKey, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength, decodedKey[PUBLIC_EXPONENT], 0, PUBLIC_EXPONENT_LENGTH);
-            System.arraycopy(encodedPrivateKey, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength + PUBLIC_EXPONENT_LENGTH, decodedKey[PRIME_P], 0, PRIME_P_LENGTH);
-            System.arraycopy(encodedPrivateKey, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength + PUBLIC_EXPONENT_LENGTH + PRIME_P_LENGTH, decodedKey[PRIME_Q], 0,
-                             PRIME_Q_LENGTH);
+            System.arraycopy(encodedPrivateKey, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH, decodedKey[PRIVATE_EXPONENT], 0,
+                    privateExponentLength);
+            System.arraycopy(encodedPrivateKey, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength,
+                    decodedKey[PUBLIC_EXPONENT], 0, PUBLIC_EXPONENT_LENGTH);
+            System.arraycopy(encodedPrivateKey,
+                    PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength + PUBLIC_EXPONENT_LENGTH,
+                    decodedKey[PRIME_P], 0, PRIME_P_LENGTH);
+            System.arraycopy(encodedPrivateKey, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength
+                    + PUBLIC_EXPONENT_LENGTH + PRIME_P_LENGTH, decodedKey[PRIME_Q], 0, PRIME_Q_LENGTH);
         } else {
-            // it is a R3.02 key [without CRT key information] 
+            // it is a R3.02 key [without CRT key information]
             decodedKey[PUBLIC_EXPONENT] = new byte[PUBLIC_EXPONENT_LENGTH];
             decodedKey[PRIME_P] = new byte[PRIME_P_LENGTH];
             decodedKey[PRIME_Q] = new byte[PRIME_Q_LENGTH];
 
             System.arraycopy(encodedPrivateKey, 0, decodedKey[PUBLIC_EXPONENT], 0, PUBLIC_EXPONENT_LENGTH);
             System.arraycopy(encodedPrivateKey, PUBLIC_EXPONENT_LENGTH, decodedKey[PRIME_P], 0, PRIME_P_LENGTH);
-            System.arraycopy(encodedPrivateKey, PUBLIC_EXPONENT_LENGTH + PRIME_P_LENGTH, decodedKey[PRIME_Q], 0, PRIME_Q_LENGTH);
+            System.arraycopy(encodedPrivateKey, PUBLIC_EXPONENT_LENGTH + PRIME_P_LENGTH, decodedKey[PRIME_Q], 0,
+                    PRIME_Q_LENGTH);
         }
         return decodedKey;
     }
 
     private byte[] encode() {
-        int encodedKeyLength = PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength + PUBLIC_EXPONENT_LENGTH + PRIME_P_LENGTH + PRIME_Q_LENGTH;
+        int encodedKeyLength = PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength + PUBLIC_EXPONENT_LENGTH
+                + PRIME_P_LENGTH + PRIME_Q_LENGTH;
         byte[] encodedPrivateKey = new byte[encodedKeyLength];
         byte[] lengthBytes = toByteArray(privateExponentLength);
         copy(lengthBytes, 0, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH, encodedPrivateKey, 0);
-        copy(rawKey[PRIVATE_EXPONENT], 0, privateExponentLength, encodedPrivateKey, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH);
-        copy(rawKey[PUBLIC_EXPONENT], 0, PUBLIC_EXPONENT_LENGTH, encodedPrivateKey, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength);
-        copy(rawKey[PRIME_P], 0, PRIME_P_LENGTH, encodedPrivateKey, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength + PUBLIC_EXPONENT_LENGTH);
-        copy(rawKey[PRIME_Q], 0, PRIME_Q_LENGTH, encodedPrivateKey, PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength + PRIME_P_LENGTH + PUBLIC_EXPONENT_LENGTH);
+        copy(rawKey[PRIVATE_EXPONENT], 0, privateExponentLength, encodedPrivateKey,
+                PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH);
+        copy(rawKey[PUBLIC_EXPONENT], 0, PUBLIC_EXPONENT_LENGTH, encodedPrivateKey,
+                PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength);
+        copy(rawKey[PRIME_P], 0, PRIME_P_LENGTH, encodedPrivateKey,
+                PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength + PUBLIC_EXPONENT_LENGTH);
+        copy(rawKey[PRIME_Q], 0, PRIME_Q_LENGTH, encodedPrivateKey,
+                PRIVATE_EXPONENT_LENGTH_FIELD_LENGTH + privateExponentLength + PRIME_P_LENGTH + PUBLIC_EXPONENT_LENGTH);
         return encodedPrivateKey;
     }
 
@@ -121,7 +143,7 @@ public final class LTPAPrivateKey implements PrivateKey {
 
     /**
      * Return the algorithm used - RSA/SHA-1.
-     * 
+     *
      * @return Always RSA/SHA-1
      */
     @Override
@@ -137,7 +159,7 @@ public final class LTPAPrivateKey implements PrivateKey {
 
     /**
      * Get the format of the private key.
-     * 
+     *
      * @return Always LTPAFormat
      */
     @Override
@@ -147,11 +169,15 @@ public final class LTPAPrivateKey implements PrivateKey {
 
     /**
      * Get the raw data of the private key.
-     * 
+     *
      * @return The raw data of the key
      */
     protected final byte[][] getRawKey() {
-        return rawKey.clone();
+        if (rawKey == null) {
+            return null;
+        } else {
+            return rawKey.clone();
+        }
     }
 
 }

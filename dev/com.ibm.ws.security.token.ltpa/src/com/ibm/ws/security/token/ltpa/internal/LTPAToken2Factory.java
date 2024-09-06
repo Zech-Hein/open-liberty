@@ -12,6 +12,12 @@
  *******************************************************************************/
 package com.ibm.ws.security.token.ltpa.internal;
 
+import java.security.KeyFactory;
+import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +50,29 @@ public class LTPAToken2Factory implements TokenFactory {
     public void initialize(@Sensitive Map tokenFactoryMap) {
         expirationInMinutes = (Long) tokenFactoryMap.get(LTPAConstants.EXPIRATION);
         primarySharedKey = (byte[]) tokenFactoryMap.get(LTPAConstants.PRIMARY_SECRET_KEY);
-        primaryPublicKey = (LTPAPublicKey) tokenFactoryMap.get(LTPAConstants.PRIMARY_PUBLIC_KEY);
-        primaryPrivateKey = (LTPAPrivateKey) tokenFactoryMap.get(LTPAConstants.PRIMARY_PRIVATE_KEY);
+        //primaryPublicKey = (LTPAPublicKey) tokenFactoryMap.get(LTPAConstants.PRIMARY_PUBLIC_KEY);
+        //primaryPrivateKey = (LTPAPrivateKey) tokenFactoryMap.get(LTPAConstants.PRIMARY_PRIVATE_KEY);
+        //TODO prototype - recreate RSA keys from byte[]
+        byte[] pubKeyBytes = (byte[]) tokenFactoryMap.get(LTPAConstants.PRIMARY_PUBLIC_KEY);
+        byte[] privKeyBytes = (byte[]) tokenFactoryMap.get(LTPAConstants.PRIMARY_PRIVATE_KEY);
+        System.out.println("LTPAToken2Factory.initialize pubKeyBytes: " + Arrays.toString(pubKeyBytes));
+        System.out.println("LTPAToken2Factory.initialize privKeyBytes: " + Arrays.toString(privKeyBytes));
+        RSAPublicKey rsaPubKey = null;
+        RSAPrivateCrtKey rsaPrivKey = null;
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA", "IBMJCEPlusFIPS");
+            rsaPubKey = (RSAPublicKey) keyFactory.generatePublic(new X509EncodedKeySpec(pubKeyBytes));
+            rsaPrivKey = (RSAPrivateCrtKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privKeyBytes));
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            // Do you need FFDC here? Remember FFDC instrumentation and @FFDCIgnore
+            System.out.println("Exception re-creating RSA keys from bytes: " + e);
+            e.printStackTrace();
+        }
+        System.out.println("LTPAToken2Factory.initialize RSA keys re-created from bytes");
+        primaryPublicKey = new LTPAPublicKey(rsaPubKey);
+        primaryPrivateKey = new LTPAPrivateKey(rsaPrivKey);
+
         expDiffAllowed = (Long) tokenFactoryMap.get(LTPAConfigurationImpl.KEY_EXP_DIFF_ALLOWED);
         validationKeys = (List<LTPAValidationKeysInfo>) tokenFactoryMap.get(LTPAConstants.VALIDATION_KEYS);
 

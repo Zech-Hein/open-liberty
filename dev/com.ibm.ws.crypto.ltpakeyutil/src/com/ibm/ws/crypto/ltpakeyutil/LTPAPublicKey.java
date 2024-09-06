@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -13,9 +13,11 @@
 package com.ibm.ws.crypto.ltpakeyutil;
 
 import java.security.PublicKey;
+import java.security.interfaces.RSAPublicKey;
 
 /**
- * Represents an LTPA Public Key based on RSA/SHA-1. Its based on a 128 byte RSA key.
+ * Represents an LTPA Public Key based on RSA/SHA-1. Its based on a 128 byte RSA
+ * key.
  */
 public final class LTPAPublicKey implements PublicKey {
 
@@ -26,22 +28,32 @@ public final class LTPAPublicKey implements PublicKey {
     private static final int EXPONENT_LENGTH = 3;
     private final byte[][] rawKey;
     private final byte[] encodedKey;
+    public final RSAPublicKey rsaKey;
 
     LTPAPublicKey(byte[][] rawKey) {
         this.rawKey = rawKey;
         this.encodedKey = encode();
+        this.rsaKey = null;
     }
 
     public LTPAPublicKey(byte[] encodedKey) {
         this.encodedKey = encodedKey.clone();
         this.rawKey = decode(encodedKey);
+        this.rsaKey = null;
+    }
+
+    // TODO prototype
+    public LTPAPublicKey(RSAPublicKey key) {
+        this.rawKey = null;
+        this.encodedKey = null;
+        rsaKey = key;
     }
 
     /**
      * encoding/decoding are based on non-standard LTPA specific algorithm.
-     * concatenates byte arrays of raw key to a format that can be decoded based
-     * on length of each component.
-     * 
+     * concatenates byte arrays of raw key to a format that can be decoded based on
+     * length of each component.
+     *
      * @param encodedPublicKey The encoded key
      */
     private byte[][] decode(byte[] encodedPublicKey) {
@@ -80,6 +92,10 @@ public final class LTPAPublicKey implements PublicKey {
     }
 
     protected final byte[][] getRawKey() {
-        return rawKey.clone();
+        if (rawKey == null) {
+            return null;
+        } else {
+            return rawKey.clone();
+        }
     }
 }
