@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -13,26 +13,30 @@
 package com.ibm.ws.crypto.ltpakeyutil;
 
 import java.security.MessageDigest;
+import java.security.Provider;
 
 /**
- * A package local class for performing encryption and decryption of keys
- * based on admin's password
+ * A package local class for performing encryption and decryption of keys based
+ * on admin's password
  */
 public class KeyEncryptor {
 
-    private static final String MESSAGE_DIGEST_ALGORITHM = "SHA256";
+    private static final String MESSAGE_DIGEST_ALGORITHM = "SHA-256";
     private static final String AES_ECB_CIPHER = "AES/CBC/PKCS5Padding";
 
     private final byte[] aesKey;
 
     /**
      * A KeyEncryptor constructor.
-     * 
+     *
      * @param password The key password
      */
     public KeyEncryptor(byte[] password) throws Exception {
         MessageDigest md = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM);
+        Provider p = md.getProvider();
+        System.out.println("KeyEncryptor messageDigest provider: " + p);
         byte[] digest = md.digest(password);
+
         aesKey = new byte[32];
         System.out.println("DEBUG KAREL: digest length " + digest.length);
         System.out.println("DEBUG KAREL: digest length " + digest);
@@ -45,7 +49,7 @@ public class KeyEncryptor {
 
     /**
      * Decrypt the key.
-     * 
+     *
      * @param encryptedKey The encrypted key
      * @return The decrypted key
      */

@@ -34,6 +34,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESedeKeySpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -635,7 +636,12 @@ final class LTPACrypto {
         ci = (provider == null) ? Cipher.getInstance(cipher) : Cipher.getInstance(cipher, provider);
 
         if (cipher.indexOf("ECB") == -1) {
-            if (cipher.indexOf("AES") != -1) {
+            if (cipher.indexOf("GCM") != -1) {
+                byte[] iv = new byte[12];
+                GCMParameterSpec params = new GCMParameterSpec(128, iv);
+                System.out.println("using GCM spec");
+                ci.init(cipherMode, sKey, params);
+            } else if (cipher.indexOf("AES") != -1) {
                 if (ivs16 == null) {
                     setIVS16(key);
                 }
@@ -1066,6 +1072,7 @@ final class LTPACrypto {
             rsaPubKey = (RSAPublicKey) pair.getPublic();
             rsaPrivKey = (RSAPrivateCrtKey) pair.getPrivate();
 
+            System.out.println("LTPACrypto.rsaKey RSA KeyPairGenerator provider: " + keyGen.getProvider());
             System.out.println("LTPACrypto.rsaKey pubKeyBytes: " + Arrays.toString(rsaPubKey.getEncoded()));
             System.out.println("LTPACrypto.rsaKey privKeyBytes: " + Arrays.toString(rsaPrivKey.getEncoded()));
 

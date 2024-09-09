@@ -15,6 +15,7 @@ package com.ibm.ws.security.token.ltpa.internal;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
+import java.security.Provider;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -43,7 +44,8 @@ public class LTPAToken2 implements Token, Serializable {
 
     private static final TraceComponent tc = Tr.register(LTPAToken2.class);
 
-    private static final String AES_CBC_CIPHER = "AES/CBC/PKCS5Padding";
+    //private static final String AES_CBC_CIPHER = "AES/CBC/PKCS5Padding";
+    private static final String AES_CBC_CIPHER = "AES/GCM/NoPadding";
 
     private static final long serialVersionUID = 1L;
     private static final String DELIM = "%";
@@ -76,6 +78,8 @@ public class LTPAToken2 implements Token, Serializable {
                 m1 = MessageDigest.getInstance(LTPAKeyUtil.MESSAGE_DIGEST_ALGORITHM_SHA256);
                 m2 = MessageDigest.getInstance(LTPAKeyUtil.MESSAGE_DIGEST_ALGORITHM_SHA256);
             }
+            Provider p = m1.getProvider();
+            System.out.println("LTPAToken2 md1 provider: " + p);
         } catch (Exception e) {
             if (TraceComponent.isAnyTracingEnabled() && tc.isEventEnabled()) {
                 Tr.event(tc, "Error creating digest; " + e);

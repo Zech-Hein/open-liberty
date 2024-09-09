@@ -60,7 +60,8 @@ public class LTPAToken2Factory implements TokenFactory {
         RSAPublicKey rsaPubKey = null;
         RSAPrivateCrtKey rsaPrivKey = null;
         try {
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA", "IBMJCEPlusFIPS");
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            System.out.println("LTPAToken2Factory.initialize RSA-KeyFactory provider: " + keyFactory.getProvider());
             rsaPubKey = (RSAPublicKey) keyFactory.generatePublic(new X509EncodedKeySpec(pubKeyBytes));
             rsaPrivKey = (RSAPrivateCrtKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privKeyBytes));
         } catch (Exception e) {
