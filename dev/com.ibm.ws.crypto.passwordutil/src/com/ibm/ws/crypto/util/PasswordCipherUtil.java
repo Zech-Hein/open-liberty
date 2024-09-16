@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2022 IBM Corporation and others.
+ * Copyright (c) 2007, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -12,6 +12,8 @@
  *******************************************************************************/
 
 package com.ibm.ws.crypto.util;
+
+import static com.ibm.ws.crypto.util.AESKeyManager.KeyVersion.AES_V0;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -23,7 +25,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,6 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
 
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -53,11 +53,10 @@ import com.ibm.websphere.crypto.UnsupportedCryptoAlgorithmException;
 import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.crypto.util.custom.CustomManifest;
 import com.ibm.ws.crypto.util.custom.CustomUtils;
+import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 import com.ibm.wsspi.security.crypto.CustomPasswordEncryption;
 import com.ibm.wsspi.security.crypto.EncryptedInfo;
-
-import static com.ibm.ws.crypto.util.AESKeyManager.KeyVersion.*;
 
 /**
  * Utility class for password enciphering and deciphering.
@@ -259,7 +258,8 @@ public class PasswordCipherUtil {
     private static byte[] aesDecipher(byte[] encrypted_bytes) throws UnsupportedCryptoAlgorithmException, InvalidPasswordCipherException {
         if (encrypted_bytes[0] == 0) { // we only process if we understand the encoding scheme.
             return aesDecipherV0(encrypted_bytes);
-        } else if (encrypted_bytes[0] == 1) {
+        } else if (ProductInfo.getBetaEdition() && encrypted_bytes[0] == 1) {
+            //TODO BETA CODE guarded
             return aesDecipherV1(encrypted_bytes);
         } else {
             throw new InvalidPasswordCipherException();
@@ -269,7 +269,7 @@ public class PasswordCipherUtil {
     private static byte[] aesDecipherV0(byte[] encrypted_bytes) throws UnsupportedCryptoAlgorithmException, InvalidPasswordCipherException {
         byte[] decrypted_bytes = null;
 
-        byte[] decrypted = aesDecipherCommon("AES/CBC/PKCS5Padding", PBKDF2_SHA1, AESKeyManager.getIV(PBKDF2_SHA1, null), encrypted_bytes, 1, encrypted_bytes.length - 1);
+        byte[] decrypted = aesDecipherCommon("AES/CBC/PKCS5Padding", AES_V0, AESKeyManager.getIV(AES_V0, null), encrypted_bytes, 1, encrypted_bytes.length - 1);
 
         if (decrypted != null) {
             decrypted_bytes = new byte[decrypted.length - decrypted[0] - 1];
@@ -287,7 +287,8 @@ public class PasswordCipherUtil {
 
         GCMParameterSpec iv = new GCMParameterSpec(128, encrypted_bytes, 2, ivLen);
 
-        byte[] decrypted = aesDecipherCommon("AES/GCM/NoPadding", PBKDF2_SHA256, iv, encrypted_bytes, cipherBytesStart, encrypted_bytes.length - cipherBytesStart);
+        byte[] decrypted = aesDecipherCommon("AES/GCM/NoPadding", AESKeyManager.KeyVersion.AES_V1, iv, encrypted_bytes, cipherBytesStart,
+                                             encrypted_bytes.length - cipherBytesStart);
 
         if (decrypted != null) {
             decrypted_bytes = new byte[decrypted.length - decrypted[0] - 1];
@@ -297,7 +298,8 @@ public class PasswordCipherUtil {
         return decrypted_bytes;
     }
 
-    private static byte[] aesDecipherCommon(String cipher, AESKeyManager.KeyVersion kv, AlgorithmParameterSpec ps, byte[] cipherText, int start, int len) throws InvalidPasswordCipherException, UnsupportedCryptoAlgorithmException {
+    private static byte[] aesDecipherCommon(String cipher, AESKeyManager.KeyVersion kv, AlgorithmParameterSpec ps, byte[] cipherText, int start,
+                                            int len) throws InvalidPasswordCipherException, UnsupportedCryptoAlgorithmException {
         try {
             Key key = AESKeyManager.getKey(kv, null);
             Cipher c = Cipher.getInstance(cipher);
@@ -357,7 +359,15 @@ public class PasswordCipherUtil {
             if (properties != null) {
                 cryptoKey = properties.get(PasswordUtil.PROPERTY_CRYPTO_KEY);
             }
-            info = aesEncipher(decrypted_bytes, cryptoKey);
+            //TODO: remove beta
+            if (ProductInfo.getBetaEdition()) {
+                // Use AES-256(V1) if beta edition is enabled
+                info = aesEncipherV1(decrypted_bytes, cryptoKey);
+            } else {
+                // Use AES-128(V0)otherwise
+                info = aesEncipherV0(decrypted_bytes, cryptoKey, info, encrypted_bytes);
+            }
+
         } else if (XOR.equalsIgnoreCase(crypto_algorithm)) {
             encrypted_bytes = xor(decrypted_bytes);
             if (encrypted_bytes != null)
@@ -489,27 +499,6 @@ public class PasswordCipherUtil {
     }
 
     /**
-     * This method takes some plain text bytes and encodes it into a byte array using the provided
-     * cryptoKey. If null is provided a default crypto key is used by looking up the value as a 
-     * variable and using what is returned.
-     * 
-     * <p>The first byte of the encrypted data indicates the version of the encrypted payload, this is so in the future AES encryption can be
-     *   updated to improve security while continuing to decode previously encrypted passwords. A number of 0 means the encoding key that was
-     *   used to encode it was generated using PBKDF2withHmacSHA1, 1 means it was generated with PBKDF2withHmacSHA256. The remaining data is 
-     *   the encrypted payload.
-     * </p>
-     * 
-     * <p>The encrypted payload is generated by encrypting the following data:
-     * 
-     * <ol>
-     *   <li>byte: len of the seed<li>
-     *   <li>byte array: the seed bytes<li>
-     *   <li>byte array: the plain text bytes<li>
-     * </ol>
-     * 
-     * <p>This allows the salt size to be increased without changing the version of the encrypted format.</p>
-     * 
-     * 
      * @param decrypted_bytes
      * @param cryptoKey
      * @param info
@@ -518,7 +507,80 @@ public class PasswordCipherUtil {
      * @throws UnsupportedCryptoAlgorithmException
      * @throws InvalidPasswordCipherException
      */
-    private static EncryptedInfo aesEncipher(byte[] decrypted_bytes, String cryptoKey) throws UnsupportedCryptoAlgorithmException, InvalidPasswordCipherException {
+    private static EncryptedInfo aesEncipherV0(byte[] decrypted_bytes, String cryptoKey, EncryptedInfo info,
+                                               byte[] encrypted_bytes) throws UnsupportedCryptoAlgorithmException, InvalidPasswordCipherException {
+        byte[] seed = null;
+        SecureRandom rand = new SecureRandom();
+        Provider provider = rand.getProvider();
+        String providerName = provider.getName();
+        if (providerName.equals(HW_PROVIDER)) {
+            seed = new byte[20];
+            rand.nextBytes(seed);
+        } else {
+            seed = rand.generateSeed(20);
+        }
+        byte[] preEncrypted = new byte[decrypted_bytes.length + 21];
+        preEncrypted[0] = 20; // how many seed bytes there are.
+        System.arraycopy(seed, 0, preEncrypted, 1, 20);
+        System.arraycopy(decrypted_bytes, 0, preEncrypted, 21, decrypted_bytes.length);
+        try {
+            Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            c.init(Cipher.ENCRYPT_MODE, AESKeyManager.getKey(cryptoKey), AESKeyManager.getIV(cryptoKey));
+            encrypted_bytes = c.doFinal(preEncrypted);
+            if (encrypted_bytes != null) {
+                byte[] updatedBytes = new byte[encrypted_bytes.length + 1];
+                updatedBytes[0] = 0; // indicates how we encoded so later on we can decode
+                System.arraycopy(encrypted_bytes, 0, updatedBytes, 1, encrypted_bytes.length);
+                info = new EncryptedInfo(updatedBytes, "");
+            }
+        } catch (NoSuchAlgorithmException e) {
+            throw (UnsupportedCryptoAlgorithmException) new UnsupportedCryptoAlgorithmException().initCause(e);
+        } catch (NoSuchPaddingException e) {
+            throw (UnsupportedCryptoAlgorithmException) new UnsupportedCryptoAlgorithmException().initCause(e);
+        } catch (InvalidKeyException e) {
+            throw (InvalidPasswordCipherException) new InvalidPasswordCipherException().initCause(e);
+        } catch (IllegalBlockSizeException e) {
+            throw (UnsupportedCryptoAlgorithmException) new UnsupportedCryptoAlgorithmException().initCause(e);
+        } catch (BadPaddingException e) {
+            throw (UnsupportedCryptoAlgorithmException) new UnsupportedCryptoAlgorithmException().initCause(e);
+        } catch (InvalidAlgorithmParameterException e) {
+            throw (InvalidPasswordCipherException) new InvalidPasswordCipherException().initCause(e);
+        }
+        return info;
+    }
+
+    /**
+     * This method takes some plain text bytes and encodes it into a byte array using the provided
+     * cryptoKey. If null is provided a default crypto key is used by looking up the value as a
+     * variable and using what is returned.
+     *
+     * <p>The first byte of the encrypted data indicates the version of the encrypted payload, this is so in the future AES encryption can be
+     * updated to improve security while continuing to decode previously encrypted passwords. A number of 0 means the encoding key that was
+     * used to encode it was generated using PBKDF2withHmacSHA1 with a 128 bit AES key length, 1 means it was generated with PBKDF2withHmacSHA256 with a 256 bit AES key length. The
+     * remaining data is
+     * the encrypted payload.
+     * </p>
+     *
+     * <p>The encrypted payload is generated by encrypting the following data:
+     *
+     * <ol>
+     * <li>byte: len of the seed<li>
+     * <li>byte array: the seed bytes<li>
+     * <li>byte array: the plain text bytes<li>
+     * </ol>
+     *
+     * <p>This allows the salt size to be increased without changing the version of the encrypted format.</p>
+     *
+     *
+     * @param decrypted_bytes
+     * @param cryptoKey
+     * @param info
+     * @param encrypted_bytes
+     * @return
+     * @throws UnsupportedCryptoAlgorithmException
+     * @throws InvalidPasswordCipherException
+     */
+    private static EncryptedInfo aesEncipherV1(byte[] decrypted_bytes, String cryptoKey) throws UnsupportedCryptoAlgorithmException, InvalidPasswordCipherException {
         byte[] seed = null;
         EncryptedInfo info = null;
         SecureRandom rand = new SecureRandom();
@@ -540,13 +602,14 @@ public class PasswordCipherUtil {
         try {
             Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
             GCMParameterSpec ps = new GCMParameterSpec(128, rand.generateSeed(c.getBlockSize()));
-            c.init(Cipher.ENCRYPT_MODE, AESKeyManager.getKey(AESKeyManager.KeyVersion.PBKDF2_SHA256, cryptoKey), ps);
+            c.init(Cipher.ENCRYPT_MODE, AESKeyManager.getKey(AESKeyManager.KeyVersion.AES_V1, cryptoKey), ps);
             byte[] encrypted_bytes = c.doFinal(preEncrypted);
             if (encrypted_bytes != null) {
                 byte[] ivBytes = ps.getIV();
                 byte[] updatedBytes = new byte[ivBytes.length + encrypted_bytes.length + 2];
                 updatedBytes[0] = 1; // indicates how we encoded so later on we can decode
-                updatedBytes[1] = (byte)ivBytes.length;
+                updatedBytes[1] = (byte) ivBytes.length;
+
                 System.arraycopy(ivBytes, 0, updatedBytes, 2, ivBytes.length);
                 System.arraycopy(encrypted_bytes, 0, updatedBytes, ivBytes.length + 2, encrypted_bytes.length);
                 info = new EncryptedInfo(updatedBytes, "");
