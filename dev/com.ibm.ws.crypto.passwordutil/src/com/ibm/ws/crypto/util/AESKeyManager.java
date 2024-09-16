@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -30,24 +30,29 @@ import com.ibm.wsspi.security.crypto.KeyStringResolver;
  *
  */
 public class AESKeyManager {
-   private static final AtomicReference<KeyStringResolver> _resolver = new AtomicReference<KeyStringResolver>();
+    private static final AtomicReference<KeyStringResolver> _resolver = new AtomicReference<KeyStringResolver>();
 
     public static enum KeyVersion {
-        PBKDF2_SHA1("PBKDF2WithHmacSHA1", 84756, 128, new byte[] { -89, -94, -125, 57, 76, 90, -77, 79, 50, 21, 10, -98, 47, 23, 17, 56, -61, 46, 125, -128 }),
-        PBKDF2_SHA256("PBKDF2WithHmacSHA256", 84756, 128, new byte[] { 73, -125, -10, -15, 48, 90, -50, -73, -3, -25, -61, 14, -74, 48, -59, 122, -70, 34, 36, 52, 105, 48, -39, -80, -94, -46, 122, 109, -7, 59, 101, -105, 66, -58, 33, 6, -80, -128, 29, 50, 114, 104, 37, -119, -45, -8, -41, -123, 19, 108, -3, 21, 127, 48, 84, 62, 13, -89, 94, 2, -43, 101, -72, 15 });
+        AES_V0("PBKDF2WithHmacSHA1", 84756, 128, new byte[] { -89, -94, -125, 57, 76, 90, -77, 79, 50, 21, 10, -98, 47, 23, 17, 56, -61, 46, 125, -128 }),
+        AES_V1("PBKDF2WithHmacSHA512", 300000, 256, new byte[] { -89, -63, 22, 15, -121, 11, 102, 75, -91, 68, -94, -89, 96, 83, -21, -69, -45, 29, 26, 106, -18, 69, 60, -6,
+                                                                 108, 73, 111, 122, 41, -19, -78, -79, -28, 102, 57, -10, 66, 48, 54, 111, 35, 92, 59, -121, 36, 15, 14, -63,
+                                                                 -43, 107, 63, -18, 87, 43, -57, 74, 0, 107, -119, -2, -7, -7, -46, -95, -44, 36, -10, 86, -119, -80, -114,
+                                                                 10, 85, 24, 24, -121, -30, 63, 59, 49, 52, -76, -122, 108, -84, 16, 4, -39, 58, 75, 9, -25, 126, 127, -96,
+                                                                 122, -62, -94, 71, -8, -101, -33, 57, -44, -93, 86, 76, -115, 113, -124, 104, -40, -121, -9, 86, 121, -48,
+                                                                 -57, -77, -58, 73, 7, 12, 4, 24, -81, -64, 107 });
 
         private final AtomicReference<KeyHolder> _key = new AtomicReference<KeyHolder>();
 
-        private String alg;
-        private byte[] salt;
-        private int iterations;
-        private int len;
+        private final String alg;
+        private final int iterations;
+        private final int keyLength;
+        private final byte[] salt;
 
-        private KeyVersion(String a, int i, int l, byte[] s) {
-            alg = a;
-            salt = s;
-            iterations = i;
-            len = l;
+        private KeyVersion(String alg, int iterations, int keyLength, byte[] salt) {
+            this.alg = alg;
+            this.iterations = iterations;
+            this.keyLength = keyLength;
+            this.salt = salt;
         }
 
         private KeyHolder get(char[] keyChars) {
@@ -55,7 +60,7 @@ public class AESKeyManager {
             if (holder == null || !!!holder.matches(keyChars)) {
                 try {
                     SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(alg);
-                    KeySpec aesKey = new PBEKeySpec(keyChars, salt, iterations, len);
+                    KeySpec aesKey = new PBEKeySpec(keyChars, salt, iterations, keyLength);
                     byte[] data = keyFactory.generateSecret(aesKey).getEncoded();
                     KeyHolder holder2 = new KeyHolder(keyChars, new SecretKeySpec(data, "AES"), new IvParameterSpec(data));
                     _key.compareAndSet(holder, holder2);
@@ -66,7 +71,7 @@ public class AESKeyManager {
                 } catch (NoSuchAlgorithmException e) {
                     return null;
                 }
-    
+
             }
 
             return holder;
@@ -113,7 +118,7 @@ public class AESKeyManager {
     @Deprecated
     public static Key getKey(String key) {
 
-        KeyHolder holder = getHolder(KeyVersion.PBKDF2_SHA1, key);
+        KeyHolder holder = getHolder(KeyVersion.AES_V0, key);
 
         return holder.getKey();
     }
@@ -150,7 +155,7 @@ public class AESKeyManager {
      * @return
      */
     public static IvParameterSpec getIV(KeyVersion version, String cryptoKey) {
-        if (version == KeyVersion.PBKDF2_SHA1) {
+        if (version == KeyVersion.AES_V0) {
             return getHolder(version, cryptoKey).getIv();
         } else {
             return null;
@@ -163,6 +168,6 @@ public class AESKeyManager {
      */
     @Deprecated
     public static IvParameterSpec getIV(String cryptoKey) {
-        return getHolder(KeyVersion.PBKDF2_SHA1, cryptoKey).getIv();
+        return getHolder(KeyVersion.AES_V0, cryptoKey).getIv();
     }
 }
