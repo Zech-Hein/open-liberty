@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -92,6 +92,12 @@ public class PasswordUtil {
      * </p>
      **/
     public final static String PROPERTY_KEY_LABEL = "key.label";
+    /**
+     * <p>
+     * Constant that holds the name of the property for specifying the version for the AES encryption format.
+     * </p>
+     **/
+    public final static String PROPERTY_VERSION = "version";
 
     private static final Class<?> CLASS_NAME = PasswordUtil.class;
     private static final String RB = "com.ibm.ws.crypto.util.internal.resources.Messages";
@@ -122,7 +128,7 @@ public class PasswordUtil {
      *
      * @param encoded_string the string to be decoded.
      * @return The decoded string
-     * @throws InvalidPasswordDecodingException If the encoded_string is null or invalid. Or the decoded_string is null.
+     * @throws InvalidPasswordDecodingException    If the encoded_string is null or invalid. Or the decoded_string is null.
      * @throws UnsupportedCryptoAlgorithmException If the specified algorithm is not supported for decoding.
      */
     public static String decode(String encoded_string) throws InvalidPasswordDecodingException, UnsupportedCryptoAlgorithmException {
@@ -172,10 +178,11 @@ public class PasswordUtil {
      *
      * @param decoded_string the string to be encoded.
      * @return The encoded string.
-     * @throws InvalidPasswordEncodingException If the decoded_string is null or invalid. Or the encoded_string is null.
-     * @throws UnsupportedCryptoAlgorithmException If the algorithm is not supported.
+     * @throws InvalidPasswordEncodingException           If the decoded_string is null or invalid. Or the encoded_string is null.
+     * @throws UnsupportedCryptoAlgorithmException        If the algorithm is not supported.
+     * @throws UnsupportedCryptoAlgorithmVersionException
      */
-    public static String encode(String decoded_string) throws InvalidPasswordEncodingException, UnsupportedCryptoAlgorithmException {
+    public static String encode(String decoded_string) throws InvalidPasswordEncodingException, UnsupportedCryptoAlgorithmException, UnsupportedCryptoAlgorithmVersionException {
         return encode(decoded_string, PasswordCipherUtil.getSupportedCryptoAlgorithms()[0], (String) null);
     }
 
@@ -186,13 +193,15 @@ public class PasswordUtil {
      * Use this method for encoding the string by using specific encoding algorithm.
      * Use securityUtility encode --listCustom command line utility to see if any additional custom encryptions are supported.
      *
-     * @param decoded_string the string to be encoded.
+     * @param decoded_string   the string to be encoded.
      * @param crypto_algorithm the algorithm to be used for encoding. The supported values are xor, aes, or hash.
      * @return The encoded string.
-     * @throws InvalidPasswordEncodingException If the decoded_string is null or invalid. Or the encoded_string is null.
-     * @throws UnsupportedCryptoAlgorithmException If the algorithm is not supported.
+     * @throws InvalidPasswordEncodingException           If the decoded_string is null or invalid. Or the encoded_string is null.
+     * @throws UnsupportedCryptoAlgorithmException        If the algorithm is not supported.
+     * @throws UnsupportedCryptoAlgorithmVersionException
      */
-    public static String encode(String decoded_string, String crypto_algorithm) throws InvalidPasswordEncodingException, UnsupportedCryptoAlgorithmException {
+    public static String encode(String decoded_string,
+                                String crypto_algorithm) throws InvalidPasswordEncodingException, UnsupportedCryptoAlgorithmException, UnsupportedCryptoAlgorithmVersionException {
         return encode(decoded_string, crypto_algorithm, (String) null);
     }
 
@@ -202,14 +211,16 @@ public class PasswordUtil {
      * Use this method for encoding the string by using the AES encryption with the specific crypto key.
      * Note that this method is only avaiable for the Liberty profile.
      *
-     * @param decoded_string the string to be encoded.
+     * @param decoded_string   the string to be encoded.
      * @param crypto_algorithm the algorithm to be used for encoding.
-     * @param crypto_key the key for the encryption. This value is only valid for aes algorithm.
+     * @param crypto_key       the key for the encryption. This value is only valid for aes algorithm.
      * @return The encoded string.
-     * @throws InvalidPasswordEncodingException If the decoded_string is null or invalid. Or the encoded_string is null.
-     * @throws UnsupportedCryptoAlgorithmException If the algorithm is not supported.
+     * @throws InvalidPasswordEncodingException           If the decoded_string is null or invalid. Or the encoded_string is null.
+     * @throws UnsupportedCryptoAlgorithmException        If the algorithm is not supported.
+     * @throws UnsupportedCryptoAlgorithmVersionException
      */
-    public static String encode(String decoded_string, String crypto_algorithm, String crypto_key) throws InvalidPasswordEncodingException, UnsupportedCryptoAlgorithmException {
+    public static String encode(String decoded_string, String crypto_algorithm,
+                                String crypto_key) throws InvalidPasswordEncodingException, UnsupportedCryptoAlgorithmException {
         HashMap<String, String> props = new HashMap<String, String>();
         if (crypto_key != null) {
             props.put(PROPERTY_CRYPTO_KEY, crypto_key);
@@ -222,12 +233,13 @@ public class PasswordUtil {
      * If the decoded_string is already encoded, the string will be decoded and then encoded by using the specified crypto algorithm.
      * Note that this method is only avaiable for the Liberty profile.
      *
-     * @param decoded_string the string to be encoded.
+     * @param decoded_string   the string to be encoded.
      * @param crypto_algorithm the algorithm to be used for encoding. The supported values are xor, aes, or hash.
-     * @param properties the properties for the encryption.
+     * @param properties       the properties for the encryption.
      * @return The encoded string.
-     * @throws InvalidPasswordEncodingException If the decoded_string is null or invalid. Or the encoded_string is null.
-     * @throws UnsupportedCryptoAlgorithmException If the algorithm is not supported.
+     * @throws InvalidPasswordEncodingException           If the decoded_string is null or invalid. Or the encoded_string is null.
+     * @throws UnsupportedCryptoAlgorithmException        If the algorithm is not supported.
+     * @throws UnsupportedCryptoAlgorithmVersionException
      */
     public static String encode(String decoded_string, String crypto_algorithm,
                                 Map<String, String> properties) throws InvalidPasswordEncodingException, UnsupportedCryptoAlgorithmException {
@@ -443,8 +455,9 @@ public class PasswordUtil {
      *
      * @param decoded_string the string to be encoded.
      * @return The encoded string. null if there is any failure during encoding, or invalid or null decoded_string
+     * @throws UnsupportedCryptoAlgorithmVersionException
      */
-    public static String passwordEncode(String decoded_string) {
+    public static String passwordEncode(String decoded_string) throws UnsupportedCryptoAlgorithmVersionException {
         return passwordEncode(decoded_string, PasswordCipherUtil.getSupportedCryptoAlgorithms()[0]);
     }
 
@@ -452,11 +465,12 @@ public class PasswordUtil {
      * Encode the provided password with the algorithm. If another algorithm
      * is already applied, it will be removed and replaced with the new algorithm.
      *
-     * @param decoded_string the string to be encoded, or the encoded string. If the string contains an "{}", it is treated as a crypto algorithm tag and not as a decoded string.
+     * @param decoded_string   the string to be encoded, or the encoded string. If the string contains an "{}", it is treated as a crypto algorithm tag and not as a decoded string.
      * @param crypto_algorithm the algorithm to be used for encoding. The supported values are xor, aes, or hash.
      * @return The encoded string. Null if there is any failure during encoding, or invalid or null decoded_string
+     * @throws UnsupportedCryptoAlgorithmVersionException
      */
-    public static String passwordEncode(String decoded_string, String crypto_algorithm) {
+    public static String passwordEncode(String decoded_string, String crypto_algorithm) throws UnsupportedCryptoAlgorithmVersionException {
         /*
          * check input:
          *
@@ -486,7 +500,7 @@ public class PasswordUtil {
                 logger.logp(Level.FINEST, PasswordUtil.class.getName(), "passwordEncode", "PASSWORDUTIL_INVALID_CRYPTO_ALGORITHM", current_crypto_algorithm);
                 return null;
             }
-            
+
             decoded_string = passwordDecode(decoded_string);
         }
 
@@ -663,10 +677,11 @@ public class PasswordUtil {
     /**
      * Encode the provided string by using the specified encoding algorithm and properties
      *
-     * @param decoded_string the string to be encoded.
+     * @param decoded_string   the string to be encoded.
      * @param crypto_algorithm the algorithm to be used for encoding. The supported values are xor, aes, or hash.
-     * @param properties the properties for the encryption.
+     * @param properties       the properties for the encryption.
      * @return The encoded string. null if there is any failure during encoding, or invalid or null decoded_string
+     * @throws UnsupportedCryptoAlgorithmVersionException
      */
     public static String encode_password(String decoded_string, String crypto_algorithm, Map<String, String> properties) {
         /*

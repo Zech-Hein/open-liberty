@@ -34,9 +34,17 @@ public class AESKeyManager {
 
     public static enum KeyVersion {
         PBKDF2_SHA1("PBKDF2WithHmacSHA1", 84756, 128, new byte[] { -89, -94, -125, 57, 76, 90, -77, 79, 50, 21, 10, -98, 47, 23, 17, 56, -61, 46, 125, -128 }),
-        PBKDF2_SHA256("PBKDF2WithHmacSHA256", 84756, 256, new byte[] { 73, -125, -10, -15, 48, 90, -50, -73, -3, -25, -61, 14, -74, 48, -59, 122, -70, 34, 36, 52, 105, 48, -39,
-                                                                       -80, -94, -46, 122, 109, -7, 59, 101, -105, 66, -58, 33, 6, -80, -128, 29, 50, 114, 104, 37, -119, -45, -8,
-                                                                       -41, -123, 19, 108, -3, 21, 127, 48, 84, 62, 13, -89, 94, 2, -43, 101, -72, 15 });
+        PBKDF2_SHA256_128("PBKDF2WithHmacSHA256", 84756, 256, new byte[] { 73, -125, -10, -15, 48, 90, -50, -73, -3, -25, -61, 14, -74, 48, -59, 122, -70, 34, 36, 52, 105, 48, -39,
+                                                                           -80, -94, -46, 122, 109, -7, 59, 101, -105, 66, -58, 33, 6, -80, -128, 29, 50, 114, 104, 37, -119, -45,
+                                                                           -8,
+                                                                           -41, -123, 19, 108, -3, 21, 127, 48, 84, 62, 13, -89, 94, 2, -43, 101, -72, 15 }),
+
+        PBKDF2_SHA512("PBKDF2WithHmacSHA512", 600000, 256, new byte[] { -89, -63, 22, 15, -121, 11, 102, 75, -91, 68, -94, -89, 96, 83, -21, -69, -45, 29, 26, 106, -18, 69, 60, -6,
+                                                                        108, 73, 111, 122, 41, -19, -78, -79, -28, 102, 57, -10, 66, 48, 54, 111, 35, 92, 59, -121, 36, 15, 14, -63,
+                                                                        -43, 107, 63, -18, 87, 43, -57, 74, 0, 107, -119, -2, -7, -7, -46, -95, -44, 36, -10, 86, -119, -80, -114,
+                                                                        10, 85, 24, 24, -121, -30, 63, 59, 49, 52, -76, -122, 108, -84, 16, 4, -39, 58, 75, 9, -25, 126, 127, -96,
+                                                                        122, -62, -94, 71, -8, -101, -33, 57, -44, -93, 86, 76, -115, 113, -124, 104, -40, -121, -9, 86, 121, -48,
+                                                                        -57, -77, -58, 73, 7, 12, 4, 24, -81, -64, 107 });
 
         private final AtomicReference<KeyHolder> _key = new AtomicReference<KeyHolder>();
 
@@ -58,7 +66,7 @@ public class AESKeyManager {
                 try {
                     SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(alg);
                     KeySpec aesKey = new PBEKeySpec(keyChars, salt, iterations, len);
-                    System.out.println("AESKey length: " + len);
+                    System.out.println("KeyHolder AESKey length: " + len);
                     byte[] data = keyFactory.generateSecret(aesKey).getEncoded();
                     KeyHolder holder2 = new KeyHolder(keyChars, new SecretKeySpec(data, "AES"), new IvParameterSpec(data));
                     _key.compareAndSet(holder, holder2);
@@ -128,7 +136,10 @@ public class AESKeyManager {
      */
     private static KeyHolder getHolder(KeyVersion version, String key) {
         char[] keyChars = _resolver.get().getKey(key == null ? "${wlp.password.encryption.key}" : key);
-
+        //TODO remove sys out
+        System.out.println("getHolder keyChars: " + new String(keyChars));
+        //keyChars = "IAdaHiQ\\=".toCharArray();
+        //System.out.println("getHolder keyChars OVERRIDE: " + keyChars);
         return version.get(keyChars);
     }
 

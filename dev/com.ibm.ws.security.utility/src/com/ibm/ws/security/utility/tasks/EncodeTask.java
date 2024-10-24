@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -48,8 +48,9 @@ public class EncodeTask extends BaseCommandTask {
     private static final String ARG_KEYRING = "--keyring";
     private static final String ARG_KEYRING_TYPE = "--keyringType";
     private static final String ARG_KEY_LABEL = "--keyLabel";
+    private static final String ARG_VERSION = "--version";
     private static final List<String> ARG_TABLE = Arrays.asList(ARG_ENCODING, ARG_KEY, ARG_LIST_CUSTOM, ARG_PASSWORD, ARG_HASH_SALT, ARG_HASH_ITERATION, ARG_HASH_ALGORITHM,
-                                                                ARG_HASH_ENCODED, ARG_KEYRING, ARG_KEYRING_TYPE, ARG_KEY_LABEL);
+                                                                ARG_HASH_ENCODED, ARG_KEYRING, ARG_KEYRING_TYPE, ARG_KEY_LABEL, ARG_VERSION);
 
     public EncodeTask(String scriptName) {
         super(scriptName);
@@ -336,6 +337,10 @@ public class EncodeTask extends BaseCommandTask {
         value = argMap.get(ARG_KEY_LABEL);
         if (value != null) {
             props.put(PasswordUtil.PROPERTY_KEY_LABEL, value);
+        }
+        value = argMap.get(ARG_VERSION);
+        if (value != null) {
+            props.put(PasswordUtil.PROPERTY_VERSION, value);
         }
 
         return props;
