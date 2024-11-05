@@ -20,9 +20,6 @@ import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import test.common.SharedOutputManager;
@@ -133,6 +130,9 @@ public class PasswordUtilTest {
 
     @Test
     public void testAESEncoding() throws Exception {
+        //TODO remove beta setting once AES-256 is GA
+        System.setProperty("com.ibm.ws.beta.edition", "true");
+
         String encoding = PasswordUtil.encode("WebAS", "aes");
         assertTrue("The encoded password should start with {aes} " + encoding, encoding.startsWith("{aes}"));
         String encoding2 = PasswordUtil.encode("WebAS", "aes");
@@ -142,8 +142,11 @@ public class PasswordUtilTest {
         assertEquals("The password was not decoded correctly", "WebAS", PasswordUtil.decode(encoding2));
         assertEquals("The password was not decoded correctly", "WebAS", PasswordUtil.decode("{aes}AGTpzRDW//VE3Jshg1fd89rxw/JMjHfFM9UdYdVNIUt2"));
 
-        assertEquals("Did not decode password encoded with PBKDF2withHmacSHA1 encoded password", "alternatepwd", PasswordUtil.decode("{aes}AEmVKa+jOeA7pos+sSfpHNmH1MVfwg8ZoV29iDi6I0ZGcov6hSZsAxMhFr91jTSBYQ=="));
-        assertEquals("Did not decode password encoded with PBKDF2withHmacSHA256 encoded password", "alternatepwd", PasswordUtil.decode("{aes}ARABI+HrHnU1lZbb4/MydV8HJMlvxhjF3+KVvgpaUr1Kd386Zq77MfZL6/YrHeLG+T+mICHPqYpaXPmawtNkVfxBJo/TsZ212HxpZeYpN39CreAnSQmoz63FU/n5oxQ8VHSW2/yWssbCTZmVOYFA"));
+        assertEquals("Did not decode password encoded with AES_V0 (AES-128) encoded password", "alternatepwd",
+                     PasswordUtil.decode("{aes}AEmVKa+jOeA7pos+sSfpHNmH1MVfwg8ZoV29iDi6I0ZGcov6hSZsAxMhFr91jTSBYQ=="));
+        assertEquals("Did not decode password encoded with AES_V1 (AES-256) encoded password", "alternatepwd",
+                     PasswordUtil.decode("{aes}ARCejBipVe2pCLpoNe9iRREPNbQmPVSfXOe5kHZneiYVR+nSXJ8UmFzlNtwrQgKwnrkaDJmNnr+GpDWCOk1MPY7VbvR0/FBUrIENeU5+L9e8a1K4YvWeQ2UUbLv97SHa3P9Iky7rIbeQ9l4Xi0q0"));
+
     }
 
     @Test
