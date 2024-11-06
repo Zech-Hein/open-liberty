@@ -20,9 +20,6 @@ import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import test.common.SharedOutputManager;
@@ -38,7 +35,7 @@ public class PasswordUtilTest {
      *
      * @throws Exception
      */
-    @BeforeClass
+    //@BeforeClass
     public static void setUpBeforeClass() throws Exception {
         outputMgr = SharedOutputManager.getInstance();
         outputMgr.captureStreams();
@@ -49,7 +46,7 @@ public class PasswordUtilTest {
      *
      * @throws Exception
      */
-    @AfterClass
+    //@AfterClass
     public static void tearDownAfterClass() throws Exception {
         // Make stdout and stderr "normal"
         outputMgr.restoreStreams();
@@ -60,7 +57,7 @@ public class PasswordUtilTest {
      *
      * @throws Exception
      */
-    @After
+    //@After
     public void tearDown() throws Exception {
         // Clear the output generated after each method invocation
         outputMgr.resetStreams();
@@ -133,7 +130,9 @@ public class PasswordUtilTest {
 
     @Test
     public void testAESEncoding() throws Exception {
-        assertEquals("The password was not decoded correctly", "alternatepwd", PasswordUtil.decode("{aes}AEmVKa+jOeA7pos+sSfpHNmH1MVfwg8ZoV29iDi6I0ZGcov6hSZsAxMhFr91jTSBYQ=="));
+        //TODO remove beta setting once AES-256 is GA
+        System.setProperty("com.ibm.ws.beta.edition", "true");
+
         String encoding = PasswordUtil.encode("WebAS", "aes");
         assertTrue("The encoded password should start with {aes} " + encoding, encoding.startsWith("{aes}"));
         String encoding2 = PasswordUtil.encode("WebAS", "aes");
@@ -142,6 +141,12 @@ public class PasswordUtilTest {
         assertEquals("The password was not decoded correctly", "WebAS", PasswordUtil.decode(encoding));
         assertEquals("The password was not decoded correctly", "WebAS", PasswordUtil.decode(encoding2));
         assertEquals("The password was not decoded correctly", "WebAS", PasswordUtil.decode("{aes}AGTpzRDW//VE3Jshg1fd89rxw/JMjHfFM9UdYdVNIUt2"));
+
+        assertEquals("Did not decode password encoded with AES_V0 (AES-128) encoded password", "alternatepwd",
+                     PasswordUtil.decode("{aes}AEmVKa+jOeA7pos+sSfpHNmH1MVfwg8ZoV29iDi6I0ZGcov6hSZsAxMhFr91jTSBYQ=="));
+        assertEquals("Did not decode password encoded with AES_V1 (AES-256) encoded password", "alternatepwd",
+                     PasswordUtil.decode("{aes}ARCejBipVe2pCLpoNe9iRREPNbQmPVSfXOe5kHZneiYVR+nSXJ8UmFzlNtwrQgKwnrkaDJmNnr+GpDWCOk1MPY7VbvR0/FBUrIENeU5+L9e8a1K4YvWeQ2UUbLv97SHa3P9Iky7rIbeQ9l4Xi0q0"));
+
     }
 
     @Test
