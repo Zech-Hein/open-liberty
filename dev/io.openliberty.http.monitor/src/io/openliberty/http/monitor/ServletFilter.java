@@ -12,15 +12,16 @@ package io.openliberty.http.monitor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
 
 import javax.servlet.UnavailableException;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.servlet.error.ServletErrorReport;
+import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.webcontainer.srt.SRTServletRequest;
 import com.ibm.ws.webcontainer.webapp.WebAppDispatcherContext;
-//import com.ibm.ws.webcontainer40.osgi.webapp.WebAppDispatcherContext40;
 import com.ibm.wsspi.webcontainer.webapp.IWebAppDispatcherContext;
 
 import javax.servlet.Filter;
@@ -45,10 +46,10 @@ public class ServletFilter implements Filter {
 	
     @Override
     public void init(FilterConfig config) {
-    	
     }
 	
 	@Override
+	@FFDCIgnore(value = { IOException.class, ServletException.class, Exception.class })
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
 			throws IOException, ServletException {
 
@@ -84,11 +85,11 @@ public class ServletFilter implements Filter {
 		} finally {
 			long elapsednanos = System.nanoTime()-nanosStart;
 			
-			//holder for http attributes
-			HttpStatAttributes httpStatsAttributesHolder = new HttpStatAttributes();
+			//builder for HttpStatAttributes
+			HttpStatAttributes.Builder builder = HttpStatAttributes.builder();
 
 			// Retrieve the HTTP request attributes
-			resolveRequestAttributes(servletRequest, httpStatsAttributesHolder);
+			resolveRequestAttributes(servletRequest, builder);
 
 			/*
 			 *  Retrieve the HTTP response attribute (i.e. the response status)
@@ -100,18 +101,18 @@ public class ServletFilter implements Filter {
 			if (servletException != null ) {
 				if (servletException instanceof ServletErrorReport) {
 					ServletErrorReport ser = (ServletErrorReport) servletException;
-					httpStatsAttributesHolder.setResponseStatus(ser.getErrorCode());
+					builder.withResponseStatus(ser.getErrorCode());
 				} else {
 					if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()){
 						Tr.debug(tc, String.format("Servlet Exception occured, but could not obtain a ServletErrorReport. Default to a 500 response. The exception [%s].",servletException));
 					}
-					httpStatsAttributesHolder.setResponseStatus(500);
+					builder.withResponseStatus(500);
 				}
 				
 			} else if (exception != null) {
-				httpStatsAttributesHolder.setResponseStatus(resolveStatusForException(exception));
+				builder.withResponseStatus(resolveStatusForException(exception));
 			} else {
-				resolveResponseAttributes(servletResponse, httpStatsAttributesHolder);
+				resolveResponseAttributes(servletResponse, builder);
 			}
 
 			// attempt to retrieve the `httpRoute` from the RESTful filter
@@ -124,7 +125,7 @@ public class ServletFilter implements Filter {
 					//SRTServletRequest allows us to get the WebAppDispatcher
 					SRTServletRequest srtServletRequest = (SRTServletRequest) servletRequest;
 					
-					httpRoute = resolveHttpRoute(srtServletRequest, contextPath, httpStatsAttributesHolder);
+					httpRoute = resolveHttpRoute(srtServletRequest, contextPath);
 				} else {
 					//This shouldn't happen.
 					if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()){
@@ -134,14 +135,14 @@ public class ServletFilter implements Filter {
 				
 			}
 			
-			httpStatsAttributesHolder.setHttpRoute(httpRoute);//httpRoute
+			builder.withHttpRoute(httpRoute);//httpRoute
 
 			/*
 			 * Pass information onto HttpServerStatsMonitor.
 			 */
 			HttpServerStatsMonitor httpMetricsMonitor = HttpServerStatsMonitor.getInstance();
 			if (httpMetricsMonitor != null) {
-				httpMetricsMonitor.updateHttpStatDuration(httpStatsAttributesHolder, Duration.ofNanos(elapsednanos), appName);
+				httpMetricsMonitor.updateHttpStatDuration(builder, Duration.ofNanos(elapsednanos), appName);
 			} else {
 				if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
 					Tr.debug(tc, "Could not acquire instance of HttpServerStatsMonitor. Can not proceed to create/update Mbean.");
@@ -155,23 +156,23 @@ public class ServletFilter implements Filter {
 	/**
 	 * Resolve HTTP attributes related to request
 	 * @param servletRequest
-	 * @param httpStat
+	 * @param builder
 	 */
-	private void resolveRequestAttributes(ServletRequest servletRequest, HttpStatAttributes httpStat) {
+	private void resolveRequestAttributes(ServletRequest servletRequest, HttpStatAttributes.Builder builder) {
 		
 		// Retrieve the HTTP request attributes
 		if (HttpServletRequest.class.isInstance(servletRequest)) {
 			
 			HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
 			
-			httpStat.setRequestMethod(httpServletRequest.getMethod());
+			builder.withRequestMethod(httpServletRequest.getMethod());
 
-			httpStat.setScheme(httpServletRequest.getScheme());
+			builder.withScheme(httpServletRequest.getScheme());
 
-			resolveNetworkProtocolInfo(httpServletRequest.getProtocol(), httpStat);
+			resolveNetworkProtocolInfo(httpServletRequest.getProtocol(), builder);
 
-			httpStat.setServerName(httpServletRequest.getServerName());
-			httpStat.setServerPort(httpServletRequest.getServerPort());
+			builder.withServerName(httpServletRequest.getServerName());
+			builder.withServerPort(httpServletRequest.getServerPort());
 		} else {
 			if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
 				Tr.debug(tc, String.format("Expected an HttpServletRequest, instead got [%s].",servletRequest.getClass().toString()));
@@ -183,13 +184,13 @@ public class ServletFilter implements Filter {
 	 * Resolve HTTP attributes related to response
 	 * 
 	 * @param servletResponse
-	 * @param httpStat
+	 * @param builder
 	 */
-	private void resolveResponseAttributes(ServletResponse servletResponse, HttpStatAttributes httpStat) {
+	private void resolveResponseAttributes(ServletResponse servletResponse, HttpStatAttributes.Builder builder) {
 
 		if (servletResponse instanceof HttpServletResponse) {
 			HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-			httpStat.setResponseStatus(httpServletResponse.getStatus());
+			builder.withResponseStatus(httpServletResponse.getStatus());
 		} else {
 			if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
 				Tr.debug(tc, String.format("Expected an HttpServletResponse, instead got [%s].",servletResponse.getClass().toString()));
@@ -200,9 +201,9 @@ public class ServletFilter implements Filter {
 	/**
 	 * Resolve Network Protocol Info  - move to common utility package
 	 * @param protocolInfo
-	 * @param httpStat
+	 * @param builder
 	 */
-	private void resolveNetworkProtocolInfo(String protocolInfo, HttpStatAttributes httpStat) {
+	private void resolveNetworkProtocolInfo(String protocolInfo, HttpStatAttributes.Builder builder) {
 		String[] networkInfo = protocolInfo.trim().split("/");
 		String networkProtocolName = null;
 		String networkVersion = "";
@@ -215,8 +216,8 @@ public class ServletFilter implements Filter {
 			//there shouldn't be more than two values.
 		}
 		
-		httpStat.setNetworkProtocolName(networkProtocolName);
-		httpStat.setNetworkProtocolVersion(networkVersion);
+		builder.withNetworkProtocolName(networkProtocolName);
+		builder.withNetworkProtocolVersion(networkVersion);
 	}
 	
 	/**
@@ -256,7 +257,7 @@ public class ServletFilter implements Filter {
         return status;
 	}
 	
-	private String resolveHttpRoute(SRTServletRequest srtServletRequest, String contextPath, HttpStatAttributes httpStatsAttributesHolder) {
+	private String resolveHttpRoute(SRTServletRequest srtServletRequest, String contextPath) {
 		String httpRoute = null;		
 		
 		String pathInfo = srtServletRequest.getPathInfo();
@@ -265,7 +266,6 @@ public class ServletFilter implements Filter {
 		servletPath = (servletPath == null ) ? null : servletPath.trim();
 		String requestURI = srtServletRequest.getRequestURI();
 		requestURI = (requestURI == null ) ? null : requestURI.trim();
-	
 
 		/*
 		 * WebAppDispatcher used to get a "mapping" value
@@ -320,46 +320,87 @@ public class ServletFilter implements Filter {
 					}
 				}
 				
+				/*
+				 * Explicitly deal with resources loaded by JSF / Jakarta Faces
+				 * 
+				 * URL for resources request will end with the file extension of the original requesting 
+				 * 
+				 * i.e., page.xhtml -> /jakarta.faces.resource/someFile.file.xhtml
+				 */
+				else if (servletPath.startsWith("/jakarta.faces.resource") || servletPath.startsWith("/javax.faces.resource")) {
+					String[] arr = servletPath.split("\\.");
+					String extension = arr[arr.length-1];
+					httpRoute = contextPath + "/*." + extension;
+				}
+
 				else {
 					/*
-					 * PATH INFO NULL
-					 * SERVLET NOT NULL
+					 * PATH INFO = NULL
+					 * SERVLET PATH = NOT NULL
+					 * 
 					 * We are dealing with a direct match.
 					 * OR a wild card servlet , but right on the node
 					 * ^ Can only resolve for EE8
 					 * e.g.
-					 * servlet path: /path/*
-					 * request path: /path
+					 * servlet path is specified as : /path/*
+					 * request path was requested as : /path
 					 *
 					 */
 
-					//Used by EE8 and above
+					/*
+					 *  Applies to Servlet 4 and up (EE8 and up ) as we are using the 'pattern' value
+					 *  that is only obtainable with WebAppDispatcherContext40.
+					 */
 					if (Servlet4Helper.isServlet4Up()) {
 
 						String pattern = Servlet4Helper.getPattern(iwadc);
-						//This resolves the /wild/* servlet path and the /wild is entered for EE8
-						if (pattern != null && pattern.endsWith("/*")) {
-							httpRoute = contextPath + pattern;
+						
+						/*
+						 * This resolves the /wild/* servlet path and the /wild is entered for EE8
+						 * Also if configured with *.<extension> (i.e., *.xhtml, *.jsf, *.abc)
+						 */
+						if (pattern != null && (pattern.endsWith("/*") || pattern.startsWith("*."))) {
+							httpRoute = contextPath + "/" + pattern;
 							//direct mtach for EE8
 						} else {
 							httpRoute = contextPath + servletPath;
 						}
 					}
-					//EE7 specifically
+					/*
+					 * Applies only to EE7 
+					 */
 					else {
-						/*
-						 * Simply a direct match.
-						 * 
-						 * Unfortunately, given a scenario where a servlet is set as /path/*
-						 * we cannot properly resolve the http route of hits to /path as /path/*
-						 * 
-						 * Constraint of EE7 where we have no "pattern" information
-						 */
-						httpRoute = contextPath + servletPath;
 						
+						/*
+						 * Hard coded to deal with the typical file extensions of JSF files : `.jsf`, `.faces` or `.xhtml`.
+						 * 
+						 * Unfortunately, won't be able to catch any servlet mappings where they mapped the JSF servlet to some
+						 * random extension (i.e., *.abc)
+						 * 
+						 * In those cases, it'll just be handled as a direct match (i.e., the bottom else block)
+						 */
+						if (servletPath.endsWith(".jsf")) {
+							httpRoute = contextPath + "/*.jsf";
+						} else if (servletPath.endsWith(".faces")) {
+							httpRoute = contextPath + "/*.faces";
+						} else if (servletPath.endsWith(".xhtml")) {
+							httpRoute = contextPath + "/*.xhtml";
+						} else {
+							/*
+							 * Simply a direct match.
+							 * 
+							 * Unfortunately, given a scenario where a servlet is set as /path/*
+							 * we cannot properly resolve the http route of hits to /path as /path/*
+							 * 
+							 * Also scenario where mapping was made against JSF servlet that isn't the usual
+							 * file name extensions (as listed above) (e.g., *.abc)
+							 * 
+							 * Constraint of EE7 where we have no "pattern" information
+							 */
+							httpRoute = contextPath + servletPath;
+						}
 					}
 				}
-
 			}
 			/*
 			 *  SERVLETS WITH WILD CARD 

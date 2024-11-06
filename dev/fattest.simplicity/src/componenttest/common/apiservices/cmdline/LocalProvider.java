@@ -132,11 +132,6 @@ public class LocalProvider {
     }
 
     public static ProgramOutput executeCommand(Machine machine, String cmd,
-                                               String[] parameters, String workDir, Properties envVars) throws Exception {
-        return executeCommand(machine, cmd, parameters, workDir, envVars, 0);
-    }
-
-    public static ProgramOutput executeCommand(Machine machine, String cmd,
                                                String[] parameters, String workDir, Properties envVars, int timeout) throws Exception {
         ByteArrayOutputStream bufferOut = new ByteArrayOutputStream();
         ByteArrayOutputStream bufferErr = new ByteArrayOutputStream();
@@ -177,7 +172,7 @@ public class LocalProvider {
          * to "cmd /c".
          */
         if (machine.getOperatingSystem() == OperatingSystem.WINDOWS && WLP_CYGWIN_HOME == null) {
-            if (!cmd[0].startsWith("cmd /c")) {
+            if (!cmd[0].startsWith("cmd")) {
                 String[] tmp = new String[cmd.length + 2];
                 tmp[0] = "cmd";
                 tmp[1] = "/c";
@@ -186,10 +181,22 @@ public class LocalProvider {
                 cmd = tmp;
             }
         } else {
-            if (!cmd[0].startsWith("sh -c")) {
+            String shellCmd = "sh";
+
+            // On iSeries, we should be adding the qsh -c flag to the start of any command.
+            // This means commands are executed in a native-like shell, rather than a
+            // PASE environment.
+            //
+            // This doesn't currently work and needs additional work to make it work.
+            /*
+             * if (OperatingSystem.ISERIES.compareTo(machine.getOperatingSystem()) == 0) {
+             * shellCmd = "qsh";
+             * }
+             */
+            if (!cmd[0].startsWith(shellCmd) && !cmd[0].endsWith(shellCmd)) {
                 String[] tmp = new String[3];
                 String parsedCommand = shArrayTransform(cmd);
-                tmp[0] = WLP_CYGWIN_HOME == null ? "sh" : WLP_CYGWIN_HOME + "/bin/sh";
+                tmp[0] = WLP_CYGWIN_HOME == null ? shellCmd : WLP_CYGWIN_HOME + "/bin/sh";
                 tmp[1] = "-c";
                 tmp[2] = parsedCommand;
                 cmd = tmp;
@@ -421,7 +428,7 @@ public class LocalProvider {
             parameters = new String[] { "/F", "/PID", "" + processId };
         }
         Log.finer(CLASS, method, cmd, parameters);
-        return executeCommand(machine, cmd, parameters, null, null);
+        return executeCommand(machine, cmd, parameters, null, null, 0);
     }
 
     public static RemoteFile ensureFileIsOnMachine(Machine target,

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -9,7 +9,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.tx.jta.impl;
 
 import java.io.IOException;
@@ -758,6 +758,31 @@ public class RecoveryManager implements Runnable {
     }
 
     /**
+     * Update server lease if peer recovery is enabled
+     *
+     * @param recoveryIdentity
+     */
+    public void updateServerLease(String recoveryIdentity) {
+        if (tc.isEntryEnabled())
+            Tr.entry(tc, "updateServerLease", this, recoveryIdentity);
+        try {
+            if (_leaseLog != null) {
+                _leaseLog.updateServerLease(recoveryIdentity, _recoveryGroup, false);
+            }
+        } catch (Exception e) {
+            // Unless server is stopping, FFDC exception but allow processing to continue
+            if (FrameworkState.isStopping()) {
+                if (tc.isDebugEnabled())
+                    Tr.debug(tc, "Ignoring exception: ", e);
+            } else {
+                FFDCFilter.processException(e, "com.ibm.tx.jta.impl.RecoveryManager.deleteServerLease", "701", this);
+            }
+        }
+        if (tc.isEntryEnabled())
+            Tr.exit(tc, "updateServerLease");
+    }
+
+    /**
      * When we are operating in a peer recovery environment it is desirable to be able to delete the home server's
      * recovery logs where it has shutdown cleanly. This method accomplishes this operation.
      */
@@ -1301,20 +1326,13 @@ public class RecoveryManager implements Runnable {
             Tr.entry(tc, "waitForReplayCompletion", localRecovery);
 
         if (!_replayCompleted) {
-            try {
-                if (tc.isEventEnabled())
-                    Tr.event(tc, "starting to wait for replay completion");
+            if (tc.isEventEnabled())
+                Tr.event(tc, "starting to wait for replay completion");
 
-                _replayInProgress.waitEvent();
+            _replayInProgress.waitEvent();
 
-                if (tc.isEventEnabled())
-                    Tr.event(tc, "completed wait for replay completion");
-            } catch (InterruptedException exc) {
-                if (localRecovery && !FrameworkState.isStopping())
-                    FFDCFilter.processException(exc, "com.ibm.tx.jta.impl.RecoveryManager.waitForReplayCompletion", "1242", this);
-                if (tc.isEventEnabled())
-                    Tr.event(tc, "Wait for resync complete interrupted.");
-            }
+            if (tc.isEventEnabled())
+                Tr.event(tc, "completed wait for replay completion");
         }
 
         if (tc.isEntryEnabled())
@@ -1347,20 +1365,13 @@ public class RecoveryManager implements Runnable {
             Tr.entry(tc, "waitForRecoveryCompletion", localRecovery);
 
         if (!_recoveryCompleted) {
-            try {
-                if (tc.isEventEnabled())
-                    Tr.event(tc, "starting to wait for recovery completion");
+            if (tc.isEventEnabled())
+                Tr.event(tc, "starting to wait for recovery completion");
 
-                _recoveryInProgress.waitEvent();
+            _recoveryInProgress.waitEvent();
 
-                if (tc.isEventEnabled())
-                    Tr.event(tc, "completed wait for recovery completion");
-            } catch (InterruptedException exc) {
-                if (localRecovery)
-                    FFDCFilter.processException(exc, "com.ibm.tx.jta.impl.RecoveryManager.waitForRecoveryCompletion", "1242", this);
-                if (tc.isEventEnabled())
-                    Tr.event(tc, "Wait for recovery complete interrupted.");
-            }
+            if (tc.isEventEnabled())
+                Tr.event(tc, "completed wait for recovery completion");
         }
 
         if (tc.isEntryEnabled())
@@ -1429,8 +1440,6 @@ public class RecoveryManager implements Runnable {
         if (!_recoveryCompleted) {
             _recoveryCompleted = true;
             _recoveryInProgress.post();
-
-            signalRecoveryComplete();
         }
 
         if (_failureScopeController.localFailureScope()) {
@@ -1464,10 +1473,6 @@ public class RecoveryManager implements Runnable {
 
         if (tc.isEntryEnabled())
             Tr.exit(tc, "recoveryFailed");
-    }
-
-    protected void signalRecoveryComplete() {
-        // Not used in JTM
     }
 
     // Checks to see if shutdown processing has begun. If it has, this method causes signals recovery
@@ -1701,10 +1706,6 @@ public class RecoveryManager implements Runnable {
                     if (_leaseLog != null && _localRecoveryIdentity != null && !_localRecoveryIdentity.equals(_failureScopeController.serverName())) {
                         // Careful, recovery may have been attempted and failed
                         if ((_tranLog == null && _xaLog == null) || (_tranLog != null && !_tranLog.failed() && _xaLog != null && !_xaLog.failed())) {
-                            Tr.audit(tc,
-                                     "WTRN0108I: Server with identity " + _localRecoveryIdentity + " has recovered the logs of peer server "
-                                         + _failureScopeController.serverName());
-
                             boolean shouldDeleteLease = true;
                             if (tc.isDebugEnabled())
                                 Tr.debug(tc, "Should peer recovery logs be retained {0}", _retainPeerLogs);
@@ -1729,6 +1730,10 @@ public class RecoveryManager implements Runnable {
                             // Don't delete lease if recovery log deletion was attempted and failed
                             if (shouldDeleteLease)
                                 deleteServerLease(_failureScopeController.serverName(), true);
+
+                            Tr.audit(tc,
+                                     "WTRN0108I: Server with identity " + _localRecoveryIdentity + " has recovered the logs of peer server "
+                                         + _failureScopeController.serverName());
                         } else {
                             Tr.audit(tc,
                                      "WTRN0107W: Server with identity " + _localRecoveryIdentity + " attempted but failed to recover the logs of peer server "

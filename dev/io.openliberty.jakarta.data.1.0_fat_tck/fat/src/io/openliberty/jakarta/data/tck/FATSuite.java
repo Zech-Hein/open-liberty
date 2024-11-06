@@ -14,6 +14,8 @@ package io.openliberty.jakarta.data.tck;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
@@ -77,6 +79,13 @@ public class FATSuite extends TestContainerSuite {
         }
     }
 
+    public static Map<String, Level> getLoggingConfig() {
+        return Map.of("ee.jakarta.tck.data", Level.ALL,
+                      "org.jboss.arquillian", Level.ALL, //TODO reduce logging once GA
+                      "org.eclipse.jnosql", Level.ALL, //TODO reduce logging once GA
+                      "io.openliberty.arquillian", Level.ALL); //TODO reduce logging once GA
+    }
+
     /**
      * While in development we may need to skip some tests based on Database
      *
@@ -94,7 +103,7 @@ public class FATSuite extends TestContainerSuite {
             case DerbyClient:
                 return ""; // Derby client currently not tested during DB Rotation
             case Oracle:
-                return ""; // All tests pasing on Oracle
+                return ""; // All tests passing on Oracle
             case Postgres:
                 //TODO testInsertEntityThatAlreadyExists PostgreSQL throws org.postgresql.util.PSQLException which is not a subclass of SQLIntegrityConstraintViolationException
                 exclude.add("ee.jakarta.tck.data.standalone.persistence.PersistenceEntityTests");

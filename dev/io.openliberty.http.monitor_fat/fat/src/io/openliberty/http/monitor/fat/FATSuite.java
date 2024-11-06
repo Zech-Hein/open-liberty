@@ -30,14 +30,17 @@ import io.openliberty.microprofile.telemetry.internal_fat.shared.TelemetryAction
                 ServletApplicationMBeanTest.class,
                 RestApplicationMbeanTest.class,
                 JSPApplicationMBeanTest.class,
+                JSFApplicationMBeanTest.class,
                 NoAppTest.class,
                 JSPApplicationTest.class,
                 RestApplicationTest.class,
                 ServletApplicationTest.class,
+                JSFApplicationTest.class,
                 ContainerServletApplicationTest.class,
                 ContainerJSPApplicationTest.class,
                 ContainerRestApplicationTest.class,
-                ContainerNoAppTest.class
+                ContainerNoAppTest.class,
+                ContainerJSFApplicationTest.class
 })
 
 public class FATSuite extends TestContainerSuite {
@@ -73,7 +76,7 @@ public class FATSuite extends TestContainerSuite {
             server.addEnvVar("OTEL_SDK_DISABLED", "false");
             server.addEnvVar("OTEL_TRACES_EXPORTER", "none");
             server.addEnvVar("OTEL_LOGS_EXPORTER", "none");
-            server.addEnvVar("OTEL_METRIC_EXPORT_INTERVAL", "200");
+            server.addEnvVar("OTEL_METRIC_EXPORT_INTERVAL", "1000");
             return archive;
         }
     }

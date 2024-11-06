@@ -2,8 +2,11 @@
 <server>
     <featureManager>
         <feature>pages-3.1</feature>
-        <feature>monitor-1.0</feature>
     	<feature>mpTelemetry-2.0</feature>
+        <feature>servlet-6.0</feature>
+        <feature>cdi-4.0</feature>
+        <feature>mpConfig-3.1</feature>
+        <feature>restfulWS-3.1</feature>
     </featureManager>
 
     <include location="../fatTestPorts.xml" />
@@ -22,9 +25,4 @@
 
     <!--Java2 security-->
     <javaPermission className="java.security.AllPermission"  name="*" actions="*" />
-    
-    <mpMetrics authentication="false"/>
-
-
-
 </server>

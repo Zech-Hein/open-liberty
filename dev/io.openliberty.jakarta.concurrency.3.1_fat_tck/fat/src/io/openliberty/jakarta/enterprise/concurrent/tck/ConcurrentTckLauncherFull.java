@@ -16,6 +16,7 @@ import static componenttest.custom.junit.runner.Mode.TestMode.FULL;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -86,11 +87,11 @@ public class ConcurrentTckLauncherFull {
     @Test
     @AllowedFFDC // The tested exceptions cause FFDC so we have to allow for this.
     public void launchConcurrent31TCKFull() throws Exception {
-
-        String bucketName = "io.openliberty.jakarta.concurrency.3.1_fat_tck";
-        String testName = this.getClass() + ":launchConcurrent31TCKFull";
-        Type type = Type.JAKARTA;
-        String specName = "Concurrency (Full)";
-        TCKRunner.runTCK(server, bucketName, testName, type, specName, null, additionalProps);
+        TCKRunner.build(server, Type.JAKARTA, "Concurrency")
+                        .withPlatfromVersion("11")
+                        .withQualifiers("full")
+                        .withAdditionalMvnProps(additionalProps)
+                        .withLogging(Map.of("ee.jakarta.tck.concurrent", Level.ALL))
+                        .runTCK();
     }
 }

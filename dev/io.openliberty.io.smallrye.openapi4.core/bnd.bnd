@@ -29,10 +29,14 @@ Import-Package: \
     *
 
 Export-Package: \
-    io.smallrye.openapi.*;version=4.0
+    io.smallrye.openapi.api.*;version=4.0,\
+    io.smallrye.openapi.internal.models.*;version=4.0,\
+    io.smallrye.openapi.runtime.*;version=4.0,\
+    io.smallrye.openapi.spi.*;version=4.0,\
 
 -buildpath: \
-    io.smallrye:smallrye-open-api-core;version=4.0.0.alpha5,\
+    io.smallrye:smallrye-open-api-core;version=4.0.1,\
+    io.openliberty.io.smallrye.openapi4.model;version=latest,\
     io.openliberty.jakarta.validation.3.0;version=latest,\
     io.openliberty.org.eclipse.microprofile.openapi.4.0;version=latest,\
     io.openliberty.org.eclipse.microprofile.config.3.1;version=latest,\

@@ -32,7 +32,7 @@ public class TelemetryServletContainerInitializer implements ServletContainerIni
         System.out.println("UserFeatureTest: Enable UserFeatureServletFilter");
         FilterRegistration.Dynamic filterRegistration = sc.addFilter("io.openliberty.telemetry.user.feature.UserFeatureServletFilter",
                                                                      UserFeatureServletFilter.class);
-        filterRegistration.addMappingForUrlPatterns(null, true, "/*");
+        filterRegistration.addMappingForUrlPatterns(null, true, "/userfeature");
         filterRegistration.setAsyncSupported(true);
     }
 

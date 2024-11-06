@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.microprofile.openapi.OASFactory;
 import org.eclipse.microprofile.openapi.models.OpenAPI;
 import org.jboss.jandex.Index;
 import org.osgi.framework.Bundle;
@@ -48,6 +49,7 @@ import io.openliberty.microprofile.openapi20.internal.cache.CacheEntry;
 import io.openliberty.microprofile.openapi20.internal.cache.ConfigSerializer;
 import io.openliberty.microprofile.openapi20.internal.services.ConfigFieldProvider;
 import io.openliberty.microprofile.openapi20.internal.services.ModelGenerator;
+import io.openliberty.microprofile.openapi20.internal.services.ModuleSelectionConfig;
 import io.openliberty.microprofile.openapi20.internal.services.OpenAPIProvider;
 import io.openliberty.microprofile.openapi20.internal.utils.Constants;
 import io.openliberty.microprofile.openapi20.internal.utils.IndexUtils;
@@ -56,7 +58,6 @@ import io.openliberty.microprofile.openapi20.internal.utils.MessageConstants;
 import io.openliberty.microprofile.openapi20.internal.utils.ModuleUtils;
 import io.openliberty.microprofile.openapi20.internal.utils.OpenAPIUtils;
 import io.smallrye.openapi.api.OpenApiConfig;
-import io.smallrye.openapi.api.models.info.InfoImpl;
 import io.smallrye.openapi.runtime.io.Format;
 
 /**
@@ -84,6 +85,9 @@ public class ApplicationProcessor {
 
     @Reference
     private ModelGenerator modelGenerator;
+
+    @Reference
+    private ValidationComponent validationComponent;
 
     /**
      * The processApplication method processes applications that are added to the OpenLiberty instance.
@@ -267,7 +271,7 @@ public class ApplicationProcessor {
             if (openAPIModel != null) {
                 // Add default info to the doc if none is present
                 if (openAPIModel.getInfo() == null) {
-                    openAPIModel.setInfo(new InfoImpl().title(Constants.DEFAULT_OPENAPI_DOC_TITLE).version(Constants.DEFAULT_OPENAPI_DOC_VERSION));
+                    openAPIModel.setInfo(OASFactory.createInfo().title(Constants.DEFAULT_OPENAPI_DOC_TITLE).version(Constants.DEFAULT_OPENAPI_DOC_VERSION));
                 }
 
                 if (LoggingUtils.isEventEnabled(tc)) {
@@ -283,7 +287,7 @@ public class ApplicationProcessor {
                         if (LoggingUtils.isEventEnabled(tc)) {
                             Tr.event(tc, "Validate document");
                         }
-                        OpenAPIUtils.validateDocument(openAPIModel);
+                        validationComponent.validateAndReportErrors(openAPIModel);
                     } catch (Throwable e) {
                         if (LoggingUtils.isEventEnabled(tc)) {
                             Tr.event(tc, "Failed to call OASValidator: " + e.getMessage());

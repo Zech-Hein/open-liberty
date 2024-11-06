@@ -9,6 +9,8 @@
  *******************************************************************************/
 package io.openliberty.data.internal.persistence.service;
 
+import static io.openliberty.data.internal.persistence.EntityManagerBuilder.getClassNames;
+import static io.openliberty.data.internal.persistence.cdi.DataExtension.exc;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_SUPER;
@@ -31,6 +33,7 @@ import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -38,6 +41,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.util.CheckClassAdapter;
 
+import com.ibm.websphere.csi.J2EEName;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Trivial;
@@ -115,12 +119,18 @@ public class RecordTransformer {
      *
      * Initially copied from @nmittles pull #25248
      *
-     * @param recordClass     - the record class that will be transformed into an entity class
-     * @param entityClassName - the name of the entity class
+     * @param recordClass          - the record class that will be transformed
+     *                                 into an entity class
+     * @param entityClassName      - the name of the entity class
+     * @param jeeName              - Java EE name (for error logging)
+     * @param repositoryInterfaces - repository interfaces (for error logging)
      *
      * @return the byte array representation of the generated entity class
      */
-    public static byte[] generateEntityClassBytes(Class<?> recordClass, String entityClassName) {
+    public static byte[] generateEntityClassBytes(Class<?> recordClass,
+                                                  String entityClassName,
+                                                  J2EEName jeeName,
+                                                  Set<Class<?>> repositoryInterfaces) {
         final boolean trace = TraceComponent.isAnyTracingEnabled();
 
         final String CTOR = "<init>";
@@ -135,11 +145,13 @@ public class RecordTransformer {
 
         final String _sourceFileName = entityClassName.substring(entityClassName.lastIndexOf(".") + 1) + ".java";
 
-        if (recordClass.getTypeParameters().length != 0) {
-            throw new DataException("The " + recordClass.getName() + " record has one or more generic types " +
-                                    Arrays.asList(recordClass.getTypeParameters()) + ". This record class cannot be transformed into "
-                                    + " an entity class since entity classes cannot be generic."); //TODO NLS
-        }
+        if (recordClass.getTypeParameters().length != 0)
+            throw exc(DataException.class,
+                      "CWWKD1071.record.with.type.var",
+                      recordClass.getName(),
+                      getClassNames(repositoryInterfaces),
+                      jeeName,
+                      Arrays.asList(recordClass.getTypeParameters()));
 
         // Collect record component information, must preserve order
         Map<String, RecordComponentInfo> recordComponents = new LinkedHashMap<>();
@@ -147,11 +159,14 @@ public class RecordTransformer {
             RecordComponentInfo info = new RecordComponentInfo(component);
             RecordComponentInfo previous = recordComponents.put(info.getMethodName(""), info);
 
-            if (previous != null) {
-                throw new DataException("The " + recordClass.getName() + " record has two components [" +
-                                        info.name + ", " + previous.name + "] that cannot be tranformed into an entity class "
-                                        + "because the entity class getter and setter methods would be ambiguous."); //TODO NLS
-            }
+            if (previous != null)
+                throw exc(DataException.class,
+                          "CWWKD1072.record.comp.conflict",
+                          recordClass.getName(),
+                          getClassNames(repositoryInterfaces),
+                          jeeName,
+                          info.name,
+                          previous.name);
 
             if (trace && tc.isDebugEnabled())
                 Tr.debug(tc, info.toString());
@@ -295,7 +310,7 @@ public class RecordTransformer {
 
         byte[] classBytes = cw.toByteArray();
 
-        if (trace && tc.isWarningEnabled()) {
+        if (tc.isWarningEnabled()) {
             StringWriter sw = new StringWriter();
             CheckClassAdapter.verify(new ClassReader(classBytes), false, new PrintWriter(sw));
             String result = sw.toString();

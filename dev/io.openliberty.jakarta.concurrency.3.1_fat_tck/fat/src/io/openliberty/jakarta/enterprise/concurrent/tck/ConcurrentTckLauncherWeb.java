@@ -14,6 +14,7 @@ package io.openliberty.jakarta.enterprise.concurrent.tck;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -82,11 +83,11 @@ public class ConcurrentTckLauncherWeb {
     @Test
     @AllowedFFDC // The tested exceptions cause FFDC so we have to allow for this.
     public void launchConcurrent31TCKWeb() throws Exception {
-
-        String bucketName = "io.openliberty.jakarta.concurrency.3.1_fat_tck";
-        String testName = this.getClass() + ":launchConcurrent31TCKWeb";
-        Type type = Type.JAKARTA;
-        String specName = "Concurrency (Web)";
-        TCKRunner.runTCK(server, bucketName, testName, type, specName, null, additionalProps);
+        TCKRunner.build(server, Type.JAKARTA, "Concurrency")
+                        .withPlatfromVersion("11")
+                        .withQualifiers("web")
+                        .withAdditionalMvnProps(additionalProps)
+                        .withLogging(Map.of("ee.jakarta.tck.concurrent", Level.ALL))
+                        .runTCK();
     }
 }

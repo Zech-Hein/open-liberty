@@ -43,6 +43,7 @@ IBM-API-Package: \
 -bundles=\
     io.openliberty.io.smallrye.openapi4.core, \
     io.openliberty.io.smallrye.openapi4.jaxrs, \
+    io.openliberty.io.smallrye.openapi4.model, \
     io.openliberty.microprofile.openapi.2.0.internal.jakarta, \
     io.openliberty.microprofile.openapi.2.0.internal.servlet.jakarta, \
     io.openliberty.microprofile.openapi.4.0.internal.services, \

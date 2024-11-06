@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 IBM Corporation and others.
+ * Copyright (c) 2011, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -113,7 +113,7 @@ final class LibraryGeneration {
     }
 
     void addContainerFromFile(File f, Collection<ArtifactContainer> containers) {
-        String filename = String.format("%s/%s_%s@%s", SharedLibraryFactory.CONT_CACHE, libraryId, genId, f.getName());
+        String filename = String.format("%s/%s_%s_%s", SharedLibraryFactory.CONT_CACHE, libraryId, genId, f.getName());
         File wc = library.ctx.getBundle().getDataFile(filename);
         boolean ok = wc.mkdir();
         if (!ok) {

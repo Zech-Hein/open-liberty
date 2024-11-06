@@ -12,7 +12,6 @@
  *******************************************************************************/
 package test.jakarta.data.web;
 
-import static componenttest.annotation.SkipIfSysProp.DB_DB2;
 import static componenttest.annotation.SkipIfSysProp.DB_Oracle;
 import static componenttest.annotation.SkipIfSysProp.DB_Postgres;
 import static componenttest.annotation.SkipIfSysProp.DB_SQLServer;
@@ -95,6 +94,7 @@ import org.junit.Test;
 import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.SkipIfSysProp;
 import componenttest.app.FATServlet;
+import test.jakarta.data.web.Residence.Occupant;
 
 @DataSourceDefinition(name = "java:app/jdbc/DerbyDataSource",
                       className = "org.apache.derby.jdbc.EmbeddedXADataSource",
@@ -105,6 +105,12 @@ import componenttest.app.FATServlet;
 @WebServlet("/*")
 public class DataTestServlet extends FATServlet {
     private final long TIMEOUT_MINUTES = 2;
+
+    @Inject
+    Apartments apartments;
+
+    @Inject
+    Cylinders cylinders;
 
     @Inject
     EmptyRepository emptyRepo;
@@ -474,6 +480,41 @@ public class DataTestServlet extends FATServlet {
     }
 
     /**
+     * Asynchronous repository method that returns a CompletableFuture of Page.
+     */
+    @Test
+    public void testCompletableFutureOfPage() throws ExecutionException, //
+                    InterruptedException, TimeoutException {
+        PageRequest page1req = PageRequest.ofPage(1).size(4);
+        PageRequest page3req = PageRequest.ofPage(3).size(4);
+
+        Order<Prime> asc = Order.by(Sort.asc(ID));
+
+        CompletableFuture<Page<Long>> cf1 = //
+                        primes.divisibleByTwo(false, page1req, asc);
+
+        CompletableFuture<Page<Long>> cf3 = //
+                        primes.divisibleByTwo(false, page3req, asc);
+
+        Page<Long> page1 = cf1.get(TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        Page<Long> page3 = cf3.get(TIMEOUT_MINUTES, TimeUnit.MINUTES);
+
+        assertEquals(List.of(3L, 5L, 7L, 11L),
+                     page1.content());
+
+        assertEquals(List.of(29L, 31L, 37L, 41L),
+                     page3.content());
+
+        PageRequest page2req = page3.previousPageRequest();
+        assertEquals(page2req, page1.nextPageRequest());
+
+        assertEquals(List.of(13L, 17L, 19L, 23L),
+                     primes.divisibleByTwo(false, page2req, asc)
+                                     .thenApply(Page::content)
+                                     .get(TIMEOUT_MINUTES, TimeUnit.MINUTES));
+    }
+
+    /**
      * Asynchronous repository method that returns a CompletionStage of CursoredPage.
      */
     @Test
@@ -542,23 +583,14 @@ public class DataTestServlet extends FATServlet {
             // expected - out of range
         }
 
-        try {
-            double result = primes.numberAsDouble(4003);
-            fail("Should not convert long value to double value " + result);
-        } catch (MappingException x) {
-            // expected - not convertible
-        }
+        assertEquals(4003.0, primes.numberAsDouble(4003), 0.01);
 
-        try {
-            Optional<Float> result = primes.numberAsFloatWrapper(4001)
-                            .get(TIMEOUT_MINUTES, TimeUnit.MINUTES);
-            fail("Should not convert long value to float value " + result);
-        } catch (ExecutionException x) {
-            if (x.getCause() instanceof MappingException)
-                ; // expected - not convertible
-            else
-                throw x;
-        }
+        assertEquals(4001f,
+                     primes.numberAsFloatWrapper(4001)
+                                     .get(TIMEOUT_MINUTES, TimeUnit.MINUTES)
+                                     .orElseThrow()
+                                     .floatValue(),
+                     0.01f);
 
         assertEquals(31,
                      primes.numberAsInt(31));
@@ -581,6 +613,32 @@ public class DataTestServlet extends FATServlet {
         assertEquals(false,
                      primes.numberAsShortWrapper(27).isPresent());
 
+    }
+
+    /**
+     * Repository method that converts a length 1 String attribute to a
+     * single character.
+     */
+    @Test
+    public void testConvertToChar() {
+        assertEquals(Character.valueOf('D'),
+                     primes.singleHexDigit(13).orElseThrow());
+
+        assertEquals(false,
+                     primes.singleHexDigit(12).isPresent());
+
+        try {
+            Optional<Character> found = primes.singleHexDigit(29);
+            fail("Should not be able to return hex 1D as a single character: " +
+                 found);
+        } catch (MappingException x) {
+            if (x.getMessage() != null &&
+                x.getMessage().startsWith("CWWKD1046E") &&
+                x.getMessage().contains("singleHexDigit"))
+                ; // pass
+            else
+                throw x;
+        }
     }
 
     /**
@@ -683,6 +741,49 @@ public class DataTestServlet extends FATServlet {
     @Test
     public void testCountAsShortWrapper() {
         assertEquals(Short.valueOf((short) 5), primes.countAsShortWrapperByNumberIdLessThan(12));
+    }
+
+    /**
+     * Repository method that uses cursor-based pagination but does not specify
+     * any sort criteria, which should default to ascending by Id.
+     */
+    @Test
+    public void testCursoredPageRequestWithImplicitSort() {
+        PageRequest page1req = PageRequest.ofSize(4);
+        CursoredPage<Prime> page;
+        page = primes.findByRomanNumeralIgnoreCaseEndsWith("I", page1req);
+
+        assertEquals(List.of(2L, 3L, 7L, 11L),
+                     page.stream()
+                                     .map(p -> p.numberId)
+                                     .collect(Collectors.toList()));
+
+        PageRequest page2req = page.nextPageRequest();
+
+        page = primes.findByRomanNumeralIgnoreCaseEndsWith("i", page2req);
+
+        assertEquals(List.of(13L, 17L, 23L, 31L),
+                     page.stream()
+                                     .map(p -> p.numberId)
+                                     .collect(Collectors.toList()));
+
+        PageRequest page3req = page.nextPageRequest();
+
+        page = primes.findByRomanNumeralIgnoreCaseEndsWith("i", page3req);
+
+        assertEquals(List.of(37L, 41L, 43L, 47L),
+                     page.stream()
+                                     .map(p -> p.numberId)
+                                     .collect(Collectors.toList()));
+
+        page2req = page.previousPageRequest();
+
+        page = primes.findByRomanNumeralIgnoreCaseEndsWith("i", page2req);
+
+        assertEquals(List.of(13L, 17L, 23L, 31L),
+                     page.stream()
+                                     .map(p -> p.numberId)
+                                     .collect(Collectors.toList()));
     }
 
     /**
@@ -1218,6 +1319,28 @@ public class DataTestServlet extends FATServlet {
         assertEquals(204000f, h.purchasePrice, 0.001f);
         assertEquals(Year.of(2022), h.sold);
 
+        // Query by attributes on base entity that could conflict with embedded attributes
+
+        List<House> hs = houses.findByArea(2400);
+        assertEquals(1, hs.size());
+
+        h = hs.get(0);
+        assertEquals("TestEmbeddable-404-4418-40", h.parcelId);
+        assertEquals(2400, h.area);
+        assertNotNull(h.garage);
+        assertEquals(220, h.garage.area);
+        assertEquals(Garage.Type.Detached, h.garage.type);
+        assertNotNull(h.garage.door);
+        assertEquals(9, h.garage.door.getHeight());
+        assertEquals(13, h.garage.door.getWidth());
+        assertNotNull(h.kitchen);
+        assertEquals(16, h.kitchen.length);
+        assertEquals(14, h.kitchen.width);
+        assertEquals(0.24f, h.lotSize, 0.001f);
+        assertEquals(5, h.numBedrooms);
+        assertEquals(204000f, h.purchasePrice, 0.001f);
+        assertEquals(Year.of(2022), h.sold);
+
         // Sorting with type-safe StaticMetamodel constant-like fields
 
         assertEquals(List.of("TestEmbeddable-404-4418-40",
@@ -1691,7 +1814,6 @@ public class DataTestServlet extends FATServlet {
      */
     @Test
     @SkipIfSysProp({
-                     DB_DB2, //TODO Failing on Db2 due to eclipselink issue.  OL Issue #28289
                      DB_Oracle //TODO Eclipse link SQL Generation bug on Oracle: https://github.com/OpenLiberty/open-liberty/issues/28545
     })
     public void testFindAndDeleteReturnsObjects() {
@@ -1700,9 +1822,10 @@ public class DataTestServlet extends FATServlet {
 
         packages.deleteAll();
 
-        packages.save(new Package(70071, 17.0f, 17.1f, 7.7f, "testFindAndDeleteReturnsObjects#70071"));
+        //                        id     length width height description
+        packages.save(new Package(70071, 17.0f, 17.1f, 7.7f, "testFindAndDeleteReturnsObjects#multi"));
         packages.save(new Package(70070, 70.0f, 70.0f, 7.0f, "testFindAndDeleteReturnsObjects#70070"));
-        packages.save(new Package(70077, 77.0f, 17.7f, 7.7f, "testFindAndDeleteReturnsObjects#70077"));
+        packages.save(new Package(70077, 77.0f, 17.7f, 7.7f, "testFindAndDeleteReturnsObjects#multi"));
         packages.save(new Package(70007, 70.0f, 10.7f, 0.7f, "testFindAndDeleteReturnsObjects#70007"));
 
         Set<Integer> remaining = new TreeSet<>();
@@ -1721,7 +1844,16 @@ public class DataTestServlet extends FATServlet {
         }
         assertEquals("Found " + p.id + "; expected one of " + remaining, true, remaining.remove(p.id));
 
-        Sort<?>[] sorts = supportsOrderByForUpdate ? new Sort[] { Sort.desc("height"), Sort.asc("length") } : null;
+        // It is not deterministic to order on height when multiple entities
+        // have a floating point value that looks the same (7.7), but which is
+        // not exact and can vary slightly, intermittently ordering the entities
+        // differently. Instead, we are using the description column, which can
+        // be reliably compared.
+        // It is okay to order on length because the other entity with length=70.0
+        // was previously removed.
+        Sort<?>[] sorts = supportsOrderByForUpdate //
+                        ? new Sort[] { Sort.desc("description"), Sort.asc("length") } //
+                        : null;
         LinkedList<?> deletesList = packages.delete2ByHeightLessThan(8.0f, Limit.of(2), sorts);
         assertEquals("Deleted " + deletesList, 2, deletesList.size());
         Package p0 = (Package) deletesList.get(0);
@@ -1731,12 +1863,12 @@ public class DataTestServlet extends FATServlet {
             assertEquals(17.0f, p0.length, 0.001f);
             assertEquals(17.1f, p0.width, 0.001f);
             assertEquals(7.7f, p0.height, 0.001f);
-            assertEquals("testFindAndDeleteReturnsObjects#70071", p0.description);
+            assertEquals("testFindAndDeleteReturnsObjects#multi", p0.description);
             assertEquals(70077, p1.id);
             assertEquals(77.0f, p1.length, 0.001f);
             assertEquals(17.7f, p1.width, 0.001f);
             assertEquals(7.7f, p1.height, 0.001f);
-            assertEquals("testFindAndDeleteReturnsObjects#70077", p1.description);
+            assertEquals("testFindAndDeleteReturnsObjects#multi", p1.description);
         }
         assertEquals("Found " + p0.id + "; expected one of " + remaining, true, remaining.remove(p0.id));
         assertEquals("Found " + p1.id + "; expected one of " + remaining, true, remaining.remove(p1.id));
@@ -2009,6 +2141,32 @@ public class DataTestServlet extends FATServlet {
         assertEquals(3L, multi.destroy("TestFromClauseIdentifiesEntity-%"));
 
         assertEquals(0L, multi.countEverything());
+    }
+
+    /**
+     * Verify a repository method can use JPQL query language that supplies
+     * id(this) as an argument to another function.
+     */
+    @Test
+    public void testFunctionWithIdThisArg() {
+        vehicles.delete();
+
+        Vehicle v1 = new Vehicle();
+        v1.make = "Chevrolet";
+        v1.model = "Silverado";
+        v1.numSeats = 3;
+        v1.price = 38000f;
+        v1.vinId = "CS102030405060708";
+        vehicles.save(List.of(v1));
+
+        v1 = vehicles.withVINLowerCase("cs102030405060708").orElseThrow();
+        assertEquals("Chevrolet", v1.make);
+        assertEquals("Silverado", v1.model);
+        assertEquals(3, v1.numSeats);
+        assertEquals(38000f, v1.price, 0.001f);
+        assertEquals("CS102030405060708", v1.vinId);
+
+        assertEquals(1L, vehicles.delete());
     }
 
     /**
@@ -3236,6 +3394,17 @@ public class DataTestServlet extends FATServlet {
     }
 
     /**
+     * Repository method with return type of LongStream, involving type conversion.
+     */
+    @Test
+    public void testLongStream() {
+        assertEquals(List.of(10L, 11L, 101L, 111L, 1011L, 1101L, 10001L, 10011L),
+                     primes.binaryDigitsAsDecimal(20)
+                                     .boxed()
+                                     .collect(Collectors.toList()));
+    }
+
+    /**
      * Intermix two different types of entities in the same transaction.
      */
     @Test
@@ -3349,6 +3518,9 @@ public class DataTestServlet extends FATServlet {
      */
     @Test
     public void testMultipleAggregates() {
+        String jdbcJarName = System.getenv().getOrDefault("DB_DRIVER", "UNKNOWN");
+        boolean databaseRounds = jdbcJarName.startsWith("ojdbc") || jdbcJarName.startsWith("postgre");
+
         Object[] objects = primes.minMaxSumCountAverageObject(50);
         assertEquals(Long.valueOf(2L), objects[0]); // minimum
         assertEquals(Long.valueOf(47L), objects[1]); // maximum
@@ -3378,19 +3550,27 @@ public class DataTestServlet extends FATServlet {
         assertEquals(12, ints[3]); // count
         assertEquals(16, ints[4]); // average
 
-        float[] floats = primes.minMaxSumCountAverageFloat(35);
-        assertEquals(2.0f, floats[0], 0.01f); // minimum
-        assertEquals(31.0f, floats[1], 0.01f); // maximum
-        assertEquals(160.0f, floats[2], 0.01f); // sum
-        assertEquals(11.0f, floats[3], 0.01f); // count
-        assertEquals(14.0f, Math.floor(floats[4]), 0.01f); // average
+        try {
+            float[] floats = primes.minMaxSumCountAverageFloat(35);
+            fail("Allowed unsafe conversion from double to float: " +
+                 Arrays.toString(floats));
+        } catch (MappingException x) {
+            if (x.getMessage().startsWith("CWWKD1046E") &&
+                x.getMessage().contains("float[]"))
+                ; // unsafe to convert double to float
+            else
+                throw x;
+        }
 
         List<Long> list = primes.minMaxSumCountAverageList(30);
         assertEquals(Long.valueOf(2L), list.get(0)); // minimum
         assertEquals(Long.valueOf(29L), list.get(1)); // maximum
         assertEquals(Long.valueOf(129L), list.get(2)); // sum
         assertEquals(Long.valueOf(10L), list.get(3)); // count
-        assertEquals(Long.valueOf(12L), list.get(4)); // average
+        if (databaseRounds)
+            assertEquals(Long.valueOf(13L), list.get(4)); // average - 12.9 -> 13
+        else
+            assertEquals(Long.valueOf(12L), list.get(4)); // average - 12.9 -> 12
 
         Stack<String> stack = primes.minMaxSumCountAverageStack(25);
         assertEquals("2", stack.get(0)); // minimum
@@ -3405,7 +3585,10 @@ public class DataTestServlet extends FATServlet {
         assertEquals(Integer.valueOf(19), it.next()); // maximum
         assertEquals(Integer.valueOf(77), it.next()); // sum
         assertEquals(Integer.valueOf(8), it.next()); // count
-        assertEquals(Integer.valueOf(9), it.next()); // average
+        if (databaseRounds)
+            assertEquals(Integer.valueOf(10), it.next()); // average - 9.625 -> 10
+        else
+            assertEquals(Integer.valueOf(9), it.next()); // average - 9.625 -> 9
 
         Deque<Double> deque = primes.minMaxSumCountAverageDeque(18);
         assertEquals(2.0, deque.removeFirst(), 0.01); // minimum
@@ -3413,6 +3596,40 @@ public class DataTestServlet extends FATServlet {
         assertEquals(58.0, deque.removeFirst(), 0.01); // sum
         assertEquals(7.0, deque.removeFirst(), 0.01); // count
         assertEquals(8.0, Math.floor(deque.removeFirst()), 0.01); // average
+    }
+
+    /**
+     * Use a repository that has multiple embeddable attributes of the same type.
+     */
+    @Test
+    public void testMultipleEmbeddableAttributesOfSameType() {
+        Cylinder cyl1, cyl2, cyl3, cyl4, cyl5;
+
+        //                                    Id     a.x, a.y, b.x, b.y, c.x, c.y
+        cylinders.upsert(cyl1 = new Cylinder("CYL1", 100, 287, 372, 833, 509, 424),
+                         cyl2 = new Cylinder("CYL2", 790, 857, 942, 143, 509, 424),
+                         cyl3 = new Cylinder("CYL3", 340, 101, 100, 919, 629, 630),
+                         cyl4 = new Cylinder("CYL4", 100, 684, 974, 516, 453, 163),
+                         cyl5 = new Cylinder("CYL5", 412, 983, 276, 413, 629, 630));
+
+        assertEquals(5, cylinders.countValid());
+
+        assertEquals(List.of(cyl5.toString(), cyl3.toString()),
+                     cylinders.centeredAt(629, 630)
+                                     .map(Object::toString)
+                                     .collect(Collectors.toList()));
+
+        assertEquals(List.of(cyl2.toString(), cyl1.toString()),
+                     cylinders.centeredAt(509, 424)
+                                     .map(Object::toString)
+                                     .collect(Collectors.toList()));
+
+        assertEquals(List.of(cyl3.toString(), cyl1.toString(), cyl4.toString()),
+                     cylinders.findBySideAXOrSideBXOrderBySideBYDesc(100, 100)
+                                     .map(Object::toString)
+                                     .collect(Collectors.toList()));
+
+        assertEquals(Long.valueOf(5), cylinders.eraseAll());
     }
 
     /**
@@ -3500,19 +3717,6 @@ public class DataTestServlet extends FATServlet {
     }
 
     /**
-     * Use a repository query with both named parameters and positional parameters. Expect this to be rejected.
-     */
-    @Test
-    public void testNamedParametersMixedWithPositionalParameters() {
-        try {
-            Collection<Long> found = primes.matchAnyWithMixedUsageOfPositionalAndNamed("three", 23);
-            fail("Should not be able to mix positional and named parameters. Found: " + found);
-        } catch (MappingException x) {
-            // expected
-        }
-    }
-
-    /**
      * Use a repository query with named parameters, where the parameters are
      * sometimes obtained from the Param annotation and other times obtained from
      * the corresponding method parameters based on the method's parameter names.
@@ -3523,32 +3727,6 @@ public class DataTestServlet extends FATServlet {
                      primes.matchAnyWithMixedUsageOfParamAnnotation(31, "thirteen", "V", "1D")
                                      .sorted()
                                      .collect(Collectors.toList()));
-    }
-
-    /**
-     * BasicRepository.findAll(PageRequest, null) must raise NullPointerException.
-     */
-    @Test
-    public void testNullOrder() {
-        try {
-            Page<Package> page = packages.findAll(PageRequest.ofSize(15), null);
-            fail("BasicRepository.findAll(PageRequest, null) must raise NullPointerException. Instead: " + page);
-        } catch (NullPointerException x) {
-            // expected
-        }
-    }
-
-    /**
-     * BasicRepository.findAll(null, Order) must raise NullPointerException.
-     */
-    @Test
-    public void testNullPagination() {
-        try {
-            Page<Package> page = packages.findAll(null, Order.by(Sort.asc("id")));
-            fail("BasicRepository.findAll(null, Order) must raise NullPointerException. Instead: " + page);
-        } catch (NullPointerException x) {
-            // expected
-        }
     }
 
     /**
@@ -3567,6 +3745,17 @@ public class DataTestServlet extends FATServlet {
                                              .stream()
                                              .map(p -> p.numberId)
                                              .collect(Collectors.toList()));
+    }
+
+    /**
+     * Verify a repository method that supplies id(this) as the sort criteria
+     * hard coded within a JDQL query.
+     */
+    // TODO enable once #28925 is fixed
+    //@Test
+    public void testOrderByIdFunction() {
+        assertIterableEquals(List.of(19L, 17L, 13L, 11L, 7L, 5L, 3L, 2L),
+                             primes.below(20L));
     }
 
     /**
@@ -3687,6 +3876,31 @@ public class DataTestServlet extends FATServlet {
     }
 
     /**
+     * Repository method that uses offset pagination but does not specify
+     * any sort criteria, which should default to ascending by Id.
+     */
+    @Test
+    public void testPageRequestWithImplicitSort() {
+        PageRequest page1req = PageRequest.ofSize(4);
+        Page<Prime> page;
+        page = primes.findByRomanNumeralIgnoreCaseStartsWith("X", page1req);
+
+        assertEquals(List.of(11L, 13L, 17L, 19L),
+                     page.stream()
+                                     .map(p -> p.numberId)
+                                     .collect(Collectors.toList()));
+
+        PageRequest page2req = page.nextPageRequest();
+
+        page = primes.findByRomanNumeralIgnoreCaseStartsWith("x", page2req);
+
+        assertEquals(List.of(23L, 29L, 31L, 37L),
+                     page.stream()
+                                     .map(p -> p.numberId)
+                                     .collect(Collectors.toList()));
+    }
+
+    /**
      * Use a method with a prefix for Query by Method Name and a parameter annotation
      * that indicates Parameter-based Query. Verify the latter takes precedence when
      * interpreting the method.
@@ -3695,6 +3909,137 @@ public class DataTestServlet extends FATServlet {
     public void testParameterAnnotationTakesPrecedenceOverMethodPrefix() {
         Prime nine = primes.findByBinary("10011").orElseThrow();
         assertEquals(19L, nine.numberId);
+    }
+
+    /**
+     * Tests entity attribute names from embeddables and MappedSuperclass that
+     * can have delimiters. Includes tests for name collisions with attributes from an
+     * embeddable or superinteface. This test uses unannotated entities.
+     */
+    @Test
+    public void testPersistentFieldNamesAndDelimiters() {
+        apartments.removeAll();
+
+        Apartment a101 = new Apartment();
+        a101.occupant = new Occupant();
+        a101.occupant.firstName = "Kyle";
+        a101.occupant.lastName = "Smith";
+        a101.isOccupied = true;
+        a101.aptId = 101L;
+        a101.quarters = new Bedroom();
+        a101.quarters.length = 10;
+        a101.quarters.width = 10;
+        a101.quartersWidth = 15;
+
+        Apartment a102 = new Apartment();
+        a102.occupant = new Occupant();
+        a102.occupant.firstName = "Brent";
+        a102.occupant.lastName = "Smith";
+        a102.isOccupied = false;
+        a102.aptId = 102L;
+        a102.quarters = new Bedroom();
+        a102.quarters.length = 11;
+        a102.quarters.width = 11;
+        a102.quartersWidth = 15;
+
+        Apartment a103 = new Apartment();
+        a103.occupant = new Occupant();
+        a103.occupant.firstName = "Brian";
+        a103.occupant.lastName = "Smith";
+        a103.isOccupied = false;
+        a103.aptId = 103L;
+        a103.quarters = new Bedroom();
+        a103.quarters.length = 11;
+        a103.quarters.width = 12;
+        a103.quartersWidth = 15;
+
+        Apartment a104 = new Apartment();
+        a104.occupant = new Occupant();
+        a104.occupant.firstName = "Scott";
+        a104.occupant.lastName = "Smith";
+        a104.isOccupied = false;
+        a104.aptId = 104L;
+        a104.quarters = new Bedroom();
+        a104.quarters.length = 12;
+        a104.quarters.width = 11;
+        a104.quartersWidth = 15;
+
+        apartments.saveAll(List.of(a101, a102, a103, a104));
+
+        List<Apartment> results;
+
+        results = apartments.findApartmentsByBedroomWidth(12);
+        assertEquals(1, results.size());
+        assertEquals("Brian", results.get(0).occupant.firstName);
+
+        results = apartments.findApartmentsByBedroom(11, 11);
+        assertEquals(1, results.size());
+        assertEquals("Brent", results.get(0).occupant.firstName);
+
+        results = apartments.findAllOrderByBedroomLength();
+        assertEquals(4, results.size());
+        assertEquals("Kyle", results.get(0).occupant.firstName);
+        assertEquals("Scott", results.get(3).occupant.firstName);
+
+        results = apartments.findAllOrderByBedroomWidth();
+        assertEquals(4, results.size());
+        assertEquals("Kyle", results.get(0).occupant.firstName);
+        assertEquals("Brian", results.get(3).occupant.firstName);
+
+        results = apartments.findApartmentsByBedroomLength(10);
+        assertEquals(1, results.size());
+        assertEquals("Kyle", results.get(0).occupant.firstName);
+
+        results = apartments.findByQuarters_Width(12);
+        assertEquals(1, results.size());
+        assertEquals("Brian", results.get(0).occupant.firstName);
+
+        results = apartments.findByQuartersLength(12);
+        assertEquals(1, results.size());
+        assertEquals("Scott", results.get(0).occupant.firstName);
+
+        results = apartments.findAllSorted(Sort.asc("quarters.length"));
+        assertEquals(4, results.size());
+        assertEquals("Kyle", results.get(0).occupant.firstName);
+        assertEquals("Scott", results.get(3).occupant.firstName);
+
+        results = apartments.findAllSorted(Sort.asc("quarters_width"));
+        assertEquals(4, results.size());
+        assertEquals("Kyle", results.get(0).occupant.firstName);
+        assertEquals("Brian", results.get(3).occupant.firstName);
+
+        results = apartments.findByOccupied(true);
+        assertEquals(1, results.size());
+        assertEquals("Kyle", results.get(0).occupant.firstName);
+
+        results = apartments.findByOccupantLastNameOrderByFirstName("Smith");
+        assertEquals(4, results.size());
+        assertEquals("Brent", results.get(0).occupant.firstName);
+        assertEquals("Brian", results.get(1).occupant.firstName);
+        assertEquals("Kyle", results.get(2).occupant.firstName);
+        assertEquals("Scott", results.get(3).occupant.firstName);
+
+        // Colliding non-delimited attribute name quartersWidth, ensure we use entity attribute and not embedded attribute for query
+        results = apartments.findByQuartersWidth(15);
+        assertEquals(4, results.size());
+        assertEquals("Brent", results.get(0).occupant.firstName);
+        assertEquals("Brian", results.get(1).occupant.firstName);
+        assertEquals("Kyle", results.get(2).occupant.firstName);
+        assertEquals("Scott", results.get(3).occupant.firstName);
+
+        try {
+            apartments.findAllCollidingEmbeddable();
+            fail("Should not have been able to execute query on an entity with colliding attibute name from embeddable");
+        } catch (MappingException e) {
+            //expected
+        }
+
+        try {
+            apartments.findAllCollidingSuperclass();
+            fail("Should not have been able to execute query on an entity with colliding attibute name from superclass");
+        } catch (MappingException e) {
+            // expected
+        }
     }
 
     /**
@@ -5150,24 +5495,21 @@ public class DataTestServlet extends FATServlet {
         PageRequest page1req = PageRequest.ofSize(3).withTotal();
 
         // query with no clauses
-        // TODO blocked by 28913
-        //page1 = receipts.all(page1req, Order.by(Sort.asc(ID)));
-        //assertEquals(5, page1.totalElements());
+        page1 = receipts.all(page1req, Order.by(Sort.asc(ID)));
+        assertEquals(5, page1.totalElements());
 
         receipts.insert(new Receipt(5006, "TCFQWSCO-5", 56.56f));
 
         // query with FROM clause only
-        // TODO blocked by 28913
-        //page1 = receipts.all(page1req, Sort.desc(ID));
-        //assertEquals(6, page1.totalElements());
+        page1 = receipts.all(page1req, Sort.desc(ID));
+        assertEquals(6, page1.totalElements());
 
         receipts.insert(new Receipt(5007, "TCFQWSCO-7", 57.17f));
 
         // query with FROM clause only
-        // TODO blocked by 28913
-        //page1 = receipts.sortedByTotalIncreasing(page1req);
-        //assertEquals(7, page1.totalElements());
-        //assertEquals(5003, page1.iterator().next().purchaseId());
+        page1 = receipts.sortedByTotalIncreasing(page1req);
+        assertEquals(7, page1.totalElements());
+        assertEquals(5003, page1.iterator().next().purchaseId());
 
         receipts.insert(new Receipt(5008, "TCFQWSCO-8", 58.88f));
 
