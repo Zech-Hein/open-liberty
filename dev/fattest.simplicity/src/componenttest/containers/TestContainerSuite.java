@@ -64,6 +64,10 @@ public class TestContainerSuite {
      */
     static {
         Log.info(TestContainerSuite.class, "<init>", "Setting up testcontainers");
+        //runningSecurityKerberos = false;
+        //Log.info(TestContainerSuite.class, "<init>", "runningSecurityKerberos: " + runningSecurityKerberos);
+        //Log.info(TestContainerSuite.class, "<init>", "stack trace: " + Arrays.toString(Thread.currentThread().getStackTrace()));
+        //Thread.dumpStack();
         setupTestcontainers();
     }
 
@@ -84,7 +88,7 @@ public class TestContainerSuite {
      * This is a safety measure to ensure that we run with the correct docker.client.stategy property
      * for each FATSuite run.
      */
-    private static void setupTestcontainers() {
+    protected static void setupTestcontainers() {
         if (setupComplete)
             return;
         configureLogging();
@@ -125,7 +129,7 @@ public class TestContainerSuite {
 
     }
 
-    private static void generateTestcontainersConfig() {
+    protected static void generateTestcontainersConfig() {
         final String m = "generateTestcontainersConfig";
         final File testcontainersConfigFile = new File(System.getProperty("user.home"), ".testcontainers.properties");
 

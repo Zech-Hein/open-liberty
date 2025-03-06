@@ -12,6 +12,11 @@
  *******************************************************************************/
 package com.ibm.ws.security.spnego.fat;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
@@ -21,6 +26,7 @@ import org.testcontainers.containers.Network;
 
 import com.ibm.websphere.simplicity.log.Log;
 
+import componenttest.containers.ExternalDockerClientFilter;
 import componenttest.containers.TestContainerSuite;
 import componenttest.custom.junit.runner.AlwaysPassesTest;
 import componenttest.rules.repeater.FeatureReplacementAction;
@@ -92,9 +98,48 @@ public class FATSuite extends TestContainerSuite {
 
     @BeforeClass
     public static void startKerberos() throws Exception {
+        findDockerEngineNotAlreadyUsingPort88();
         network = Network.newNetwork();
         krb5 = new KerberosContainer(network);
         krb5.start();
+    }
+
+    /**
+     * RTC defect 299994 failures would occur when port 88 has already been allocated on a docker host.
+     * We will check if port 88 is in use and try a different docker host.
+     * We will repeat this until we find a docker host where port 88 is open
+     */
+    private static void findDockerEngineNotAlreadyUsingPort88() {
+        int count = 1;
+        while (isPortAvailable(ExternalDockerClientFilter.instance().getHost(), 88) && count <= 3) {
+            System.out.println("Port 88 was already in use for Host#" + count);
+            generateTestcontainersConfig();
+            count++;
+        }
+
+    }
+
+    /**
+     * @param host
+     * @param port
+     */
+    private static boolean isPortAvailable(String host, int port) {
+        host = host.substring(host.indexOf("://") + 3, host.lastIndexOf(":"));
+        try (Socket socket = new Socket()) {
+            System.out.println("Testing connection to " + host + ":" + port);
+            socket.connect(new InetSocketAddress(host, port), 5000);
+            System.out.println("Connection succeeded");
+            return true;
+        } catch (SocketTimeoutException ex) {
+            // Port is likely closed, or host unreachable
+            System.out.println("Connection failed: " + ex);
+            return false;
+        } catch (IOException ex) {
+            // An error occurred (e.g., host unreachable, network issues)
+            System.out.println("Connection failed: " + ex);
+            return false;
+        }
+
     }
 
     @AfterClass
