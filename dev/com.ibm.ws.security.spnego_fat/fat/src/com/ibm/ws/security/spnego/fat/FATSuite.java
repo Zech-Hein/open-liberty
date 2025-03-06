@@ -12,12 +12,16 @@
  *******************************************************************************/
 package com.ibm.ws.security.spnego.fat;
 
+import java.lang.reflect.Field;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.Network;
+import org.testcontainers.utility.TestcontainersConfiguration;
 
 import com.ibm.websphere.simplicity.log.Log;
 
@@ -93,8 +97,42 @@ public class FATSuite extends TestContainerSuite {
     @BeforeClass
     public static void startKerberos() throws Exception {
         network = Network.newNetwork();
-        krb5 = new KerberosContainer(network);
-        krb5.start();
+        try {
+            krb5 = new KerberosContainer(network);
+            krb5.start();
+            throw new Exception("hardcoded error");
+        } catch (Exception e) {
+            Log.info(FATSuite.class, "startKerberos", "host#1 currently in use: " + e);
+            try {
+                krb5.stop();
+                network.close();
+                resetDockerClientFactory(); //otherwise it will try host#1 again
+            } catch (Exception ee) {
+                Log.error(FATSuite.class, "tearDown", ee);
+            }
+
+            generateTestcontainersConfig(); //fetch a different docker-engine host, since the first one was currently running a KerberosContianer already
+            DockerClientFactory.instance();
+            TestcontainersConfiguration.getInstance();
+
+            network = Network.newNetwork();
+            krb5 = new KerberosContainer(network);
+            krb5.start();
+            Log.info(FATSuite.class, "startKerberos", "Container successfully started using host#2");
+        }
+    }
+
+    /**
+     * This is a workaround to force the DockerClientFactory to reset the client config, specifically the docker host used.
+     */
+    private static void resetDockerClientFactory() throws Exception {
+        Field instanceField = DockerClientFactory.class.getDeclaredField("instance");
+        instanceField.setAccessible(true);
+        instanceField.set(null, null); // Reset the instance
+
+        Field configInstanceField = TestcontainersConfiguration.class.getDeclaredField("instance");
+        configInstanceField.setAccessible(true);
+        configInstanceField.set(null, null);
     }
 
     @AfterClass
