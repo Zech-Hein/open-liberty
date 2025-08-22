@@ -44,13 +44,17 @@ task copyShibbolethServer (dependsOn: [':com.ibm.ws.security.fat.common:assemble
 //  }
     // copyShibbolethTestAppFilesToServer  (copy both 3.3.1 and 4.1.0 and let the tests decide at runtime which to use)
    	copy {
-	  from new File(project(':com.ibm.ws.security.saml.sso_fat.common').buildDir, 'test-application/idp-war-3.3.1.war')
- 	  into new File(autoFvtDir, "publish/servers/${serverName}/idp-apps")
-	}
-	copy {
-	  from new File(project(':com.ibm.ws.security.saml.sso_fat.common').buildDir, 'test-application/idp-war-4.1.0.war')
-	  into new File(autoFvtDir, "publish/servers/${serverName}/idp-apps")
-	}
+   	  from new File(project(':com.ibm.ws.security.saml.sso_fat.common').buildDir, 'test-application/idp-war-3.3.1.war')
+   	   into new File(autoFvtDir, "publish/servers/${serverName}/idp-apps")
+   	}
+   	copy {
+   	  from new File(project(':com.ibm.ws.security.saml.sso_fat.common').buildDir, 'test-application/idp-war-4.1.0.war')
+   	  into new File(autoFvtDir, "publish/servers/${serverName}/idp-apps")
+   	}
+   	copy {
+   	  from new File(project(':com.ibm.ws.security.saml.sso_fat.common').buildDir, 'test-application/idp-war-5.1.5.war')
+   	  into new File(autoFvtDir, "publish/servers/${serverName}/idp-apps")
+   	}
  
     // copySecurityKeysToServer
     copy {

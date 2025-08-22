@@ -1,4 +1,4 @@
-This README is just is provided to give some hints for using Shibboleth as an embedded IDP for SAML SP testing
+This README is just provided to give some hints for using Shibboleth as an embedded IDP for SAML SP testing
 This in no way replaces any of the standard Shibboleth documentation (it exists to allow someone not familiar 
 with Shibboleth, or someone that hasn't had to look at it in a long time to update the tooling used by our FAT
 projects.

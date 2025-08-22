@@ -470,9 +470,13 @@ public class ShibbolethHelpers {
         if (System.getProperty("java.specification.version").matches("1\\.[789]")) {
             return new File(".").getAbsoluteFile().getCanonicalPath().replace("\\", "/") + "/shibboleth-idp/3.3.1";
         } else {
-            return new File(".").getAbsoluteFile().getCanonicalPath().replace("\\", "/") + "/shibboleth-idp/4.1.0";
+            String currentRepeatAction = RepeatTestFilter.getRepeatActionsAsString();
+            if (currentRepeatAction.contains(JakartaEEAction.EE10_ACTION_ID)) {
+                return new File(".").getAbsoluteFile().getCanonicalPath().replace("\\", "/") + "/shibboleth-idp/5.1.5";
+            } else {
+                return new File(".").getAbsoluteFile().getCanonicalPath().replace("\\", "/") + "/shibboleth-idp/4.1.0";
+            }
         }
-
     }
 
     public void fixShibbolethJvmOptions(TestServer server) throws Exception {
@@ -499,24 +503,30 @@ public class ShibbolethHelpers {
         String thisMethod = "chooseIdpWarVersion";
         LibertyServer theServer = idpServer.getServer();
 
-        File transformedWarFile = new java.io.File(LibertyServerUtils.makeJavaCompatible(theServer.getServerRoot() + "/idp-apps/idp-war-4.1.0.war"));
-
         // copy the appropriate version of the idp.war file
         if (System.getProperty("java.specification.version").matches("1\\.[789]")) {
             Log.info(thisClass, thisMethod, "################## Copying the 3.1.1 version of Shibbolet ##################h");
             LibertyFileManager.copyFileIntoLiberty(theServer.getMachine(), theServer.getServerRoot() + "/test-apps", "idp.war", theServer.getServerRoot() + "/idp-apps/idp-war-3.3.1.war");
         } else {
-            Log.info(thisClass, thisMethod, "################## Copying the 4.1.0 version of Shibboleth ##################");
+            boolean useVersion515 = currentRepeatAction.contains(JakartaEEAction.EE10_ACTION_ID);
+            String warVersion = useVersion515 ? "5.1.5" : "4.1.0";
+            
+            Log.info(thisClass, thisMethod, "################## Copying the " + warVersion + " version of Shibboleth ##################");
+            
+            File transformedWarFile = new java.io.File(LibertyServerUtils.makeJavaCompatible(theServer.getServerRoot() + "/idp-apps/idp-war-" + warVersion + ".war"));
+            
             if (eeVersion != null) {
                 eeVersionString = "." + eeVersion.toString();
-                transformedWarFile = new java.io.File(LibertyServerUtils.makeJavaCompatible(theServer.getServerRoot() + "/idp-apps/idp-war-4.1.0.war" + eeVersionString));
+                transformedWarFile = new java.io.File(LibertyServerUtils.makeJavaCompatible(theServer.getServerRoot() + "/idp-apps/idp-war-" + warVersion + ".war" + eeVersionString));
             }
             if (!transformedWarFile.exists() && eeVersion != null) {
-                JakartaEEAction.transformApp(Paths.get(theServer.getServerRoot() + "/idp-apps/idp-war-4.1.0.war"), Paths.get(theServer.getServerRoot() + "/idp-apps/idp-war-4.1.0.war" + eeVersionString), eeVersion);
+                JakartaEEAction.transformApp(Paths.get(theServer.getServerRoot() + "/idp-apps/idp-war-" + warVersion + ".war"),
+                                           Paths.get(theServer.getServerRoot() + "/idp-apps/idp-war-" + warVersion + ".war" + eeVersionString),
+                                           eeVersion);
             }
-            LibertyFileManager.copyFileIntoLiberty(theServer.getMachine(), theServer.getServerRoot() + "/test-apps", "idp.war", theServer.getServerRoot() + "/idp-apps/idp-war-4.1.0.war" + eeVersionString);
+            LibertyFileManager.copyFileIntoLiberty(theServer.getMachine(), theServer.getServerRoot() + "/test-apps", "idp.war",
+                                                 theServer.getServerRoot() + "/idp-apps/idp-war-" + warVersion + ".war" + eeVersionString);
         }
-
     }
 
 }

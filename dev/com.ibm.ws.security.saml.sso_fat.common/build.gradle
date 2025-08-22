@@ -26,6 +26,7 @@ repositories {
       }
       url ("https://" + gradle.userProps.getProperty("artifactory.download.server") + "/artifactory/wasliberty-maven-remote")
     }
+    maven { url "https://build.shibboleth.net/nexus/content/repositories/releases" }
   } else {
     mavenCentral()
     maven { url "https://build.shibboleth.net/nexus/content/repositories/releases" }
@@ -42,6 +43,9 @@ configurations {
     
     shibbolethIdp41x
     shibbolethIdp41x.transitive = false
+    
+    shibbolethIdp515
+    shibbolethIdp515.transitive = false
     
     collectedDeps
     collectedDeps.transitive = false
@@ -68,6 +72,15 @@ dependencies {
                   'net.shibboleth.idp.plugin.scripting:idp-plugin-rhino-impl:1.0.0',
                   'net.shibboleth.idp.plugin.scripting:idp-plugin-scripting-api:1.0.0',
                   'org.mozilla:rhino:1.7.13'
+                  
+    shibbolethIdp515 'ch.qos.logback:logback-classic:1.2.11',
+                  'net.shibboleth.idp:idp-war:5.1.4',
+                  'org.slf4j:jcl-over-slf4j:1.7.36',
+                  'org.codehaus.janino:janino:3.1.9',
+                  'org.codehaus.janino:commons-compiler:3.1.9',
+                  'net.shibboleth.idp.plugin.scripting:idp-plugin-rhino-impl:1.1.0',
+                  'net.shibboleth.idp.plugin.scripting:idp-plugin-scripting-api:1.1.0',
+                  'org.mozilla:rhino:1.7.14'
                                      
     /*
      * These JARs will be copied into $buildDir/collectedJars
@@ -92,11 +105,12 @@ def appBuildDir = "${buildDir}/test-application"
  * This is where we will download JARs to.
  */
 def downloadDir= "${projectDir}/build/downloads"
-/* 
+/*
  * where we'll stash fixes needed to the idp.war file
  */
 def fixed401Files = "${projectDir}/shibboleth-idp/4.0.1/fixedFiles"
 def fixed410Files = "${projectDir}/shibboleth-idp/4.1.0/fixedFiles"
+def fixed515Files = "${projectDir}/shibboleth-idp/5.1.5/fixedFiles"
 
 
 /******************************************************************
@@ -227,12 +241,19 @@ task copy_40x_IDP {
 }
   
   /* copy temp version of the war - replace with copy from artifactory */
-task copy_41x_IDP {
-   copy {
-    from configurations.shibbolethIdp41x
-    into downloadDir
-  }  
-}
+  task copy_41x_IDP {
+     copy {
+      from configurations.shibbolethIdp41x
+      into downloadDir
+    }
+  }
+  
+  task copy_515_IDP {
+     copy {
+      from configurations.shibbolethIdp515
+      into downloadDir
+    }
+  }
 
 /******************************************************************
  ******************************************************************
@@ -316,11 +337,48 @@ task updateIdp_4_1_x_WAR(type: Zip, dependsOn: copy_41x_IDP) {
   
 }
 
+task updateIdp_5_1_5_WAR(type: Zip, dependsOn: copy_515_IDP) {
+
+  println "In updateIdp_5_1_5_WAR"
+  
+  def originalWar = new File(downloadDir, 'idp-war-5.1.4.war')
+  
+  destinationDirectory = file(appBuildDir)
+  archiveFileName = 'idp-war-5.1.5.war'
+
+  from (zipTree(originalWar)) {
+  		exclude("WEB-INF/web.xml") // fix <auth-constraint/>
+  		exclude("WEB-INF/jsp/status.jsp")
+      exclude("WEB-INF/lib/spring-web-6.1.18.jar") // exclude problematic spring-web jar
+  }
+ 
+  from (downloadDir) {
+    include 'jcl-over-slf4j-1.7.36.jar', 'logback-classic-1.2.11.jar', 'janino-3.1.9.jar', 'commons-compiler-3.1.9.jar'
+    into 'WEB-INF/lib'
+  }
+  // jars needed for javascript support removal from Java
+  from (downloadDir) {
+    include 'rhino-1.7.14.jar', 'idp-plugin-scripting-api-1.1.0.jar', 'idp-plugin-rhino-impl-1.1.0.jar'
+    into 'WEB-INF/lib'
+  }
+  from (fixed515Files) {
+    include 'web.xml'
+    into 'WEB-INF'
+  }
+  // update the status.jsp to work around "'<>' operator is not allowed for source level below 1.7" failure
+  from (fixed515Files) {
+    include 'jsp/status.jsp'
+    into 'WEB-INF'
+  }
+  
+}
+
 assemble.dependsOn SAML_Demo_EAR
 assemble.dependsOn samlclient_WAR
 assemble.dependsOn updateIdp_3_x_WAR
 //assemble.dependsOn updateIdp_4_0_x_WAR
 assemble.dependsOn updateIdp_4_1_x_WAR
+assemble.dependsOn updateIdp_5_1_5_WAR
 assemble.dependsOn httpServletRequestApp_WAR
 
 
