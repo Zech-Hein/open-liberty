@@ -12,10 +12,22 @@
  *******************************************************************************/
 package com.ibm.ws.crypto.ltpakeyutil;
 
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.Provider;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Security;
 import java.security.Signature;
+import java.security.SignatureException;
+import java.util.Arrays;
 
+import com.ibm.websphere.ras.Tr;
+import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Trivial;
 
 /**
@@ -31,16 +43,32 @@ import com.ibm.websphere.ras.annotation.Trivial;
  * 
  * <p>All methods in this class are designed to work with the existing LTPACrypto
  * infrastructure while adding PQC capabilities.
+ * 
+ * <p><b>Implementation Notes:</b>
+ * <ul>
+ * <li>Requires a PQC-capable Java provider (OpenJCEPlus, IBMJCEPlus, IBMJCECCA, or SunJCE with PQC support)</li>
+ * <li>ML-DSA algorithms follow NIST FIPS 204 standard</li>
+ * <li>Hybrid mode provides both classical (RSA) and quantum-resistant (ML-DSA) security</li>
+ * </ul>
  */
 final class LTPACryptoPQC {
     
-    // ML-DSA algorithm names
-    private static final String ML_DSA_65 = "ML-DSA-65";
-    private static final String ML_DSA_87 = "ML-DSA-87";
+    private static final TraceComponent tc = Tr.register(LTPACryptoPQC.class);
+    
+    // ML-DSA algorithm names (NIST FIPS 204)
+    private static final String ML_DSA_44 = "ML-DSA-44";  // Security level 2 (128-bit)
+    private static final String ML_DSA_65 = "ML-DSA-65";  // Security level 3 (192-bit)
+    private static final String ML_DSA_87 = "ML-DSA-87";  // Security level 5 (256-bit)
+    
+    // Alternative algorithm names (some providers may use these)
+    private static final String DILITHIUM2 = "Dilithium2";
+    private static final String DILITHIUM3 = "Dilithium3";
+    private static final String DILITHIUM5 = "Dilithium5";
     
     // Security levels
     private static final int SECURITY_LEVEL_128 = 128;
     private static final int SECURITY_LEVEL_192 = 192;
+    private static final int SECURITY_LEVEL_256 = 256;
     
     /**
      * Private constructor to prevent instantiation.
@@ -52,174 +80,320 @@ final class LTPACryptoPQC {
     /**
      * Generates an ML-DSA key pair.
      * 
-     * <p>TODO: Implement actual ML-DSA key generation using the detected PQC provider.
-     * This method should:
-     * <ol>
-     * <li>Check if PQC is available using PQCProviderUtil</li>
-     * <li>Get the appropriate provider</li>
-     * <li>Generate the key pair using KeyPairGenerator</li>
-     * <li>Convert to LTPA-specific format</li>
-     * </ol>
+     * <p>This method attempts to generate an ML-DSA key pair using the available PQC provider.
+     * It tries multiple algorithm names to support different provider implementations.
      * 
-     * @param securityLevel the security level (128 or 192 bits)
+     * @param securityLevel the security level (128, 192, or 256 bits)
      * @return an ML-DSA key pair
-     * @throws Exception if key generation fails or PQC is not available
+     * @throws NoSuchAlgorithmException if ML-DSA is not supported
+     * @throws NoSuchProviderException if no PQC provider is available
+     * @throws IllegalArgumentException if security level is invalid
      */
     @Trivial
-    static MLDSAKeyPair generateMLDSAKeyPair(int securityLevel) throws Exception {
-        // TODO: Implement ML-DSA key pair generation
-        // 1. Check PQC availability
-        if (!PQCProviderUtil.isPQCAvailable()) {
-            throw new UnsupportedOperationException("PQC provider not available");
+    static MLDSAKeyPair generateMLDSAKeyPair(int securityLevel) throws NoSuchAlgorithmException, NoSuchProviderException {
+        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+            Tr.entry(tc, "generateMLDSAKeyPair", securityLevel);
         }
         
-        // 2. Determine algorithm based on security level
-        String algorithm = (securityLevel == SECURITY_LEVEL_192) ? ML_DSA_87 : ML_DSA_65;
+        // Validate security level
+        if (securityLevel != SECURITY_LEVEL_128 && 
+            securityLevel != SECURITY_LEVEL_192 && 
+            securityLevel != SECURITY_LEVEL_256) {
+            throw new IllegalArgumentException("Invalid security level: " + securityLevel + 
+                                             ". Must be 128, 192, or 256.");
+        }
         
-        // 3. Get provider
-        String provider = PQCProviderUtil.getPQCProvider();
+        // Check PQC availability
+        if (!PQCProviderUtil.isPQCAvailable()) {
+            NoSuchProviderException e = new NoSuchProviderException("No PQC provider available");
+            if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+                Tr.exit(tc, "generateMLDSAKeyPair", e);
+            }
+            throw e;
+        }
         
-        // 4. Generate key pair (stub - needs actual implementation)
-        // KeyPairGenerator keyGen = KeyPairGenerator.getInstance(algorithm, provider);
-        // KeyPair pair = keyGen.generateKeyPair();
+        // Determine algorithm based on security level
+        String[] algorithms = getAlgorithmNames(securityLevel);
+        String providerName = PQCProviderUtil.getPQCProvider();
         
-        // 5. Convert to LTPA format
-        throw new UnsupportedOperationException("ML-DSA key generation not yet implemented");
+        KeyPair keyPair = null;
+        NoSuchAlgorithmException lastException = null;
+        
+        // Try each algorithm name until one works
+        for (String algorithm : algorithms) {
+            try {
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "Attempting to generate key pair with algorithm: " + algorithm);
+                }
+                
+                KeyPairGenerator keyGen;
+                if (providerName != null) {
+                    keyGen = KeyPairGenerator.getInstance(algorithm, providerName);
+                } else {
+                    keyGen = KeyPairGenerator.getInstance(algorithm);
+                }
+                
+                // Initialize with secure random
+                keyGen.initialize(securityLevel, new SecureRandom());
+                keyPair = keyGen.generateKeyPair();
+                
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "Successfully generated key pair with algorithm: " + algorithm);
+                }
+                break;
+                
+            } catch (NoSuchAlgorithmException e) {
+                lastException = e;
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "Algorithm not supported: " + algorithm);
+                }
+                // Try next algorithm
+            }
+        }
+        
+        if (keyPair == null) {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+                Tr.exit(tc, "generateMLDSAKeyPair", lastException);
+            }
+            throw lastException != null ? lastException : 
+                new NoSuchAlgorithmException("No ML-DSA algorithm found for security level " + securityLevel);
+        }
+        
+        // Convert to LTPA format
+        PrivateKey privateKey = keyPair.getPrivate();
+        PublicKey publicKey = keyPair.getPublic();
+        
+        // Wrap the encoded key bytes in a byte[][] array for LTPA format
+        byte[][] privateKeyArray = new byte[][] { privateKey.getEncoded() };
+        byte[][] publicKeyArray = new byte[][] { publicKey.getEncoded() };
+        
+        MLDSAPrivateKey ltpaPrivateKey = new MLDSAPrivateKey(
+            privateKeyArray,
+            privateKey.getAlgorithm(),
+            securityLevel
+        );
+        
+        MLDSAPublicKey ltpaPublicKey = new MLDSAPublicKey(
+            publicKeyArray,
+            publicKey.getAlgorithm(),
+            securityLevel
+        );
+        
+        MLDSAKeyPair result = new MLDSAKeyPair(ltpaPublicKey, ltpaPrivateKey);
+        
+        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+            Tr.exit(tc, "generateMLDSAKeyPair", "Key pair generated successfully");
+        }
+        
+        return result;
     }
     
     /**
      * Signs data using ML-DSA.
      * 
-     * <p>TODO: Implement actual ML-DSA signing.
-     * This method should:
-     * <ol>
-     * <li>Get the ML-DSA signature instance from the provider</li>
-     * <li>Initialize with the private key</li>
-     * <li>Sign the data</li>
-     * <li>Return the signature bytes</li>
-     * </ol>
-     * 
      * @param data the data to sign
      * @param privateKey the ML-DSA private key
      * @return the signature bytes
-     * @throws Exception if signing fails
+     * @throws NoSuchAlgorithmException if ML-DSA is not supported
+     * @throws NoSuchProviderException if no PQC provider is available
+     * @throws InvalidKeyException if the key is invalid
+     * @throws SignatureException if signing fails
      */
     @Trivial
-    protected static byte[] signMLDSA(byte[] data, MLDSAPrivateKey privateKey) throws Exception {
-        // TODO: Implement ML-DSA signing
-        if (!PQCProviderUtil.isPQCAvailable()) {
-            throw new UnsupportedOperationException("PQC provider not available");
+    protected static byte[] signMLDSA(byte[] data, MLDSAPrivateKey privateKey) 
+            throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException {
+        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+            Tr.entry(tc, "signMLDSA", "data length: " + data.length);
         }
         
-        // Stub implementation
-        // String provider = PQCProviderUtil.getPQCProvider();
-        // Signature sig = Signature.getInstance(privateKey.getAlgorithm(), provider);
-        // sig.initSign(privateKey);
-        // sig.update(data);
-        // return sig.sign();
+        if (!PQCProviderUtil.isPQCAvailable()) {
+            NoSuchProviderException e = new NoSuchProviderException("No PQC provider available");
+            if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+                Tr.exit(tc, "signMLDSA", e);
+            }
+            throw e;
+        }
         
-        throw new UnsupportedOperationException("ML-DSA signing not yet implemented");
+        String algorithm = privateKey.getAlgorithm();
+        String providerName = PQCProviderUtil.getPQCProvider();
+        
+        Signature sig;
+        if (providerName != null) {
+            sig = Signature.getInstance(algorithm, providerName);
+        } else {
+            sig = Signature.getInstance(algorithm);
+        }
+        
+        sig.initSign(privateKey);
+        sig.update(data);
+        byte[] signature = sig.sign();
+        
+        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+            Tr.exit(tc, "signMLDSA", "signature length: " + signature.length);
+        }
+        
+        return signature;
     }
     
     /**
      * Verifies an ML-DSA signature.
      * 
-     * <p>TODO: Implement actual ML-DSA verification.
-     * This method should:
-     * <ol>
-     * <li>Get the ML-DSA signature instance from the provider</li>
-     * <li>Initialize with the public key</li>
-     * <li>Verify the signature</li>
-     * <li>Return the verification result</li>
-     * </ol>
-     * 
      * @param data the data that was signed
      * @param signature the signature to verify
      * @param publicKey the ML-DSA public key
      * @return true if the signature is valid, false otherwise
-     * @throws Exception if verification fails
+     * @throws NoSuchAlgorithmException if ML-DSA is not supported
+     * @throws NoSuchProviderException if no PQC provider is available
+     * @throws InvalidKeyException if the key is invalid
+     * @throws SignatureException if verification fails
      */
     @Trivial
-    protected static boolean verifyMLDSA(byte[] data, byte[] signature, MLDSAPublicKey publicKey) throws Exception {
-        // TODO: Implement ML-DSA verification
-        if (!PQCProviderUtil.isPQCAvailable()) {
-            throw new UnsupportedOperationException("PQC provider not available");
+    protected static boolean verifyMLDSA(byte[] data, byte[] signature, MLDSAPublicKey publicKey) 
+            throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException {
+        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+            Tr.entry(tc, "verifyMLDSA", "data length: " + data.length + ", signature length: " + signature.length);
         }
         
-        // Stub implementation
-        // String provider = PQCProviderUtil.getPQCProvider();
-        // Signature sig = Signature.getInstance(publicKey.getAlgorithm(), provider);
-        // sig.initVerify(publicKey);
-        // sig.update(data);
-        // return sig.verify(signature);
+        if (!PQCProviderUtil.isPQCAvailable()) {
+            NoSuchProviderException e = new NoSuchProviderException("No PQC provider available");
+            if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+                Tr.exit(tc, "verifyMLDSA", e);
+            }
+            throw e;
+        }
         
-        throw new UnsupportedOperationException("ML-DSA verification not yet implemented");
+        String algorithm = publicKey.getAlgorithm();
+        String providerName = PQCProviderUtil.getPQCProvider();
+        
+        Signature sig;
+        if (providerName != null) {
+            sig = Signature.getInstance(algorithm, providerName);
+        } else {
+            sig = Signature.getInstance(algorithm);
+        }
+        
+        sig.initVerify(publicKey);
+        sig.update(data);
+        boolean valid = sig.verify(signature);
+        
+        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+            Tr.exit(tc, "verifyMLDSA", valid);
+        }
+        
+        return valid;
     }
     
     /**
      * Signs data using hybrid mode (RSA + ML-DSA).
      * 
-     * <p>TODO: Implement hybrid signing.
-     * This method should:
-     * <ol>
-     * <li>Generate RSA signature using existing LTPACrypto methods</li>
-     * <li>Generate ML-DSA signature</li>
-     * <li>Combine both signatures in a format that can be stored in LTPA token</li>
-     * </ol>
+     * <p>In hybrid mode, both RSA and ML-DSA signatures are generated.
+     * The token is considered valid only if both signatures verify successfully.
      * 
      * @param data the data to sign
-     * @param rsaKey the RSA private key
+     * @param rsaKey the RSA private key (in LTPA format)
      * @param pqcKey the ML-DSA private key
-     * @return a combined signature structure
+     * @return a combined signature structure [rsaSig, pqcSig]
      * @throws Exception if signing fails
      */
     @Trivial
     protected static byte[][] signHybrid(byte[] data, byte[][] rsaKey, MLDSAPrivateKey pqcKey) throws Exception {
-        // TODO: Implement hybrid signing
-        // 1. Sign with RSA (use existing LTPACrypto.signISO9796)
-        // byte[] rsaSignature = LTPACrypto.signISO9796(rsaKey, data, 0, data.length);
+        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+            Tr.entry(tc, "signHybrid", "data length: " + data.length);
+        }
+        
+        // 1. Sign with RSA using existing LTPACrypto
+        byte[] rsaSignature = LTPACrypto.signISO9796(rsaKey, data, 0, data.length);
         
         // 2. Sign with ML-DSA
-        // byte[] pqcSignature = signMLDSA(data, pqcKey);
+        byte[] pqcSignature = signMLDSA(data, pqcKey);
         
         // 3. Combine signatures
-        // return new byte[][] { rsaSignature, pqcSignature };
+        byte[][] result = new byte[][] { rsaSignature, pqcSignature };
         
-        throw new UnsupportedOperationException("Hybrid signing not yet implemented");
+        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+            Tr.exit(tc, "signHybrid", "RSA sig length: " + rsaSignature.length + 
+                                      ", PQC sig length: " + pqcSignature.length);
+        }
+        
+        return result;
     }
     
     /**
      * Verifies a hybrid signature (RSA + ML-DSA).
      * 
-     * <p>TODO: Implement hybrid verification.
-     * This method should:
-     * <ol>
-     * <li>Verify RSA signature using existing LTPACrypto methods</li>
-     * <li>Verify ML-DSA signature</li>
-     * <li>Return true only if both signatures are valid</li>
-     * </ol>
+     * <p>Both signatures must be valid for the verification to succeed.
      * 
      * @param data the data that was signed
      * @param signatures the combined signature structure [rsaSig, pqcSig]
-     * @param rsaKey the RSA public key
+     * @param rsaKey the RSA public key (in LTPA format)
      * @param pqcKey the ML-DSA public key
      * @return true if both signatures are valid, false otherwise
      * @throws Exception if verification fails
      */
     @Trivial
     protected static boolean verifyHybrid(byte[] data, byte[][] signatures, byte[][] rsaKey, MLDSAPublicKey pqcKey) throws Exception {
-        // TODO: Implement hybrid verification
-        // 1. Verify RSA signature (use existing LTPACrypto.verifyISO9796)
-        // boolean rsaValid = LTPACrypto.verifyISO9796(rsaKey, data, 0, data.length, 
-        //                                             signatures[0], 0, signatures[0].length);
+        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+            Tr.entry(tc, "verifyHybrid", "data length: " + data.length);
+        }
+        
+        if (signatures == null || signatures.length != 2) {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+                Tr.exit(tc, "verifyHybrid", "Invalid signature structure");
+            }
+            return false;
+        }
+        
+        // 1. Verify RSA signature using existing LTPACrypto
+        boolean rsaValid = LTPACrypto.verifyISO9796(rsaKey, data, 0, data.length, 
+                                                     signatures[0], 0, signatures[0].length);
+        
+        if (!rsaValid) {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "RSA signature verification failed");
+            }
+            if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+                Tr.exit(tc, "verifyHybrid", false);
+            }
+            return false;
+        }
         
         // 2. Verify ML-DSA signature
-        // boolean pqcValid = verifyMLDSA(data, signatures[1], pqcKey);
+        boolean pqcValid = verifyMLDSA(data, signatures[1], pqcKey);
+        
+        if (!pqcValid) {
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "ML-DSA signature verification failed");
+            }
+        }
         
         // 3. Both must be valid
-        // return rsaValid && pqcValid;
+        boolean result = rsaValid && pqcValid;
         
-        throw new UnsupportedOperationException("Hybrid verification not yet implemented");
+        if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
+            Tr.exit(tc, "verifyHybrid", result);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Gets the algorithm names to try for a given security level.
+     * Returns both NIST standard names and alternative names.
+     * 
+     * @param securityLevel the security level
+     * @return array of algorithm names to try
+     */
+    private static String[] getAlgorithmNames(int securityLevel) {
+        switch (securityLevel) {
+            case SECURITY_LEVEL_128:
+                return new String[] { ML_DSA_44, DILITHIUM2 };
+            case SECURITY_LEVEL_192:
+                return new String[] { ML_DSA_65, DILITHIUM3 };
+            case SECURITY_LEVEL_256:
+                return new String[] { ML_DSA_87, DILITHIUM5 };
+            default:
+                return new String[] { ML_DSA_65, DILITHIUM3 }; // Default to 192-bit
+        }
     }
 }
 

@@ -86,9 +86,10 @@ public final class MLDSAPrivateKey implements PrivateKey {
     
     @Override
     public byte[] getEncoded() {
-        // TODO: Implement proper encoding for ML-DSA private key
-        // This should follow LTPA key file format for v3.0
-        throw new UnsupportedOperationException("ML-DSA private key encoding not yet implemented");
+        // Return the first element of rawKey array (the actual key material)
+        // Return a copy to prevent modification
+        return (rawKey != null && rawKey.length > 0 && rawKey[0] != null) ?
+               rawKey[0].clone() : null;
     }
     
     @Override
